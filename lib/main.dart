@@ -8,7 +8,7 @@ void main(List<String> args) {
   runZonedGuarded(
     () {
       WidgetsFlutterBinding.ensureInitialized();
-      StartupPrepareUtils.prepare().then((_) => runApp(const App()));
+      StartupPrepareUtils.prepare().then((_) => runApp(const App())).wait();
     },
     (Object error, StackTrace stackTrace) {
       debugPrint(
