@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
 extension FirstWhereOrNull<T> on List<T> {
@@ -34,9 +32,6 @@ class Log {
 
   static const int maxItemsNumber = 500;
 
-  /// Path to the log file
-  static const String? logFile = null;
-
   static void printWarning(String text) {
     debugPrint('\x1B[33m$text\x1B[0m');
   }
@@ -70,10 +65,6 @@ class Log {
     }
 
     _items.add(item);
-
-    if (logFile != null) {
-      File(logFile!).writeAsStringSync(item.toString(), mode: FileMode.append);
-    }
 
     if (_items.length > maxItemsNumber) {
       var res = _items.remove(

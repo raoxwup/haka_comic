@@ -9,7 +9,7 @@ import 'package:haka_comic/views/login.dart';
 class Router {
   static final GoRouter router = GoRouter(
     redirect: (context, state) {
-      if (AppConfig().isLogged) {
+      if (AppConfig.isLogged) {
         return null;
       }
       return '/login';

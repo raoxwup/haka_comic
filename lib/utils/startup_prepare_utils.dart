@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/shared_preferences_utils.dart';
 
 class AsyncRequestHandler<T> extends ChangeNotifier {
@@ -42,7 +43,7 @@ extension WaitFuture<T> on Future<T> {
     try {
       await this;
     } catch (e) {
-      print(e.toString());
+      Log.error('unexpected error', e);
     }
   }
 }

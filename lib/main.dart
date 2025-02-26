@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:haka_comic/router/router.dart' as app_router;
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/startup_prepare_utils.dart';
 
 void main(List<String> args) {
@@ -11,9 +12,7 @@ void main(List<String> args) {
       StartupPrepareUtils.prepare().then((_) => runApp(const App())).wait();
     },
     (Object error, StackTrace stackTrace) {
-      debugPrint(
-        'runZonedGuarded: Caught error in my root zone. $error. $stackTrace.',
-      );
+      Log.error('runZonedGuarded', error, stackTrace);
     },
   );
 }
