@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/router/router.dart' as app_router;
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/startup_prepare_utils.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 void main(List<String> args) {
   runZonedGuarded(
