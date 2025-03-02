@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-import 'package:haka_comic/router/router.dart' as app_router;
+import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/startup_prepare_utils.dart';
+import 'package:haka_comic/utils/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 
 void main(List<String> args) {
@@ -25,7 +24,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: "HaKa Comic",
-      routerConfig: app_router.Router.router,
+      routerConfig: appRouter,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
