@@ -31,9 +31,9 @@ class AppConfig {
   // static get isLogged => _instance.user != '' && _instance.password != '';
   static get isLogged => _instance.token != '';
 
-  static get hasAccount => _instance.user != '' && _instance.password != '';
+  static get hasAccount => _instance.email != '' && _instance.password != '';
 
-  set user(String email) {
+  set email(String email) {
     _instance._email = email;
     SharedPreferencesUtil.prefs.setString('email', email);
   }
@@ -48,7 +48,7 @@ class AppConfig {
     SharedPreferencesUtil.prefs.setString('token', token);
   }
 
-  String get user => _instance._email;
+  String get email => _instance._email;
   String get password => _instance._password;
   String get token => _instance._token;
 }
