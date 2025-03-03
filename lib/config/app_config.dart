@@ -4,36 +4,38 @@ class AppConfig {
   static late AppConfig _instance;
 
   // 账号
-  String _user;
+  String _email;
   // 密码
   String _password;
   // token
   String _token;
 
   AppConfig._({
-    required String user,
+    required String email,
     required String password,
     required String token,
-  }) : _user = user,
+  }) : _email = email,
        _password = password,
        _token = token;
 
   factory AppConfig() => _instance;
 
   static void init({
-    required String user,
+    required String email,
     required String password,
     required String token,
   }) {
-    _instance = AppConfig._(user: user, password: password, token: token);
+    _instance = AppConfig._(email: email, password: password, token: token);
   }
 
   // static get isLogged => _instance.user != '' && _instance.password != '';
   static get isLogged => _instance.token != '';
 
-  set user(String user) {
-    _instance._user = user;
-    SharedPreferencesUtil.prefs.setString('user', user);
+  static get hasAccount => _instance.user != '' && _instance.password != '';
+
+  set user(String email) {
+    _instance._email = email;
+    SharedPreferencesUtil.prefs.setString('email', email);
   }
 
   set password(String password) {
@@ -46,7 +48,7 @@ class AppConfig {
     SharedPreferencesUtil.prefs.setString('token', token);
   }
 
-  String get user => _instance._user;
+  String get user => _instance._email;
   String get password => _instance._password;
   String get token => _instance._token;
 }

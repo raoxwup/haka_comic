@@ -33,11 +33,15 @@ class Log {
   static const int maxItemsNumber = 500;
 
   static void printWarning(String text) {
-    debugPrint('\x1B[33m$text\x1B[0m');
+    debugPrint('⛔ ERROR: $text');
   }
 
   static void printError(String text) {
-    debugPrint('\x1B[31m$text\x1B[0m');
+    debugPrint('⚠️ WARNING: $text');
+  }
+
+  static void printInfo(String text) {
+    debugPrint('ℹ️ INFO: $text');
   }
 
   static void add(LogLevel level, String title, String content) {
@@ -53,9 +57,7 @@ class Log {
         printWarning(content);
         break;
       case LogLevel.info:
-        if (kDebugMode) {
-          debugPrint(content);
-        }
+        printInfo(content);
     }
 
     var item = LogItem(level, title, content);

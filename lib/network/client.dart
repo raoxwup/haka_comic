@@ -4,21 +4,6 @@ import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/log.dart';
 
-// Future<void> login(Map<String, String> payload) async {
-//   final client = Dio(BaseOptions(baseUrl: host));
-//   final headers = getHeaders("auth/sign-in", Method.post);
-//   client.options.headers = headers;
-//   try {
-//     final response = await client.post("auth/sign-in", data: payload);
-//     if (response.statusCode == 200) {
-//       Log.info("Sign in successfully", response.data.toString());
-//     }
-//   } catch (e) {
-//     // rethrow;
-//     Log.error("Sign in failed", e);
-//   }
-// }
-
 class Client {
   static final Dio _client = Dio(
     BaseOptions(
@@ -63,7 +48,7 @@ class Client {
           var jsonResponse = jsonDecode(response.data);
           throw Exception(jsonResponse['message']);
         case 401:
-          appRouter.replace('/login');
+          goLogin();
           throw Exception('登录失效');
         default:
           throw Exception("Invalid Status Code ${response.statusCode}");

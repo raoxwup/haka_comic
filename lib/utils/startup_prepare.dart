@@ -8,10 +8,14 @@ class StartupPrepareUtils {
 
   static Future<void> _initSharedPreferencesUtilsAndAppConfig() async {
     final prefs = await SharedPreferencesUtil.init();
+    final List<String> keys = ['email', 'password', 'token'];
+    final Map<String, String> values = Map.fromEntries(
+      keys.map((key) => MapEntry(key, prefs.getString(key) ?? '')),
+    );
     AppConfig.init(
-      user: prefs.getString('user') ?? '',
-      password: prefs.getString('password') ?? '',
-      token: prefs.getString('token') ?? '',
+      email: values['email']!,
+      password: values['password']!,
+      token: values['token']!,
     );
   }
 }
