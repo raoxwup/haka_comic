@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/network/http.dart';
+import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/loading_wrapper.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -12,11 +17,25 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final handler = login.useRequest(
+    onSuccess: (data) {
+      Log.info('Sign in success', data.toString());
+    },
+    onError: (e) {
+      Log.error('Sign in failed', e);
+      showSnackBar(e.toString());
+    },
+  );
 
   bool _showPassword = false;
 
   void _login() {
-    context.replace('/');
+    handler.run(
+      LoginPayload(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   void _update(_) => setState(() {});
@@ -26,6 +45,11 @@ class _LoginState extends State<Login> {
     final appConfig = AppConfig();
     _emailController.text = appConfig.email;
     _passwordController.text = appConfig.password;
+
+    handler.addListener(() {
+      _update(null);
+    });
+
     super.initState();
   }
 
@@ -39,7 +63,6 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
       body: SingleChildScrollView(child: Center(child: _buildLoginForm())),
     );
   }
@@ -50,7 +73,7 @@ class _LoginState extends State<Login> {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 100, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 150, 20, 0),
         child: Column(
           spacing: 20,
           children: [
@@ -65,7 +88,7 @@ class _LoginState extends State<Login> {
             ),
             TextFormField(
               controller: _passwordController,
-              obscureText: _showPassword,
+              obscureText: !_showPassword,
               decoration: InputDecoration(
                 labelText: '密码',
                 border: const OutlineInputBorder(),
@@ -77,15 +100,22 @@ class _LoginState extends State<Login> {
                     });
                   },
                   icon: Icon(
-                    _showPassword ? Icons.visibility_off : Icons.visibility,
+                    _showPassword ? Icons.visibility : Icons.visibility_off,
                   ),
                 ),
               ),
               onChanged: _update,
             ),
-            FilledButton(
-              onPressed: enable ? _login : null,
-              child: const Text('Login'),
+            LoadingWrapper(
+              isLoading: handler.isLoading,
+              progressIndicator: CircularProgressIndicator(
+                constraints: BoxConstraints.tight(const Size(30, 30)),
+                strokeWidth: 3,
+              ),
+              child: FilledButton(
+                onPressed: enable ? _login : null,
+                child: const Text('登录'),
+              ),
             ),
           ],
         ),

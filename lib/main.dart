@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/startup_prepare.dart';
@@ -29,6 +30,7 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: AppConfig.appScaffoldMessengerKey,
     );
   }
 }

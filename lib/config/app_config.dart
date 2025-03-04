@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
 
 class AppConfig {
   static late AppConfig _instance;
+  static final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   // 账号
   String _email;

@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'models.g.dart';
+
 class BaseResponse<T> {
   final int code;
   final String message;
@@ -26,4 +30,14 @@ class LoginPayload {
   String password;
   LoginPayload({required this.email, required this.password});
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
+}
+
+@JsonSerializable()
+class LoginResponse {
+  final String token;
+  LoginResponse({required this.token});
+  factory LoginResponse.fromJson(Map<String, dynamic> json) =>
+      _$LoginResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LoginResponseToJson(this);
 }

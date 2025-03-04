@@ -33,11 +33,11 @@ class Log {
   static const int maxItemsNumber = 500;
 
   static void printWarning(String text) {
-    debugPrint('⛔ ERROR: $text');
+    debugPrint('⚠️ WARNING: $text');
   }
 
   static void printError(String text) {
-    debugPrint('⚠️ WARNING: $text');
+    debugPrint('⛔ ERROR: $text');
   }
 
   static void printInfo(String text) {

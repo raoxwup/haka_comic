@@ -1,13 +1,15 @@
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/log.dart';
 
-Future<String> login(LoginPayload payload) async {
+Future<BaseResponse<LoginResponse>> login(LoginPayload payload) async {
   try {
     final response = await Client.post("auth/sign-in", data: payload.toJson());
-    return response;
+    final data = BaseResponse<LoginResponse>.fromJson(
+      response,
+      (data) => LoginResponse.fromJson(data),
+    );
+    return data;
   } catch (e) {
-    Log.error("Sign in failed", e);
     rethrow;
   }
 }

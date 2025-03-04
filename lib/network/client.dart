@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
-import 'package:haka_comic/utils/log.dart';
 
 class Client {
   static final Dio _client = Dio(
@@ -15,12 +13,12 @@ class Client {
     ),
   );
 
-  static Future<String> _request(
+  static Future<Map<String, dynamic>> _request(
     Method method,
     String path, {
     Map<String, dynamic>? payload,
   }) async {
-    final headers = getHeaders(path, Method.get);
+    final headers = getHeaders(path, method);
     _client.options.headers = headers;
     try {
       Response response;
@@ -45,11 +43,11 @@ class Client {
         case 200:
           return response.data;
         case 400:
-          var jsonResponse = jsonDecode(response.data);
-          throw Exception(jsonResponse['message']);
+          var data = response.data;
+          throw data['message'];
         case 401:
           goLogin();
-          throw Exception('登录失效');
+          throw '登录失效';
         default:
           throw Exception("Invalid Status Code ${response.statusCode}");
       }
@@ -64,24 +62,35 @@ class Client {
       }
       throw Exception(message);
     } catch (e) {
-      Log.error("GET $path failed", e);
       rethrow;
     }
   }
 
-  static Future<String> get(String path, {Map<String, dynamic>? query}) {
+  static Future<Map<String, dynamic>> get(
+    String path, {
+    Map<String, dynamic>? query,
+  }) {
     return _request(Method.get, path, payload: query);
   }
 
-  static Future<String> post(String path, {Map<String, dynamic>? data}) {
+  static Future<Map<String, dynamic>> post(
+    String path, {
+    Map<String, dynamic>? data,
+  }) {
     return _request(Method.post, path, payload: data);
   }
 
-  static Future<String> put(String path, {Map<String, dynamic>? data}) {
+  static Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, dynamic>? data,
+  }) {
     return _request(Method.put, path, payload: data);
   }
 
-  static Future<String> delete(String path, {Map<String, dynamic>? data}) {
+  static Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? data,
+  }) {
     return _request(Method.delete, path, payload: data);
   }
 }
