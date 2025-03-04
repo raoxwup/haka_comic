@@ -46,7 +46,7 @@ class Client {
           var data = response.data;
           throw data['message'];
         case 401:
-          goLogin();
+          logout();
           throw '登录失效';
         default:
           throw Exception("Invalid Status Code ${response.statusCode}");

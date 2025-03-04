@@ -28,7 +28,7 @@ final GoRouter appRouter = GoRouter(
   ],
 );
 
-void goLogin() {
+void logout() {
   AppConfig().token = '';
-  appRouter.replace('/login');
+  appRouter.go('/login');
 }

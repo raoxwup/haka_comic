@@ -112,15 +112,19 @@ class _LoginState extends State<Login> {
               ),
               onChanged: _update,
             ),
-            LoadingWrapper(
-              isLoading: handler.isLoading,
-              progressIndicator: CircularProgressIndicator(
-                constraints: BoxConstraints.tight(const Size(30, 30)),
-                strokeWidth: 3,
-              ),
-              child: FilledButton(
-                onPressed: enable ? _login : null,
-                child: const Text('登录'),
+            FilledButton(
+              onPressed: enable ? _login : null,
+              child: Builder(
+                builder: (context) {
+                  final textColor = DefaultTextStyle.of(context).style.color;
+                  return handler.isLoading
+                      ? CircularProgressIndicator(
+                        constraints: BoxConstraints.tight(const Size(24, 24)),
+                        strokeWidth: 2,
+                        color: textColor,
+                      )
+                      : const Text('登录');
+                },
               ),
             ),
           ],
