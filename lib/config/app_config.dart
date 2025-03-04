@@ -31,7 +31,6 @@ class AppConfig {
     _instance = AppConfig._(email: email, password: password, token: token);
   }
 
-  // static get isLogged => _instance.user != '' && _instance.password != '';
   static get isLogged => _instance.token != '';
 
   static get hasAccount => _instance.email != '' && _instance.password != '';

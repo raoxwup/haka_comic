@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -18,10 +19,15 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final handler = login.useRequest(
-    onSuccess: (data) {
+    onSuccess: (data, params) {
       Log.info('Sign in success', data.toString());
+      final appConfig = AppConfig();
+      appConfig.email = params.email;
+      appConfig.password = params.password;
+      appConfig.token = data.token;
+      appRouter.go('/');
     },
-    onError: (e) {
+    onError: (e, _) {
       Log.error('Sign in failed', e);
       showSnackBar(e.toString());
     },
