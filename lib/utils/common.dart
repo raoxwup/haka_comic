@@ -13,3 +13,8 @@ void showSnackBar(String message) {
     ),
   );
 }
+
+String getTextBeforeNewLine(String text) {
+  int index = text.indexOf('\n');
+  return index != -1 ? text.substring(0, index) : text;
+}

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
+import 'package:haka_comic/utils/common.dart';
 
 class Client {
   static final Dio _client = Dio(
@@ -56,7 +57,7 @@ class Client {
       if (e.type == DioExceptionType.connectionTimeout) {
         message = "连接超时";
       } else if (e.type != DioExceptionType.unknown) {
-        message = e.message!;
+        message = getTextBeforeNewLine(e.message ?? '未知错误');
       } else {
         message = e.toString().split("\n")[1];
       }

@@ -6,7 +6,7 @@ import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/widgets/loading_wrapper.dart';
+import 'package:haka_comic/widgets/button.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -79,7 +79,7 @@ class _LoginState extends State<Login> {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 150, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 200, 20, 0),
         child: Column(
           spacing: 20,
           children: [
@@ -112,20 +112,10 @@ class _LoginState extends State<Login> {
               ),
               onChanged: _update,
             ),
-            FilledButton(
+            Button.filled(
               onPressed: enable ? _login : null,
-              child: Builder(
-                builder: (context) {
-                  final textColor = DefaultTextStyle.of(context).style.color;
-                  return handler.isLoading
-                      ? CircularProgressIndicator(
-                        constraints: BoxConstraints.tight(const Size(24, 24)),
-                        strokeWidth: 2,
-                        color: textColor,
-                      )
-                      : const Text('登录');
-                },
-              ),
+              isLoading: handler.isLoading,
+              child: const Text('登录'),
             ),
           ],
         ),
