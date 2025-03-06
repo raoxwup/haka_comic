@@ -68,8 +68,15 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
-      body: SingleChildScrollView(child: Center(child: _buildLoginForm())),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: [SizedBox(height: 100 + top), _buildLoginForm()],
+          ),
+        ),
+      ),
     );
   }
 
@@ -79,7 +86,7 @@ class _LoginState extends State<Login> {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 200, 20, 0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           spacing: 20,
           children: [
