@@ -68,12 +68,16 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       body: SingleChildScrollView(
         child: Center(
           child: Column(
-            children: [SizedBox(height: 100 + top), _buildLoginForm()],
+            spacing: 20,
+            children: [
+              SizedBox(height: 70),
+              Image.asset('assets/images/login.png', width: 120),
+              _buildLoginForm(),
+            ],
           ),
         ),
       ),
@@ -84,7 +88,7 @@ class _LoginState extends State<Login> {
     final enable =
         _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 400),
+      constraints: const BoxConstraints(maxWidth: 375),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
