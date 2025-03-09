@@ -16,6 +16,7 @@ dependencies:
   dio: ^5.8.0+1
   crypto: ^3.0.6
   json_annotation: ^4.9.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

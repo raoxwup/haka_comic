@@ -41,3 +41,63 @@ class LoginResponse {
 
   Map<String, dynamic> toJson() => _$LoginResponseToJson(this);
 }
+
+@JsonSerializable()
+class ImageDetail {
+  final String fileServer;
+  final String path;
+  final String originalName;
+
+  ImageDetail({
+    required this.fileServer,
+    required this.path,
+    required this.originalName,
+  });
+
+  factory ImageDetail.fromJson(Map<String, dynamic> json) =>
+      _$ImageDetailFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
+
+  String get url =>
+      fileServer.contains('static')
+          ? '$fileServer$path'
+          : '$fileServer/static/$path';
+}
+
+@JsonSerializable()
+class Category {
+  @JsonKey(name: '_id')
+  final String id;
+
+  final ImageDetail thumb;
+
+  final String title;
+
+  @JsonKey(defaultValue: '')
+  final String description;
+
+  Category({
+    required this.id,
+    required this.thumb,
+    required this.title,
+    required this.description,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      _$CategoryFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CategoryToJson(this);
+}
+
+@JsonSerializable()
+class CategoriesResponse {
+  final List<Category> categories;
+
+  CategoriesResponse({required this.categories});
+
+  factory CategoriesResponse.fromJson(Map<String, dynamic> json) =>
+      _$CategoriesResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CategoriesResponseToJson(this);
+}

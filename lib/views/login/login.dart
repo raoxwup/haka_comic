@@ -45,6 +45,7 @@ class _LoginState extends State<Login> {
   }
 
   void _update(_) => setState(() {});
+  void _listener() => _update(null);
 
   @override
   void initState() {
@@ -52,9 +53,7 @@ class _LoginState extends State<Login> {
     _emailController.text = appConfig.email;
     _passwordController.text = appConfig.password;
 
-    handler.addListener(() {
-      _update(null);
-    });
+    handler.addListener(_listener);
 
     super.initState();
   }
@@ -63,6 +62,9 @@ class _LoginState extends State<Login> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+
+    handler.removeListener(_listener);
+
     super.dispose();
   }
 
@@ -75,7 +77,7 @@ class _LoginState extends State<Login> {
             spacing: 20,
             children: [
               SizedBox(height: 70),
-              Image.asset('assets/images/login.png', width: 120),
+              Image.asset('assets/images/login.png', width: 180),
               _buildLoginForm(),
             ],
           ),
