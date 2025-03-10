@@ -28,6 +28,10 @@ class App extends StatelessWidget {
       routerConfig: appRouter,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+        ),
       ),
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: AppConfig.appScaffoldMessengerKey,

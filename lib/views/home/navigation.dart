@@ -53,7 +53,12 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   }
 
   Widget _buildNavigationRail() {
+    final title = destinations[widget.selectedIndex]['label'];
     return NavigationRail(
+      leading:
+          UiMode.notM1(context)
+              ? Text(title, style: Theme.of(context).textTheme.titleLarge)
+              : null,
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
       labelType: NavigationRailLabelType.selected,

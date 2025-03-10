@@ -25,10 +25,16 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(destinations[_selectedIndex]['label'])),
+      appBar:
+          UiMode.m1(context)
+              ? AppBar(
+                title: Text(destinations[_selectedIndex]['label']),
+                backgroundColor: Theme.of(context).colorScheme.surface,
+              )
+              : null,
       body: Row(
         children: [
-          if (UiMode.m2(context) || UiMode.m3(context)) buildAppNavigationBar(),
+          if (UiMode.notM1(context)) buildAppNavigationBar(),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,

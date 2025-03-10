@@ -34,4 +34,8 @@ class UiMode {
   static bool m3(BuildContext context) {
     return getMode(context) == UiModes.m3;
   }
+
+  static bool notM1(BuildContext context) {
+    return !m1(context);
+  }
 }
