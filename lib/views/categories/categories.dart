@@ -6,6 +6,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:go_router/go_router.dart';
 
 class Categories extends StatefulWidget {
   const Categories({super.key});
@@ -73,7 +74,9 @@ class _CategoriesState extends State<Categories> {
 
   Widget _buildItem(Category item) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        context.push('/login');
+      },
       borderRadius: BorderRadius.circular(6),
       child: SingleChildScrollView(
         child: Column(
