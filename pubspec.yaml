@@ -1,6 +1,6 @@
 name: haka_comic
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -25,6 +25,7 @@ dev_dependencies:
   build_runner: ^2.4.15
   json_serializable: ^6.9.4
   flutter_launcher_icons: ^0.14.3
+  package_rename: ^1.9.0
 
 flutter:
   uses-material-design: true
