@@ -101,3 +101,136 @@ class CategoriesResponse {
 
   Map<String, dynamic> toJson() => _$CategoriesResponseToJson(this);
 }
+
+// 漫画排序方式
+enum ComicSortType {
+  dd, // 新到旧
+  da, // 旧到新
+  ld, // 最多喜欢
+  vd, // 最多观看
+}
+
+class ComicsPayload {
+  /// 分页
+  final int? page;
+
+  /// 分类
+  final String? c;
+
+  /// 排序
+  final ComicSortType? s;
+
+  /// Tag
+  final String? t;
+
+  /// 作者
+  final String? a;
+
+  /// 汉化组
+  final String? ct;
+
+  /// 上传者
+  final String? ca;
+
+  ComicsPayload({this.page, this.c, this.s, this.t, this.a, this.ca, this.ct});
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> json = {};
+    if (page != null) json['page'] = page;
+    if (c != null) json['c'] = Uri.encodeComponent(c!);
+    if (s != null) json['s'] = Uri.encodeComponent(s!.name);
+    if (a != null) json['a'] = Uri.encodeComponent(a!);
+    if (ca != null) json['ca'] = Uri.encodeComponent(ca!);
+    if (ct != null) json['ct'] = Uri.encodeComponent(ct!);
+    if (t != null) json['t'] = Uri.encodeComponent(t!);
+    return json;
+  }
+}
+
+@JsonSerializable()
+class Doc {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String title;
+
+  @JsonKey(defaultValue: '')
+  final String author;
+
+  @JsonKey(defaultValue: 0)
+  final int totalViews;
+
+  @JsonKey(defaultValue: 0)
+  final int totalLikes;
+
+  final int pagesCount;
+
+  final int epsCount;
+
+  final bool finished;
+
+  final List<String> categories;
+
+  final ImageDetail thumb;
+
+  final String id;
+
+  @JsonKey(defaultValue: 0)
+  final int likesCount;
+
+  Doc({
+    required this.author,
+    required this.categories,
+    required this.epsCount,
+    required this.finished,
+    required this.id,
+    required this.likesCount,
+    required this.pagesCount,
+    required this.thumb,
+    required this.title,
+    required this.totalLikes,
+    required this.totalViews,
+    required this.uid,
+  });
+
+  factory Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DocToJson(this);
+}
+
+@JsonSerializable()
+class Comics {
+  final List<Doc> docs;
+
+  final int total;
+
+  final int limit;
+
+  final int page;
+
+  final int pages;
+
+  Comics({
+    required this.docs,
+    required this.limit,
+    required this.page,
+    required this.pages,
+    required this.total,
+  });
+
+  factory Comics.fromJson(Map<String, dynamic> json) => _$ComicsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ComicsToJson(this);
+}
+
+@JsonSerializable()
+class ComicsResponse {
+  final Comics comics;
+
+  ComicsResponse({required this.comics});
+
+  factory ComicsResponse.fromJson(Map<String, dynamic> json) =>
+      _$ComicsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ComicsResponseToJson(this);
+}
