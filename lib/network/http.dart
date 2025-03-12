@@ -27,7 +27,7 @@ Future<CategoriesResponse> fetchCategories() async {
 
 /// 根据条件获取漫画列表
 Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
-  final response = await Client.get('categories', query: payload.toJson());
+  final response = await Client.get('comics', query: payload.toJson());
   final data = BaseResponse<ComicsResponse>.fromJson(
     response,
     (data) => ComicsResponse.fromJson(data),

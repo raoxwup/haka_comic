@@ -104,10 +104,17 @@ class CategoriesResponse {
 
 // 漫画排序方式
 enum ComicSortType {
-  dd, // 新到旧
-  da, // 旧到新
-  ld, // 最多喜欢
-  vd, // 最多观看
+  /// 新到旧
+  dd,
+
+  /// 旧到新
+  da,
+
+  /// 最多喜欢
+  ld,
+
+  /// 最多观看
+  vd,
 }
 
 class ComicsPayload {
@@ -137,12 +144,12 @@ class ComicsPayload {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> json = {};
     if (page != null) json['page'] = page;
-    if (c != null) json['c'] = Uri.encodeComponent(c!);
-    if (s != null) json['s'] = Uri.encodeComponent(s!.name);
-    if (a != null) json['a'] = Uri.encodeComponent(a!);
-    if (ca != null) json['ca'] = Uri.encodeComponent(ca!);
-    if (ct != null) json['ct'] = Uri.encodeComponent(ct!);
-    if (t != null) json['t'] = Uri.encodeComponent(t!);
+    if (c != null) json['c'] = c!;
+    if (s != null) json['s'] = s!.name;
+    if (a != null) json['a'] = a!;
+    if (ca != null) json['ca'] = ca!;
+    if (ct != null) json['ct'] = ct!;
+    if (t != null) json['t'] = t!;
     return json;
   }
 }
@@ -160,8 +167,7 @@ class Doc {
   @JsonKey(defaultValue: 0)
   final int totalViews;
 
-  @JsonKey(defaultValue: 0)
-  final int totalLikes;
+  final int? totalLikes;
 
   final int pagesCount;
 
@@ -188,7 +194,7 @@ class Doc {
     required this.pagesCount,
     required this.thumb,
     required this.title,
-    required this.totalLikes,
+    this.totalLikes,
     required this.totalViews,
     required this.uid,
   });

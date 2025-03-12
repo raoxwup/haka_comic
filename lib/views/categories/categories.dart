@@ -75,7 +75,7 @@ class _CategoriesState extends State<Categories> {
   Widget _buildItem(Category item) {
     return InkWell(
       onTap: () {
-        context.push('/login');
+        context.push('/comics?c=${item.title}');
       },
       borderRadius: BorderRadius.circular(6),
       child: SingleChildScrollView(

@@ -61,7 +61,7 @@ Doc _$DocFromJson(Map<String, dynamic> json) => Doc(
   pagesCount: (json['pagesCount'] as num).toInt(),
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
   title: json['title'] as String,
-  totalLikes: (json['totalLikes'] as num?)?.toInt() ?? 0,
+  totalLikes: (json['totalLikes'] as num?)?.toInt(),
   totalViews: (json['totalViews'] as num?)?.toInt() ?? 0,
   uid: json['_id'] as String,
 );

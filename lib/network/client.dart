@@ -19,7 +19,22 @@ class Client {
     String path, {
     Map<String, dynamic>? payload,
   }) async {
-    final headers = getHeaders(path, method);
+    String queryString = '';
+    if (method == Method.get) {
+      queryString =
+          Uri(
+            queryParameters: (payload ?? {}).map(
+              (key, value) => MapEntry(key, value.toString()),
+            ),
+          ).query;
+    }
+    final headers =
+        method == Method.get
+            ? getHeaders(
+              queryString.isEmpty ? path : '$path?$queryString',
+              method,
+            )
+            : getHeaders(path, method);
     _client.options.headers = headers;
     try {
       Response response;
