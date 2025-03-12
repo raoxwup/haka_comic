@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/ui.dart';
+import 'package:haka_comic/views/comics/list_item.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
 class Comics extends StatefulWidget {
@@ -28,8 +32,8 @@ class Comics extends StatefulWidget {
 }
 
 class _ComicsState extends State<Comics> {
-  final ComicSortType sortType = ComicSortType.dd;
-  final int page = 1;
+  ComicSortType sortType = ComicSortType.dd;
+  int page = 1;
 
   final handler = fetchComics.useRequest(
     onSuccess: (data, _) {
@@ -57,6 +61,8 @@ class _ComicsState extends State<Comics> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Doc>? comics = handler.data?.comics.docs;
+    final int pages = handler.data?.comics.pages ?? 0;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -67,8 +73,135 @@ class _ComicsState extends State<Comics> {
         isLoading: handler.isLoading,
         onRetry: handler.refresh,
         error: handler.error,
-        child: Center(child: Text(widget.c ?? "")),
+        child: CustomScrollView(
+          slivers: [
+            _buildSliverToBoxAdapter(pages),
+            SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent:
+                    UiMode.m1(context)
+                        ? MediaQuery.sizeOf(context).width
+                        : UiMode.m2(context)
+                        ? MediaQuery.sizeOf(context).width / 2
+                        : MediaQuery.sizeOf(context).width / 3,
+                mainAxisSpacing: 5,
+                crossAxisSpacing: 5,
+                childAspectRatio: 393 / 146,
+              ),
+              itemBuilder: (context, index) {
+                return ListItem(doc: comics![index]);
+              },
+              itemCount: comics?.length,
+            ),
+            _buildSliverToBoxAdapter(pages),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildSliverToBoxAdapter(int pages) {
+    return SliverToBoxAdapter(
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+        child: Row(
+          children: [
+            FilledButton.tonal(
+              onPressed:
+                  page <= 1
+                      ? null
+                      : () {
+                        setState(() {
+                          page--;
+                          handler.run(
+                            ComicsPayload(c: widget.c, s: sortType, page: page),
+                          );
+                        });
+                      },
+              child: const Text('上一页'),
+            ),
+            const Spacer(),
+            ActionChip(
+              label: Text('页面: $page / $pages'),
+              onPressed: () {
+                selectPage(pages);
+              },
+              elevation: 1,
+              side: BorderSide.none,
+            ),
+            const Spacer(),
+            FilledButton.tonal(
+              onPressed:
+                  page >= pages
+                      ? null
+                      : () {
+                        setState(() {
+                          page++;
+                          handler.run(
+                            ComicsPayload(c: widget.c, s: sortType, page: page),
+                          );
+                        });
+                      },
+              child: const Text('下一页'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void selectPage(int pages) async {
+    String res = "";
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        var controller = TextEditingController();
+        return SimpleDialog(
+          title: const Text("页面跳转"),
+          children: [
+            const SizedBox(width: 300),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+              child: TextField(
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: "页码",
+                  suffixText: "${"输入范围: "}1-${pages.toString()}",
+                ),
+                controller: controller,
+                onSubmitted: (s) {
+                  res = s;
+                  context.pop();
+                },
+              ),
+            ),
+            Center(
+              child: FilledButton(
+                child: const Text("提交"),
+                onPressed: () {
+                  res = controller.text;
+                  context.pop();
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    if (int.tryParse(res) != null) {
+      int i = int.parse(res);
+      if (i > 0 && i <= pages) {
+        setState(() {
+          page = i;
+          handler.run(ComicsPayload(c: widget.c, s: sortType, page: page));
+        });
+        return;
+      }
+    }
+    if (res != "") {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        showSnackBar('跳转页码不正确');
+      });
+    }
   }
 }

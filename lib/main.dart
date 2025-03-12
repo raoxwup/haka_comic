@@ -18,6 +18,8 @@ void main(List<String> args) {
   );
 }
 
+final colorScheme = ColorScheme.fromSeed(seedColor: Colors.deepPurple);
+
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -27,10 +29,11 @@ class App extends StatelessWidget {
       title: "HaKa Comic",
       routerConfig: appRouter,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        appBarTheme: const AppBarTheme(
+        colorScheme: colorScheme,
+        appBarTheme: AppBarTheme(
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
+          backgroundColor: colorScheme.surface,
         ),
       ),
       debugShowCheckedModeBanner: false,

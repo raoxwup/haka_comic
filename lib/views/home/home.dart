@@ -27,10 +27,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar:
           UiMode.m1(context)
-              ? AppBar(
-                title: Text(destinations[_selectedIndex]['label']),
-                backgroundColor: Theme.of(context).colorScheme.surface,
-              )
+              ? AppBar(title: Text(destinations[_selectedIndex]['label']))
               : null,
       body: Row(
         children: [
