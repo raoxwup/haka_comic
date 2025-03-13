@@ -34,3 +34,13 @@ Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
   );
   return data.data;
 }
+
+/// 漫画详情
+Future<ComicDetailsResponse> fetchComicDetails(String id) async {
+  final response = await Client.get('comics/$id');
+  final data = BaseResponse<ComicDetailsResponse>.fromJson(
+    response,
+    (data) => ComicDetailsResponse.fromJson(data),
+  );
+  return data.data;
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
@@ -30,6 +31,12 @@ final GoRouter appRouter = GoRouter(
       path: '/comics',
       builder: (BuildContext context, GoRouterState state) {
         return Comics(c: state.uri.queryParameters['c']);
+      },
+    ),
+    GoRoute(
+      path: '/details/:id',
+      builder: (BuildContext context, GoRouterState state) {
+        return ComicDetails(id: state.pathParameters['id']!);
       },
     ),
   ],

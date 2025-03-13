@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
@@ -17,7 +18,9 @@ class _ListItemState extends State<ListItem> {
     final item = widget.doc;
     return InkWell(
       borderRadius: BorderRadius.all(Radius.circular(12)),
-      onTap: () {},
+      onTap: () {
+        context.go('/details/${item.id}');
+      },
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
         child: Row(

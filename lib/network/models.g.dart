@@ -107,3 +107,93 @@ ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ComicsResponseToJson(ComicsResponse instance) =>
     <String, dynamic>{'comics': instance.comics};
+
+Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
+  id: json['_id'] as String,
+  avatar: ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  characters:
+      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  exp: (json['exp'] as num?)?.toInt() ?? 0,
+  gender: json['gender'] as String,
+  level: (json['level'] as num).toInt(),
+  name: json['name'] as String,
+  role: json['role'] as String,
+  title: json['title'] as String,
+);
+
+Map<String, dynamic> _$CreatorToJson(Creator instance) => <String, dynamic>{
+  '_id': instance.id,
+  'gender': instance.gender,
+  'name': instance.name,
+  'exp': instance.exp,
+  'level': instance.level,
+  'role': instance.role,
+  'avatar': instance.avatar,
+  'characters': instance.characters,
+  'title': instance.title,
+};
+
+Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
+  author: json['author'] as String,
+  categories:
+      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  chineseTeam: json['chineseTeam'] as String,
+  created_at: json['created_at'] as String,
+  description: json['description'] as String,
+  epsCount: (json['epsCount'] as num).toInt(),
+  finished: json['finished'] as bool,
+  id: json['_id'] as String,
+  isFavourite: json['isFavourite'] as bool,
+  isLiked: json['isLiked'] as bool,
+  likesCount: (json['likesCount'] as num).toInt(),
+  pagesCount: (json['pagesCount'] as num).toInt(),
+  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
+  title: json['title'] as String,
+  totalLikes: (json['totalLikes'] as num).toInt(),
+  totalViews: (json['totalViews'] as num).toInt(),
+  totalComments: (json['totalComments'] as num).toInt(),
+  updated_at: json['updated_at'] as String,
+  viewsCount: (json['viewsCount'] as num).toInt(),
+  creator: Creator.fromJson(json['_creator'] as Map<String, dynamic>),
+  allowDownload: json['allowDownload'] as bool,
+  allowComment: json['allowComment'] as bool,
+  commentsCount: (json['commentsCount'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicToJson(Comic instance) => <String, dynamic>{
+  '_id': instance.id,
+  '_creator': instance.creator,
+  'title': instance.title,
+  'description': instance.description,
+  'thumb': instance.thumb,
+  'author': instance.author,
+  'categories': instance.categories,
+  'chineseTeam': instance.chineseTeam,
+  'tags': instance.tags,
+  'pagesCount': instance.pagesCount,
+  'epsCount': instance.epsCount,
+  'finished': instance.finished,
+  'updated_at': instance.updated_at,
+  'created_at': instance.created_at,
+  'allowDownload': instance.allowDownload,
+  'allowComment': instance.allowComment,
+  'totalLikes': instance.totalLikes,
+  'totalViews': instance.totalViews,
+  'totalComments': instance.totalComments,
+  'viewsCount': instance.viewsCount,
+  'likesCount': instance.likesCount,
+  'commentsCount': instance.commentsCount,
+  'isFavourite': instance.isFavourite,
+  'isLiked': instance.isLiked,
+};
+
+ComicDetailsResponse _$ComicDetailsResponseFromJson(
+  Map<String, dynamic> json,
+) => ComicDetailsResponse(
+  comic: Comic.fromJson(json['comic'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$ComicDetailsResponseToJson(
+  ComicDetailsResponse instance,
+) => <String, dynamic>{'comic': instance.comic};

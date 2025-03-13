@@ -240,3 +240,140 @@ class ComicsResponse {
 
   Map<String, dynamic> toJson() => _$ComicsResponseToJson(this);
 }
+
+@JsonSerializable()
+class Creator {
+  @JsonKey(name: '_id')
+  final String id;
+
+  final String gender;
+
+  final String name;
+
+  @JsonKey(defaultValue: 0)
+  final int exp;
+
+  final int level;
+
+  final String role;
+
+  final ImageDetail avatar;
+
+  final List<String> characters;
+
+  final String title;
+
+  Creator({
+    required this.id,
+    required this.avatar,
+    required this.characters,
+    required this.exp,
+    required this.gender,
+    required this.level,
+    required this.name,
+    required this.role,
+    required this.title,
+  });
+
+  factory Creator.fromJson(Map<String, dynamic> json) =>
+      _$CreatorFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CreatorToJson(this);
+}
+
+@JsonSerializable()
+class Comic {
+  @JsonKey(name: '_id')
+  final String id;
+
+  @JsonKey(name: '_creator')
+  final Creator creator;
+
+  final String title;
+
+  final String description;
+
+  final ImageDetail thumb;
+
+  final String author;
+
+  final List<String> categories;
+
+  final String chineseTeam;
+
+  final List<String> tags;
+
+  final int pagesCount;
+
+  final int epsCount;
+
+  final bool finished;
+
+  final String updated_at;
+
+  final String created_at;
+
+  final bool allowDownload;
+
+  final bool allowComment;
+
+  final int totalLikes;
+
+  final int totalViews;
+
+  final int totalComments;
+
+  final int viewsCount;
+
+  final int likesCount;
+
+  final int commentsCount;
+
+  // 好多单词拼写错误
+  final bool isFavourite;
+
+  final bool isLiked;
+
+  Comic({
+    required this.author,
+    required this.categories,
+    required this.chineseTeam,
+    required this.created_at,
+    required this.description,
+    required this.epsCount,
+    required this.finished,
+    required this.id,
+    required this.isFavourite,
+    required this.isLiked,
+    required this.likesCount,
+    required this.pagesCount,
+    required this.tags,
+    required this.thumb,
+    required this.title,
+    required this.totalLikes,
+    required this.totalViews,
+    required this.totalComments,
+    required this.updated_at,
+    required this.viewsCount,
+    required this.creator,
+    required this.allowDownload,
+    required this.allowComment,
+    required this.commentsCount,
+  });
+
+  factory Comic.fromJson(Map<String, dynamic> json) => _$ComicFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ComicToJson(this);
+}
+
+@JsonSerializable()
+class ComicDetailsResponse {
+  final Comic comic;
+
+  ComicDetailsResponse({required this.comic});
+
+  factory ComicDetailsResponse.fromJson(Map<String, dynamic> json) =>
+      _$ComicDetailsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ComicDetailsResponseToJson(this);
+}

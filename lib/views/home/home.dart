@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/categories/categories.dart';
 import 'package:haka_comic/views/home/navigation.dart';
+import 'package:haka_comic/views/mine/mine.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -35,7 +36,7 @@ class _HomeState extends State<Home> {
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,
-              children: const [Categories(), Text('Categories')],
+              children: const [Categories(), Mine()],
             ),
           ),
         ],

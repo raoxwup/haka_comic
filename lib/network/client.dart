@@ -8,6 +8,7 @@ class Client {
     BaseOptions(
       baseUrl: host,
       responseType: ResponseType.json,
+      connectTimeout: const Duration(seconds: 10),
       validateStatus: (status) {
         return status == 200 || status == 400 || status == 401;
       },
