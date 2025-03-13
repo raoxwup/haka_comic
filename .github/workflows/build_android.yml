@@ -35,7 +35,7 @@ jobs:
         run: flutter build apk --split-per-abi
 
       - name: Upload APK artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: |
