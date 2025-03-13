@@ -31,14 +31,22 @@ jobs:
       - name: Build Universal APK
         run: flutter build apk
 
+      - name: Move Universal APK
+        run: |
+          mkdir -p artifacts/universal
+          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/
+
       - name: Build Split APKs
         run: flutter build apk --split-per-abi
+
+      - name: Move Split APKs
+        run: |
+          mkdir -p artifacts/split
+          mv build/app/outputs/apk/release/*.apk artifacts/split/
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-apks
-          path: |
-            build/app/outputs/apk/release/*.apk
-            build/app/outputs/apk/release/**/*.apk
+          path: artifacts/
           retention-days: 5
