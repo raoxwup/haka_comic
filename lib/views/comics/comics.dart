@@ -63,6 +63,7 @@ class _ComicsState extends State<Comics> {
   Widget build(BuildContext context) {
     final List<Doc>? comics = handler.data?.comics.docs;
     final int pages = handler.data?.comics.pages ?? 0;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -80,10 +81,10 @@ class _ComicsState extends State<Comics> {
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent:
                     UiMode.m1(context)
-                        ? MediaQuery.sizeOf(context).width
+                        ? width
                         : UiMode.m2(context)
-                        ? MediaQuery.sizeOf(context).width / 2
-                        : MediaQuery.sizeOf(context).width / 3,
+                        ? width / 2
+                        : width / 3,
                 mainAxisSpacing: 5,
                 crossAxisSpacing: 5,
                 childAspectRatio: 393 / 146,
@@ -102,8 +103,8 @@ class _ComicsState extends State<Comics> {
 
   Widget _buildSliverToBoxAdapter(int pages) {
     return SliverToBoxAdapter(
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
         child: Row(
           children: [
             FilledButton.tonal(
@@ -126,7 +127,6 @@ class _ComicsState extends State<Comics> {
               onPressed: () {
                 selectPage(pages);
               },
-              elevation: 1,
               side: BorderSide.none,
             ),
             const Spacer(),

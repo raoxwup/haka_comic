@@ -12,7 +12,7 @@ enum UiModes {
 }
 
 UiModes getMode(BuildContext context) {
-  final width = MediaQuery.of(context).size.width;
+  final width = MediaQuery.sizeOf(context).width;
   if (width <= 600) {
     return UiModes.m1;
   } else if (width > 600 && width <= 950) {
