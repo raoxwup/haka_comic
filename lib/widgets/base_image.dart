@@ -33,7 +33,9 @@ class BaseImage extends StatefulWidget {
 }
 
 class _BaseImageState extends State<BaseImage> {
-  UniqueKey key = UniqueKey();
+  final ValueNotifier<UniqueKey> keyNotifier = ValueNotifier<UniqueKey>(
+    UniqueKey(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +44,26 @@ class _BaseImageState extends State<BaseImage> {
       child: Card(
         clipBehavior: Clip.hardEdge,
         elevation: 0,
-        child: CachedNetworkImage(
-          key: key,
-          imageUrl: widget.url,
-          fit: widget.fit,
-          width: widget.width,
-          height: widget.height,
-          progressIndicatorBuilder: widget.progressIndicatorBuilder,
-          errorWidget:
-              widget.errorBuilder ??
-              (context, url, error) => IconButton(
-                onPressed: () {
-                  setState(() {
-                    key = UniqueKey();
-                  });
-                },
-                icon: Icon(Icons.error),
+        child: ValueListenableBuilder(
+          valueListenable: keyNotifier,
+          builder:
+              (context, value, child) => CachedNetworkImage(
+                key: value,
+                imageUrl: widget.url,
+                fit: widget.fit,
+                width: widget.width,
+                height: widget.height,
+                progressIndicatorBuilder: widget.progressIndicatorBuilder,
+                errorWidget:
+                    widget.errorBuilder ??
+                    (context, url, error) => Center(
+                      child: IconButton(
+                        onPressed: () {
+                          keyNotifier.value = UniqueKey();
+                        },
+                        icon: Icon(Icons.refresh),
+                      ),
+                    ),
               ),
         ),
       ),
