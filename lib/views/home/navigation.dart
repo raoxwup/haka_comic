@@ -14,6 +14,11 @@ const List<dynamic> destinations = [
   },
 ];
 
+const List<dynamic> actions = [
+  {"icon": Icon(Icons.search), "label": '搜索', "path": '/search'},
+  {"icon": Icon(Icons.settings), "label": '设置', "path": '/settings'},
+];
+
 class AppNavigationBar extends StatefulWidget {
   const AppNavigationBar({
     super.key,
@@ -55,13 +60,29 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   Widget _buildNavigationRail() {
     final title = destinations[widget.selectedIndex]['label'];
     return NavigationRail(
-      leading:
-          UiMode.notM1(context)
-              ? Text(title, style: Theme.of(context).textTheme.titleLarge)
-              : null,
+      leading: Text(title, style: Theme.of(context).textTheme.titleLarge),
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
       labelType: NavigationRailLabelType.selected,
+      trailing: Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            spacing: 8,
+            children:
+                actions
+                    .map(
+                      (e) => IconButton(
+                        tooltip: e['label'],
+                        icon: e['icon']!,
+                        onPressed: () {},
+                      ),
+                    )
+                    .toList(),
+          ),
+        ),
+      ),
       destinations:
           destinations
               .map(

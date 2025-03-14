@@ -28,7 +28,19 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar:
           UiMode.m1(context)
-              ? AppBar(title: Text(destinations[_selectedIndex]['label']))
+              ? AppBar(
+                title: Text(destinations[_selectedIndex]['label']),
+                actions:
+                    actions
+                        .map(
+                          (e) => IconButton(
+                            tooltip: e['label'],
+                            onPressed: () {},
+                            icon: e['icon']!,
+                          ),
+                        )
+                        .toList(),
+              )
               : null,
       body: Row(
         children: [

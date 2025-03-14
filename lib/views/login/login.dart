@@ -19,6 +19,8 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _passwordFocusNode = FocusNode();
+
   final handler = login.useRequest(
     onSuccess: (data, params) {
       Log.info('Sign in success', data.toString());
@@ -57,7 +59,10 @@ class _LoginState extends State<Login> {
     handler.addListener(_listener);
 
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
     );
 
     super.initState();
@@ -67,6 +72,7 @@ class _LoginState extends State<Login> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
 
     handler.removeListener(_listener);
 
@@ -92,8 +98,10 @@ class _LoginState extends State<Login> {
   }
 
   Widget _buildLoginForm() {
-    final enable =
-        _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+    final password = _passwordController.text;
+    final email = _emailController.text;
+    final enable = password.isNotEmpty && email.isNotEmpty;
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 375),
       child: Padding(
@@ -109,26 +117,36 @@ class _LoginState extends State<Login> {
                 prefixIcon: Icon(Icons.person),
               ),
               onChanged: _update,
+              onFieldSubmitted: (value) {
+                _passwordFocusNode.requestFocus();
+              },
             ),
             TextFormField(
               controller: _passwordController,
               obscureText: !_showPassword,
+              focusNode: _passwordFocusNode,
               decoration: InputDecoration(
                 labelText: '密码',
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.lock),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _showPassword = !_showPassword;
-                    });
-                  },
-                  icon: Icon(
-                    _showPassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                ),
+                suffixIcon:
+                    password.isNotEmpty
+                        ? IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _showPassword = !_showPassword;
+                            });
+                          },
+                          icon: Icon(
+                            _showPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                        )
+                        : null,
               ),
               onChanged: _update,
+              onFieldSubmitted: (value) => enable ? _login() : null,
             ),
             Button.filled(
               onPressed: enable ? _login : null,

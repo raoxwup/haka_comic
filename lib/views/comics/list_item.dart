@@ -19,7 +19,7 @@ class _ListItemState extends State<ListItem> {
     return InkWell(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       onTap: () {
-        context.go('/details/${item.id}');
+        context.push('/details/${item.id}');
       },
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
