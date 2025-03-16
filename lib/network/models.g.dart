@@ -110,7 +110,10 @@ Map<String, dynamic> _$ComicsResponseToJson(ComicsResponse instance) =>
 
 Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   id: json['_id'] as String,
-  avatar: ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  avatar:
+      json['avatar'] == null
+          ? null
+          : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
   characters:
       (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
   exp: (json['exp'] as num?)?.toInt() ?? 0,
@@ -119,6 +122,7 @@ Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   name: json['name'] as String,
   role: json['role'] as String,
   title: json['title'] as String,
+  slogan: json['slogan'] as String?,
 );
 
 Map<String, dynamic> _$CreatorToJson(Creator instance) => <String, dynamic>{
@@ -131,6 +135,7 @@ Map<String, dynamic> _$CreatorToJson(Creator instance) => <String, dynamic>{
   'avatar': instance.avatar,
   'characters': instance.characters,
   'title': instance.title,
+  'slogan': instance.slogan,
 };
 
 Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
@@ -197,3 +202,46 @@ ComicDetailsResponse _$ComicDetailsResponseFromJson(
 Map<String, dynamic> _$ComicDetailsResponseToJson(
   ComicDetailsResponse instance,
 ) => <String, dynamic>{'comic': instance.comic};
+
+Chapter _$ChapterFromJson(Map<String, dynamic> json) => Chapter(
+  uid: json['_id'] as String,
+  title: json['title'] as String,
+  order: (json['order'] as num).toInt(),
+  updated_at: json['updated_at'] as String,
+  id: json['id'] as String,
+);
+
+Map<String, dynamic> _$ChapterToJson(Chapter instance) => <String, dynamic>{
+  '_id': instance.uid,
+  'title': instance.title,
+  'order': instance.order,
+  'updated_at': instance.updated_at,
+  'id': instance.id,
+};
+
+Chapters _$ChaptersFromJson(Map<String, dynamic> json) => Chapters(
+  docs:
+      (json['docs'] as List<dynamic>)
+          .map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ChaptersToJson(Chapters instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'total': instance.total,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+};
+
+ChaptersResponse _$ChaptersResponseFromJson(Map<String, dynamic> json) =>
+    ChaptersResponse(
+      eps: Chapters.fromJson(json['eps'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ChaptersResponseToJson(ChaptersResponse instance) =>
+    <String, dynamic>{'eps': instance.eps};

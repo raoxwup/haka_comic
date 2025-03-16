@@ -257,15 +257,17 @@ class Creator {
 
   final String role;
 
-  final ImageDetail avatar;
+  final ImageDetail? avatar;
 
   final List<String> characters;
 
   final String title;
 
+  final String? slogan;
+
   Creator({
     required this.id,
-    required this.avatar,
+    this.avatar,
     required this.characters,
     required this.exp,
     required this.gender,
@@ -273,6 +275,7 @@ class Creator {
     required this.name,
     required this.role,
     required this.title,
+    this.slogan,
   });
 
   factory Creator.fromJson(Map<String, dynamic> json) =>
@@ -376,4 +379,69 @@ class ComicDetailsResponse {
       _$ComicDetailsResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ComicDetailsResponseToJson(this);
+}
+
+@JsonSerializable()
+class Chapter {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String title;
+
+  final int order;
+
+  final String updated_at;
+
+  final String id;
+
+  Chapter({
+    required this.uid,
+    required this.title,
+    required this.order,
+    required this.updated_at,
+    required this.id,
+  });
+
+  factory Chapter.fromJson(Map<String, dynamic> json) =>
+      _$ChapterFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChapterToJson(this);
+}
+
+@JsonSerializable()
+class Chapters {
+  final List<Chapter> docs;
+
+  final int total;
+
+  final int limit;
+
+  final int page;
+
+  final int pages;
+
+  Chapters({
+    required this.docs,
+    required this.total,
+    required this.limit,
+    required this.page,
+    required this.pages,
+  });
+
+  factory Chapters.fromJson(Map<String, dynamic> json) =>
+      _$ChaptersFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChaptersToJson(this);
+}
+
+@JsonSerializable()
+class ChaptersResponse {
+  final Chapters eps;
+
+  ChaptersResponse({required this.eps});
+
+  factory ChaptersResponse.fromJson(Map<String, dynamic> json) =>
+      _$ChaptersResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChaptersResponseToJson(this);
 }

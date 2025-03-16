@@ -5,7 +5,7 @@ class BaseImage extends StatefulWidget {
   const BaseImage({
     super.key,
     required this.url,
-    this.aspectRatio = 1,
+    this.aspectRatio,
     this.fit = BoxFit.cover,
     this.width,
     this.height,
@@ -15,7 +15,7 @@ class BaseImage extends StatefulWidget {
 
   final String url;
 
-  final double aspectRatio;
+  final double? aspectRatio;
 
   final BoxFit fit;
 
@@ -39,33 +39,38 @@ class _BaseImageState extends State<BaseImage> {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: widget.aspectRatio,
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        elevation: 0,
-        child: ValueListenableBuilder(
-          valueListenable: keyNotifier,
-          builder:
-              (context, value, child) => CachedNetworkImage(
-                key: value,
-                imageUrl: widget.url,
-                fit: widget.fit,
-                width: widget.width,
-                height: widget.height,
-                progressIndicatorBuilder: widget.progressIndicatorBuilder,
-                errorWidget:
-                    widget.errorBuilder ??
-                    (context, url, error) => Center(
-                      child: IconButton(
-                        onPressed: () {
-                          keyNotifier.value = UniqueKey();
-                        },
-                        icon: Icon(Icons.refresh),
-                      ),
+    return widget.aspectRatio == null ? _buildImage() : _buildAspectRatio();
+  }
+
+  Widget _buildAspectRatio() {
+    return AspectRatio(aspectRatio: widget.aspectRatio!, child: _buildImage());
+  }
+
+  Widget _buildImage() {
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      elevation: 0,
+      child: ValueListenableBuilder(
+        valueListenable: keyNotifier,
+        builder:
+            (context, value, child) => CachedNetworkImage(
+              key: value,
+              imageUrl: widget.url,
+              fit: widget.fit,
+              width: widget.width ?? double.infinity,
+              height: widget.height ?? double.infinity,
+              progressIndicatorBuilder: widget.progressIndicatorBuilder,
+              errorWidget:
+                  widget.errorBuilder ??
+                  (context, url, error) => Center(
+                    child: IconButton(
+                      onPressed: () {
+                        keyNotifier.value = UniqueKey();
+                      },
+                      icon: Icon(Icons.refresh),
                     ),
-              ),
-        ),
+                  ),
+            ),
       ),
     );
   }

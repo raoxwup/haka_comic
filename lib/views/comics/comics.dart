@@ -87,7 +87,7 @@ class _ComicsState extends State<Comics> {
                         : width / 3,
                 mainAxisSpacing: 5,
                 crossAxisSpacing: 5,
-                childAspectRatio: 393 / 146,
+                childAspectRatio: 2.8,
               ),
               itemBuilder: (context, index) {
                 return ListItem(doc: comics![index]);

@@ -82,7 +82,7 @@ class _CategoriesState extends State<Categories> {
         child: Column(
           spacing: 5,
           children: [
-            BaseImage(url: item.thumb.url),
+            BaseImage(url: item.thumb.url, aspectRatio: 1),
             Text(item.title, style: Theme.of(context).textTheme.labelLarge),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/tag.dart';
 
 class ListItem extends StatefulWidget {
   const ListItem({super.key, required this.doc});
@@ -49,12 +50,18 @@ class _ListItemState extends State<ListItem> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Expanded(child: _buildCategories(item.categories)),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      '${item.totalLikes ?? item.likesCount} likes   ${item.totalViews} views',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
+                  Row(
+                    spacing: 10,
+                    children: [
+                      Text(
+                        '${item.totalLikes ?? item.likesCount} likes',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      Text(
+                        '${item.totalViews} views',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -68,23 +75,9 @@ class _ListItemState extends State<ListItem> {
   Widget _buildCategories(List<String> categories) {
     return SingleChildScrollView(
       child: Wrap(
-        children:
-            categories
-                .map(
-                  (e) => Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                    margin: const EdgeInsets.fromLTRB(0, 0, 3, 3),
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(99)),
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                    child: Text(
-                      e,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                )
-                .toList(),
+        spacing: 3,
+        runSpacing: 3,
+        children: categories.map((e) => Tag(tag: e)).toList(),
       ),
     );
   }

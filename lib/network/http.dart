@@ -44,3 +44,30 @@ Future<ComicDetailsResponse> fetchComicDetails(String id) async {
   );
   return data.data;
 }
+
+/// 漫画章节
+Future<List<Chapter>> fetchChapters(String id) async {
+  List<Chapter> chapters = [];
+  final response = await Client.get('comics/$id/eps', query: {'page': 1});
+  final data = BaseResponse<ChaptersResponse>.fromJson(
+    response,
+    (data) => ChaptersResponse.fromJson(data),
+  );
+  final eps = data.data.eps;
+  chapters.addAll(eps.docs);
+  // 并发请求快一些
+  final results = await Future.wait(
+    List.generate(
+      eps.pages - 1,
+      (index) => Client.get('comics/$id/eps', query: {'page': index + 2}),
+    ),
+  );
+  for (var result in results) {
+    final data = BaseResponse<ChaptersResponse>.fromJson(
+      result,
+      (data) => ChaptersResponse.fromJson(data),
+    );
+    chapters.addAll(data.data.eps.docs);
+  }
+  return chapters;
+}
