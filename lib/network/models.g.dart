@@ -157,13 +157,13 @@ Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
   title: json['title'] as String,
   totalLikes: (json['totalLikes'] as num).toInt(),
   totalViews: (json['totalViews'] as num).toInt(),
-  totalComments: (json['totalComments'] as num).toInt(),
+  totalComments: (json['totalComments'] as num?)?.toInt() ?? 0,
   updated_at: json['updated_at'] as String,
   viewsCount: (json['viewsCount'] as num).toInt(),
   creator: Creator.fromJson(json['_creator'] as Map<String, dynamic>),
   allowDownload: json['allowDownload'] as bool,
   allowComment: json['allowComment'] as bool,
-  commentsCount: (json['commentsCount'] as num).toInt(),
+  commentsCount: (json['commentsCount'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$ComicToJson(Comic instance) => <String, dynamic>{

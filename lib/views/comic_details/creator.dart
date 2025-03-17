@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
@@ -32,14 +32,11 @@ class ComicCreator extends StatelessWidget {
         child: Row(
           spacing: 8,
           children: [
-            Card(
-              clipBehavior: Clip.hardEdge,
+            BaseImage(
               shape: const CircleBorder(),
-              child: CachedNetworkImage(
-                imageUrl: creator?.avatar?.url ?? '',
-                width: 40,
-                height: 40,
-              ),
+              url: creator?.avatar?.url ?? '',
+              width: 40,
+              height: 40,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +57,7 @@ class ComicCreator extends StatelessWidget {
     );
   }
 
-  void showCreator(BuildContext context) async {
+  void showCreator(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
@@ -68,7 +65,7 @@ class ComicCreator extends StatelessWidget {
           contentPadding: EdgeInsets.all(20),
           children: [
             ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 400, minWidth: 350),
+              constraints: BoxConstraints(maxWidth: 400),
               child: Column(
                 spacing: 4,
                 children: [
@@ -79,11 +76,23 @@ class ComicCreator extends StatelessWidget {
                   Text('Lv.${creator?.level ?? 0}'),
                   BaseImage(
                     url: creator?.avatar?.url ?? '',
-                    width: 95,
-                    height: 95,
+                    width: 110,
+                    height: 110,
                     shape: CircleBorder(),
                   ),
-                  Text(creator?.slogan ?? ''),
+                  Text(creator?.slogan ?? '暂无简介'),
+                  SizedBox(height: 10),
+                  Row(
+                    spacing: 2,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(onPressed: () {}, child: const Text("更多上传")),
+                      TextButton(
+                        onPressed: () => context.pop(),
+                        child: const Text('关闭'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

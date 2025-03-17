@@ -30,7 +30,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/comics',
       builder: (BuildContext context, GoRouterState state) {
-        return Comics(c: state.uri.queryParameters['c']);
+        return Comics(
+          c: state.uri.queryParameters['c'],
+          t: state.uri.queryParameters['t'],
+        );
       },
     ),
     GoRoute(

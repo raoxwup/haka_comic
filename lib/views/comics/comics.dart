@@ -48,14 +48,18 @@ class _ComicsState extends State<Comics> {
 
   @override
   void initState() {
-    handler.run(ComicsPayload(c: widget.c, s: sortType, page: page));
+    handler.run(
+      ComicsPayload(c: widget.c, s: sortType, page: page, t: widget.t),
+    );
     handler.addListener(_update);
     super.initState();
   }
 
   @override
   void dispose() {
-    handler.removeListener(_update);
+    handler
+      ..removeListener(_update)
+      ..dispose();
     super.dispose();
   }
 
@@ -115,7 +119,12 @@ class _ComicsState extends State<Comics> {
                         setState(() {
                           page--;
                           handler.run(
-                            ComicsPayload(c: widget.c, s: sortType, page: page),
+                            ComicsPayload(
+                              c: widget.c,
+                              s: sortType,
+                              page: page,
+                              t: widget.t,
+                            ),
                           );
                         });
                       },
@@ -138,7 +147,12 @@ class _ComicsState extends State<Comics> {
                         setState(() {
                           page++;
                           handler.run(
-                            ComicsPayload(c: widget.c, s: sortType, page: page),
+                            ComicsPayload(
+                              c: widget.c,
+                              s: sortType,
+                              page: page,
+                              t: widget.t,
+                            ),
                           );
                         });
                       },
@@ -193,7 +207,9 @@ class _ComicsState extends State<Comics> {
       if (i > 0 && i <= pages) {
         setState(() {
           page = i;
-          handler.run(ComicsPayload(c: widget.c, s: sortType, page: page));
+          handler.run(
+            ComicsPayload(c: widget.c, s: sortType, page: page, t: widget.t),
+          );
         });
         return;
       }

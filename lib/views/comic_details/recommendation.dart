@@ -69,31 +69,45 @@ class _RecommendationState extends State<Recommendation> {
     return SizedBox(
       height: 180,
       width: double.infinity,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: comics.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final item = comics[index];
-          return InkWell(
-            onTap: () => context.push('/details/${item.id}'),
-            hoverColor: Colors.transparent,
-            child: SizedBox(
-              width: 100,
-              child: Column(
+      child:
+          comics.isEmpty
+              ? Column(
+                spacing: 5,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  BaseImage(url: item.thumb.url, width: 100, height: 130),
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Image.asset('assets/images/icon_empty.png', height: 150),
+                  const Text('暂无推荐'),
                 ],
+              )
+              : ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: comics.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final item = comics[index];
+                  return InkWell(
+                    onTap: () => context.push('/details/${item.id}'),
+                    hoverColor: Colors.transparent,
+                    child: SizedBox(
+                      width: 100,
+                      child: Column(
+                        children: [
+                          BaseImage(
+                            url: item.thumb.url,
+                            width: 100,
+                            height: 130,
+                          ),
+                          Text(
+                            item.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

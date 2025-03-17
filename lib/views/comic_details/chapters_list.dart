@@ -78,11 +78,14 @@ class _ChaptersListState extends State<ChaptersList> {
               clipBehavior: Clip.hardEdge,
               child: InkWell(
                 onTap: () {},
-                child: Center(
-                  child: Text(
-                    chapters[index].title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Center(
+                    child: Text(
+                      chapters[index].title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ),

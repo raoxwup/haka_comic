@@ -324,12 +324,13 @@ class Comic {
 
   final int totalViews;
 
-  final int totalComments;
+  final int? totalComments;
 
   final int viewsCount;
 
   final int likesCount;
 
+  @JsonKey(defaultValue: 0)
   final int commentsCount;
 
   // 好多单词拼写错误

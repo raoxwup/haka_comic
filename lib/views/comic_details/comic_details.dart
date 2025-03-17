@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
@@ -82,7 +85,33 @@ class _ComicDetailsState extends State<ComicDetails> {
           duration: const Duration(milliseconds: 300),
           child: Text(data?.title ?? ''),
         ),
-        actions: [IconButton(icon: Icon(Icons.more_horiz), onPressed: () {})],
+        actions: [
+          MenuAnchor(
+            builder:
+                (context, controller, widget) => IconButton(
+                  icon: Icon(Icons.more_horiz),
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                ),
+            menuChildren: [
+              MenuItemButton(
+                leadingIcon: Icon(Icons.copy),
+                child: const Text('复制标题'),
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(text: data?.title ?? ''),
+                  );
+                  showSnackBar('标题复制成功!');
+                },
+              ),
+            ],
+          ),
+        ],
       ),
       body: BasePage(
         isLoading: handler.isLoading,
@@ -262,6 +291,7 @@ class _ComicDetailsState extends State<ComicDetails> {
   Widget _buildTags(Comic? data, String type) {
     final List<String> tags =
         (type == '标签' ? data?.tags : data?.categories) ?? [];
+    final name = type == '标签' ? 't' : 'c';
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -272,6 +302,7 @@ class _ComicDetailsState extends State<ComicDetails> {
             tag: e,
             size: TagSize.medium,
             color: Theme.of(context).colorScheme.primaryContainer,
+            onPressed: () => context.push('/comics?$name=$e'),
           ),
         ),
       ],
