@@ -71,3 +71,13 @@ Future<List<Chapter>> fetchChapters(String id) async {
   }
   return chapters;
 }
+
+/// 相关漫画推荐
+Future<RecommendComics> fetchComicRecommendation(String id) async {
+  final response = await Client.get('comics/$id/recommendation');
+  final data = BaseResponse<RecommendComics>.fromJson(
+    response,
+    (data) => RecommendComics.fromJson(data),
+  );
+  return data.data;
+}

@@ -245,3 +245,43 @@ ChaptersResponse _$ChaptersResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ChaptersResponseToJson(ChaptersResponse instance) =>
     <String, dynamic>{'eps': instance.eps};
+
+RecommendComic _$RecommendComicFromJson(Map<String, dynamic> json) =>
+    RecommendComic(
+      id: json['_id'] as String,
+      title: json['title'] as String,
+      author: json['author'] as String? ?? '',
+      thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
+      pagesCount: (json['pagesCount'] as num?)?.toInt() ?? 0,
+      epsCount: (json['epsCount'] as num?)?.toInt() ?? 0,
+      finished: json['finished'] as bool,
+      categories:
+          (json['categories'] as List<dynamic>)
+              .map((e) => e as String)
+              .toList(),
+      likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$RecommendComicToJson(RecommendComic instance) =>
+    <String, dynamic>{
+      '_id': instance.id,
+      'title': instance.title,
+      'author': instance.author,
+      'thumb': instance.thumb,
+      'pagesCount': instance.pagesCount,
+      'epsCount': instance.epsCount,
+      'finished': instance.finished,
+      'categories': instance.categories,
+      'likesCount': instance.likesCount,
+    };
+
+RecommendComics _$RecommendComicsFromJson(Map<String, dynamic> json) =>
+    RecommendComics(
+      comics:
+          (json['comics'] as List<dynamic>)
+              .map((e) => RecommendComic.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$RecommendComicsToJson(RecommendComics instance) =>
+    <String, dynamic>{'comics': instance.comics};

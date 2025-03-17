@@ -23,7 +23,7 @@ class _ListItemState extends State<ListItem> {
         context.push('/details/${item.id}');
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         child: Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,

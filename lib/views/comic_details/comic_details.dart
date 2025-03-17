@@ -5,7 +5,9 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
+import 'package:haka_comic/views/comic_details/creator.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
+import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/widgets/tag.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -29,19 +31,42 @@ class _ComicDetailsState extends State<ComicDetails> {
     },
   );
 
+  bool _showTitle = false;
+  final ScrollController _scrollController = ScrollController();
+  final double _scrollThreshold = 80;
+
   void _update() => setState(() {});
+
+  void _handleScroll() {
+    final currentScroll = _scrollController.offset;
+    final shouldShow = currentScroll > _scrollThreshold;
+
+    if (shouldShow != _showTitle) {
+      setState(() => _showTitle = shouldShow);
+    }
+  }
 
   @override
   void initState() {
     handler.run(widget.id);
 
     handler.addListener(_update);
+
+    _scrollController.addListener(_handleScroll);
+
     super.initState();
   }
 
   @override
   void dispose() {
-    handler.removeListener(_update);
+    handler
+      ..removeListener(_update)
+      ..dispose();
+
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+
     super.dispose();
   }
 
@@ -52,7 +77,11 @@ class _ComicDetailsState extends State<ComicDetails> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(data?.title ?? ''),
+        title: AnimatedOpacity(
+          opacity: _showTitle ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: Text(data?.title ?? ''),
+        ),
         actions: [IconButton(icon: Icon(Icons.more_horiz), onPressed: () {})],
       ),
       body: BasePage(
@@ -60,6 +89,7 @@ class _ComicDetailsState extends State<ComicDetails> {
         onRetry: handler.refresh,
         error: handler.error,
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
           child: Column(
             spacing: 15,
@@ -82,9 +112,13 @@ class _ComicDetailsState extends State<ComicDetails> {
                 ),
               // SizedBox(height: 8),
               const Divider(),
+              ComicCreator(creator: data?.creator, updatedAt: data?.updated_at),
+              SizedBox(height: 5),
               _buildDescription(data),
               SizedBox(height: 5),
               _buildChaptersList(data),
+              SizedBox(height: 5),
+              _buildRecommendation(data),
             ],
           ),
         ),
@@ -98,7 +132,18 @@ class _ComicDetailsState extends State<ComicDetails> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('目录', style: Theme.of(context).textTheme.titleMedium),
-        ChaptersList(comicId: widget.id),
+        ChaptersList(id: widget.id),
+      ],
+    );
+  }
+
+  Widget _buildRecommendation(Comic? data) {
+    return Column(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('相关推荐', style: Theme.of(context).textTheme.titleMedium),
+        Recommendation(id: widget.id),
       ],
     );
   }

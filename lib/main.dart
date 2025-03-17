@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/router/app_router.dart';
@@ -35,6 +36,7 @@ class App extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           backgroundColor: colorScheme.surface,
         ),
+        fontFamily: Platform.isWindows ? 'HarmonyOS Sans SC' : null,
       ),
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: AppConfig.appScaffoldMessengerKey,

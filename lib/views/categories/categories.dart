@@ -34,7 +34,9 @@ class _CategoriesState extends State<Categories> {
 
   @override
   void dispose() {
-    handler.removeListener(_update);
+    handler
+      ..removeListener(_update)
+      ..dispose();
     super.dispose();
   }
 

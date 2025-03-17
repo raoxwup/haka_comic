@@ -74,7 +74,9 @@ class _LoginState extends State<Login> {
     _passwordController.dispose();
     _passwordFocusNode.dispose();
 
-    handler.removeListener(_listener);
+    handler
+      ..removeListener(_listener)
+      ..dispose();
 
     super.dispose();
   }

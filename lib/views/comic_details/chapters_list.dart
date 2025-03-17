@@ -4,15 +4,17 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 
 class ChaptersList extends StatefulWidget {
-  const ChaptersList({super.key, required this.comicId});
+  const ChaptersList({super.key, required this.id});
 
-  final String comicId;
+  final String id;
 
   @override
   State<ChaptersList> createState() => _ChaptersListState();
 }
 
 class _ChaptersListState extends State<ChaptersList> {
+  bool expand = false;
+
   final handler = fetchChapters.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch chapters success', data.toString());
@@ -26,7 +28,7 @@ class _ChaptersListState extends State<ChaptersList> {
 
   @override
   void initState() {
-    handler.run(widget.comicId);
+    handler.run(widget.id);
 
     handler.addListener(_update);
 
@@ -35,7 +37,9 @@ class _ChaptersListState extends State<ChaptersList> {
 
   @override
   void dispose() {
-    handler.removeListener(_update);
+    handler
+      ..removeListener(_update)
+      ..dispose();
     super.dispose();
   }
 
@@ -53,31 +57,54 @@ class _ChaptersListState extends State<ChaptersList> {
   );
 
   Widget _buildChapterList() {
-    final chapters = handler.data ?? [];
+    final data = handler.data ?? [];
+    final chapters = expand ? data : data.take(40).toList();
 
-    return GridView.builder(
+    return CustomScrollView(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        mainAxisSpacing: 5,
-        crossAxisSpacing: 5,
-        childAspectRatio: 4,
-      ),
-      itemCount: chapters.length,
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 0,
-          child: Center(
-            child: Text(
-              chapters[index].title,
-              style: Theme.of(context).textTheme.bodyMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      physics: const NeverScrollableScrollPhysics(),
+      slivers: [
+        SliverGrid.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            mainAxisSpacing: 5,
+            crossAxisSpacing: 5,
+            childAspectRatio: 4,
+          ),
+          itemCount: chapters.length,
+          itemBuilder: (context, index) {
+            return Card(
+              elevation: 0,
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                onTap: () {},
+                child: Center(
+                  child: Text(
+                    chapters[index].title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        if (data.length > 40) SliverToBoxAdapter(child: SizedBox(height: 10)),
+        if (data.length > 40)
+          SliverToBoxAdapter(
+            child: Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    expand = !expand;
+                  });
+                },
+                label: Text(expand ? '收起' : '展开'),
+                icon: Icon(expand ? Icons.expand_less : Icons.expand_more),
+              ),
             ),
           ),
-        );
-      },
+      ],
     );
   }
 }

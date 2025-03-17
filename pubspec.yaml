@@ -62,3 +62,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  # fonts:
+  #   - family: LXGWWenKaiLite
+  #     fonts:
+  #       - asset: assets/fonts/LXGWWenKaiLite-Regular.ttf
+  #       - asset: assets/fonts/LXGWWenKaiLite-Medium.ttf

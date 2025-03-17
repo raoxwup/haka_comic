@@ -11,6 +11,7 @@ class BaseImage extends StatefulWidget {
     this.height,
     this.progressIndicatorBuilder,
     this.errorBuilder,
+    this.shape,
   });
 
   final String url;
@@ -22,6 +23,8 @@ class BaseImage extends StatefulWidget {
   final double? width;
 
   final double? height;
+
+  final ShapeBorder? shape;
 
   final Widget Function(BuildContext, String, DownloadProgress)?
   progressIndicatorBuilder;
@@ -49,6 +52,7 @@ class _BaseImageState extends State<BaseImage> {
   Widget _buildImage() {
     return Card(
       clipBehavior: Clip.hardEdge,
+      shape: widget.shape,
       elevation: 0,
       child: ValueListenableBuilder(
         valueListenable: keyNotifier,

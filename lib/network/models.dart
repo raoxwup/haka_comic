@@ -445,3 +445,58 @@ class ChaptersResponse {
 
   Map<String, dynamic> toJson() => _$ChaptersResponseToJson(this);
 }
+
+@JsonSerializable()
+class RecommendComic {
+  @JsonKey(name: '_id')
+  final String id;
+
+  final String title;
+
+  @JsonKey(defaultValue: '')
+  final String author;
+
+  final ImageDetail thumb;
+
+  @JsonKey(defaultValue: 0)
+  final int pagesCount;
+
+  @JsonKey(defaultValue: 0)
+  final int epsCount;
+
+  final bool finished;
+
+  final List<String> categories;
+
+  @JsonKey(defaultValue: 0)
+  final int likesCount;
+
+  RecommendComic({
+    required this.id,
+    required this.title,
+    required this.author,
+    required this.thumb,
+    required this.pagesCount,
+    required this.epsCount,
+    required this.finished,
+    required this.categories,
+    required this.likesCount,
+  });
+
+  factory RecommendComic.fromJson(Map<String, dynamic> json) =>
+      _$RecommendComicFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RecommendComicToJson(this);
+}
+
+@JsonSerializable()
+class RecommendComics {
+  final List<RecommendComic> comics;
+
+  RecommendComics({required this.comics});
+
+  factory RecommendComics.fromJson(Map<String, dynamic> json) =>
+      _$RecommendComicsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RecommendComicsToJson(this);
+}
