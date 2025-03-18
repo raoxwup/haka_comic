@@ -38,10 +38,6 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
 
-      # 接受 Android 许可（可选，若构建失败提示需要）
-      - name: Accept Android licenses
-        run: flutter doctor --android-licenses
-
       - name: Install dependencies
         run: flutter pub get
 
