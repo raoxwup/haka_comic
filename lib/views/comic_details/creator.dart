@@ -86,7 +86,11 @@ class ComicCreator extends StatelessWidget {
                     spacing: 2,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(onPressed: () {}, child: const Text("更多上传")),
+                      TextButton(
+                        onPressed:
+                            () => context.push('/comics?ca=${creator?.id}'),
+                        child: const Text("更多上传"),
+                      ),
                       TextButton(
                         onPressed: () => context.pop(),
                         child: const Text('关闭'),

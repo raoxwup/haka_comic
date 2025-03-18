@@ -157,7 +157,7 @@ Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
   title: json['title'] as String,
   totalLikes: (json['totalLikes'] as num).toInt(),
   totalViews: (json['totalViews'] as num).toInt(),
-  totalComments: (json['totalComments'] as num?)?.toInt() ?? 0,
+  totalComments: (json['totalComments'] as num?)?.toInt(),
   updated_at: json['updated_at'] as String,
   viewsCount: (json['viewsCount'] as num).toInt(),
   creator: Creator.fromJson(json['_creator'] as Map<String, dynamic>),
@@ -285,3 +285,9 @@ RecommendComics _$RecommendComicsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RecommendComicsToJson(RecommendComics instance) =>
     <String, dynamic>{'comics': instance.comics};
+
+LikeComicResponse _$LikeComicResponseFromJson(Map<String, dynamic> json) =>
+    LikeComicResponse(action: json['action'] as String);
+
+Map<String, dynamic> _$LikeComicResponseToJson(LikeComicResponse instance) =>
+    <String, dynamic>{'action': instance.action};

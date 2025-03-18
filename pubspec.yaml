@@ -1,8 +1,8 @@
 name: haka_comic
-description: "A new Flutter project."
+description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.0-dev1
 
 environment:
   sdk: ^3.7.0

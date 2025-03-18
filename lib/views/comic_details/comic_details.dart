@@ -8,7 +8,9 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
+import 'package:haka_comic/views/comic_details/collect_action.dart';
 import 'package:haka_comic/views/comic_details/creator.dart';
+import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/widgets/tag.dart';
@@ -34,7 +36,7 @@ class _ComicDetailsState extends State<ComicDetails> {
     },
   );
 
-  bool _showTitle = false;
+  final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
   final ScrollController _scrollController = ScrollController();
   final double _scrollThreshold = 80;
 
@@ -44,8 +46,8 @@ class _ComicDetailsState extends State<ComicDetails> {
     final currentScroll = _scrollController.offset;
     final shouldShow = currentScroll > _scrollThreshold;
 
-    if (shouldShow != _showTitle) {
-      setState(() => _showTitle = shouldShow);
+    if (shouldShow != _showTitleNotifier.value) {
+      _showTitleNotifier.value = shouldShow;
     }
   }
 
@@ -80,10 +82,15 @@ class _ComicDetailsState extends State<ComicDetails> {
 
     return Scaffold(
       appBar: AppBar(
-        title: AnimatedOpacity(
-          opacity: _showTitle ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
-          child: Text(data?.title ?? ''),
+        title: ValueListenableBuilder<bool>(
+          valueListenable: _showTitleNotifier,
+          builder: (context, value, child) {
+            return AnimatedOpacity(
+              opacity: value ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: Text(data?.title ?? ''),
+            );
+          },
         ),
         actions: [
           MenuAnchor(
@@ -195,16 +202,29 @@ class _ComicDetailsState extends State<ComicDetails> {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  '作者: ${data?.author}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                InkWell(
+                  onTap:
+                      (data?.author == null || data!.author.isEmpty)
+                          ? null
+                          : () => context.push('/comics?a=${data.author}'),
+                  child: Text(
+                    '作者: ${data?.author}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
-                Text(
-                  '汉化: ${data?.chineseTeam}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                InkWell(
+                  onTap:
+                      (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
+                          ? null
+                          : () =>
+                              context.push('/comics?ct=${data.chineseTeam}'),
+                  child: Text(
+                    '汉化: ${data?.chineseTeam}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 Row(
@@ -245,18 +265,8 @@ class _ComicDetailsState extends State<ComicDetails> {
               label: Text('开始阅读'),
               onPressed: () {},
             ),
-          ActionChip(
-            avatar: Icon(Icons.favorite_border),
-            shape: StadiumBorder(),
-            label: Text('点赞'),
-            onPressed: () {},
-          ),
-          ActionChip(
-            avatar: Icon(Icons.star_outline),
-            shape: StadiumBorder(),
-            label: Text('收藏'),
-            onPressed: () {},
-          ),
+          LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
+          CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),
           ActionChip(
             avatar: Icon(Icons.comment),
             shape: StadiumBorder(),

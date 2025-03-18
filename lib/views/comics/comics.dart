@@ -49,7 +49,15 @@ class _ComicsState extends State<Comics> {
   @override
   void initState() {
     handler.run(
-      ComicsPayload(c: widget.c, s: sortType, page: page, t: widget.t),
+      ComicsPayload(
+        c: widget.c,
+        s: sortType,
+        page: page,
+        t: widget.t,
+        ca: widget.ca,
+        a: widget.a,
+        ct: widget.ct,
+      ),
     );
     handler.addListener(_update);
     super.initState();
@@ -124,6 +132,9 @@ class _ComicsState extends State<Comics> {
                               s: sortType,
                               page: page,
                               t: widget.t,
+                              ca: widget.ca,
+                              a: widget.a,
+                              ct: widget.ct,
                             ),
                           );
                         });
@@ -152,6 +163,9 @@ class _ComicsState extends State<Comics> {
                               s: sortType,
                               page: page,
                               t: widget.t,
+                              ca: widget.ca,
+                              a: widget.a,
+                              ct: widget.ct,
                             ),
                           );
                         });
@@ -208,7 +222,15 @@ class _ComicsState extends State<Comics> {
         setState(() {
           page = i;
           handler.run(
-            ComicsPayload(c: widget.c, s: sortType, page: page, t: widget.t),
+            ComicsPayload(
+              c: widget.c,
+              s: sortType,
+              page: page,
+              t: widget.t,
+              ca: widget.ca,
+              a: widget.a,
+              ct: widget.ct,
+            ),
           );
         });
         return;

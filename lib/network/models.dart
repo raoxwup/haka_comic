@@ -501,3 +501,15 @@ class RecommendComics {
 
   Map<String, dynamic> toJson() => _$RecommendComicsToJson(this);
 }
+
+@JsonSerializable()
+class LikeComicResponse {
+  final String action;
+
+  LikeComicResponse({required this.action});
+
+  factory LikeComicResponse.fromJson(Map<String, dynamic> json) =>
+      _$LikeComicResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LikeComicResponseToJson(this);
+}

@@ -33,6 +33,9 @@ final GoRouter appRouter = GoRouter(
         return Comics(
           c: state.uri.queryParameters['c'],
           t: state.uri.queryParameters['t'],
+          ca: state.uri.queryParameters['ca'],
+          a: state.uri.queryParameters['a'],
+          ct: state.uri.queryParameters['ct'],
         );
       },
     ),

@@ -81,3 +81,23 @@ Future<RecommendComics> fetchComicRecommendation(String id) async {
   );
   return data.data;
 }
+
+/// 点赞漫画
+Future<LikeComicResponse> likeComic(String id) async {
+  final response = await Client.post('comics/$id/like');
+  final data = BaseResponse<LikeComicResponse>.fromJson(
+    response,
+    (data) => LikeComicResponse.fromJson(data),
+  );
+  return data.data;
+}
+
+/// 收藏漫画, 点赞和收藏返回数据结构一样
+Future<LikeComicResponse> favoriteComic(String id) async {
+  final response = await Client.post('comics/$id/favourite');
+  final data = BaseResponse<LikeComicResponse>.fromJson(
+    response,
+    (data) => LikeComicResponse.fromJson(data),
+  );
+  return data.data;
+}
