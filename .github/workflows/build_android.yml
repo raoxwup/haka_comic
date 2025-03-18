@@ -23,13 +23,31 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.2"
+
+      # 创建 key.properties 并注入 Secrets
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+
+      # 将 Base64 编码的密钥库文件解码并保存
+      - name: Set up keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
+
+      # 接受 Android 许可（可选，若构建失败提示需要）
+      - name: Accept Android licenses
+        run: flutter doctor --android-licenses
 
       - name: Install dependencies
         run: flutter pub get
 
+      # 构建带签名的 APK
       - name: Build Universal APK
-        run: flutter build apk
+        run: flutter build apk --release
 
       - name: Move Universal APK
         run: |
