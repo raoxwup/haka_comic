@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comics/comics.dart';
+import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
 
@@ -43,6 +44,12 @@ final GoRouter appRouter = GoRouter(
       path: '/details/:id',
       builder: (BuildContext context, GoRouterState state) {
         return ComicDetails(id: state.pathParameters['id']!);
+      },
+    ),
+    GoRoute(
+      path: '/comments/:id',
+      builder: (BuildContext context, GoRouterState state) {
+        return CommentsPage(id: state.pathParameters['id']!);
       },
     ),
   ],

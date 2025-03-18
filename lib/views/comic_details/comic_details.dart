@@ -271,7 +271,12 @@ class _ComicDetailsState extends State<ComicDetails> {
             avatar: Icon(Icons.comment),
             shape: StadiumBorder(),
             label: Text('${data?.commentsCount}'),
-            onPressed: data?.allowComment ?? true ? () {} : null,
+            onPressed:
+                data?.allowComment ?? true
+                    ? () {
+                      context.push('/comments/${widget.id}');
+                    }
+                    : null,
           ),
           ActionChip(
             avatar: Icon(Icons.download),

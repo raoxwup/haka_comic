@@ -255,6 +255,17 @@ class _ComicsState extends State<Comics> {
     setState(() {
       sortType = type;
     });
+    handler.run(
+      ComicsPayload(
+        c: widget.c,
+        s: type,
+        page: page,
+        t: widget.t,
+        ca: widget.ca,
+        a: widget.a,
+        ct: widget.ct,
+      ),
+    );
   }
 
   void _buildSortTypeSelector() {

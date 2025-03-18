@@ -513,3 +513,100 @@ class LikeComicResponse {
 
   Map<String, dynamic> toJson() => _$LikeComicResponseToJson(this);
 }
+
+class CommentsPayload {
+  final String id;
+
+  final int page;
+
+  CommentsPayload({required this.id, required this.page});
+}
+
+@JsonSerializable()
+class Comment {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String content;
+
+  @JsonKey(name: '_user')
+  final Creator user;
+
+  @JsonKey(name: '_comic')
+  final String comic;
+
+  final int? totalComments;
+
+  final bool isTop;
+
+  final bool hide;
+
+  final String created_at;
+
+  final String id;
+
+  @JsonKey(defaultValue: 0)
+  final int likesCount;
+
+  final int commentsCount;
+
+  final bool isLiked;
+
+  Comment({
+    required this.uid,
+    required this.content,
+    required this.user,
+    required this.comic,
+    required this.totalComments,
+    required this.isTop,
+    required this.hide,
+    required this.created_at,
+    required this.id,
+    required this.likesCount,
+    required this.commentsCount,
+    required this.isLiked,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) =>
+      _$CommentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CommentToJson(this);
+}
+
+@JsonSerializable()
+class Comments {
+  final List<Comment> docs;
+
+  final int total;
+
+  final int limit;
+
+  final String page;
+
+  final int pages;
+
+  Comments({
+    required this.docs,
+    required this.total,
+    required this.limit,
+    required this.page,
+    required this.pages,
+  });
+
+  factory Comments.fromJson(Map<String, dynamic> json) =>
+      _$CommentsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CommentsToJson(this);
+}
+
+@JsonSerializable()
+class CommentsResponse {
+  final Comments comments;
+
+  CommentsResponse({required this.comments});
+
+  factory CommentsResponse.fromJson(Map<String, dynamic> json) =>
+      _$CommentsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CommentsResponseToJson(this);
+}

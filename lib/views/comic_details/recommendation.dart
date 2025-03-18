@@ -67,7 +67,7 @@ class _RecommendationState extends State<Recommendation> {
   Widget _buildRecommendations() {
     final comics = handler.data?.comics ?? [];
     return SizedBox(
-      height: 180,
+      height: 190,
       width: double.infinity,
       child:
           comics.isEmpty
@@ -75,7 +75,7 @@ class _RecommendationState extends State<Recommendation> {
                 spacing: 5,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset('assets/images/icon_empty.png', height: 150),
+                  Image.asset('assets/images/icon_empty.png', height: 160),
                   const Text('暂无推荐'),
                 ],
               )

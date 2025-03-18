@@ -101,3 +101,16 @@ Future<LikeComicResponse> favoriteComic(String id) async {
   );
   return data.data;
 }
+
+/// 获取漫画评论
+Future<CommentsResponse> fetchComicComments(CommentsPayload payload) async {
+  final response = await Client.get(
+    'comics/${payload.id}/comments',
+    query: {'page': payload.page},
+  );
+  final data = BaseResponse<CommentsResponse>.fromJson(
+    response,
+    (data) => CommentsResponse.fromJson(data),
+  );
+  return data.data;
+}

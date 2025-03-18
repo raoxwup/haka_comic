@@ -33,37 +33,43 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
     super.initState();
   }
 
+  void handleChange(ComicSortType type) {
+    setState(() {
+      _sortType = type;
+    });
+    widget.onSortTypeChange(type);
+    context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SimpleDialog(
+    return AlertDialog(
       title: Text('排序方式'),
       contentPadding: EdgeInsets.all(20),
-      children:
-          sorts
-              .map(
-                (e) => ListTile(
-                  title: Text(e['label']),
-                  leading: Radio<ComicSortType>(
-                    value: e['value'],
-                    groupValue: _sortType,
-                    onChanged: (ComicSortType? value) {
-                      setState(() {
-                        _sortType = value!;
-                      });
-                      widget.onSortTypeChange(value!);
-                      context.pop();
-                    },
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _sortType = e['value'];
-                    });
-                    widget.onSortTypeChange(e['value']);
-                    context.pop();
-                  },
-                ),
-              )
-              .toList(),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children:
+              sorts
+                  .map(
+                    (e) => ListTile(
+                      title: Text(e['label']),
+                      leading: Radio<ComicSortType>(
+                        value: e['value'],
+                        groupValue: _sortType,
+                        onChanged: (ComicSortType? value) {
+                          handleChange(value!);
+                        },
+                      ),
+                      onTap: () => handleChange(e['value']),
+                    ),
+                  )
+                  .toList(),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(onPressed: () => context.pop(), child: const Text('关闭')),
+      ],
     );
   }
 }

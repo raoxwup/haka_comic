@@ -36,6 +36,7 @@ flutter:
     - assets/icons/splash/splash-icon-light.png
     - assets/images/login.png
     - assets/images/icon_empty.png
+    - assets/images/icon_no_comment.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
