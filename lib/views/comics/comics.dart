@@ -7,6 +7,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
 class Comics extends StatefulWidget {
@@ -81,6 +82,13 @@ class _ComicsState extends State<Comics> {
         title: Text(
           widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '漫画',
         ),
+        actions: [
+          IconButton(
+            tooltip: '排序',
+            icon: const Icon(Icons.sort),
+            onPressed: _buildSortTypeSelector,
+          ),
+        ],
       ),
       body: BasePage(
         isLoading: handler.isLoading,
@@ -241,5 +249,22 @@ class _ComicsState extends State<Comics> {
         showSnackBar('跳转页码不正确');
       });
     }
+  }
+
+  void _onSortTypeChange(ComicSortType type) {
+    setState(() {
+      sortType = type;
+    });
+  }
+
+  void _buildSortTypeSelector() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => SortTypeSelector(
+            sortType: sortType,
+            onSortTypeChange: _onSortTypeChange,
+          ),
+    );
   }
 }
