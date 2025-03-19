@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/widgets/base_image.dart';
 
 void showSnackBar(String message) {
   final currentState = AppConfig.appScaffoldMessengerKey.currentState;
@@ -42,4 +45,65 @@ String getFormattedDate(String dateString) {
 
 String _addLeadingZero(int number) {
   return number.toString().padLeft(2, '0');
+}
+
+void showCreator(BuildContext context, Creator? creator) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return SimpleDialog(
+        contentPadding: EdgeInsets.all(20),
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 400),
+            child: Column(
+              spacing: 4,
+              children: [
+                Text(
+                  creator?.name ?? '',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text('Lv.${creator?.level ?? 0}'),
+                creator?.avatar == null
+                    ? Card(
+                      clipBehavior: Clip.hardEdge,
+                      elevation: 0,
+                      shape: CircleBorder(),
+                      child: Container(
+                        width: 110,
+                        height: 110,
+                        padding: EdgeInsets.all(10),
+                        child: Image.asset('assets/images/user.png'),
+                      ),
+                    )
+                    : BaseImage(
+                      url: creator?.avatar?.url ?? '',
+                      width: 110,
+                      height: 110,
+                      shape: CircleBorder(),
+                    ),
+                Text(creator?.slogan ?? '暂无简介'),
+                SizedBox(height: 10),
+                Row(
+                  spacing: 2,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed:
+                          () => context.push('/comics?ca=${creator?.id}'),
+                      child: const Text("Ta的上传"),
+                    ),
+                    TextButton(
+                      onPressed: () => context.pop(),
+                      child: const Text('关闭'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }

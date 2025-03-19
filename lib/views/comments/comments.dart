@@ -5,7 +5,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 
 class CommentsPage extends StatefulWidget {
   const CommentsPage({super.key, required this.id});
@@ -17,24 +17,47 @@ class CommentsPage extends StatefulWidget {
 }
 
 class _CommentsPageState extends State<CommentsPage> {
-  final handler = fetchComicComments.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch comic comments success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch comic comments error', e);
-    },
-  );
+  late final AsyncRequestHandler1<CommentsResponse, CommentsPayload> handler;
+  final ScrollController _scrollController = ScrollController();
+  final List<Comment> _comments = [];
+  bool _hasMore = true;
 
-  int page = 1;
+  int _page = 1;
 
   void _update() => setState(() {});
 
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    if (handler.isLoading || !_hasMore) return;
+    handler.run(CommentsPayload(id: widget.id, page: ++_page));
+  }
+
   @override
   void initState() {
-    handler.run(CommentsPayload(id: widget.id, page: page));
+    handler = fetchComicComments.useRequest(
+      onSuccess: (data, _) {
+        Log.info('Fetch comic comments success', data.toString());
+        setState(() {
+          _comments.addAll(data.comments.docs);
+          _hasMore = data.comments.pages > _page;
+        });
+      },
+      onError: (e, _) {
+        Log.error('Fetch comic comments error', e);
+      },
+    );
+
+    handler.run(CommentsPayload(id: widget.id, page: _page));
 
     handler.addListener(_update);
+
+    _scrollController.addListener(_onScroll);
 
     super.initState();
   }
@@ -44,21 +67,36 @@ class _CommentsPageState extends State<CommentsPage> {
     handler
       ..removeListener(_update)
       ..dispose();
+
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = handler.data?.comments.docs ?? [];
-
     return Scaffold(
       appBar: AppBar(title: const Text('评论')),
-      body: BasePage(
-        isLoading: handler.isLoading,
-        onRetry: handler.refresh,
-        error: handler.error,
-        child: data.isEmpty ? _buildEmpty() : _buildList(data),
-      ),
+      body: _buildPage(),
+    );
+  }
+
+  Widget _buildPage() {
+    if (handler.error != null) {
+      return _buildError();
+    } else if (!handler.isLoading && _comments.isEmpty) {
+      return _buildEmpty();
+    } else {
+      return _buildList(_comments);
+    }
+  }
+
+  Widget _buildError() {
+    return ErrorPage(
+      errorMessage: getTextBeforeNewLine(handler.error.toString()),
+      onRetry: handler.refresh,
     );
   }
 
@@ -77,8 +115,11 @@ class _CommentsPageState extends State<CommentsPage> {
 
   Widget _buildList(List<Comment> data) {
     return ListView.separated(
+      controller: _scrollController,
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
+        if (index >= data.length) return _buildLoader();
+
         final item = data[index];
         final time = getFormattedDate(item.created_at);
 
@@ -88,11 +129,29 @@ class _CommentsPageState extends State<CommentsPage> {
             spacing: 8,
             children: [
               Align(
-                child: BaseImage(
-                  url: item.user.avatar?.url ?? '',
-                  width: 40,
-                  height: 40,
-                  shape: CircleBorder(),
+                alignment: Alignment.center,
+                child: InkWell(
+                  onTap: () => showCreator(context, item.user),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  child:
+                      item.user.avatar == null
+                          ? Card(
+                            clipBehavior: Clip.hardEdge,
+                            elevation: 0,
+                            shape: CircleBorder(),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              padding: EdgeInsets.all(5),
+                              child: Image.asset('assets/images/user.png'),
+                            ),
+                          )
+                          : BaseImage(
+                            url: item.user.avatar!.url,
+                            width: 40,
+                            height: 40,
+                            shape: CircleBorder(),
+                          ),
                 ),
               ),
               Expanded(
@@ -102,12 +161,16 @@ class _CommentsPageState extends State<CommentsPage> {
                   spacing: 5,
                   children: [
                     Row(
+                      spacing: 5,
                       children: [
-                        Text(
-                          item.user.name,
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Expanded(
+                          child: Text(
+                            item.user.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        const Spacer(),
                         Text(
                           time,
                           style: Theme.of(context).textTheme.bodySmall,
@@ -118,7 +181,39 @@ class _CommentsPageState extends State<CommentsPage> {
                       item.content,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    // Row(),
+                    Row(
+                      spacing: 2,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {},
+                          label: Text(item.likesCount.toString()),
+                          style: TextButton.styleFrom(
+                            foregroundColor:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                            overlayColor: Colors.black12,
+                          ),
+                          icon: Icon(
+                            item.isLiked
+                                ? Icons.thumb_up
+                                : Icons.thumb_up_outlined,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            foregroundColor:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                            overlayColor: Colors.black12,
+                          ),
+                          label: Text(
+                            (item.totalComments ?? item.commentsCount)
+                                .toString(),
+                          ),
+                          icon: Icon(Icons.reply),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -126,7 +221,22 @@ class _CommentsPageState extends State<CommentsPage> {
           ),
         );
       },
-      itemCount: data.length,
+      itemCount: data.length + 1,
+    );
+  }
+
+  Widget _buildLoader() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child:
+            _hasMore
+                ? CircularProgressIndicator(
+                  constraints: BoxConstraints.tight(const Size(28, 28)),
+                  strokeWidth: 3,
+                )
+                : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
+      ),
     );
   }
 }
