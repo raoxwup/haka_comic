@@ -127,9 +127,10 @@ class _CommentsPageState extends State<CommentsPage> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
           child: Row(
             spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Align(
-                alignment: Alignment.center,
+                alignment: Alignment.topCenter,
                 child: InkWell(
                   onTap: () => showCreator(context, item.user),
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -160,57 +161,70 @@ class _CommentsPageState extends State<CommentsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 5,
                   children: [
-                    Row(
-                      spacing: 5,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.user.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          time,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                    Text(
+                      item.user.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    Text(time, style: Theme.of(context).textTheme.bodySmall),
                     Text(
                       item.content,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Row(
-                      spacing: 2,
+                      spacing: 8,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton.icon(
-                          onPressed: () {},
-                          label: Text(item.likesCount.toString()),
-                          style: TextButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                            overlayColor: Colors.black12,
-                          ),
-                          icon: Icon(
-                            item.isLiked
-                                ? Icons.thumb_up
-                                : Icons.thumb_up_outlined,
+                        InkWell(
+                          onTap: () {},
+                          borderRadius: BorderRadius.all(Radius.circular(99)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            child: Row(
+                              spacing: 5,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  item.isLiked
+                                      ? Icons.thumb_up
+                                      : Icons.thumb_up_outlined,
+                                  size: 16,
+                                ),
+                                Text(
+                                  item.likesCount.toString(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        TextButton.icon(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                            overlayColor: Colors.black12,
+                        InkWell(
+                          onTap: () {},
+                          borderRadius: BorderRadius.all(Radius.circular(99)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            child: Row(
+                              spacing: 5,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.comment_outlined, size: 16),
+                                Text(
+                                  (item.totalComments ?? item.commentsCount)
+                                      .toString(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
                           ),
-                          label: Text(
-                            (item.totalComments ?? item.commentsCount)
-                                .toString(),
-                          ),
-                          icon: Icon(Icons.reply),
                         ),
                       ],
                     ),
