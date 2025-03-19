@@ -15,6 +15,7 @@ abstract class AsyncRequestHandler<T, P> extends ChangeNotifier {
   bool _isLoading = false;
   T? _data;
   Object? _error;
+  bool _isDisposed = false;
 
   bool get isLoading => _isLoading;
   T? get data => _data;
@@ -32,7 +33,14 @@ abstract class AsyncRequestHandler<T, P> extends ChangeNotifier {
     this.onFinally,
   });
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   void _commonSetup(P params) {
+    if (_isDisposed) return;
     onBefore?.call(params);
     _isLoading = true;
     _error = null;
@@ -40,6 +48,7 @@ abstract class AsyncRequestHandler<T, P> extends ChangeNotifier {
   }
 
   void _commonFinally(P params) {
+    if (_isDisposed) return;
     _isLoading = false;
     notifyListeners();
     onFinally?.call(params);
@@ -64,9 +73,11 @@ class AsyncRequestHandler0<T> extends AsyncRequestHandler<T, void> {
     _commonSetup(null);
     try {
       final result = await _fn();
+      if (_isDisposed) return;
       _data = result;
       onSuccess?.call(result, null);
     } catch (e) {
+      if (_isDisposed) return;
       _error = e;
       onError?.call(e, null);
     } finally {
@@ -96,9 +107,11 @@ class AsyncRequestHandler1<T, P> extends AsyncRequestHandler<T, P> {
     _commonSetup(param);
     try {
       final result = await _fn(param);
+      if (_isDisposed) return;
       _data = result;
       onSuccess?.call(result, param);
     } catch (e) {
+      if (_isDisposed) return;
       _error = e;
       onError?.call(e, param);
     } finally {

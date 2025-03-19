@@ -79,18 +79,51 @@ class _CommentsPageState extends State<CommentsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('评论')),
-      body: _buildPage(),
+      body:
+          handler.error != null
+              ? _buildError()
+              : Stack(children: [_buildPage(), _buildCommentBox()]),
     );
   }
 
   Widget _buildPage() {
-    if (handler.error != null) {
-      return _buildError();
-    } else if (!handler.isLoading && _comments.isEmpty) {
+    if (!handler.isLoading && _comments.isEmpty) {
       return _buildEmpty();
     } else {
       return _buildList(_comments);
     }
+  }
+
+  Widget _buildCommentBox() {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(10, 10, 10, bottom + 10),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+          ),
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        child: TextField(
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(99),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildError() {
@@ -116,7 +149,7 @@ class _CommentsPageState extends State<CommentsPage> {
   Widget _buildList(List<Comment> data) {
     return ListView.separated(
       controller: _scrollController,
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
+      separatorBuilder: (context, index) => const SizedBox(height: 5),
       itemBuilder: (context, index) {
         if (index >= data.length) return _buildLoader();
 

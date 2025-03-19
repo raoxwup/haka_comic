@@ -88,11 +88,12 @@ void showCreator(BuildContext context, Creator? creator) {
                   spacing: 2,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed:
-                          () => context.push('/comics?ca=${creator?.id}'),
-                      child: const Text("Ta的上传"),
-                    ),
+                    if (creator?.role == 'knight')
+                      TextButton(
+                        onPressed:
+                            () => context.push('/comics?ca=${creator?.id}'),
+                        child: const Text("Ta的上传"),
+                      ),
                     TextButton(
                       onPressed: () => context.pop(),
                       child: const Text('关闭'),
