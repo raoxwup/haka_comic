@@ -503,15 +503,15 @@ class RecommendComics {
 }
 
 @JsonSerializable()
-class LikeComicResponse {
+class ActionResponse {
   final String action;
 
-  LikeComicResponse({required this.action});
+  ActionResponse({required this.action});
 
-  factory LikeComicResponse.fromJson(Map<String, dynamic> json) =>
-      _$LikeComicResponseFromJson(json);
+  factory ActionResponse.fromJson(Map<String, dynamic> json) =>
+      _$ActionResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LikeComicResponseToJson(this);
+  Map<String, dynamic> toJson() => _$ActionResponseToJson(this);
 }
 
 class CommentsPayload {
@@ -609,4 +609,14 @@ class CommentsResponse {
       _$CommentsResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$CommentsResponseToJson(this);
+}
+
+class SendCommentPayload {
+  final String id;
+
+  final String content;
+
+  SendCommentPayload({required this.id, required this.content});
+
+  Map<String, dynamic> toJson() => {'content': content};
 }

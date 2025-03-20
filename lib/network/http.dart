@@ -83,21 +83,21 @@ Future<RecommendComics> fetchComicRecommendation(String id) async {
 }
 
 /// 点赞漫画
-Future<LikeComicResponse> likeComic(String id) async {
+Future<ActionResponse> likeComic(String id) async {
   final response = await Client.post('comics/$id/like');
-  final data = BaseResponse<LikeComicResponse>.fromJson(
+  final data = BaseResponse<ActionResponse>.fromJson(
     response,
-    (data) => LikeComicResponse.fromJson(data),
+    (data) => ActionResponse.fromJson(data),
   );
   return data.data;
 }
 
 /// 收藏漫画, 点赞和收藏返回数据结构一样
-Future<LikeComicResponse> favoriteComic(String id) async {
+Future<ActionResponse> favoriteComic(String id) async {
   final response = await Client.post('comics/$id/favourite');
-  final data = BaseResponse<LikeComicResponse>.fromJson(
+  final data = BaseResponse<ActionResponse>.fromJson(
     response,
-    (data) => LikeComicResponse.fromJson(data),
+    (data) => ActionResponse.fromJson(data),
   );
   return data.data;
 }
@@ -113,4 +113,19 @@ Future<CommentsResponse> fetchComicComments(CommentsPayload payload) async {
     (data) => CommentsResponse.fromJson(data),
   );
   return data.data;
+}
+
+/// 点赞漫画评论
+Future<ActionResponse> likeComment(String id) async {
+  final response = await Client.post('comments/$id/like');
+  final data = BaseResponse<ActionResponse>.fromJson(
+    response,
+    (data) => ActionResponse.fromJson(data),
+  );
+  return data.data;
+}
+
+/// 发送评论
+Future<void> sendComment(SendCommentPayload payload) async {
+  await Client.post('comics/${payload.id}/comments', data: payload.toJson());
 }

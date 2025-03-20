@@ -5,6 +5,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/comment_dialog.dart';
+import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 
@@ -24,7 +25,7 @@ class _CommentsPageState extends State<CommentsPage> {
   bool _hasMore = true;
   int _page = 1;
 
-  final double bottomBoxHeight = 38;
+  final double bottomBoxHeight = 40;
 
   void _update() => setState(() {});
 
@@ -38,6 +39,15 @@ class _CommentsPageState extends State<CommentsPage> {
   void _loadMore() {
     if (handler.isLoading || !_hasMore) return;
     handler.run(CommentsPayload(id: widget.id, page: ++_page));
+  }
+
+  void _refresh() {
+    setState(() {
+      _comments.clear();
+      _hasMore = true;
+      _page = 1;
+    });
+    handler.run(CommentsPayload(id: widget.id, page: 1));
   }
 
   @override
@@ -103,22 +113,22 @@ class _CommentsPageState extends State<CommentsPage> {
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.fromLTRB(12, 5, 12, bottom + 5),
+        padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
           ),
           color: Theme.of(context).colorScheme.surface,
         ),
-        child: Container(
-          height: bottomBoxHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(99)),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          child: InkWell(
-            onTap: () => _showCommentDialog(),
+        child: InkWell(
+          onTap: _showCommentDialog,
+          child: Container(
+            height: bottomBoxHeight,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(99)),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
             child: Row(
               children: [
                 Text('评论', style: Theme.of(context).textTheme.bodySmall),
@@ -155,7 +165,7 @@ class _CommentsPageState extends State<CommentsPage> {
   Widget _buildList(List<Comment> data) {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return ListView.separated(
-      padding: EdgeInsets.only(bottom: 5 + 5 + bottom + bottomBoxHeight),
+      padding: EdgeInsets.only(bottom: 8 + 8 + bottom + bottomBoxHeight),
       controller: _scrollController,
       separatorBuilder: (context, index) => const SizedBox(height: 5),
       itemBuilder: (context, index) {
@@ -219,31 +229,10 @@ class _CommentsPageState extends State<CommentsPage> {
                       spacing: 8,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        InkWell(
-                          onTap: () {},
-                          borderRadius: BorderRadius.all(Radius.circular(99)),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            child: Row(
-                              spacing: 5,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  item.isLiked
-                                      ? Icons.thumb_up
-                                      : Icons.thumb_up_outlined,
-                                  size: 16,
-                                ),
-                                Text(
-                                  item.likesCount.toString(),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
+                        ThumbUp(
+                          isLiked: item.isLiked,
+                          likesCount: item.likesCount,
+                          id: item.id,
                         ),
                         InkWell(
                           onTap: () {},
@@ -298,7 +287,7 @@ class _CommentsPageState extends State<CommentsPage> {
   void _showCommentDialog() {
     showDialog(
       context: context,
-      builder: (context) => CommentDialog(id: widget.id),
+      builder: (context) => CommentDialog(id: widget.id, refresh: _refresh),
     );
   }
 }

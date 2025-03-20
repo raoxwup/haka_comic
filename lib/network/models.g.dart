@@ -286,10 +286,10 @@ RecommendComics _$RecommendComicsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RecommendComicsToJson(RecommendComics instance) =>
     <String, dynamic>{'comics': instance.comics};
 
-LikeComicResponse _$LikeComicResponseFromJson(Map<String, dynamic> json) =>
-    LikeComicResponse(action: json['action'] as String);
+ActionResponse _$ActionResponseFromJson(Map<String, dynamic> json) =>
+    ActionResponse(action: json['action'] as String);
 
-Map<String, dynamic> _$LikeComicResponseToJson(LikeComicResponse instance) =>
+Map<String, dynamic> _$ActionResponseToJson(ActionResponse instance) =>
     <String, dynamic>{'action': instance.action};
 
 Comment _$CommentFromJson(Map<String, dynamic> json) => Comment(

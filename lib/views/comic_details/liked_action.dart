@@ -21,7 +21,7 @@ class _LikedActionState extends State<LikedAction>
   late bool _isLiked;
   late AnimationController _controller;
   late Animation<double> _animation;
-  late AsyncRequestHandler1<LikeComicResponse, String> handler;
+  late final AsyncRequestHandler1<ActionResponse, String> handler;
 
   @override
   void initState() {

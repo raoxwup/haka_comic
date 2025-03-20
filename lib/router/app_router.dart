@@ -21,6 +21,9 @@ final GoRouter appRouter = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         return const Home();
       },
+      // pageBuilder: (BuildContext context,  GoRouterState state) {
+
+      // },
     ),
     GoRoute(
       path: '/login',
