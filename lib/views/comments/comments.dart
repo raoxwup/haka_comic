@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/views/comments/comment_dialog.dart';
+import 'package:haka_comic/views/comments/comment_input.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
@@ -121,7 +122,7 @@ class _CommentsPageState extends State<CommentsPage> {
           color: Theme.of(context).colorScheme.surface,
         ),
         child: InkWell(
-          onTap: _showCommentDialog,
+          onTap: _showCommentInput,
           child: Container(
             height: bottomBoxHeight,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -235,7 +236,8 @@ class _CommentsPageState extends State<CommentsPage> {
                           id: item.id,
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap:
+                              () => context.push('/sub_comments', extra: item),
                           borderRadius: BorderRadius.all(Radius.circular(99)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -284,10 +286,14 @@ class _CommentsPageState extends State<CommentsPage> {
     );
   }
 
-  void _showCommentDialog() {
-    showDialog(
+  void _showCommentInput() {
+    showModalBottomSheet(
       context: context,
-      builder: (context) => CommentDialog(id: widget.id, refresh: _refresh),
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => CommentInput(id: widget.id, refresh: _refresh),
     );
   }
 }

@@ -620,3 +620,102 @@ class SendCommentPayload {
 
   Map<String, dynamic> toJson() => {'content': content};
 }
+
+@JsonSerializable()
+class SubComment {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String content;
+
+  @JsonKey(name: '_user')
+  final Creator user;
+
+  final String created_at;
+
+  final bool hide;
+
+  final String id;
+
+  final bool isLiked;
+
+  final bool isTop;
+
+  final int likesCount;
+
+  final int totalComments;
+
+  @JsonKey(name: '_comic')
+  final String comic;
+
+  @JsonKey(name: '_parent')
+  final String parent;
+
+  SubComment({
+    required this.uid,
+    required this.content,
+    required this.user,
+    required this.created_at,
+    required this.hide,
+    required this.id,
+    required this.isLiked,
+    required this.isTop,
+    required this.likesCount,
+    required this.totalComments,
+    required this.comic,
+    required this.parent,
+  });
+
+  factory SubComment.fromJson(Map<String, dynamic> json) =>
+      _$SubCommentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SubCommentToJson(this);
+}
+
+@JsonSerializable()
+class SubComments {
+  final List<SubComment> docs;
+
+  final int total;
+
+  final int limit;
+
+  final String page;
+
+  final int pages;
+
+  SubComments({
+    required this.docs,
+    required this.total,
+    required this.limit,
+    required this.page,
+    required this.pages,
+  });
+
+  factory SubComments.fromJson(Map<String, dynamic> json) =>
+      _$SubCommentsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SubCommentsToJson(this);
+}
+
+@JsonSerializable()
+class SubCommentsResponse {
+  final SubComments comments;
+
+  SubCommentsResponse({required this.comments});
+
+  factory SubCommentsResponse.fromJson(Map<String, dynamic> json) =>
+      _$SubCommentsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SubCommentsResponseToJson(this);
+}
+
+class SubCommentsPayload {
+  final String id;
+
+  final int page;
+
+  SubCommentsPayload({required this.id, required this.page});
+
+  Map<String, dynamic> toJson() => {'page': page};
+}

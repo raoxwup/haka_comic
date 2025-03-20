@@ -348,3 +348,63 @@ CommentsResponse _$CommentsResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CommentsResponseToJson(CommentsResponse instance) =>
     <String, dynamic>{'comments': instance.comments};
+
+SubComment _$SubCommentFromJson(Map<String, dynamic> json) => SubComment(
+  uid: json['_id'] as String,
+  content: json['content'] as String,
+  user: Creator.fromJson(json['_user'] as Map<String, dynamic>),
+  created_at: json['created_at'] as String,
+  hide: json['hide'] as bool,
+  id: json['id'] as String,
+  isLiked: json['isLiked'] as bool,
+  isTop: json['isTop'] as bool,
+  likesCount: (json['likesCount'] as num).toInt(),
+  totalComments: (json['totalComments'] as num).toInt(),
+  comic: json['_comic'] as String,
+  parent: json['_parent'] as String,
+);
+
+Map<String, dynamic> _$SubCommentToJson(SubComment instance) =>
+    <String, dynamic>{
+      '_id': instance.uid,
+      'content': instance.content,
+      '_user': instance.user,
+      'created_at': instance.created_at,
+      'hide': instance.hide,
+      'id': instance.id,
+      'isLiked': instance.isLiked,
+      'isTop': instance.isTop,
+      'likesCount': instance.likesCount,
+      'totalComments': instance.totalComments,
+      '_comic': instance.comic,
+      '_parent': instance.parent,
+    };
+
+SubComments _$SubCommentsFromJson(Map<String, dynamic> json) => SubComments(
+  docs:
+      (json['docs'] as List<dynamic>)
+          .map((e) => SubComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: json['page'] as String,
+  pages: (json['pages'] as num).toInt(),
+);
+
+Map<String, dynamic> _$SubCommentsToJson(SubComments instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+SubCommentsResponse _$SubCommentsResponseFromJson(Map<String, dynamic> json) =>
+    SubCommentsResponse(
+      comments: SubComments.fromJson(json['comments'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SubCommentsResponseToJson(
+  SubCommentsResponse instance,
+) => <String, dynamic>{'comments': instance.comments};

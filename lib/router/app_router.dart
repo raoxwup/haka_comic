@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/network/models.dart' as models;
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
+import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
 
@@ -53,6 +55,13 @@ final GoRouter appRouter = GoRouter(
       path: '/comments/:id',
       builder: (BuildContext context, GoRouterState state) {
         return CommentsPage(id: state.pathParameters['id']!);
+      },
+    ),
+    GoRoute(
+      path: '/sub_comments',
+      builder: (BuildContext context, GoRouterState state) {
+        final models.Comment comment = state.extra as models.Comment;
+        return SubCommentsPage(comment: comment);
       },
     ),
   ],

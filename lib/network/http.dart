@@ -129,3 +129,21 @@ Future<ActionResponse> likeComment(String id) async {
 Future<void> sendComment(SendCommentPayload payload) async {
   await Client.post('comics/${payload.id}/comments', data: payload.toJson());
 }
+
+/// 获取评论子评论
+Future<SubCommentsResponse> fetchSubComments(SubCommentsPayload payload) async {
+  final response = await Client.get(
+    'comments/${payload.id}/childrens',
+    query: payload.toJson(),
+  );
+  final data = BaseResponse<SubCommentsResponse>.fromJson(
+    response,
+    (data) => SubCommentsResponse.fromJson(data),
+  );
+  return data.data;
+}
+
+/// 对漫画评论进行评论
+Future<void> sendReply(SendCommentPayload payload) async {
+  await Client.post('comments/${payload.id}', data: payload.toJson());
+}
