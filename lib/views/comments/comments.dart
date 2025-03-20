@@ -4,6 +4,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/views/comments/comment_dialog.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 
@@ -21,8 +22,9 @@ class _CommentsPageState extends State<CommentsPage> {
   final ScrollController _scrollController = ScrollController();
   final List<Comment> _comments = [];
   bool _hasMore = true;
-
   int _page = 1;
+
+  final double bottomBoxHeight = 38;
 
   void _update() => setState(() {});
 
@@ -82,7 +84,7 @@ class _CommentsPageState extends State<CommentsPage> {
       body:
           handler.error != null
               ? _buildError()
-              : Stack(children: [_buildPage(), _buildCommentBox()]),
+              : Stack(children: [_buildPage(), _buildBottom()]),
     );
   }
 
@@ -94,31 +96,35 @@ class _CommentsPageState extends State<CommentsPage> {
     }
   }
 
-  Widget _buildCommentBox() {
+  Widget _buildBottom() {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.fromLTRB(10, 10, 10, bottom + 10),
+        padding: EdgeInsets.fromLTRB(12, 5, 12, bottom + 5),
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
           ),
           color: Theme.of(context).colorScheme.surface,
         ),
-        child: TextField(
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(99),
-              borderSide: BorderSide.none,
-            ),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: () {},
+        child: Container(
+          height: bottomBoxHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(99)),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          child: InkWell(
+            onTap: () => _showCommentDialog(),
+            child: Row(
+              children: [
+                Text('评论', style: Theme.of(context).textTheme.bodySmall),
+                const Spacer(),
+                Icon(Icons.send, size: 16),
+              ],
             ),
           ),
         ),
@@ -147,7 +153,9 @@ class _CommentsPageState extends State<CommentsPage> {
   }
 
   Widget _buildList(List<Comment> data) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
     return ListView.separated(
+      padding: EdgeInsets.only(bottom: 5 + 5 + bottom + bottomBoxHeight),
       controller: _scrollController,
       separatorBuilder: (context, index) => const SizedBox(height: 5),
       itemBuilder: (context, index) {
@@ -284,6 +292,13 @@ class _CommentsPageState extends State<CommentsPage> {
                 )
                 : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
       ),
+    );
+  }
+
+  void _showCommentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => CommentDialog(id: widget.id),
     );
   }
 }
