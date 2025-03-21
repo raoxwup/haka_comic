@@ -408,3 +408,60 @@ SubCommentsResponse _$SubCommentsResponseFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SubCommentsResponseToJson(
   SubCommentsResponse instance,
 ) => <String, dynamic>{'comments': instance.comments};
+
+SearchComic _$SearchComicFromJson(Map<String, dynamic> json) => SearchComic(
+  updated_at: json['updated_at'] as String,
+  thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
+  author: json['author'] as String,
+  description: json['description'] as String?,
+  chineseTeam: json['chineseTeam'] as String?,
+  created_at: json['created_at'] as String,
+  finished: json['finished'] as bool,
+  totalViews: (json['totalViews'] as num?)?.toInt(),
+  categories:
+      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  totalLikes: (json['totalLikes'] as num?)?.toInt(),
+  title: json['title'] as String,
+  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  id: json['_id'] as String,
+  likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+);
+
+Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
+    <String, dynamic>{
+      'updated_at': instance.updated_at,
+      'thumb': instance.thumb,
+      'author': instance.author,
+      'description': instance.description,
+      'chineseTeam': instance.chineseTeam,
+      'created_at': instance.created_at,
+      'finished': instance.finished,
+      'totalViews': instance.totalViews,
+      'categories': instance.categories,
+      'totalLikes': instance.totalLikes,
+      'title': instance.title,
+      'tags': instance.tags,
+      '_id': instance.id,
+      'likesCount': instance.likesCount,
+    };
+
+SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
+    SearchResponse(
+      docs:
+          (json['docs'] as List<dynamic>)
+              .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -95,16 +96,8 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
       body:
           handler.error != null
               ? _buildError()
-              : Stack(children: [_buildPage(), _buildBottom()]),
+              : Stack(children: [_buildList(_comments), _buildBottom()]),
     );
-  }
-
-  Widget _buildPage() {
-    if (!handler.isLoading && _comments.isEmpty) {
-      return _buildEmpty();
-    } else {
-      return _buildList(_comments);
-    }
   }
 
   Widget _buildBottom() {
@@ -150,22 +143,8 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
     );
   }
 
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        spacing: 8,
-        children: [
-          SizedBox(height: 80),
-          Image.asset('assets/images/icon_no_comment.png', width: 200),
-          const Text('暂无评论'),
-        ],
-      ),
-    );
-  }
-
   Widget _buildList(List<SubComment> data) {
     final bottom = MediaQuery.paddingOf(context).bottom;
-
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -363,11 +342,22 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: RoundedRectangleBorder(),
       builder:
-          (context) => CommentInput(id: widget.comment.id, refresh: _refresh),
+          (context) => CommentInput(
+            id: widget.comment.id,
+            handler: sendReply.useRequest(
+              onSuccess: (data, _) {
+                Log.info('Send reply success', 'reply');
+                _refresh();
+                context.pop();
+              },
+              onError: (e, _) {
+                Log.error('Send reply error', e);
+                showSnackBar('回复失败');
+              },
+            ),
+          ),
     );
   }
 }

@@ -290,10 +290,22 @@ class _CommentsPageState extends State<CommentsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => CommentInput(id: widget.id, refresh: _refresh),
+      shape: RoundedRectangleBorder(),
+      builder:
+          (context) => CommentInput(
+            id: widget.id,
+            handler: sendComment.useRequest(
+              onSuccess: (data, _) {
+                Log.info('Send comment success', 'comment');
+                _refresh();
+                context.pop();
+              },
+              onError: (e, _) {
+                Log.error('Send comment error', e);
+                showSnackBar('评论失败');
+              },
+            ),
+          ),
     );
   }
 }

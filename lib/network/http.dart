@@ -147,3 +147,16 @@ Future<SubCommentsResponse> fetchSubComments(SubCommentsPayload payload) async {
 Future<void> sendReply(SendCommentPayload payload) async {
   await Client.post('comments/${payload.id}', data: payload.toJson());
 }
+
+/// 搜索漫画
+Future<SearchResponse> searchComics(SearchPayload payload) async {
+  final response = await Client.post(
+    'comics/advanced-search?page=${payload.page}',
+    data: payload.toJson(),
+  );
+  final data = BaseResponse<SearchResponse>.fromJson(
+    response,
+    (data) => SearchResponse.fromJson(data),
+  );
+  return data.data;
+}

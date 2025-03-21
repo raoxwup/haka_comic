@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/categories/categories.dart';
 import 'package:haka_comic/views/home/navigation.dart';
@@ -35,7 +36,7 @@ class _HomeState extends State<Home> {
                         .map(
                           (e) => IconButton(
                             tooltip: e['label'],
-                            onPressed: () {},
+                            onPressed: () => context.push(e['path']),
                             icon: e['icon']!,
                           ),
                         )

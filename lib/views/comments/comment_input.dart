@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
 
 class CommentInput extends StatefulWidget {
-  const CommentInput({super.key, required this.id, required this.refresh});
+  const CommentInput({super.key, required this.id, required this.handler});
 
   final String id;
 
-  final Function() refresh;
+  final AsyncRequestHandler1<void, SendCommentPayload> handler;
 
   @override
   State<CommentInput> createState() => _CommentInputState();
@@ -26,17 +23,7 @@ class _CommentInputState extends State<CommentInput> {
 
   @override
   void initState() {
-    _handler = sendComment.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Send comment success', 'comment');
-        widget.refresh();
-        context.pop();
-      },
-      onError: (e, _) {
-        Log.error('Send comment error', e);
-        showSnackBar('评论失败');
-      },
-    );
+    _handler = widget.handler;
 
     _handler.addListener(_update);
 

@@ -719,3 +719,100 @@ class SubCommentsPayload {
 
   Map<String, dynamic> toJson() => {'page': page};
 }
+
+class SearchPayload {
+  final String keyword;
+
+  final int page;
+
+  final ComicSortType sort;
+
+  SearchPayload({
+    required this.keyword,
+    required this.page,
+    required this.sort,
+  });
+
+  Map<String, dynamic> toJson() => {'keyword': keyword, 'sort': sort.name};
+}
+
+@JsonSerializable()
+class SearchComic {
+  final String updated_at;
+
+  final ImageDetail thumb;
+
+  final String author;
+
+  final String? description;
+
+  final String? chineseTeam;
+
+  final String created_at;
+
+  final bool finished;
+
+  final int? totalViews;
+
+  final List<String> categories;
+
+  final int? totalLikes;
+
+  final String title;
+
+  final List<String> tags;
+
+  @JsonKey(name: '_id')
+  final String id;
+
+  @JsonKey(defaultValue: 0)
+  final int likesCount;
+
+  SearchComic({
+    required this.updated_at,
+    required this.thumb,
+    required this.author,
+    required this.description,
+    required this.chineseTeam,
+    required this.created_at,
+    required this.finished,
+    required this.totalViews,
+    required this.categories,
+    required this.totalLikes,
+    required this.title,
+    required this.tags,
+    required this.id,
+    required this.likesCount,
+  });
+
+  factory SearchComic.fromJson(Map<String, dynamic> json) =>
+      _$SearchComicFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchComicToJson(this);
+}
+
+@JsonSerializable()
+class SearchResponse {
+  final List<SearchComic> docs;
+
+  final int total;
+
+  final int limit;
+
+  final int page;
+
+  final int pages;
+
+  SearchResponse({
+    required this.docs,
+    required this.total,
+    required this.limit,
+    required this.page,
+    required this.pages,
+  });
+
+  factory SearchResponse.fromJson(Map<String, dynamic> json) =>
+      _$SearchResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchResponseToJson(this);
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/ui.dart';
 
 const List<dynamic> destinations = [
@@ -76,7 +77,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                       (e) => IconButton(
                         tooltip: e['label'],
                         icon: e['icon']!,
-                        onPressed: () {},
+                        onPressed: () => context.push(e['path']),
                       ),
                     )
                     .toList(),
