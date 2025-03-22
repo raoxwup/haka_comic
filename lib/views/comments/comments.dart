@@ -66,9 +66,9 @@ class _CommentsPageState extends State<CommentsPage> {
       },
     );
 
-    handler.run(CommentsPayload(id: widget.id, page: _page));
-
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run(CommentsPayload(id: widget.id, page: _page));
 
     _scrollController.addListener(_onScroll);
 

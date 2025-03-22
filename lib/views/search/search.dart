@@ -33,6 +33,11 @@ class _SearchState extends State<Search> {
               icon: Icon(Icons.close),
             ),
           ),
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              context.push('/search_comics?keyword=$value');
+            }
+          },
         ),
       ),
       body: Center(child: const Text('Search')),

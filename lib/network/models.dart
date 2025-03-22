@@ -179,7 +179,7 @@ class Doc {
 
   final ImageDetail thumb;
 
-  final String id;
+  final String? id;
 
   @JsonKey(defaultValue: 0)
   final int likesCount;
@@ -189,7 +189,7 @@ class Doc {
     required this.categories,
     required this.epsCount,
     required this.finished,
-    required this.id,
+    this.id,
     required this.likesCount,
     required this.pagesCount,
     required this.thumb,
@@ -261,6 +261,7 @@ class Creator {
 
   final List<String> characters;
 
+  @JsonKey(defaultValue: '')
   final String title;
 
   final String? slogan;
@@ -302,6 +303,7 @@ class Comic {
 
   final List<String> categories;
 
+  @JsonKey(defaultValue: '')
   final String chineseTeam;
 
   final List<String> tags;
@@ -792,7 +794,7 @@ class SearchComic {
 }
 
 @JsonSerializable()
-class SearchResponse {
+class SearchComics {
   final List<SearchComic> docs;
 
   final int total;
@@ -803,7 +805,7 @@ class SearchResponse {
 
   final int pages;
 
-  SearchResponse({
+  SearchComics({
     required this.docs,
     required this.total,
     required this.limit,
@@ -811,8 +813,30 @@ class SearchResponse {
     required this.pages,
   });
 
+  factory SearchComics.fromJson(Map<String, dynamic> json) =>
+      _$SearchComicsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchComicsToJson(this);
+}
+
+@JsonSerializable()
+class SearchResponse {
+  final SearchComics comics;
+
+  SearchResponse({required this.comics});
+
   factory SearchResponse.fromJson(Map<String, dynamic> json) =>
       _$SearchResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$SearchResponseToJson(this);
+}
+
+class UserFavoritePayload {
+  final int page;
+
+  final ComicSortType sort;
+
+  UserFavoritePayload({required this.page, required this.sort});
+
+  Map<String, dynamic> toJson() => {'page': page, 's': sort.name};
 }

@@ -4,23 +4,23 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
-class ListItem extends StatefulWidget {
-  const ListItem({super.key, required this.doc});
+class SearchListItem extends StatefulWidget {
+  const SearchListItem({super.key, required this.comic});
 
-  final Doc doc;
+  final SearchComic comic;
 
   @override
-  State<ListItem> createState() => _ListItemState();
+  State<SearchListItem> createState() => _SearchListItemState();
 }
 
-class _ListItemState extends State<ListItem> {
+class _SearchListItemState extends State<SearchListItem> {
   @override
   Widget build(BuildContext context) {
-    final item = widget.doc;
+    final item = widget.comic;
     return InkWell(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       onTap: () {
-        context.push('/details/${item.uid}');
+        context.push('/details/${item.id}');
       },
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -28,7 +28,7 @@ class _ListItemState extends State<ListItem> {
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BaseImage(url: widget.doc.thumb.url, aspectRatio: 90 / 130),
+            BaseImage(url: item.thumb.url, aspectRatio: 90 / 130),
             Expanded(
               child: Column(
                 spacing: 3,
@@ -36,7 +36,7 @@ class _ListItemState extends State<ListItem> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '[${item.pagesCount}P]${item.title}',
+                    item.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall,
@@ -58,7 +58,7 @@ class _ListItemState extends State<ListItem> {
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       Text(
-                        '${item.totalViews} views',
+                        '${item.totalViews ?? '??'} views',
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],

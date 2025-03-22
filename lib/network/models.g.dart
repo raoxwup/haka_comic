@@ -56,7 +56,7 @@ Doc _$DocFromJson(Map<String, dynamic> json) => Doc(
       (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
-  id: json['id'] as String,
+  id: json['id'] as String?,
   likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
   pagesCount: (json['pagesCount'] as num).toInt(),
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
@@ -121,7 +121,7 @@ Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   level: (json['level'] as num).toInt(),
   name: json['name'] as String,
   role: json['role'] as String,
-  title: json['title'] as String,
+  title: json['title'] as String? ?? '',
   slogan: json['slogan'] as String?,
 );
 
@@ -142,7 +142,7 @@ Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
   author: json['author'] as String,
   categories:
       (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
-  chineseTeam: json['chineseTeam'] as String,
+  chineseTeam: json['chineseTeam'] as String? ?? '',
   created_at: json['created_at'] as String,
   description: json['description'] as String,
   epsCount: (json['epsCount'] as num).toInt(),
@@ -445,19 +445,18 @@ Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
       'likesCount': instance.likesCount,
     };
 
-SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
-    SearchResponse(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      total: (json['total'] as num).toInt(),
-      limit: (json['limit'] as num).toInt(),
-      page: (json['page'] as num).toInt(),
-      pages: (json['pages'] as num).toInt(),
-    );
+SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) => SearchComics(
+  docs:
+      (json['docs'] as List<dynamic>)
+          .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
+);
 
-Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
+Map<String, dynamic> _$SearchComicsToJson(SearchComics instance) =>
     <String, dynamic>{
       'docs': instance.docs,
       'total': instance.total,
@@ -465,3 +464,11 @@ Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
       'page': instance.page,
       'pages': instance.pages,
     };
+
+SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
+    SearchResponse(
+      comics: SearchComics.fromJson(json['comics'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};

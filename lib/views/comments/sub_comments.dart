@@ -67,9 +67,9 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
       },
     );
 
-    handler.run(SubCommentsPayload(id: widget.comment.id, page: _page));
-
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run(SubCommentsPayload(id: widget.comment.id, page: _page));
 
     _scrollController.addListener(_onScroll);
 

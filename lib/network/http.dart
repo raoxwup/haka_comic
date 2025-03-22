@@ -160,3 +160,13 @@ Future<SearchResponse> searchComics(SearchPayload payload) async {
   );
   return data.data;
 }
+
+/// 获取收藏
+Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
+  final response = await Client.get('users/favourite', query: payload.toJson());
+  final data = BaseResponse<ComicsResponse>.fromJson(
+    response,
+    (data) => ComicsResponse.fromJson(data),
+  );
+  return data.data;
+}

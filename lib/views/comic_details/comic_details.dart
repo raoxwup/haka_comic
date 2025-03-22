@@ -53,9 +53,9 @@ class _ComicDetailsState extends State<ComicDetails> {
 
   @override
   void initState() {
-    handler.run(widget.id);
-
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run(widget.id);
 
     _scrollController.addListener(_handleScroll);
 

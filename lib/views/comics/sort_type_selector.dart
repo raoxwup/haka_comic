@@ -34,6 +34,7 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
   }
 
   void handleChange(ComicSortType type) {
+    if (type == _sortType) return;
     setState(() {
       _sortType = type;
     });

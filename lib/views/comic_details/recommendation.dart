@@ -28,9 +28,9 @@ class _RecommendationState extends State<Recommendation> {
 
   @override
   void initState() {
-    handler.run(widget.id);
-
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run(widget.id);
 
     super.initState();
   }

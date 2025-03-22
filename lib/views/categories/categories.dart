@@ -27,8 +27,9 @@ class _CategoriesState extends State<Categories> {
 
   @override
   void initState() {
-    handler.run();
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run();
     super.initState();
   }
 

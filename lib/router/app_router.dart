@@ -5,6 +5,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart' as models;
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comics/comics.dart';
+import 'package:haka_comic/views/comics/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
@@ -104,6 +105,16 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: const Settings(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/search_comics',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: SearchComics(keyword: state.uri.queryParameters['keyword']!),
         );
       },
     ),

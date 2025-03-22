@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
@@ -49,18 +48,19 @@ class _ComicsState extends State<Comics> {
 
   @override
   void initState() {
-    handler.run(
-      ComicsPayload(
-        c: widget.c,
-        s: sortType,
-        page: page,
-        t: widget.t,
-        ca: widget.ca,
-        a: widget.a,
-        ct: widget.ct,
-      ),
-    );
-    handler.addListener(_update);
+    handler
+      ..addListener(_update)
+      ..run(
+        ComicsPayload(
+          c: widget.c,
+          s: sortType,
+          page: page,
+          t: widget.t,
+          ca: widget.ca,
+          a: widget.a,
+          ct: widget.ct,
+        ),
+      );
     super.initState();
   }
 
@@ -72,11 +72,29 @@ class _ComicsState extends State<Comics> {
     super.dispose();
   }
 
+  void _onPageChange(int page) {
+    setState(() {
+      this.page = page;
+    });
+    handler.run(
+      ComicsPayload(
+        c: widget.c,
+        s: sortType,
+        page: page,
+        t: widget.t,
+        ca: widget.ca,
+        a: widget.a,
+        ct: widget.ct,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<Doc>? comics = handler.data?.comics.docs;
-    final int pages = handler.data?.comics.pages ?? 0;
+    final List<Doc> comics = handler.data?.comics.docs ?? [];
+    final int pages = handler.data?.comics.pages ?? 1;
     final width = MediaQuery.sizeOf(context).width;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -96,7 +114,11 @@ class _ComicsState extends State<Comics> {
         error: handler.error,
         child: CustomScrollView(
           slivers: [
-            _buildSliverToBoxAdapter(pages),
+            PageSelector(
+              pages: pages,
+              onPageChange: _onPageChange,
+              currentPage: page,
+            ),
             SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent:
@@ -110,156 +132,31 @@ class _ComicsState extends State<Comics> {
                 childAspectRatio: 2.5,
               ),
               itemBuilder: (context, index) {
-                return ListItem(doc: comics![index]);
+                return ListItem(doc: comics[index]);
               },
-              itemCount: comics?.length,
+              itemCount: comics.length,
             ),
-            _buildSliverToBoxAdapter(pages),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliverToBoxAdapter(int pages) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-        child: Row(
-          children: [
-            FilledButton.tonal(
-              onPressed:
-                  page <= 1
-                      ? null
-                      : () {
-                        setState(() {
-                          page--;
-                          handler.run(
-                            ComicsPayload(
-                              c: widget.c,
-                              s: sortType,
-                              page: page,
-                              t: widget.t,
-                              ca: widget.ca,
-                              a: widget.a,
-                              ct: widget.ct,
-                            ),
-                          );
-                        });
-                      },
-              child: const Text('上一页'),
-            ),
-            const Spacer(),
-            ActionChip(
-              label: Text('页面: $page / $pages'),
-              onPressed: () {
-                selectPage(pages);
-              },
-              side: BorderSide.none,
-            ),
-            const Spacer(),
-            FilledButton.tonal(
-              onPressed:
-                  page >= pages
-                      ? null
-                      : () {
-                        setState(() {
-                          page++;
-                          handler.run(
-                            ComicsPayload(
-                              c: widget.c,
-                              s: sortType,
-                              page: page,
-                              t: widget.t,
-                              ca: widget.ca,
-                              a: widget.a,
-                              ct: widget.ct,
-                            ),
-                          );
-                        });
-                      },
-              child: const Text('下一页'),
+            PageSelector(
+              pages: pages,
+              onPageChange: _onPageChange,
+              currentPage: page,
             ),
           ],
         ),
       ),
     );
-  }
-
-  void selectPage(int pages) async {
-    String res = "";
-    await showDialog(
-      context: context,
-      builder: (dialogContext) {
-        var controller = TextEditingController();
-        return SimpleDialog(
-          title: const Text("页面跳转"),
-          children: [
-            const SizedBox(width: 300),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-              child: TextField(
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: "页码",
-                  suffixText: "${"输入范围: "}1-${pages.toString()}",
-                ),
-                controller: controller,
-                onSubmitted: (s) {
-                  res = s;
-                  context.pop();
-                },
-              ),
-            ),
-            Center(
-              child: FilledButton(
-                child: const Text("提交"),
-                onPressed: () {
-                  res = controller.text;
-                  context.pop();
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-    if (int.tryParse(res) != null) {
-      int i = int.parse(res);
-      if (i > 0 && i <= pages) {
-        setState(() {
-          page = i;
-          handler.run(
-            ComicsPayload(
-              c: widget.c,
-              s: sortType,
-              page: page,
-              t: widget.t,
-              ca: widget.ca,
-              a: widget.a,
-              ct: widget.ct,
-            ),
-          );
-        });
-        return;
-      }
-    }
-    if (res != "") {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        showSnackBar('跳转页码不正确');
-      });
-    }
   }
 
   void _onSortTypeChange(ComicSortType type) {
     setState(() {
       sortType = type;
+      page = 1;
     });
     handler.run(
       ComicsPayload(
         c: widget.c,
         s: type,
-        page: page,
+        page: 1,
         t: widget.t,
         ca: widget.ca,
         a: widget.a,
