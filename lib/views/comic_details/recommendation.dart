@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
+import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
@@ -15,20 +16,51 @@ class Recommendation extends StatefulWidget {
 }
 
 class _RecommendationState extends State<Recommendation> {
-  final handler = fetchComicRecommendation.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch recommendation success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch recommendation error', e);
-    },
-  );
+  final List<ExtraRecommendComic> _comics = [];
+
+  late final AsyncRequestHandler1<RecommendComics, String> handler;
+  late final AsyncRequestHandler1<List<ExtraRecommendComic>, String>
+  extraHandler;
 
   void _update() => setState(() {});
 
   @override
   void initState() {
+    handler = fetchComicRecommendation.useRequest(
+      onSuccess: (data, _) {
+        Log.info('Fetch recommendation success', data.toString());
+        _comics.addAll(
+          data.comics
+              .map(
+                (e) => ExtraRecommendComic(
+                  id: e.id,
+                  title: e.title,
+                  pic: e.thumb.url,
+                ),
+              )
+              .toList(),
+        );
+      },
+      onError: (e, _) {
+        Log.error('Fetch recommendation error', e);
+      },
+    );
+
+    extraHandler = fetchExtraRecommendComics.useRequest(
+      onSuccess: (data, _) {
+        Log.info('Fetch extra recommendation success', data.toString());
+        _comics.addAll(data);
+      },
+      onError: (e, _) {
+        Log.error('Fetch extra recommendation error', e);
+      },
+    );
+
     handler
+      ..addListener(_update)
+      ..run(widget.id);
+
+    extraHandler
       ..addListener(_update)
       ..run(widget.id);
 
@@ -40,6 +72,11 @@ class _RecommendationState extends State<Recommendation> {
     handler
       ..removeListener(_update)
       ..dispose();
+
+    extraHandler
+      ..removeListener(_update)
+      ..dispose();
+
     super.dispose();
   }
 
@@ -65,12 +102,11 @@ class _RecommendationState extends State<Recommendation> {
   );
 
   Widget _buildRecommendations() {
-    final comics = handler.data?.comics ?? [];
     return SizedBox(
       height: 190,
       width: double.infinity,
       child:
-          comics.isEmpty
+          _comics.isEmpty
               ? Column(
                 spacing: 5,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -81,10 +117,10 @@ class _RecommendationState extends State<Recommendation> {
               )
               : ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: comics.length,
+                itemCount: _comics.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
-                  final item = comics[index];
+                  final item = _comics[index];
                   return InkWell(
                     onTap: () => context.push('/details/${item.id}'),
                     hoverColor: Colors.transparent,
@@ -92,11 +128,7 @@ class _RecommendationState extends State<Recommendation> {
                       width: 100,
                       child: Column(
                         children: [
-                          BaseImage(
-                            url: item.thumb.url,
-                            width: 100,
-                            height: 130,
-                          ),
+                          BaseImage(url: item.pic, width: 100, height: 130),
                           Text(
                             item.title,
                             maxLines: 2,

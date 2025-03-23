@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 
@@ -169,4 +172,17 @@ Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
     (data) => ComicsResponse.fromJson(data),
   );
   return data.data;
+}
+
+/// 获取额外推荐 这里跟其它请求不一样的host 格式也不一致
+Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
+  final response = await Dio(
+    BaseOptions(responseType: ResponseType.json),
+  ).get<String>(
+    'https://recommend.go2778.com/pic/recommend/get',
+    queryParameters: {'c': id},
+  );
+  final json = jsonDecode(response.data ?? '[]') as List<dynamic>;
+  final data = json.map((data) => ExtraRecommendComic.fromJson(data)).toList();
+  return data;
 }

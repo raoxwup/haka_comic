@@ -840,3 +840,26 @@ class UserFavoritePayload {
 
   Map<String, dynamic> toJson() => {'page': page, 's': sort.name};
 }
+
+class ExtraRecommendComic {
+  final String id;
+
+  final String title;
+
+  final String pic;
+
+  ExtraRecommendComic({
+    required this.id,
+    required this.title,
+    required this.pic,
+  });
+
+  factory ExtraRecommendComic.fromJson(Map<String, dynamic> json) =>
+      ExtraRecommendComic(
+        id: json['id'],
+        title: json['title'],
+        pic: json['pic'],
+      );
+
+  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'pic': pic};
+}

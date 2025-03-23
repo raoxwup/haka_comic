@@ -19,6 +19,7 @@ class Client {
     Method method,
     String path, {
     Map<String, dynamic>? payload,
+    String? baseUrl,
   }) async {
     String queryString = '';
     if (method == Method.get) {
@@ -37,6 +38,9 @@ class Client {
             )
             : getHeaders(path, method);
     _client.options.headers = headers;
+    if (baseUrl != null) {
+      _client.options.baseUrl = baseUrl;
+    }
     try {
       Response response;
       switch (method) {
@@ -86,28 +90,32 @@ class Client {
   static Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
+    String? baseUrl,
   }) {
-    return _request(Method.get, path, payload: query);
+    return _request(Method.get, path, payload: query, baseUrl: baseUrl);
   }
 
   static Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? data,
+    String? baseUrl,
   }) {
-    return _request(Method.post, path, payload: data);
+    return _request(Method.post, path, payload: data, baseUrl: baseUrl);
   }
 
   static Future<Map<String, dynamic>> put(
     String path, {
     Map<String, dynamic>? data,
+    String? baseUrl,
   }) {
-    return _request(Method.put, path, payload: data);
+    return _request(Method.put, path, payload: data, baseUrl: baseUrl);
   }
 
   static Future<Map<String, dynamic>> delete(
     String path, {
     Map<String, dynamic>? data,
+    String? baseUrl,
   }) {
-    return _request(Method.delete, path, payload: data);
+    return _request(Method.delete, path, payload: data, baseUrl: baseUrl);
   }
 }
