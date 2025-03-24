@@ -17,6 +17,9 @@ class VerticalList extends StatefulWidget {
 class _VerticalListState extends State<VerticalList> {
   bool _isCtrlPressed = false;
 
+  int _activePointers = 0;
+  ScrollPhysics _listPhysics = const AlwaysScrollableScrollPhysics();
+
   bool get _isDesktop =>
       Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
@@ -54,18 +57,36 @@ class _VerticalListState extends State<VerticalList> {
 
   @override
   Widget build(BuildContext context) {
-    return InteractiveViewer(
-      scaleEnabled: _isDesktop ? _isCtrlPressed : true,
-      minScale: 1,
-      maxScale: 3.5,
-      child: ListView.builder(
-        itemCount: widget.images.length,
-        itemBuilder: (context, index) {
-          final item = widget.images[index];
-          return VerticalImage(url: item.media.url);
-        },
+    return Listener(
+      onPointerDown: (event) => _updatePointerCount(1),
+      onPointerUp: (event) => _updatePointerCount(-1),
+      onPointerCancel: (event) => _updatePointerCount(-1),
+      child: InteractiveViewer(
+        scaleEnabled: _isDesktop ? _isCtrlPressed : true,
+        minScale: 1,
+        maxScale: 3.5,
+        child: ListView.builder(
+          physics: _listPhysics,
+          itemCount: widget.images.length,
+          itemBuilder: (context, index) {
+            final item = widget.images[index];
+            return VerticalImage(url: item.media.url);
+          },
+        ),
       ),
     );
+  }
+
+  void _updatePointerCount(int delta) {
+    final newCount = _activePointers + delta;
+    setState(() {
+      _activePointers = newCount >= 0 ? newCount : 0;
+      // 触摸点 >=2 时禁用滚动 只响应缩放
+      _listPhysics =
+          _activePointers >= 2
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics();
+    });
   }
 }
 

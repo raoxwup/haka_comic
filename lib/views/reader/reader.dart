@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -40,6 +41,8 @@ class _ReaderState extends State<Reader> {
   );
 
   late int _currentIndex;
+
+  bool _showToolbar = false;
 
   void _update() => setState(() {});
 
@@ -83,26 +86,53 @@ class _ReaderState extends State<Reader> {
         FetchChapterImagesPayload(id: widget.id, order: currentChapter.order),
       );
 
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
+  }
+
+  void openOrCloseToolbar() {
+    setState(() {
+      _showToolbar = !_showToolbar;
+    });
+    if (_showToolbar) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final data = _handler.data ?? [];
+    final top = MediaQuery.paddingOf(context).top;
+
     return Scaffold(
-      // appBar: AppBar(title: Text(widget.currentChapter.title)),
       body: Stack(
         children: [
-          BasePage(
-            isLoading: _handler.isLoading,
-            onRetry: _handler.refresh,
-            error: _handler.error,
-            child: GestureDetector(
-              onTap: () {
-                print('tap');
-              },
-              child: VerticalList(images: data),
+          Positioned.fill(
+            child: BasePage(
+              isLoading: _handler.isLoading,
+              onRetry: _handler.refresh,
+              error: _handler.error,
+              child: GestureDetector(
+                onTap: openOrCloseToolbar,
+                child: VerticalList(images: data),
+              ),
             ),
+          ),
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 250),
+            top: _showToolbar ? 0 : -(kToolbarHeight + top),
+            left: 0,
+            right: 0,
+            child: AppBar(title: Text(currentChapter.title)),
           ),
         ],
       ),
