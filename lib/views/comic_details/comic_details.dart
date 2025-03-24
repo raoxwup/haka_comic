@@ -40,6 +40,10 @@ class _ComicDetailsState extends State<ComicDetails> {
   final ScrollController _scrollController = ScrollController();
   final double _scrollThreshold = 80;
 
+  List<Chapter> _chapters = [];
+
+  void _updateChapters(List<Chapter> chapters) => _chapters = chapters;
+
   void _update() => setState(() {});
 
   void _handleScroll() {
@@ -140,7 +144,11 @@ class _ComicDetailsState extends State<ComicDetails> {
                   children: [
                     Expanded(
                       child: FilledButton(
-                        onPressed: () {},
+                        onPressed:
+                            () => context.push(
+                              '/reader/${widget.id}/0',
+                              extra: _chapters,
+                            ),
                         child: const Text('开始阅读'),
                       ),
                     ),
@@ -168,7 +176,7 @@ class _ComicDetailsState extends State<ComicDetails> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('目录', style: Theme.of(context).textTheme.titleMedium),
-        ChaptersList(id: widget.id),
+        ChaptersList(id: widget.id, onChaptersUpdated: _updateChapters),
       ],
     );
   }
@@ -263,7 +271,9 @@ class _ComicDetailsState extends State<ComicDetails> {
               avatar: Icon(Icons.menu_book),
               shape: StadiumBorder(),
               label: Text('开始阅读'),
-              onPressed: () {},
+              onPressed:
+                  () =>
+                      context.push('/reader/${widget.id}/0', extra: _chapters),
             ),
           LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
           CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),

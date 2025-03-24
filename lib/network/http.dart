@@ -51,7 +51,8 @@ Future<ComicDetailsResponse> fetchComicDetails(String id) async {
 /// 漫画章节
 Future<List<Chapter>> fetchChapters(String id) async {
   List<Chapter> chapters = [];
-  final response = await Client.get('comics/$id/eps', query: {'page': 1});
+  final url = 'comics/$id/eps';
+  final response = await Client.get(url, query: {'page': 1});
   final data = BaseResponse<ChaptersResponse>.fromJson(
     response,
     (data) => ChaptersResponse.fromJson(data),
@@ -62,7 +63,7 @@ Future<List<Chapter>> fetchChapters(String id) async {
   final results = await Future.wait(
     List.generate(
       eps.pages - 1,
-      (index) => Client.get('comics/$id/eps', query: {'page': index + 2}),
+      (index) => Client.get(url, query: {'page': index + 2}),
     ),
   );
   for (var result in results) {
@@ -185,4 +186,36 @@ Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
   final json = jsonDecode(response.data ?? '[]') as List<dynamic>;
   final data = json.map((data) => ExtraRecommendComic.fromJson(data)).toList();
   return data;
+}
+
+/// 获取章节图片  一次性请求所有图片
+Future<List<ChapterImage>> fetchChapterImages(
+  FetchChapterImagesPayload payload,
+) async {
+  List<ChapterImage> images = [];
+  int page = 1;
+  final url = 'comics/${payload.id}/order/${payload.order}/pages';
+  final response = await Client.get(url, query: {'page': page});
+  final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
+    response,
+    (data) => FetchChapterImagesResponse.fromJson(data),
+  );
+  images.addAll(data.data.pages.docs);
+  final pages = data.data.pages;
+
+  final requests = List.generate(
+    pages.pages - 1,
+    (index) => Client.get(url, query: {'page': index + 2}),
+  );
+  final responses = await Future.wait(requests);
+
+  for (var response in responses) {
+    final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
+      response,
+      (data) => FetchChapterImagesResponse.fromJson(data),
+    );
+    images.addAll(data.data.pages.docs);
+  }
+
+  return images;
 }

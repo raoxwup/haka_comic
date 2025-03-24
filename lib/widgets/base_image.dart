@@ -12,6 +12,7 @@ class BaseImage extends StatefulWidget {
     this.progressIndicatorBuilder,
     this.errorBuilder,
     this.shape,
+    this.imageBuilder,
   });
 
   final String url;
@@ -30,6 +31,8 @@ class BaseImage extends StatefulWidget {
   progressIndicatorBuilder;
 
   final Widget Function(BuildContext, String, Object)? errorBuilder;
+
+  final Widget Function(BuildContext, ImageProvider)? imageBuilder;
 
   @override
   State<BaseImage> createState() => _BaseImageState();
@@ -74,6 +77,7 @@ class _BaseImageState extends State<BaseImage> {
                       icon: Icon(Icons.refresh),
                     ),
                   ),
+              imageBuilder: widget.imageBuilder,
             ),
       ),
     );

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
+import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 
 class ChaptersList extends StatefulWidget {
-  const ChaptersList({super.key, required this.id});
+  const ChaptersList({
+    super.key,
+    required this.id,
+    required this.onChaptersUpdated,
+  });
 
   final String id;
+
+  final Function(List<Chapter> chapters) onChaptersUpdated;
 
   @override
   State<ChaptersList> createState() => _ChaptersListState();
@@ -15,19 +22,22 @@ class ChaptersList extends StatefulWidget {
 class _ChaptersListState extends State<ChaptersList> {
   bool expand = false;
 
-  final handler = fetchChapters.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch chapters success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch chapters error', e);
-    },
-  );
+  late final AsyncRequestHandler1<List<Chapter>, String> handler;
 
   void _update() => setState(() {});
 
   @override
   void initState() {
+    handler = fetchChapters.useRequest(
+      onSuccess: (data, _) {
+        Log.info('Fetch chapters success', data.toString());
+        widget.onChaptersUpdated(data);
+      },
+      onError: (e, _) {
+        Log.error('Fetch chapters error', e);
+      },
+    );
+
     handler
       ..addListener(_update)
       ..run(widget.id);

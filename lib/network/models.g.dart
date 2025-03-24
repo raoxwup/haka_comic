@@ -472,3 +472,54 @@ SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
     <String, dynamic>{'comics': instance.comics};
+
+ChapterImage _$ChapterImageFromJson(Map<String, dynamic> json) => ChapterImage(
+  uid: json['_id'] as String,
+  id: json['id'] as String?,
+  media: ImageDetail.fromJson(json['media'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$ChapterImageToJson(ChapterImage instance) =>
+    <String, dynamic>{
+      '_id': instance.uid,
+      'id': instance.id,
+      'media': instance.media,
+    };
+
+ChaptersImages _$ChaptersImagesFromJson(Map<String, dynamic> json) =>
+    ChaptersImages(
+      docs:
+          (json['docs'] as List<dynamic>)
+              .map((e) => ChapterImage.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$ChaptersImagesToJson(ChaptersImages instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+ChapterEpisode _$ChapterEpisodeFromJson(Map<String, dynamic> json) =>
+    ChapterEpisode(id: json['_id'] as String, title: json['title'] as String);
+
+Map<String, dynamic> _$ChapterEpisodeToJson(ChapterEpisode instance) =>
+    <String, dynamic>{'_id': instance.id, 'title': instance.title};
+
+FetchChapterImagesResponse _$FetchChapterImagesResponseFromJson(
+  Map<String, dynamic> json,
+) => FetchChapterImagesResponse(
+  pages: ChaptersImages.fromJson(json['pages'] as Map<String, dynamic>),
+  ep: ChapterEpisode.fromJson(json['ep'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$FetchChapterImagesResponseToJson(
+  FetchChapterImagesResponse instance,
+) => <String, dynamic>{'pages': instance.pages, 'ep': instance.ep};

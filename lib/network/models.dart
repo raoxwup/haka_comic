@@ -863,3 +863,83 @@ class ExtraRecommendComic {
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title, 'pic': pic};
 }
+
+class FetchChapterImagesPayload {
+  final String id;
+
+  final int order;
+
+  FetchChapterImagesPayload({required this.id, required this.order});
+}
+
+@JsonSerializable()
+class ChapterImage {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String? id;
+
+  final ImageDetail media;
+
+  ChapterImage({required this.uid, required this.id, required this.media});
+
+  factory ChapterImage.fromJson(Map<String, dynamic> json) =>
+      _$ChapterImageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChapterImageToJson(this);
+}
+
+@JsonSerializable()
+class ChaptersImages {
+  final List<ChapterImage> docs;
+
+  final int total;
+
+  final int limit;
+
+  final int page;
+
+  final int pages;
+
+  ChaptersImages({
+    required this.docs,
+    required this.total,
+    required this.limit,
+    required this.page,
+    required this.pages,
+  });
+
+  factory ChaptersImages.fromJson(Map<String, dynamic> json) =>
+      _$ChaptersImagesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChaptersImagesToJson(this);
+}
+
+@JsonSerializable()
+class ChapterEpisode {
+  @JsonKey(name: '_id')
+  final String id;
+
+  final String title;
+
+  ChapterEpisode({required this.id, required this.title});
+
+  factory ChapterEpisode.fromJson(Map<String, dynamic> json) =>
+      _$ChapterEpisodeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChapterEpisodeToJson(this);
+}
+
+@JsonSerializable()
+class FetchChapterImagesResponse {
+  final ChaptersImages pages;
+
+  final ChapterEpisode ep;
+
+  FetchChapterImagesResponse({required this.pages, required this.ep});
+
+  factory FetchChapterImagesResponse.fromJson(Map<String, dynamic> json) =>
+      _$FetchChapterImagesResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FetchChapterImagesResponseToJson(this);
+}
