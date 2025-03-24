@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart' as models;
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/comics/search_comics.dart';
@@ -13,6 +15,16 @@ import 'package:haka_comic/views/login/login.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/settings.dart';
+
+const MethodChannel platform = MethodChannel('back_to_home');
+
+Future<void> _moveToBackground() async {
+  try {
+    await platform.invokeMethod('moveToBackground');
+  } on PlatformException catch (e) {
+    Log.error("Failed to move to background", e);
+  }
+}
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -25,6 +37,10 @@ final GoRouter appRouter = GoRouter(
   routes: <RouteBase>[
     GoRoute(
       path: '/',
+      onExit: (context, state) async {
+        await _moveToBackground();
+        return false;
+      },
       pageBuilder:
           (context, state) => customTransitionPage(
             context: context,

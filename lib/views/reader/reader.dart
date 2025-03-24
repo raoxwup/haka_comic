@@ -132,6 +132,7 @@ class _ReaderState extends State<Reader> {
             top: _showToolbar ? 0 : -(kToolbarHeight + top),
             left: 0,
             right: 0,
+            height: kToolbarHeight + top,
             child: AppBar(title: Text(currentChapter.title)),
           ),
         ],

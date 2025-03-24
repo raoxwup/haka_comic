@@ -66,6 +66,7 @@ class _VerticalListState extends State<VerticalList> {
         minScale: 1,
         maxScale: 3.5,
         child: ListView.builder(
+          padding: EdgeInsets.zero,
           physics: _listPhysics,
           itemCount: widget.images.length,
           itemBuilder: (context, index) {
