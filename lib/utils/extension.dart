@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/log.dart';
 
 extension WaitFuture<T> on Future<T> {
@@ -160,4 +161,18 @@ extension UseRequest1Extensions<T, P> on Future<T> Function(P) {
       onFinally: onFinally,
     );
   }
+}
+
+extension BuildContextExt on BuildContext {
+  EdgeInsets get padding => MediaQuery.paddingOf(this);
+  double get left => padding.left;
+  double get right => padding.right;
+  double get top => padding.top;
+  double get bottom => padding.bottom;
+
+  Size get size => MediaQuery.sizeOf(this);
+  double get width => size.width;
+  double get height => size.height;
+
+  EdgeInsets get viewInsets => MediaQuery.viewInsetsOf(this);
 }

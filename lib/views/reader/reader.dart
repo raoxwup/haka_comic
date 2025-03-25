@@ -122,7 +122,7 @@ class _ReaderState extends State<Reader> {
   @override
   Widget build(BuildContext context) {
     final data = _handler.data ?? [];
-    final top = MediaQuery.paddingOf(context).top;
+    final top = context.top;
 
     return Scaffold(
       body: Stack(
@@ -156,15 +156,17 @@ class _ReaderState extends State<Reader> {
   }
 
   Widget _buildChapterTag(List<ChapterImage> data) {
-    final padding = MediaQuery.paddingOf(context);
     return Positioned(
-      left: padding.left,
-      bottom: padding.bottom,
+      left: context.left + 12,
+      bottom: context.bottom + 12,
+      width: context.width / 2,
       child: ValueListenableBuilder(
         valueListenable: _currentVisibleIndexNotifier,
         builder: (context, value, child) {
           return Text(
-            '第${_currentChapterIndex + 1}话 ${value + 1} / ${data.isEmpty ? 1 : data.length}',
+            '${currentChapter.title} ${value + 1} / ${data.isEmpty ? 1 : data.length}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Colors.black,
               fontSize: 14,

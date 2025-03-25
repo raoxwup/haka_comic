@@ -93,7 +93,7 @@ class _ComicsState extends State<Comics> {
   Widget build(BuildContext context) {
     final List<Doc> comics = handler.data?.comics.docs ?? [];
     final int pages = handler.data?.comics.pages ?? 1;
-    final width = MediaQuery.sizeOf(context).width;
+    final width = context.width;
 
     return Scaffold(
       appBar: AppBar(

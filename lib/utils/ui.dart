@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 enum UiModes {
   /// The screen have a short width. Usually the device is phone.
@@ -12,7 +13,7 @@ enum UiModes {
 }
 
 UiModes getMode(BuildContext context) {
-  final width = MediaQuery.sizeOf(context).width;
+  final width = context.width;
   if (width <= 600) {
     return UiModes.m1;
   } else if (width > 600 && width <= 950) {

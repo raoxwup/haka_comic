@@ -82,7 +82,7 @@ class _ComicDetailsState extends State<ComicDetails> {
   @override
   Widget build(BuildContext context) {
     final data = handler.data?.comic;
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = context.bottom;
 
     return Scaffold(
       appBar: AppBar(

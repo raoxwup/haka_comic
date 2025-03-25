@@ -108,7 +108,7 @@ class _CommentsPageState extends State<CommentsPage> {
   }
 
   Widget _buildBottom() {
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = context.bottom;
     return Positioned(
       bottom: 0,
       left: 0,
@@ -164,7 +164,7 @@ class _CommentsPageState extends State<CommentsPage> {
   }
 
   Widget _buildList(List<Comment> data) {
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = context.bottom;
     return ListView.separated(
       padding: EdgeInsets.only(bottom: 8 + 8 + bottom + bottomBoxHeight),
       controller: _scrollController,

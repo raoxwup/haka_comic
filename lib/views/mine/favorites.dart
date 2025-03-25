@@ -58,7 +58,7 @@ class _FavoritesState extends State<Favorites> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    final width = context.width;
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
 

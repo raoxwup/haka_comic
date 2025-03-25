@@ -101,7 +101,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
   }
 
   Widget _buildBottom() {
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = context.bottom;
     return Positioned(
       bottom: 0,
       left: 0,
@@ -144,7 +144,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
   }
 
   Widget _buildList(List<SubComment> data) {
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = context.bottom;
     return CustomScrollView(
       controller: _scrollController,
       slivers: [

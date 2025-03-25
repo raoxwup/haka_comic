@@ -44,7 +44,7 @@ class _CommentInputState extends State<CommentInput> {
   @override
   Widget build(BuildContext context) {
     final content = _commentController.text;
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final bottom = context.viewInsets.bottom;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(15, 15, 15, 5 + bottom),

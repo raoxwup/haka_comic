@@ -72,7 +72,7 @@ class _SearchComicsState extends State<SearchComics> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    final width = context.width;
     final pages = _handler.data?.comics.pages ?? 0;
     final comics = _handler.data?.comics.docs ?? [];
 
