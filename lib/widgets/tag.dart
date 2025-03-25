@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 enum TagSize { small, medium, large }
 
@@ -19,9 +20,9 @@ class Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = switch (size) {
-      TagSize.small => Theme.of(context).textTheme.bodySmall,
-      TagSize.medium => Theme.of(context).textTheme.bodyMedium,
-      TagSize.large => Theme.of(context).textTheme.bodyLarge,
+      TagSize.small => context.textTheme.bodySmall,
+      TagSize.medium => context.textTheme.bodyMedium,
+      TagSize.large => context.textTheme.bodyLarge,
     };
 
     final padding = switch (size) {
@@ -37,7 +38,7 @@ class Tag extends StatelessWidget {
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(99)),
-          color: color ?? Theme.of(context).colorScheme.inversePrimary,
+          color: color ?? context.colorScheme.inversePrimary,
         ),
         child: Text(tag, style: textStyle),
       ),

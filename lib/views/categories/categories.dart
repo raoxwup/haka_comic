@@ -86,7 +86,7 @@ class _CategoriesState extends State<Categories> {
           spacing: 5,
           children: [
             BaseImage(url: item.thumb.url, aspectRatio: 1),
-            Text(item.title, style: Theme.of(context).textTheme.labelLarge),
+            Text(item.title, style: context.textTheme.labelLarge),
           ],
         ),
       ),

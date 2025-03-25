@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
@@ -39,12 +40,12 @@ class _ListItemState extends State<ListItem> {
                     '[${item.pagesCount}P]${item.title}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: context.textTheme.titleSmall,
                   ),
                   Text(
                     item.author,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: context.colorScheme.primary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -55,11 +56,11 @@ class _ListItemState extends State<ListItem> {
                     children: [
                       Text(
                         '${item.totalLikes ?? item.likesCount} likes',
-                        style: Theme.of(context).textTheme.labelSmall,
+                        style: context.textTheme.labelSmall,
                       ),
                       Text(
                         '${item.totalViews} views',
-                        style: Theme.of(context).textTheme.labelSmall,
+                        style: context.textTheme.labelSmall,
                       ),
                     ],
                   ),

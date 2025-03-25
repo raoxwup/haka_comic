@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
 void showSnackBar(String message) {
@@ -60,10 +61,7 @@ void showCreator(BuildContext context, Creator? creator) {
             child: Column(
               spacing: 4,
               children: [
-                Text(
-                  creator?.name ?? '',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text(creator?.name ?? '', style: context.textTheme.titleMedium),
                 Text('Lv.${creator?.level ?? 0}'),
                 creator?.avatar == null
                     ? Card(

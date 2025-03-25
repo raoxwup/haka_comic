@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 
 const List<dynamic> destinations = [
@@ -61,7 +62,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   Widget _buildNavigationRail() {
     final title = destinations[widget.selectedIndex]['label'];
     return NavigationRail(
-      leading: Text(title, style: Theme.of(context).textTheme.titleLarge),
+      leading: Text(title, style: context.textTheme.titleLarge),
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
       labelType: NavigationRailLabelType.selected,

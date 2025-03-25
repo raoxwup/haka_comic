@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 class ErrorPage extends StatefulWidget {
   const ErrorPage({
@@ -25,7 +26,7 @@ class _ErrorPageState extends State<ErrorPage> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               widget.errorMessage,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: context.textTheme.bodyMedium,
             ),
           ),
           TextButton(onPressed: widget.onRetry, child: const Text('重新加载')),

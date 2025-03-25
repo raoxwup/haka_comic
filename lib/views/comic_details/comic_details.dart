@@ -175,7 +175,7 @@ class _ComicDetailsState extends State<ComicDetails> {
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('目录', style: Theme.of(context).textTheme.titleMedium),
+        Text('目录', style: context.textTheme.titleMedium),
         ChaptersList(id: widget.id, onChaptersUpdated: _updateChapters),
       ],
     );
@@ -186,7 +186,7 @@ class _ComicDetailsState extends State<ComicDetails> {
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('相关推荐', style: Theme.of(context).textTheme.titleMedium),
+        Text('相关推荐', style: context.textTheme.titleMedium),
         Recommendation(id: widget.id),
       ],
     );
@@ -206,7 +206,7 @@ class _ComicDetailsState extends State<ComicDetails> {
               children: [
                 Text(
                   data?.title ?? '',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: context.textTheme.titleMedium,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -217,8 +217,8 @@ class _ComicDetailsState extends State<ComicDetails> {
                           : () => context.push('/comics?a=${data.author}'),
                   child: Text(
                     '作者: ${data?.author}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -230,8 +230,8 @@ class _ComicDetailsState extends State<ComicDetails> {
                               context.push('/comics?ct=${data.chineseTeam}'),
                   child: Text(
                     '汉化: ${data?.chineseTeam}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -306,11 +306,8 @@ class _ComicDetailsState extends State<ComicDetails> {
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('简介', style: Theme.of(context).textTheme.titleMedium),
-        Text(
-          data?.description ?? '暂无简介',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text('简介', style: context.textTheme.titleMedium),
+        Text(data?.description ?? '暂无简介', style: context.textTheme.bodyMedium),
       ],
     );
   }
@@ -328,7 +325,7 @@ class _ComicDetailsState extends State<ComicDetails> {
           (e) => Tag(
             tag: e,
             size: TagSize.medium,
-            color: Theme.of(context).colorScheme.primaryContainer,
+            color: context.colorScheme.primaryContainer,
             onPressed: () => context.push('/comics?$name=$e'),
           ),
         ),

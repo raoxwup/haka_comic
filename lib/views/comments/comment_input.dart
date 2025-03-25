@@ -61,7 +61,7 @@ class _CommentInputState extends State<CommentInput> {
               hintText: '评论',
               border: OutlineInputBorder(borderSide: BorderSide.none),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              fillColor: context.colorScheme.surfaceContainerHighest,
             ),
             controller: _commentController,
             onChanged: (_) => _update(),
@@ -72,10 +72,7 @@ class _CommentInputState extends State<CommentInput> {
               Spacer(),
               TextButton(
                 onPressed: () => context.pop(),
-                child: Text(
-                  '取消',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                child: Text('取消', style: context.textTheme.bodyMedium),
               ),
               Button.text(
                 isLoading: _handler.isLoading,

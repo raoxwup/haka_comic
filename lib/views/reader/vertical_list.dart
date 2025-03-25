@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -190,7 +191,7 @@ class _VerticalImageState extends State<VerticalImage> {
               strokeWidth: 3,
               constraints: BoxConstraints.tight(const Size(28, 28)),
               backgroundColor: Colors.grey.shade300,
-              color: Theme.of(context).colorScheme.primary,
+              color: context.colorScheme.primary,
               strokeCap: StrokeCap.round,
             ),
           ),

@@ -175,4 +175,8 @@ extension BuildContextExt on BuildContext {
   double get height => size.height;
 
   EdgeInsets get viewInsets => MediaQuery.viewInsetsOf(this);
+
+  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+
+  TextTheme get textTheme => Theme.of(this).textTheme;
 }

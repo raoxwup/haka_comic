@@ -82,16 +82,13 @@ class _ThumbUpState extends State<ThumbUp> {
                 ? CircularProgressIndicator(
                   constraints: BoxConstraints.tight(const Size(12, 12)),
                   strokeWidth: 1,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  color: context.textTheme.bodySmall?.color,
                 )
                 : Icon(
                   _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
                   size: 16,
                 ),
-            Text(
-              _likesCount.toString(),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(_likesCount.toString(), style: context.textTheme.bodySmall),
           ],
         ),
       ),

@@ -112,7 +112,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
           ),
-          color: Theme.of(context).colorScheme.surface,
+          color: context.colorScheme.surface,
         ),
         child: InkWell(
           onTap: _showCommentInput,
@@ -121,11 +121,11 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(99)),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: context.colorScheme.surfaceContainerHighest,
             ),
             child: Row(
               children: [
-                Text('评论', style: Theme.of(context).textTheme.bodySmall),
+                Text('评论', style: context.textTheme.bodySmall),
                 const Spacer(),
                 Icon(Icons.send, size: 16),
               ],
@@ -207,18 +207,16 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                           children: [
                             Text(
                               item.user.name,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                              style: context.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
-                              time,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                            Text(time, style: context.textTheme.bodySmall),
                             Text(
                               item.content,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: context.textTheme.bodyMedium,
                             ),
                             Row(
                               spacing: 8,
@@ -261,7 +259,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                   constraints: BoxConstraints.tight(const Size(28, 28)),
                   strokeWidth: 3,
                 )
-                : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
+                : Text('没有更多数据了', style: context.textTheme.bodySmall),
       ),
     );
   }
@@ -313,18 +311,19 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                     children: [
                       Text(
                         comment.user.name,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: context.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         getFormattedDate(comment.created_at),
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: context.textTheme.bodySmall,
                       ),
                       Text(
                         comment.content,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: context.textTheme.bodyMedium,
                       ),
                     ],
                   ),

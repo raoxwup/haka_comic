@@ -119,7 +119,7 @@ class _CommentsPageState extends State<CommentsPage> {
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
           ),
-          color: Theme.of(context).colorScheme.surface,
+          color: context.colorScheme.surface,
         ),
         child: InkWell(
           onTap: _showCommentInput,
@@ -128,11 +128,11 @@ class _CommentsPageState extends State<CommentsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(99)),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: context.colorScheme.surfaceContainerHighest,
             ),
             child: Row(
               children: [
-                Text('评论', style: Theme.of(context).textTheme.bodySmall),
+                Text('评论', style: context.textTheme.bodySmall),
                 const Spacer(),
                 Icon(Icons.send, size: 16),
               ],
@@ -215,17 +215,14 @@ class _CommentsPageState extends State<CommentsPage> {
                   children: [
                     Text(
                       item.user.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(time, style: Theme.of(context).textTheme.bodySmall),
-                    Text(
-                      item.content,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text(time, style: context.textTheme.bodySmall),
+                    Text(item.content, style: context.textTheme.bodyMedium),
                     Row(
                       spacing: 8,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -252,7 +249,7 @@ class _CommentsPageState extends State<CommentsPage> {
                                 Text(
                                   (item.totalComments ?? item.commentsCount)
                                       .toString(),
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: context.textTheme.bodySmall,
                                 ),
                               ],
                             ),

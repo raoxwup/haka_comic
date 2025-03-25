@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
 class ComicCreator extends StatelessWidget {
@@ -26,7 +27,7 @@ class ComicCreator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
+          color: context.colorScheme.surfaceContainer,
           borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         child: Row(
@@ -44,11 +45,11 @@ class ComicCreator extends StatelessWidget {
               children: [
                 Text(
                   creator?.name ?? '',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: context.textTheme.titleMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(time, style: Theme.of(context).textTheme.bodySmall),
+                Text(time, style: context.textTheme.bodySmall),
               ],
             ),
           ],

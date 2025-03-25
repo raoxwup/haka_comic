@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 class IconText extends StatelessWidget {
   const IconText({
@@ -16,10 +17,7 @@ class IconText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       spacing: spacing,
-      children: [
-        icon,
-        Text(text, style: Theme.of(context).textTheme.bodySmall),
-      ],
+      children: [icon, Text(text, style: context.textTheme.bodySmall)],
     );
   }
 }

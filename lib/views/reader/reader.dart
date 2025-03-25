@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
@@ -122,7 +124,6 @@ class _ReaderState extends State<Reader> {
   @override
   Widget build(BuildContext context) {
     final data = _handler.data ?? [];
-    final top = context.top;
 
     return Scaffold(
       body: Stack(
@@ -141,16 +142,31 @@ class _ReaderState extends State<Reader> {
               ),
             ),
           ),
-          AnimatedPositioned(
-            duration: Duration(milliseconds: 250),
-            top: _showToolbar ? 0 : -(kToolbarHeight + top),
-            left: 0,
-            right: 0,
-            height: kToolbarHeight + top,
-            child: AppBar(title: Text(currentChapter.title)),
-          ),
+          _buildAppBar(),
           _buildChapterTag(data),
+          if (!isLast) _buildNextActionButton(data),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    final top = context.top;
+    return AnimatedPositioned(
+      duration: Duration(milliseconds: 250),
+      top: _showToolbar ? 0 : -(kToolbarHeight + top),
+      left: 0,
+      right: 0,
+      height: kToolbarHeight + top,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // 模糊程度
+          child: AppBar(
+            title: Text(currentChapter.title),
+            backgroundColor: context.colorScheme.inversePrimary.withAlpha(230),
+            actions: [IconButton(icon: Icon(Icons.settings), onPressed: () {})],
+          ),
+        ),
       ),
     );
   }
@@ -217,6 +233,49 @@ class _ReaderState extends State<Reader> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildNextActionButton(List<ChapterImage> data) {
+    // 获取浮动按钮的标准尺寸
+    const fabHeight = kMinInteractiveDimension;
+
+    return ValueListenableBuilder<int>(
+      valueListenable: _currentVisibleIndexNotifier,
+      builder: (context, currentIndex, child) {
+        final isShow =
+            !_handler.isLoading &&
+            data.isNotEmpty &&
+            currentIndex >= data.length - 2;
+
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          right: 16,
+          bottom: isShow ? 30 + context.bottom : -fabHeight * 1.5,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isShow ? 1.0 : 0.0,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(28),
+              child: InkWell(
+                onTap: goNext,
+                borderRadius: BorderRadius.circular(28),
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.arrow_forward,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
