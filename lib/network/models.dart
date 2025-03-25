@@ -744,6 +744,7 @@ class SearchComic {
 
   final ImageDetail thumb;
 
+  @JsonKey(defaultValue: '??')
   final String author;
 
   final String? description;

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
@@ -108,3 +109,11 @@ void showCreator(BuildContext context, Creator? creator) {
     },
   );
 }
+
+bool isIos = Platform.isIOS;
+bool isAndroid = Platform.isAndroid;
+bool isMacOS = Platform.isMacOS;
+bool isWindows = Platform.isWindows;
+bool isLinux = Platform.isLinux;
+
+bool get isDesktop => isMacOS || isWindows || isLinux;

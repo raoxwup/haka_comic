@@ -12,7 +12,7 @@ class Reader extends StatefulWidget {
     super.key,
     required this.id,
     required this.chapters,
-    required this.startChapterIndex,
+    required this.chapterId,
   });
 
   /// 漫画id
@@ -21,10 +21,12 @@ class Reader extends StatefulWidget {
   /// 漫画所有章节
   final List<Chapter> chapters;
 
-  /// 开始章节index
-  final int startChapterIndex;
+  /// 开始章节id
+  final String chapterId;
 
-  Chapter get currentChapter => chapters[startChapterIndex];
+  /// 开始章节index
+  int get startChapterIndex =>
+      chapters.indexWhere((chapter) => chapter.id == chapterId);
 
   @override
   State<Reader> createState() => _ReaderState();
@@ -40,21 +42,30 @@ class _ReaderState extends State<Reader> {
     },
   );
 
-  late int _currentIndex;
+  late int _currentChapterIndex;
 
   bool _showToolbar = false;
 
+  final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
+
+  void onItemVisibleChanged(int index) {
+    _currentVisibleIndexNotifier.value = index;
+  }
+
   void _update() => setState(() {});
 
-  Chapter get currentChapter => widget.chapters[_currentIndex];
+  // 当前章节
+  Chapter get currentChapter => widget.chapters[_currentChapterIndex];
 
-  bool get isLast => _currentIndex == widget.chapters.length - 1;
+  // 是否是最后一章
+  bool get isLast => _currentChapterIndex == widget.chapters.length - 1;
 
-  bool get isFirst => _currentIndex == 0;
+  // 是否是第一章
+  bool get isFirst => _currentChapterIndex == 0;
 
   void go(int index) {
     setState(() {
-      _currentIndex = index;
+      _currentChapterIndex = index;
     });
     _handler.run(
       FetchChapterImagesPayload(
@@ -67,18 +78,18 @@ class _ReaderState extends State<Reader> {
   /// 下一页
   void goNext() {
     if (isLast) return;
-    go(_currentIndex + 1);
+    go(_currentChapterIndex + 1);
   }
 
   /// 上一页
   void goPrevious() {
     if (isFirst) return;
-    go(_currentIndex - 1);
+    go(_currentChapterIndex - 1);
   }
 
   @override
   void initState() {
-    _currentIndex = widget.startChapterIndex;
+    _currentChapterIndex = widget.startChapterIndex;
 
     _handler
       ..addListener(_update)
@@ -123,7 +134,10 @@ class _ReaderState extends State<Reader> {
               error: _handler.error,
               child: GestureDetector(
                 onTap: openOrCloseToolbar,
-                child: VerticalList(images: data),
+                child: VerticalList(
+                  images: data,
+                  onItemVisibleChanged: onItemVisibleChanged,
+                ),
               ),
             ),
           ),
@@ -135,7 +149,71 @@ class _ReaderState extends State<Reader> {
             height: kToolbarHeight + top,
             child: AppBar(title: Text(currentChapter.title)),
           ),
+          _buildChapterTag(data),
         ],
+      ),
+    );
+  }
+
+  Widget _buildChapterTag(List<ChapterImage> data) {
+    final padding = MediaQuery.paddingOf(context);
+    return Positioned(
+      left: padding.left,
+      bottom: padding.bottom,
+      child: ValueListenableBuilder(
+        valueListenable: _currentVisibleIndexNotifier,
+        builder: (context, value, child) {
+          return Text(
+            '第${_currentChapterIndex + 1}话 ${value + 1} / ${data.isEmpty ? 1 : data.length}',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              shadows: [
+                // 添加8个方向的阴影（偏移1像素）
+                Shadow(
+                  offset: Offset(-1, -1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(1, -1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(-1, 1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(1, 1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(-1, 0),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(1, 0),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(0, -1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+                Shadow(
+                  offset: Offset(0, 1),
+                  color: Colors.white,
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

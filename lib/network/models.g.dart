@@ -412,7 +412,7 @@ Map<String, dynamic> _$SubCommentsResponseToJson(
 SearchComic _$SearchComicFromJson(Map<String, dynamic> json) => SearchComic(
   updated_at: json['updated_at'] as String,
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
-  author: json['author'] as String,
+  author: json['author'] as String? ?? '??',
   description: json['description'] as String?,
   chineseTeam: json['chineseTeam'] as String?,
   created_at: json['created_at'] as String,

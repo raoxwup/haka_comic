@@ -146,7 +146,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                       child: FilledButton(
                         onPressed:
                             () => context.push(
-                              '/reader/${widget.id}/0',
+                              '/reader/${widget.id}/${_chapters.first.id}',
                               extra: _chapters,
                             ),
                         child: const Text('开始阅读'),
@@ -272,8 +272,10 @@ class _ComicDetailsState extends State<ComicDetails> {
               shape: StadiumBorder(),
               label: Text('开始阅读'),
               onPressed:
-                  () =>
-                      context.push('/reader/${widget.id}/0', extra: _chapters),
+                  () => context.push(
+                    '/reader/${widget.id}/${_chapters.first.id}',
+                    extra: _chapters,
+                  ),
             ),
           LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
           CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),

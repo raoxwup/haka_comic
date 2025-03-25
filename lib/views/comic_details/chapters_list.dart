@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -22,6 +23,9 @@ class ChaptersList extends StatefulWidget {
 class _ChaptersListState extends State<ChaptersList> {
   bool expand = false;
 
+  /// 正序章节列表
+  List<Chapter> _chapters = [];
+
   late final AsyncRequestHandler1<List<Chapter>, String> handler;
 
   void _update() => setState(() {});
@@ -31,7 +35,9 @@ class _ChaptersListState extends State<ChaptersList> {
     handler = fetchChapters.useRequest(
       onSuccess: (data, _) {
         Log.info('Fetch chapters success', data.toString());
-        widget.onChaptersUpdated(data);
+        // 哔咔最新的排在最前面
+        _chapters = data.reversed.toList();
+        widget.onChaptersUpdated(_chapters);
       },
       onError: (e, _) {
         Log.error('Fetch chapters error', e);
@@ -83,16 +89,21 @@ class _ChaptersListState extends State<ChaptersList> {
           ),
           itemCount: chapters.length,
           itemBuilder: (context, index) {
+            final chapter = chapters[index];
             return Card(
               elevation: 0,
               clipBehavior: Clip.hardEdge,
               child: InkWell(
-                onTap: () {},
+                onTap:
+                    () => context.push(
+                      '/reader/${widget.id}/${chapter.id}',
+                      extra: _chapters,
+                    ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Center(
                     child: Text(
-                      chapters[index].title,
+                      chapter.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
