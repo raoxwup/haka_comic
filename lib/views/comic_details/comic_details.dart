@@ -5,6 +5,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
@@ -30,6 +31,7 @@ class _ComicDetailsState extends State<ComicDetails> {
   final handler = fetchComicDetails.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic details', data.toString());
+      HistoryHelper.instance.insert(data.comic);
     },
     onError: (e, _) {
       Log.error('Fetch comic details error', e);

@@ -58,6 +58,6 @@ Map<String, String> getHeaders(String url, Method method) {
     ...defaultHeaders,
     "time": timestamp,
     "signature": signature,
-    "authorization": AppConfig().token,
+    "authorization": AppConf.instance.token,
   };
 }

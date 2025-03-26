@@ -29,7 +29,7 @@ import 'package:haka_comic/views/settings/settings.dart';
 // 路由配置
 final GoRouter appRouter = GoRouter(
   redirect: (context, state) {
-    if (AppConfig.isLogged) {
+    if (AppConf.instance.isLogged) {
       return null;
     }
     return '/login';
@@ -191,6 +191,6 @@ Page<dynamic> customTransitionPage({
 }
 
 void logout() {
-  AppConfig().token = '';
+  AppConf.instance.clearAuth();
   appRouter.go('/login');
 }

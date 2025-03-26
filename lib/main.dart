@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/startup_prepare.dart';
@@ -11,7 +11,7 @@ void main(List<String> args) {
   runZonedGuarded(
     () {
       WidgetsFlutterBinding.ensureInitialized();
-      StartupPrepareUtils.prepare().then((_) => runApp(const App())).wait();
+      StartupPrepare.prepare().then((_) => runApp(const App())).wait();
     },
     (Object error, StackTrace stackTrace) {
       Log.error('runZonedGuarded', error, stackTrace);
@@ -39,7 +39,7 @@ class App extends StatelessWidget {
         fontFamily: Platform.isWindows ? 'HarmonyOS Sans SC' : null,
       ),
       debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: AppConfig.appScaffoldMessengerKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
     );
   }
 }

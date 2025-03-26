@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
 void showSnackBar(String message) {
-  final currentState = AppConfig.appScaffoldMessengerKey.currentState;
+  final currentState = scaffoldMessengerKey.currentState;
   // 检查State是否有效
   if (currentState == null) return;
   // 显示SnackBar

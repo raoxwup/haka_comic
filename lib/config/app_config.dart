@@ -1,56 +1,50 @@
-import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
 
-class AppConfig {
-  static late AppConfig _instance;
-  static final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
-      GlobalKey<ScaffoldMessengerState>();
+class AppConf {
+  static final AppConf instance = AppConf._internal();
 
-  // 账号
-  String _email;
-  // 密码
-  String _password;
-  // token
-  String _token;
+  String _email = '';
+  String _password = '';
+  String _token = '';
 
-  AppConfig._({
-    required String email,
-    required String password,
-    required String token,
-  }) : _email = email,
-       _password = password,
-       _token = token;
+  AppConf._internal();
 
-  factory AppConfig() => _instance;
+  bool get isLogged => _token.isNotEmpty;
+  bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
-  static void init({
-    required String email,
-    required String password,
-    required String token,
-  }) {
-    _instance = AppConfig._(email: email, password: password, token: token);
+  static Future<void> initialize() async {
+    final prefs = await SharedPreferencesUtil.init();
+    instance._email = prefs.getString('email') ?? '';
+    instance._password = prefs.getString('password') ?? '';
+    instance._token = prefs.getString('token') ?? '';
   }
 
-  static get isLogged => _instance.token != '';
+  set email(String value) => _saveToPrefs('email', value, (v) => _email = v);
+  set password(String value) =>
+      _saveToPrefs('password', value, (v) => _password = v);
+  set token(String value) => _saveToPrefs('token', value, (v) => _token = v);
 
-  static get hasAccount => _instance.email != '' && _instance.password != '';
+  String get email => _email;
+  String get password => _password;
+  String get token => _token;
 
-  set email(String email) {
-    _instance._email = email;
-    SharedPreferencesUtil.prefs.setString('email', email);
+  void _saveToPrefs(String key, String value, Function(String) updateField) {
+    updateField(value);
+    SharedPreferencesUtil.prefs.setString(key, value);
   }
 
-  set password(String password) {
-    _instance._password = password;
-    SharedPreferencesUtil.prefs.setString('password', password);
+  void clearAuth() {
+    _token = '';
+    SharedPreferencesUtil.prefs.remove('token');
   }
 
-  set token(String token) {
-    _instance._token = token;
-    SharedPreferencesUtil.prefs.setString('token', token);
+  void clearCredentials() {
+    _email = '';
+    _password = '';
+    _token = '';
+    SharedPreferencesUtil.prefs
+      ..remove('email')
+      ..remove('password')
+      ..remove('token');
   }
-
-  String get email => _instance._email;
-  String get password => _instance._password;
-  String get token => _instance._token;
 }

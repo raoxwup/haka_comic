@@ -24,10 +24,9 @@ class _LoginState extends State<Login> {
   final handler = login.useRequest(
     onSuccess: (data, params) {
       Log.info('Sign in success', data.toString());
-      final appConfig = AppConfig();
-      appConfig.email = params.email;
-      appConfig.password = params.password;
-      appConfig.token = data.token;
+      AppConf.instance.email = params.email;
+      AppConf.instance.password = params.password;
+      AppConf.instance.token = data.token;
       appRouter.go('/');
     },
     onError: (e, _) {
@@ -52,9 +51,8 @@ class _LoginState extends State<Login> {
 
   @override
   void initState() {
-    final appConfig = AppConfig();
-    _emailController.text = appConfig.email;
-    _passwordController.text = appConfig.password;
+    _emailController.text = AppConf.instance.email;
+    _passwordController.text = AppConf.instance.password;
 
     handler.addListener(_listener);
 
