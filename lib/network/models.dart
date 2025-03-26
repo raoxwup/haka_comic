@@ -944,3 +944,32 @@ class FetchChapterImagesResponse {
 
   Map<String, dynamic> toJson() => _$FetchChapterImagesResponseToJson(this);
 }
+
+@JsonSerializable()
+class HistoryDoc extends Doc {
+  final String updatedAt;
+  final String createdAt;
+
+  HistoryDoc({
+    required super.id,
+    required super.title,
+    required super.author,
+    required super.totalViews,
+    required super.totalLikes,
+    required super.pagesCount,
+    required super.epsCount,
+    required super.finished,
+    required super.categories,
+    required super.thumb,
+    required super.likesCount,
+    required super.uid,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+
+  factory HistoryDoc.fromJson(Map<String, dynamic> json) =>
+      _$HistoryDocFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$HistoryDocToJson(this);
+}

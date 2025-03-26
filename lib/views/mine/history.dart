@@ -4,7 +4,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/history_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
-import 'package:haka_comic/views/comics/page_selector.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -14,34 +13,53 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
-  List<Doc> _comics = [];
-  int _page = 1;
-  int _pages = 1;
+  List<HistoryDoc> _comics = [];
+  int _comicsCount = 0;
+
+  bool get hasMore => _comics.length < _comicsCount;
 
   @override
   void initState() {
-    setState(() {
-      _comics = HistoryHelper.instance.query(1);
-      _pages = HistoryHelper.instance.count();
-    });
+    _getComics();
+    _getComicsCount();
+    HistoryHelper.instance.addListener(_update);
     super.initState();
   }
 
-  void _onPageChange(int page) => setState(() {
-    _comics = HistoryHelper.instance.query(page);
-    _page = page;
-  });
+  @override
+  void dispose() {
+    HistoryHelper.instance.removeListener(_update);
+    super.dispose();
+  }
+
+  void _update() async {
+    final comics = await HistoryHelper.instance.query();
+    setState(() {
+      _comics = comics;
+    });
+  }
+
+  void _getComics({DateTime? lastUpdatedAt}) async {
+    final comics = await HistoryHelper.instance.query(
+      lastUpdatedAt: lastUpdatedAt,
+    );
+    setState(() {
+      _comics.addAll(comics);
+    });
+  }
+
+  void _getComicsCount() async {
+    final count = await HistoryHelper.instance.count();
+    setState(() {
+      _comicsCount = count;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final width = context.width;
     return CustomScrollView(
       slivers: [
-        PageSelector(
-          pages: _pages,
-          onPageChange: _onPageChange,
-          currentPage: _page,
-        ),
         SliverGrid.builder(
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent:
@@ -58,11 +76,6 @@ class _HistoryState extends State<History> {
             return ListItem(doc: _comics[index]);
           },
           itemCount: _comics.length,
-        ),
-        PageSelector(
-          pages: _pages,
-          onPageChange: _onPageChange,
-          currentPage: _page,
         ),
       ],
     );

@@ -523,3 +523,39 @@ FetchChapterImagesResponse _$FetchChapterImagesResponseFromJson(
 Map<String, dynamic> _$FetchChapterImagesResponseToJson(
   FetchChapterImagesResponse instance,
 ) => <String, dynamic>{'pages': instance.pages, 'ep': instance.ep};
+
+HistoryDoc _$HistoryDocFromJson(Map<String, dynamic> json) => HistoryDoc(
+  id: json['id'] as String?,
+  title: json['title'] as String,
+  author: json['author'] as String? ?? '',
+  totalViews: (json['totalViews'] as num?)?.toInt() ?? 0,
+  totalLikes: (json['totalLikes'] as num?)?.toInt(),
+  pagesCount: (json['pagesCount'] as num).toInt(),
+  epsCount: (json['epsCount'] as num).toInt(),
+  finished: json['finished'] as bool,
+  categories:
+      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
+  likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+  uid: json['_id'] as String,
+  updatedAt: json['updatedAt'] as String,
+  createdAt: json['createdAt'] as String,
+);
+
+Map<String, dynamic> _$HistoryDocToJson(HistoryDoc instance) =>
+    <String, dynamic>{
+      '_id': instance.uid,
+      'title': instance.title,
+      'author': instance.author,
+      'totalViews': instance.totalViews,
+      'totalLikes': instance.totalLikes,
+      'pagesCount': instance.pagesCount,
+      'epsCount': instance.epsCount,
+      'finished': instance.finished,
+      'categories': instance.categories,
+      'thumb': instance.thumb,
+      'id': instance.id,
+      'likesCount': instance.likesCount,
+      'updatedAt': instance.updatedAt,
+      'createdAt': instance.createdAt,
+    };
