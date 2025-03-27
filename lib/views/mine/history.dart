@@ -13,52 +13,75 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
+  final HistoryHelper _helper = HistoryHelper();
+  final ScrollController _scrollController = ScrollController();
+
   List<HistoryDoc> _comics = [];
   int _comicsCount = 0;
+  int _page = 1;
 
   bool get hasMore => _comics.length < _comicsCount;
 
   @override
   void initState() {
-    _getComics();
+    _getComics(_page);
     _getComicsCount();
-    HistoryHelper.instance.addListener(_update);
+    _helper.addListener(_update);
+
+    _scrollController.addListener(_onScroll);
+
     super.initState();
   }
 
   @override
   void dispose() {
-    HistoryHelper.instance.removeListener(_update);
+    _helper.removeListener(_update);
+
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+
     super.dispose();
   }
 
-  void _update() async {
-    final comics = await HistoryHelper.instance.query();
+  void _update() {
+    final comics = _helper.query(1);
     setState(() {
       _comics = comics;
     });
   }
 
-  void _getComics({DateTime? lastUpdatedAt}) async {
-    final comics = await HistoryHelper.instance.query(
-      lastUpdatedAt: lastUpdatedAt,
-    );
+  void _getComics(int page) {
+    final comics = _helper.query(page);
     setState(() {
       _comics.addAll(comics);
     });
   }
 
-  void _getComicsCount() async {
-    final count = await HistoryHelper.instance.count();
+  _getComicsCount() {
+    final count = _helper.count();
     setState(() {
       _comicsCount = count;
     });
+  }
+
+  void _onScroll() {
+    final position = _scrollController.position;
+    // 添加保护条件，确保列表可滚动
+    if (position.maxScrollExtent <= 0) return;
+    if (position.pixels == position.maxScrollExtent) {
+      if (hasMore) {
+        _page = _page + 1;
+        _getComics(_page);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final width = context.width;
     return CustomScrollView(
+      controller: _scrollController,
       slivers: [
         SliverGrid.builder(
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(

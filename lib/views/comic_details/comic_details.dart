@@ -31,7 +31,7 @@ class _ComicDetailsState extends State<ComicDetails> {
   final handler = fetchComicDetails.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic details', data.toString());
-      HistoryHelper.instance.insert(data.comic);
+      HistoryHelper().insert(data.comic);
     },
     onError: (e, _) {
       Log.error('Fetch comic details error', e);

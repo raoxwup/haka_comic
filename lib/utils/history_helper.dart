@@ -5,21 +5,18 @@ import 'package:haka_comic/network/models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class HistoryHelper with ChangeNotifier {
-  static final _instance = HistoryHelper._();
-
+  static final _instance = HistoryHelper._create();
   static String get _dbPath => '${SetupConf.instance.dataPath}/history.db';
 
-  HistoryHelper._();
+  factory HistoryHelper() => _instance;
 
   static HistoryHelper get instance => _instance;
 
-  Future<void> initialize() async {
-    await compute(_createDatabase, _dbPath);
-  }
+  late Database _db;
 
-  static void _createDatabase(String path) {
-    final db = sqlite3.open(path);
-    db.execute('''
+  HistoryHelper._create() {
+    _db = sqlite3.open(_dbPath);
+    _db.execute('''
       CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY,
         cid TEXT UNIQUE NOT NULL,
@@ -30,7 +27,7 @@ class HistoryHelper with ChangeNotifier {
         pages_count INTEGER DEFAULT 0,
         eps_count INTEGER DEFAULT 0,
         finished INTEGER DEFAULT 0,
-        categories TEXT NOT NULL,
+        categories TE XT NOT NULL,
         file_server TEXT NOT NULL,
         path TEXT NOT NULL,
         original_name TEXT NOT NULL,
@@ -40,7 +37,7 @@ class HistoryHelper with ChangeNotifier {
       )
     ''');
 
-    db.execute('''
+    _db.execute('''
       CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
       AFTER UPDATE ON history 
       BEGIN
@@ -48,23 +45,13 @@ class HistoryHelper with ChangeNotifier {
       END;
     ''');
 
-    db.execute('''
+    _db.execute('''
       CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
     ''');
-
-    db.dispose();
   }
 
-  Future<void> insert(Comic comic) async {
-    await compute(_insertComic, [_dbPath, _comicToMap(comic)]);
-    notifyListeners();
-  }
-
-  static void _insertComic(List<dynamic> args) {
-    final db = sqlite3.open(args[0] as String);
-    final comic = args[1] as Map<String, dynamic>;
-
-    final stmt = db.prepare('''
+  void insert(Comic comic) {
+    final stmt = _db.prepare('''
       INSERT OR REPLACE INTO history (
         cid,
         title,
@@ -96,85 +83,44 @@ class HistoryHelper with ChangeNotifier {
     ''');
 
     stmt.execute([
-      comic['id'],
-      comic['title'],
-      comic['author'],
-      comic['totalViews'],
-      comic['totalLikes'],
-      comic['pagesCount'],
-      comic['epsCount'],
-      comic['finished'],
-      comic['categories'],
-      comic['fileServer'],
-      comic['path'],
-      comic['originalName'],
-      comic['likesCount'],
+      comic.id,
+      comic.title,
+      comic.author,
+      comic.totalViews,
+      comic.totalLikes,
+      comic.pagesCount,
+      comic.epsCount,
+      comic.finished ? 1 : 0,
+      jsonEncode(comic.categories),
+      comic.thumb.fileServer,
+      comic.thumb.path,
+      comic.thumb.originalName,
+      comic.likesCount,
     ]);
 
     stmt.dispose();
-    db.dispose();
-  }
-
-  Future<void> delete(Doc doc) async {
-    await compute(_deleteComic, [_dbPath, doc.uid]);
     notifyListeners();
   }
 
-  static void _deleteComic(List<dynamic> args) {
-    final db = sqlite3.open(args[0] as String);
-    final stmt = db.prepare('DELETE FROM history WHERE cid = ?');
-    stmt.execute([args[1]]);
-    stmt.dispose();
-    db.dispose();
-  }
-
-  Future<void> deleteAll() async {
-    await compute(_deleteAllComics, _dbPath);
+  void delete(Doc doc) {
+    _db.execute('DELETE FROM history WHERE cid = ?', [doc.id]);
     notifyListeners();
   }
 
-  static void _deleteAllComics(String path) {
-    final db = sqlite3.open(path);
-    final stmt = db.prepare('DELETE FROM history');
-    stmt.execute();
-    stmt.dispose();
-    db.dispose();
+  void deleteAll() {
+    _db.execute('DELETE FROM history');
+    notifyListeners();
   }
 
-  Future<List<HistoryDoc>> query({DateTime? lastUpdatedAt}) async {
-    final results = await compute(_queryComics, [
-      _dbPath,
-      lastUpdatedAt?.toIso8601String(),
-    ]);
-    return results.map((map) => HistoryDoc.fromJson(map)).toList();
-  }
-
-  static List<Map<String, dynamic>> _queryComics(List<dynamic> args) {
-    final db = sqlite3.open(args[0] as String);
-    final lastUpdatedAtStr = args[1] as String?;
-
-    DateTime? lastUpdatedAt;
-    if (lastUpdatedAtStr != null) {
-      lastUpdatedAt = DateTime.parse(lastUpdatedAtStr); // 反序列化
-    }
-
-    final query = StringBuffer('''
-      SELECT * FROM history 
-    ''');
-
-    final params = <dynamic>[];
-    if (lastUpdatedAt != null) {
-      query.write(' WHERE updated_at < ? ');
-      params.add(lastUpdatedAt.toIso8601String());
-    }
-
-    query.write(' ORDER BY updated_at DESC, id DESC LIMIT 100 ');
-
-    final resultSet = db.select(query.toString(), params);
+  List<HistoryDoc> query(int page) {
+    final result = _db.select(
+      'SELECT * FROM history ORDER BY updated_at DESC LIMIT 20 OFFSET ?',
+      [(page - 1) * 20],
+    );
 
     final List<Map<String, dynamic>> results = [];
 
-    for (final row in resultSet) {
+    for (final row in result) {
       results.add({
         "id": row["cid"],
         "title": row["title"],
@@ -197,36 +143,11 @@ class HistoryHelper with ChangeNotifier {
       });
     }
 
-    db.dispose();
-    return results;
+    return results.map((map) => HistoryDoc.fromJson(map)).toList();
   }
 
-  Future<int> count() async {
-    return await compute(_countComics, _dbPath);
-  }
-
-  static int _countComics(String path) {
-    final db = sqlite3.open(path);
-    final resultSet = db.select('SELECT COUNT(*) FROM history');
-    db.dispose();
+  int count() {
+    final resultSet = _db.select('SELECT COUNT(*) FROM history');
     return resultSet.first["COUNT(*)"] as int;
-  }
-
-  static Map<String, dynamic> _comicToMap(Comic comic) {
-    return {
-      'id': comic.id,
-      'title': comic.title,
-      'author': comic.author,
-      'totalViews': comic.totalViews,
-      'totalLikes': comic.totalLikes,
-      'pagesCount': comic.pagesCount,
-      'epsCount': comic.epsCount,
-      'finished': comic.finished ? 1 : 0,
-      'categories': jsonEncode(comic.categories),
-      'fileServer': comic.thumb.fileServer,
-      'path': comic.thumb.path,
-      'originalName': comic.thumb.originalName,
-      'likesCount': comic.likesCount,
-    };
   }
 }
