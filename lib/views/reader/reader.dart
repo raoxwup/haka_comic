@@ -6,6 +6,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/read_record_helper.dart';
 import 'package:haka_comic/views/reader/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
@@ -43,6 +44,7 @@ class _ReaderState extends State<Reader> {
       Log.error('Fetch chapter images error', e);
     },
   );
+  final _helper = ReadRecordHelper();
 
   late int _currentChapterIndex;
 
@@ -52,6 +54,7 @@ class _ReaderState extends State<Reader> {
 
   void onItemVisibleChanged(int index) {
     _currentVisibleIndexNotifier.value = index;
+    _helper.insert(cid: widget.id, chapterId: currentChapter.id, pageNo: index);
   }
 
   void _update() => setState(() {});
@@ -138,6 +141,7 @@ class _ReaderState extends State<Reader> {
                 child: VerticalList(
                   images: data,
                   onItemVisibleChanged: onItemVisibleChanged,
+                  initialIndex: _helper.query(widget.id)?.pageNo,
                 ),
               ),
             ),

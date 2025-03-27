@@ -102,8 +102,8 @@ class HistoryHelper with ChangeNotifier {
     notifyListeners();
   }
 
-  void delete(Doc doc) {
-    _db.execute('DELETE FROM history WHERE cid = ?', [doc.id]);
+  void delete(String id) {
+    _db.execute('DELETE FROM history WHERE cid = ?', [id]);
     notifyListeners();
   }
 

@@ -7,6 +7,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/read_record_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
 import 'package:haka_comic/views/comic_details/collect_action.dart';
@@ -41,6 +42,9 @@ class _ComicDetailsState extends State<ComicDetails> {
   final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
   final ScrollController _scrollController = ScrollController();
   final double _scrollThreshold = 80;
+  final _helper = ReadRecordHelper();
+
+  ComicReadRecord? get _readRecord => _helper.query(widget.id);
 
   List<Chapter> _chapters = [];
 
@@ -279,6 +283,16 @@ class _ComicDetailsState extends State<ComicDetails> {
                     extra: _chapters,
                   ),
             ),
+          ActionChip(
+            avatar: Icon(Icons.menu_book),
+            shape: StadiumBorder(),
+            label: Text('继续阅读'),
+            onPressed:
+                () => context.push(
+                  '/reader/${widget.id}/${_readRecord?.chapterId ?? _chapters.first.id}',
+                  extra: _chapters,
+                ),
+          ),
           LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
           CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),
           ActionChip(

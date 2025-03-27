@@ -12,11 +12,14 @@ class VerticalList extends StatefulWidget {
     super.key,
     required this.images,
     required this.onItemVisibleChanged,
+    this.initialIndex,
   });
 
   final List<ChapterImage> images;
 
   final ValueChanged<int> onItemVisibleChanged;
+
+  final int? initialIndex;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -72,6 +75,12 @@ class _VerticalListState extends State<VerticalList> {
     }
 
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
+
+    if (widget.initialIndex != null) {
+      Future.delayed(Duration(milliseconds: 100), () {
+        itemScrollController.jumpTo(index: widget.initialIndex!);
+      });
+    }
 
     super.initState();
   }
