@@ -144,7 +144,7 @@ Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
       (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
   chineseTeam: json['chineseTeam'] as String? ?? '',
   created_at: json['created_at'] as String,
-  description: json['description'] as String,
+  description: json['description'] as String? ?? '',
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
   id: json['_id'] as String,

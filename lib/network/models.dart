@@ -295,6 +295,7 @@ class Comic {
 
   final String title;
 
+  @JsonKey(defaultValue: '')
   final String description;
 
   final ImageDetail thumb;

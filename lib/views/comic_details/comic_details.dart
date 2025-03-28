@@ -163,13 +163,16 @@ class _ComicDetailsState extends State<ComicDetails> {
                   spacing: 10,
                   children: [
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed:
-                            () => context.push(
-                              '/reader/${widget.id}/${_chapters.first.id}/0',
-                              extra: _chapters,
-                            ),
-                        child: const Text('从头开始'),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 40),
+                        child: ElevatedButton(
+                          onPressed:
+                              () => context.push(
+                                '/reader/${widget.id}/${_chapters.first.id}/0',
+                                extra: _chapters,
+                              ),
+                          child: const Text('从头开始'),
+                        ),
                       ),
                     ),
                     ValueListenableBuilder(
@@ -178,13 +181,18 @@ class _ComicDetailsState extends State<ComicDetails> {
                         return value == null
                             ? SizedBox.shrink()
                             : Expanded(
-                              child: FilledButton(
-                                onPressed:
-                                    () => context.push(
-                                      '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
-                                      extra: _chapters,
-                                    ),
-                                child: const Text('继续阅读'),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 40,
+                                ),
+                                child: FilledButton(
+                                  onPressed:
+                                      () => context.push(
+                                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
+                                        extra: _chapters,
+                                      ),
+                                  child: const Text('继续阅读'),
+                                ),
                               ),
                             );
                       },
