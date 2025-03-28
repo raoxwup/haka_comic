@@ -35,7 +35,7 @@ class ReadRecordHelper with ChangeNotifier {
       _db.execute(
         '''
         INSERT INTO read_record (cid, chapter_id, chapter_title, page_no)
-        VALUES (?, ?, ?)
+        VALUES (?, ?, ?, ?)
         ON CONFLICT(cid) DO UPDATE SET
           chapter_id = excluded.chapter_id,
           chapter_title = excluded.chapter_title,
