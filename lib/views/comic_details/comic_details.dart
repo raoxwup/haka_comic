@@ -44,7 +44,9 @@ class _ComicDetailsState extends State<ComicDetails> {
   final double _scrollThreshold = 80;
   final _helper = ReadRecordHelper();
 
-  ComicReadRecord? get _readRecord => _helper.query(widget.id);
+  final ValueNotifier<ComicReadRecord?> _readRecordNotifier = ValueNotifier(
+    null,
+  );
 
   List<Chapter> _chapters = [];
 
@@ -68,6 +70,8 @@ class _ComicDetailsState extends State<ComicDetails> {
       ..run(widget.id);
 
     _scrollController.addListener(_handleScroll);
+
+    _readRecordNotifier.value = _helper.query(widget.id);
 
     super.initState();
   }
@@ -152,7 +156,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                       child: FilledButton(
                         onPressed:
                             () => context.push(
-                              '/reader/${widget.id}/${_chapters.first.id}',
+                              '/reader/${widget.id}/${_chapters.first.id}/0',
                               extra: _chapters,
                             ),
                         child: const Text('开始阅读'),
@@ -160,6 +164,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                     ),
                   ],
                 ),
+              if (_readRecordNotifier.value != null) _buildReadRecord(),
               // SizedBox(height: 8),
               const Divider(),
               ComicCreator(creator: data?.creator, updatedAt: data?.updated_at),
@@ -279,20 +284,21 @@ class _ComicDetailsState extends State<ComicDetails> {
               label: Text('开始阅读'),
               onPressed:
                   () => context.push(
-                    '/reader/${widget.id}/${_chapters.first.id}',
+                    '/reader/${widget.id}/${_chapters.first.id}/0',
                     extra: _chapters,
                   ),
             ),
-          ActionChip(
-            avatar: Icon(Icons.menu_book),
-            shape: StadiumBorder(),
-            label: Text('继续阅读'),
-            onPressed:
-                () => context.push(
-                  '/reader/${widget.id}/${_readRecord?.chapterId ?? _chapters.first.id}',
-                  extra: _chapters,
-                ),
-          ),
+          if (_readRecordNotifier.value != null)
+            ActionChip(
+              avatar: Icon(Icons.menu_book),
+              shape: StadiumBorder(),
+              label: Text('继续阅读'),
+              onPressed:
+                  () => context.push(
+                    '/reader/${widget.id}/${_readRecordNotifier.value!.chapterId}/${_readRecordNotifier.value!.pageNo}',
+                    extra: _chapters,
+                  ),
+            ),
           LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
           CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),
           ActionChip(
@@ -346,6 +352,30 @@ class _ComicDetailsState extends State<ComicDetails> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildReadRecord() {
+    return ValueListenableBuilder(
+      valueListenable: _readRecordNotifier,
+      builder: (context, value, child) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            color: context.colorScheme.surfaceContainerHighest,
+          ),
+          child: Row(
+            spacing: 10,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.bookmark, color: context.colorScheme.primary),
+              Text('上次阅读到${value?.chapterTitle} P${(value?.pageNo ?? 0) + 1}'),
+            ],
+          ),
+        );
+      },
     );
   }
 }

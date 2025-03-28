@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/images_helper.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -13,13 +14,20 @@ class VerticalList extends StatefulWidget {
     required this.images,
     required this.onItemVisibleChanged,
     this.initialIndex,
+    required this.cid,
   });
 
+  /// 图片
   final List<ChapterImage> images;
 
+  /// 图片可见回调
   final ValueChanged<int> onItemVisibleChanged;
 
+  /// 初始索引
   final int? initialIndex;
+
+  // 漫画id
+  final String cid;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -45,6 +53,8 @@ class _VerticalListState extends State<VerticalList> {
 
   /// 可见的第一项图片索引
   int _visibleFirstIndex = 0;
+
+  final _imagesHelper = ImagesHelper();
 
   bool _handleKeyEvent(KeyEvent event) {
     if (!isDesktop) return false;
@@ -76,12 +86,6 @@ class _VerticalListState extends State<VerticalList> {
 
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
 
-    if (widget.initialIndex != null) {
-      Future.delayed(Duration(milliseconds: 100), () {
-        itemScrollController.jumpTo(index: widget.initialIndex!);
-      });
-    }
-
     super.initState();
   }
 
@@ -107,6 +111,7 @@ class _VerticalListState extends State<VerticalList> {
         minScale: 1,
         maxScale: 3.5,
         child: ScrollablePositionedList.builder(
+          initialScrollIndex: widget.initialIndex ?? 0,
           padding: EdgeInsets.zero,
           physics: _listPhysics,
           itemCount: widget.images.length,
@@ -114,7 +119,20 @@ class _VerticalListState extends State<VerticalList> {
           itemPositionsListener: itemPositionsListener,
           itemBuilder: (context, index) {
             final item = widget.images[index];
-            return VerticalImage(url: item.media.url);
+            final imageSize = _imagesHelper.find(widget.cid, item.uid);
+            return VerticalImage(
+              url: item.media.url,
+              onImageSizeChanged:
+                  (width, height) => _insertImageSize(
+                    ImageSize(
+                      width: width,
+                      height: height,
+                      imageId: item.uid,
+                      cid: widget.cid,
+                    ),
+                  ),
+              imageSize: imageSize,
+            );
           },
         ),
       ),
@@ -143,6 +161,7 @@ class _VerticalListState extends State<VerticalList> {
             )
             .map((position) => position.index)
             .toList();
+    visibleIndices.sort();
     int lastIndex = visibleIndices.last;
     int firstIndex = visibleIndices.first;
     if (_visibleFirstIndex > lastIndex) {
@@ -160,22 +179,33 @@ class _VerticalListState extends State<VerticalList> {
   void _preloadImages(int startIndex, int endIndex) {
     for (int i = startIndex; i <= endIndex; i++) {
       if (i < 0 || i >= widget.images.length) continue;
-
       if (_loadedImages.contains(i)) continue;
-
       final imageUrl = widget.images[i].media.url;
       final imageProvider = CachedNetworkImageProvider(imageUrl);
       precacheImage(imageProvider, context);
-
       _loadedImages.add(i);
     }
+  }
+
+  // 图片宽高回调
+  void _insertImageSize(ImageSize imageSize) {
+    _imagesHelper.insert(imageSize);
   }
 }
 
 class VerticalImage extends StatefulWidget {
-  const VerticalImage({super.key, required this.url});
+  const VerticalImage({
+    super.key,
+    required this.url,
+    required this.onImageSizeChanged,
+    this.imageSize,
+  });
 
   final String url;
+
+  final Function(double, double) onImageSizeChanged;
+
+  final ImageSize? imageSize;
 
   @override
   State<VerticalImage> createState() => _VerticalImageState();
@@ -187,13 +217,20 @@ class _VerticalImageState extends State<VerticalImage> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
+    final imageSize = widget.imageSize;
+    final width = size.width;
+    final height =
+        imageSize != null
+            ? (imageSize.height * width) / imageSize.width
+            : size.height * 0.6;
+
     return CachedNetworkImage(
       imageUrl: widget.url,
       fit: BoxFit.fitWidth,
       progressIndicatorBuilder: (context, url, downloadProgress) {
         return SizedBox(
-          height: size.height * 0.6,
-          width: size.width,
+          height: height,
+          width: width,
           child: Center(
             child: CircularProgressIndicator(
               value: downloadProgress.progress ?? 0,
@@ -215,6 +252,15 @@ class _VerticalImageState extends State<VerticalImage> {
             ),
           ),
       imageBuilder: (context, imageProvider) {
+        final resolve = imageProvider.resolve(ImageConfiguration.empty);
+        resolve.addListener(
+          ImageStreamListener((imageInfo, synchronousCall) {
+            widget.onImageSizeChanged(
+              imageInfo.image.width.toDouble(),
+              imageInfo.image.height.toDouble(),
+            );
+          }),
+        );
         return Image(image: imageProvider);
       },
     );

@@ -132,7 +132,7 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/reader/:id/:chapterId',
+      path: '/reader/:id/:chapterId/:pageNo',
       pageBuilder: (context, state) {
         final List<models.Chapter> chapters =
             state.extra as List<models.Chapter>;
@@ -143,6 +143,7 @@ final GoRouter appRouter = GoRouter(
             id: state.pathParameters['id']!,
             chapters: chapters,
             chapterId: state.pathParameters['chapterId']!,
+            pageNo: int.tryParse(state.pathParameters['pageNo']!) ?? 0,
           ),
         );
       },

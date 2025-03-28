@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
@@ -16,6 +15,7 @@ class Reader extends StatefulWidget {
     required this.id,
     required this.chapters,
     required this.chapterId,
+    required this.pageNo,
   });
 
   /// 漫画id
@@ -27,9 +27,8 @@ class Reader extends StatefulWidget {
   /// 开始章节id
   final String chapterId;
 
-  /// 开始章节index
-  int get startChapterIndex =>
-      chapters.indexWhere((chapter) => chapter.id == chapterId);
+  /// 开始页码
+  final int pageNo;
 
   @override
   State<Reader> createState() => _ReaderState();
@@ -44,17 +43,24 @@ class _ReaderState extends State<Reader> {
       Log.error('Fetch chapter images error', e);
     },
   );
-  final _helper = ReadRecordHelper();
 
   late int _currentChapterIndex;
 
   bool _showToolbar = false;
 
   final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
+  final _helper = ReadRecordHelper();
 
   void onItemVisibleChanged(int index) {
     _currentVisibleIndexNotifier.value = index;
-    _helper.insert(cid: widget.id, chapterId: currentChapter.id, pageNo: index);
+    _helper.insert(
+      ComicReadRecord(
+        cid: widget.id,
+        chapterId: currentChapter.id,
+        pageNo: index,
+        chapterTitle: currentChapter.title,
+      ),
+    );
   }
 
   void _update() => setState(() {});
@@ -67,6 +73,12 @@ class _ReaderState extends State<Reader> {
 
   // 是否是第一章
   bool get isFirst => _currentChapterIndex == 0;
+
+  int getCurrentChapterIndex() {
+    return widget.chapters.indexWhere(
+      (chapter) => chapter.id == widget.chapterId,
+    );
+  }
 
   void go(int index) {
     setState(() {
@@ -94,7 +106,7 @@ class _ReaderState extends State<Reader> {
 
   @override
   void initState() {
-    _currentChapterIndex = widget.startChapterIndex;
+    _currentChapterIndex = getCurrentChapterIndex();
 
     _handler
       ..addListener(_update)
@@ -141,7 +153,8 @@ class _ReaderState extends State<Reader> {
                 child: VerticalList(
                   images: data,
                   onItemVisibleChanged: onItemVisibleChanged,
-                  initialIndex: _helper.query(widget.id)?.pageNo,
+                  cid: widget.id,
+                  initialIndex: widget.pageNo,
                 ),
               ),
             ),

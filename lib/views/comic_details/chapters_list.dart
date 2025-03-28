@@ -96,7 +96,7 @@ class _ChaptersListState extends State<ChaptersList> {
               child: InkWell(
                 onTap:
                     () => context.push(
-                      '/reader/${widget.id}/${chapter.id}',
+                      '/reader/${widget.id}/${chapter.id}/0',
                       extra: _chapters,
                     ),
                 child: Padding(
