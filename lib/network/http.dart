@@ -19,7 +19,7 @@ Future<CategoriesResponse> fetchCategories() async {
   final response = await Client.get("categories");
   response['data']['categories'] =
       (response['data']['categories'] as List<dynamic>)
-          .where((category) => category['_id'] != null)
+          .where((category) => category['isWeb'] != true)
           .toList();
   final data = BaseResponse<CategoriesResponse>.fromJson(
     response,

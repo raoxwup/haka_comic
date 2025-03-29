@@ -98,7 +98,7 @@ class _ComicsState extends State<Comics> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '漫画',
+          widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '最近更新',
         ),
         actions: [
           IconButton(

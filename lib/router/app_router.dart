@@ -12,6 +12,8 @@ import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
+import 'package:haka_comic/views/random/random.dart' show Random;
+import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/settings.dart';
@@ -145,6 +147,26 @@ final GoRouter appRouter = GoRouter(
             chapterId: state.pathParameters['chapterId']!,
             pageNo: int.tryParse(state.pathParameters['pageNo']!) ?? 0,
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/rank',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Rank(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/random',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Random(),
         );
       },
     ),

@@ -74,6 +74,10 @@ class _ReaderState extends State<Reader> {
   // 是否是第一章
   bool get isFirst => _currentChapterIndex == 0;
 
+  // 初始页码
+  int get initialIndex =>
+      currentChapter.id == widget.chapterId ? widget.pageNo : 0;
+
   int getCurrentChapterIndex() {
     return widget.chapters.indexWhere(
       (chapter) => chapter.id == widget.chapterId,
@@ -154,7 +158,7 @@ class _ReaderState extends State<Reader> {
                   images: data,
                   onItemVisibleChanged: onItemVisibleChanged,
                   cid: widget.id,
-                  initialIndex: widget.pageNo,
+                  initialIndex: initialIndex,
                 ),
               ),
             ),

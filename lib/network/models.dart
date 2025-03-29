@@ -68,7 +68,7 @@ class ImageDetail {
 @JsonSerializable()
 class Category {
   @JsonKey(name: '_id')
-  final String id;
+  final String? id;
 
   final ImageDetail thumb;
 
@@ -77,11 +77,20 @@ class Category {
   @JsonKey(defaultValue: '')
   final String description;
 
+  final bool? isWeb;
+
+  final bool? active;
+
+  final String? link;
+
   Category({
-    required this.id,
+    this.id,
     required this.thumb,
     required this.title,
     required this.description,
+    this.isWeb,
+    this.active,
+    this.link,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) =>

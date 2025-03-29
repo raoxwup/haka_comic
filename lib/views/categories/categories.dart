@@ -15,6 +15,17 @@ class Categories extends StatefulWidget {
   State<Categories> createState() => _CategoriesState();
 }
 
+const extraMenus = [
+  {"title": "排行榜", "path": "/rank", "icon": "assets/images/leaderboard.jpg"},
+  {
+    "title": "留言板",
+    "path": "/comments/5822a6e3ad7ede654696e482",
+    "icon": "assets/images/forum.jpg",
+  },
+  {"title": "最近更新", "path": "/comics", "icon": "assets/images/latest.jpg"},
+  {"title": "随机本子", "path": "/random", "icon": "assets/images/random.jpg"},
+];
+
 class _CategoriesState extends State<Categories> {
   final handler = fetchCategories.useRequest(
     onSuccess: (data, _) {
@@ -54,6 +65,8 @@ class _CategoriesState extends State<Categories> {
   }
 
   Widget _buildCategoryList() {
+    final categories = handler.data?.categories ?? [];
+
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent:
@@ -67,17 +80,44 @@ class _CategoriesState extends State<Categories> {
         childAspectRatio: 1 / 1.3,
       ),
       padding: EdgeInsets.all(8.0),
-      itemCount: handler.data?.categories.length ?? 0,
+      itemCount: extraMenus.length + categories.length,
       itemBuilder: (context, index) {
-        final item = handler.data!.categories[index];
+        if (index < extraMenus.length) return _buildMenuItem(extraMenus[index]);
+        final item = categories[index - extraMenus.length];
         return _buildItem(item);
       },
+    );
+  }
+
+  Widget _buildMenuItem(Map<String, String> item) {
+    return InkWell(
+      onTap: () {
+        context.push(item['path']!);
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: SingleChildScrollView(
+        child: Column(
+          spacing: 5,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: Card(
+                clipBehavior: Clip.hardEdge,
+                elevation: 0,
+                child: Image.asset(item['icon']!),
+              ),
+            ),
+            Text(item['title']!, style: context.textTheme.labelLarge),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildItem(Category item) {
     return InkWell(
       onTap: () {
+        if (item.isWeb ?? false) return;
         context.push('/comics?c=${item.title}');
       },
       borderRadius: BorderRadius.circular(6),

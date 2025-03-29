@@ -26,10 +26,13 @@ Map<String, dynamic> _$ImageDetailToJson(ImageDetail instance) =>
     };
 
 Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
-  id: json['_id'] as String,
+  id: json['_id'] as String?,
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
   title: json['title'] as String,
   description: json['description'] as String? ?? '',
+  isWeb: json['isWeb'] as bool?,
+  active: json['active'] as bool?,
+  link: json['link'] as String?,
 );
 
 Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
@@ -37,6 +40,9 @@ Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
   'thumb': instance.thumb,
   'title': instance.title,
   'description': instance.description,
+  'isWeb': instance.isWeb,
+  'active': instance.active,
+  'link': instance.link,
 };
 
 CategoriesResponse _$CategoriesResponseFromJson(Map<String, dynamic> json) =>
