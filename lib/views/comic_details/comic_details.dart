@@ -159,45 +159,42 @@ class _ComicDetailsState extends State<ComicDetails> {
               _buildTags(data, '标签'),
               _buildActions(data),
               if (UiMode.m1(context))
-                Row(
-                  spacing: 10,
-                  children: [
-                    Expanded(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 40),
-                        child: ElevatedButton(
-                          onPressed:
-                              () => context.push(
-                                '/reader/${widget.id}/${_chapters.first.id}/0',
-                                extra: _chapters,
-                              ),
-                          child: const Text('从头开始'),
+                ValueListenableBuilder(
+                  valueListenable: _readRecordNotifier,
+                  builder: (context, value, child) {
+                    return Row(
+                      spacing: 10,
+                      children: [
+                        Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 40),
+                            child: ElevatedButton(
+                              onPressed:
+                                  () => context.push(
+                                    '/reader/${widget.id}/${_chapters.first.id}/0',
+                                    extra: _chapters,
+                                  ),
+                              child: const Text('从头开始'),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    ValueListenableBuilder(
-                      valueListenable: _readRecordNotifier,
-                      builder: (context, value, child) {
-                        return value == null
-                            ? SizedBox.shrink()
-                            : Expanded(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  minHeight: 40,
-                                ),
-                                child: FilledButton(
-                                  onPressed:
-                                      () => context.push(
-                                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
-                                        extra: _chapters,
-                                      ),
-                                  child: const Text('继续阅读'),
-                                ),
+                        if (value != null)
+                          Expanded(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 40),
+                              child: FilledButton(
+                                onPressed:
+                                    () => context.push(
+                                      '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
+                                      extra: _chapters,
+                                    ),
+                                child: const Text('继续阅读'),
                               ),
-                            );
-                      },
-                    ),
-                  ],
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               _buildReadRecord(),
               // SizedBox(height: 8),
@@ -309,58 +306,59 @@ class _ComicDetailsState extends State<ComicDetails> {
   Widget _buildActions(Comic? data) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        spacing: 10,
-        children: [
-          if (UiMode.notM1(context))
-            ActionChip(
-              avatar: Icon(Icons.menu_book),
-              shape: StadiumBorder(),
-              label: Text('从头开始'),
-              onPressed:
-                  () => context.push(
-                    '/reader/${widget.id}/${_chapters.first.id}/0',
-                    extra: _chapters,
-                  ),
-            ),
-          if (UiMode.notM1(context))
-            ValueListenableBuilder(
-              valueListenable: _readRecordNotifier,
-              builder: (context, value, child) {
-                return value == null
-                    ? SizedBox.shrink()
-                    : ActionChip(
-                      avatar: Icon(Icons.bookmark),
-                      shape: StadiumBorder(),
-                      label: Text('继续阅读'),
-                      onPressed:
-                          () => context.push(
-                            '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
-                            extra: _chapters,
-                          ),
-                    );
-              },
-            ),
-          LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
-          CollectAction(isFavorite: data?.isFavourite ?? false, id: widget.id),
-          ActionChip(
-            avatar: Icon(Icons.comment),
-            shape: StadiumBorder(),
-            label: Text('${data?.commentsCount}'),
-            onPressed:
-                data?.allowComment ?? true
-                    ? () {
-                      context.push('/comments/${widget.id}');
-                    }
-                    : null,
-          ),
-          ActionChip(
-            avatar: Icon(Icons.download),
-            shape: StadiumBorder(),
-            label: Text('下载'),
-            onPressed: () {},
-          ),
-        ],
+      child: ValueListenableBuilder(
+        valueListenable: _readRecordNotifier,
+        builder: (context, value, child) {
+          return Row(
+            spacing: 10,
+            children: [
+              if (UiMode.notM1(context))
+                ActionChip(
+                  avatar: Icon(Icons.menu_book),
+                  shape: StadiumBorder(),
+                  label: Text('从头开始'),
+                  onPressed:
+                      () => context.push(
+                        '/reader/${widget.id}/${_chapters.first.id}/0',
+                        extra: _chapters,
+                      ),
+                ),
+              if (UiMode.notM1(context) && value != null)
+                ActionChip(
+                  avatar: Icon(Icons.bookmark),
+                  shape: StadiumBorder(),
+                  label: Text('继续阅读'),
+                  onPressed:
+                      () => context.push(
+                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
+                        extra: _chapters,
+                      ),
+                ),
+              LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
+              CollectAction(
+                isFavorite: data?.isFavourite ?? false,
+                id: widget.id,
+              ),
+              ActionChip(
+                avatar: Icon(Icons.comment),
+                shape: StadiumBorder(),
+                label: Text('${data?.commentsCount}'),
+                onPressed:
+                    data?.allowComment ?? true
+                        ? () {
+                          context.push('/comments/${widget.id}');
+                        }
+                        : null,
+              ),
+              ActionChip(
+                avatar: Icon(Icons.download),
+                shape: StadiumBorder(),
+                label: Text('下载'),
+                onPressed: () {},
+              ),
+            ],
+          );
+        },
       ),
     );
   }

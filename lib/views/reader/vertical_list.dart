@@ -15,6 +15,7 @@ class VerticalList extends StatefulWidget {
     required this.onItemVisibleChanged,
     this.initialIndex,
     required this.cid,
+    required this.itemScrollController,
   });
 
   /// 图片
@@ -28,6 +29,8 @@ class VerticalList extends StatefulWidget {
 
   // 漫画id
   final String cid;
+
+  final ItemScrollController itemScrollController;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -46,7 +49,6 @@ class _VerticalListState extends State<VerticalList> {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
-  final ItemScrollController itemScrollController = ItemScrollController();
 
   /// 已加载图片索引
   final Set<int> _loadedImages = {};
@@ -115,7 +117,7 @@ class _VerticalListState extends State<VerticalList> {
           padding: EdgeInsets.zero,
           physics: _listPhysics,
           itemCount: widget.images.length,
-          itemScrollController: itemScrollController,
+          itemScrollController: widget.itemScrollController,
           itemPositionsListener: itemPositionsListener,
           itemBuilder: (context, index) {
             final item = widget.images[index];
@@ -212,7 +214,31 @@ class VerticalImage extends StatefulWidget {
 }
 
 class _VerticalImageState extends State<VerticalImage> {
-  UniqueKey key = UniqueKey();
+  int _version = 0;
+  ImageStream? _currentImageStream;
+  ImageStreamListener? _currentListener;
+
+  Future<void> _refreshImage() async {
+    final provider = CachedNetworkImageProvider(widget.url);
+    await provider.evict();
+    setState(() {
+      _version++;
+    });
+  }
+
+  void _removeListener() {
+    if (_currentImageStream != null && _currentListener != null) {
+      _currentImageStream!.removeListener(_currentListener!);
+      _currentImageStream = null;
+      _currentListener = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _removeListener();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +251,7 @@ class _VerticalImageState extends State<VerticalImage> {
             : size.height * 0.6;
 
     return CachedNetworkImage(
+      key: ValueKey('${widget.url}_$_version'),
       imageUrl: widget.url,
       fit: BoxFit.fitWidth,
       progressIndicatorBuilder: (context, url, downloadProgress) {
@@ -245,22 +272,35 @@ class _VerticalImageState extends State<VerticalImage> {
       },
       fadeOutDuration: Duration.zero,
       errorWidget:
-          (context, url, error) => Center(
-            child: IconButton(
-              onPressed: () => setState(() => key = UniqueKey()),
-              icon: Icon(Icons.refresh),
+          (context, url, error) => SizedBox(
+            height: height,
+            width: width,
+            child: Center(
+              child: IconButton(
+                onPressed: _refreshImage,
+                icon: Icon(Icons.refresh),
+              ),
             ),
           ),
       imageBuilder: (context, imageProvider) {
         final resolve = imageProvider.resolve(ImageConfiguration.empty);
-        resolve.addListener(
-          ImageStreamListener((imageInfo, synchronousCall) {
+
+        if (resolve != _currentImageStream) {
+          _removeListener();
+          _currentImageStream = resolve;
+        }
+
+        if (_currentListener == null) {
+          _currentListener = ImageStreamListener((imageInfo, synchronousCall) {
+            if (!mounted) return;
             widget.onImageSizeChanged(
               imageInfo.image.width.toDouble(),
               imageInfo.image.height.toDouble(),
             );
-          }),
-        );
+            _removeListener();
+          });
+          _currentImageStream!.addListener(_currentListener!);
+        }
         return Image(image: imageProvider);
       },
     );

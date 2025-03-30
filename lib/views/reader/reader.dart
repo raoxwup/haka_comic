@@ -8,6 +8,9 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/read_record_helper.dart';
 import 'package:haka_comic/views/reader/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+const kBottomBarHeight = 105.0;
 
 class Reader extends StatefulWidget {
   const Reader({
@@ -46,9 +49,15 @@ class _ReaderState extends State<Reader> {
 
   late int _currentChapterIndex;
 
-  bool _showToolbar = false;
+  bool _isChapterChanged = false;
+
+  final ValueNotifier<bool> _showToolbarNotifier = ValueNotifier(false);
 
   final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
+
+  /// 滚动控制
+  final ItemScrollController itemScrollController = ItemScrollController();
+
   final _helper = ReadRecordHelper();
 
   void onItemVisibleChanged(int index) {
@@ -75,8 +84,7 @@ class _ReaderState extends State<Reader> {
   bool get isFirst => _currentChapterIndex == 0;
 
   // 初始页码
-  int get initialIndex =>
-      currentChapter.id == widget.chapterId ? widget.pageNo : 0;
+  int get initialIndex => _isChapterChanged ? 0 : widget.pageNo;
 
   int getCurrentChapterIndex() {
     return widget.chapters.indexWhere(
@@ -88,6 +96,8 @@ class _ReaderState extends State<Reader> {
     setState(() {
       _currentChapterIndex = index;
     });
+    _currentVisibleIndexNotifier.value = 0;
+    _isChapterChanged = true;
     _handler.run(
       FetchChapterImagesPayload(
         id: widget.id,
@@ -130,10 +140,8 @@ class _ReaderState extends State<Reader> {
   }
 
   void openOrCloseToolbar() {
-    setState(() {
-      _showToolbar = !_showToolbar;
-    });
-    if (_showToolbar) {
+    _showToolbarNotifier.value = !_showToolbarNotifier.value;
+    if (_showToolbarNotifier.value) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     } else {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -159,6 +167,7 @@ class _ReaderState extends State<Reader> {
                   onItemVisibleChanged: onItemVisibleChanged,
                   cid: widget.id,
                   initialIndex: initialIndex,
+                  itemScrollController: itemScrollController,
                 ),
               ),
             ),
@@ -166,6 +175,7 @@ class _ReaderState extends State<Reader> {
           _buildAppBar(),
           _buildChapterTag(data),
           if (!isLast) _buildNextActionButton(data),
+          _buildBottom(data),
         ],
       ),
     );
@@ -173,22 +183,29 @@ class _ReaderState extends State<Reader> {
 
   Widget _buildAppBar() {
     final top = context.top;
-    return AnimatedPositioned(
-      duration: Duration(milliseconds: 250),
-      top: _showToolbar ? 0 : -(kToolbarHeight + top),
-      left: 0,
-      right: 0,
-      height: kToolbarHeight + top,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // 模糊程度
-          child: AppBar(
-            title: Text(currentChapter.title),
-            backgroundColor: context.colorScheme.inversePrimary.withAlpha(230),
-            actions: [IconButton(icon: Icon(Icons.settings), onPressed: () {})],
+    return ValueListenableBuilder(
+      valueListenable: _showToolbarNotifier,
+      builder: (context, value, child) {
+        return AnimatedPositioned(
+          duration: Duration(milliseconds: 250),
+          top: value ? 0 : -(kToolbarHeight + top),
+          left: 0,
+          right: 0,
+          height: kToolbarHeight + top,
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0), // 模糊程度
+              child: AppBar(
+                title: Text(currentChapter.title),
+                backgroundColor: context.colorScheme.surface.withAlpha(245),
+                actions: [
+                  IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -204,7 +221,7 @@ class _ReaderState extends State<Reader> {
             '${currentChapter.title} ${value + 1} / ${data.isEmpty ? 1 : data.length}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 14,
               shadows: [
@@ -291,6 +308,85 @@ class _ReaderState extends State<Reader> {
                     Icons.arrow_forward,
                     color: Theme.of(context).primaryColor,
                   ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottom(List<ChapterImage> data) {
+    final bottom = context.bottom;
+    return ValueListenableBuilder(
+      valueListenable: _showToolbarNotifier,
+      builder: (context, value, child) {
+        return AnimatedPositioned(
+          bottom: value ? 0 : -(bottom + kBottomBarHeight),
+          left: 0,
+          right: 0,
+          height: bottom + kBottomBarHeight,
+          duration: Duration(milliseconds: 250),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surface.withAlpha(245),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.skip_previous),
+                          onPressed: goPrevious,
+                          style: IconButton.styleFrom(
+                            backgroundColor:
+                                context.colorScheme.secondaryContainer,
+                            foregroundColor:
+                                context.colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                        Expanded(
+                          child: ValueListenableBuilder(
+                            valueListenable: _currentVisibleIndexNotifier,
+                            builder: (context, value, child) {
+                              return data.length > 1
+                                  ? Slider(
+                                    year2023: true,
+                                    value: value.toDouble(),
+                                    min: 0,
+                                    max: (data.length - 1).toDouble(),
+                                    divisions: data.length - 1,
+                                    label: (value + 1).toString(),
+                                    onChanged: (double value) {
+                                      _currentVisibleIndexNotifier.value =
+                                          value.toInt();
+                                      itemScrollController.jumpTo(
+                                        index: value.toInt(),
+                                      );
+                                    },
+                                  )
+                                  : SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.skip_next),
+                          onPressed: goNext,
+                          style: IconButton.styleFrom(
+                            backgroundColor:
+                                context.colorScheme.secondaryContainer,
+                            foregroundColor:
+                                context.colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
