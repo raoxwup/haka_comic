@@ -1,11 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/images_helper.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+part of 'reader.dart';
+
+extension _ReaderContext on BuildContext {
+  _ReaderState get reader => findAncestorStateOfType<_ReaderState>()!;
+}
 
 /// 条漫模式
 class VerticalList extends StatefulWidget {
@@ -14,11 +11,10 @@ class VerticalList extends StatefulWidget {
     required this.images,
     required this.onItemVisibleChanged,
     this.initialIndex,
-    required this.cid,
     required this.itemScrollController,
   });
 
-  /// 图片
+  /// 漫画图片
   final List<ChapterImage> images;
 
   /// 图片可见回调
@@ -26,9 +22,6 @@ class VerticalList extends StatefulWidget {
 
   /// 初始索引
   final int? initialIndex;
-
-  // 漫画id
-  final String cid;
 
   final ItemScrollController itemScrollController;
 
@@ -40,7 +33,7 @@ class _VerticalListState extends State<VerticalList> {
   /// ctrl是否点击
   bool _isCtrlPressed = false;
 
-  /// 当前触摸点
+  /// 当前触摸点个数
   int _activePointers = 0;
 
   /// 滑动控制
@@ -56,6 +49,7 @@ class _VerticalListState extends State<VerticalList> {
   /// 可见的第一项图片索引
   int _visibleFirstIndex = 0;
 
+  /// 图片尺寸数据
   final _imagesHelper = ImagesHelper();
 
   bool _handleKeyEvent(KeyEvent event) {
@@ -79,6 +73,8 @@ class _VerticalListState extends State<VerticalList> {
 
     return false;
   }
+
+  String get cid => context.reader.widget.id;
 
   @override
   void initState() {
@@ -106,7 +102,10 @@ class _VerticalListState extends State<VerticalList> {
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: (event) => _updatePointerCount(1),
-      onPointerUp: (event) => _updatePointerCount(-1),
+      onPointerUp: (event) {
+        _updatePointerCount(-1);
+        context.reader.openOrCloseToolbar();
+      },
       onPointerCancel: (event) => _updatePointerCount(-1),
       child: InteractiveViewer(
         scaleEnabled: isDesktop ? _isCtrlPressed : true,
@@ -121,7 +120,7 @@ class _VerticalListState extends State<VerticalList> {
           itemPositionsListener: itemPositionsListener,
           itemBuilder: (context, index) {
             final item = widget.images[index];
-            final imageSize = _imagesHelper.find(widget.cid, item.uid);
+            final imageSize = _imagesHelper.find(cid, item.uid);
             return VerticalImage(
               url: item.media.url,
               onImageSizeChanged:
@@ -130,7 +129,7 @@ class _VerticalListState extends State<VerticalList> {
                       width: width,
                       height: height,
                       imageId: item.uid,
-                      cid: widget.cid,
+                      cid: cid,
                     ),
                   ),
               imageSize: imageSize,
@@ -143,14 +142,24 @@ class _VerticalListState extends State<VerticalList> {
 
   void _updatePointerCount(int delta) {
     final newCount = _activePointers + delta;
-    setState(() {
-      _activePointers = newCount >= 0 ? newCount : 0;
-      // 触摸点 >=2 时禁用滚动 只响应缩放
-      _listPhysics =
-          _activePointers >= 2
-              ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics();
-    });
+    final clampedCount = newCount.clamp(0, double.maxFinite.toInt());
+
+    if (clampedCount == _activePointers) return;
+
+    final newPhysics =
+        clampedCount >= 2
+            ? const NeverScrollableScrollPhysics()
+            : const AlwaysScrollableScrollPhysics();
+
+    if (newPhysics.runtimeType != _listPhysics.runtimeType) {
+      setState(() {
+        _activePointers = clampedCount;
+        _listPhysics = newPhysics;
+      });
+    } else {
+      // 仅更新内部状态不触发重建
+      _activePointers = clampedCount;
+    }
   }
 
   void _onItemPositionsChanged() {
@@ -203,10 +212,13 @@ class VerticalImage extends StatefulWidget {
     this.imageSize,
   });
 
+  /// 图片url
   final String url;
 
+  /// 图片尺寸回调
   final Function(double, double) onImageSizeChanged;
 
+  /// 缓存的图片尺寸
   final ImageSize? imageSize;
 
   @override

@@ -57,6 +57,9 @@ class ImagesHelper {
     return ImageSize.fromJson(result.first);
   }
 
+  /// 清除最先插入的三千条数据,以便节省空间
+  void trim() => _db.execute('DELETE FROM images ORDER BY id ASC LIMIT 3000');
+
   void clear() => _db.execute('DELETE FROM images');
 
   void close() => _db.dispose();

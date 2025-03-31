@@ -1,14 +1,18 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/images_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/read_record_helper.dart';
-import 'package:haka_comic/views/reader/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/with_blur.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+part 'vertical_list.dart';
 
 const kBottomBarHeight = 105.0;
 
@@ -47,17 +51,22 @@ class _ReaderState extends State<Reader> {
     },
   );
 
+  /// 当前章节index
   late int _currentChapterIndex;
 
+  /// 是否切换了章节
   bool _isChapterChanged = false;
 
+  /// 是否显示顶部，底部工具栏
   final ValueNotifier<bool> _showToolbarNotifier = ValueNotifier(false);
 
+  /// 当前可见的页码
   final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
 
   /// 滚动控制
   final ItemScrollController itemScrollController = ItemScrollController();
 
+  /// 阅读记录
   final _helper = ReadRecordHelper();
 
   void onItemVisibleChanged(int index) {
@@ -160,21 +169,17 @@ class _ReaderState extends State<Reader> {
               isLoading: _handler.isLoading,
               onRetry: _handler.refresh,
               error: _handler.error,
-              child: GestureDetector(
-                onTap: openOrCloseToolbar,
-                child: VerticalList(
-                  images: data,
-                  onItemVisibleChanged: onItemVisibleChanged,
-                  cid: widget.id,
-                  initialIndex: initialIndex,
-                  itemScrollController: itemScrollController,
-                ),
+              child: VerticalList(
+                images: data,
+                onItemVisibleChanged: onItemVisibleChanged,
+                initialIndex: initialIndex,
+                itemScrollController: itemScrollController,
               ),
             ),
           ),
-          _buildAppBar(),
           _buildChapterTag(data),
           if (!isLast) _buildNextActionButton(data),
+          _buildAppBar(),
           _buildBottom(data),
         ],
       ),
@@ -192,16 +197,15 @@ class _ReaderState extends State<Reader> {
           left: 0,
           right: 0,
           height: kToolbarHeight + top,
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0), // 模糊程度
-              child: AppBar(
-                title: Text(currentChapter.title),
-                backgroundColor: context.colorScheme.surface.withAlpha(245),
-                actions: [
-                  IconButton(icon: Icon(Icons.settings), onPressed: () {}),
-                ],
+          child: WithBlur(
+            child: AppBar(
+              title: Text(currentChapter.title),
+              backgroundColor: context.colorScheme.surface.withValues(
+                alpha: 0.92,
               ),
+              actions: [
+                IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+              ],
             ),
           ),
         );
@@ -275,9 +279,6 @@ class _ReaderState extends State<Reader> {
   }
 
   Widget _buildNextActionButton(List<ChapterImage> data) {
-    // 获取浮动按钮的标准尺寸
-    const fabHeight = kMinInteractiveDimension;
-
     return ValueListenableBuilder<int>(
       valueListenable: _currentVisibleIndexNotifier,
       builder: (context, currentIndex, child) {
@@ -286,28 +287,20 @@ class _ReaderState extends State<Reader> {
             data.isNotEmpty &&
             currentIndex >= data.length - 2;
 
-        return AnimatedPositioned(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          right: 16,
-          bottom: isShow ? 30 + context.bottom : -fabHeight * 1.5,
+        return Positioned(
+          right: context.right + 16,
+          bottom: context.bottom + 16,
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 200),
             opacity: isShow ? 1.0 : 0.0,
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(28),
-              child: InkWell(
-                onTap: goNext,
-                borderRadius: BorderRadius.circular(28),
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.arrow_forward,
-                    color: Theme.of(context).primaryColor,
-                  ),
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 200),
+              scale: isShow ? 1.0 : 0.0,
+              child: IgnorePointer(
+                ignoring: !isShow,
+                child: FloatingActionButton(
+                  onPressed: goNext,
+                  child: Icon(Icons.skip_next),
                 ),
               ),
             ),
@@ -328,66 +321,51 @@ class _ReaderState extends State<Reader> {
           right: 0,
           height: bottom + kBottomBarHeight,
           duration: Duration(milliseconds: 250),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-              child: Container(
-                padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface.withAlpha(245),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.skip_previous),
-                          onPressed: goPrevious,
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                context.colorScheme.secondaryContainer,
-                            foregroundColor:
-                                context.colorScheme.onSecondaryContainer,
-                          ),
+          child: WithBlur(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+              decoration: BoxDecoration(
+                color: context.colorScheme.surface.withValues(alpha: 0.92),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton.filledTonal(
+                        icon: Icon(Icons.skip_previous),
+                        onPressed: goPrevious,
+                      ),
+                      Expanded(
+                        child: ValueListenableBuilder(
+                          valueListenable: _currentVisibleIndexNotifier,
+                          builder: (context, value, child) {
+                            return data.length > 1
+                                ? Slider(
+                                  year2023: true,
+                                  value: value.toDouble(),
+                                  min: 0,
+                                  max: (data.length - 1).toDouble(),
+                                  divisions: data.length - 1,
+                                  label: (value + 1).toString(),
+                                  onChanged: (double value) {
+                                    _currentVisibleIndexNotifier.value =
+                                        value.toInt();
+                                    itemScrollController.jumpTo(
+                                      index: value.toInt(),
+                                    );
+                                  },
+                                )
+                                : SizedBox.shrink();
+                          },
                         ),
-                        Expanded(
-                          child: ValueListenableBuilder(
-                            valueListenable: _currentVisibleIndexNotifier,
-                            builder: (context, value, child) {
-                              return data.length > 1
-                                  ? Slider(
-                                    year2023: true,
-                                    value: value.toDouble(),
-                                    min: 0,
-                                    max: (data.length - 1).toDouble(),
-                                    divisions: data.length - 1,
-                                    label: (value + 1).toString(),
-                                    onChanged: (double value) {
-                                      _currentVisibleIndexNotifier.value =
-                                          value.toInt();
-                                      itemScrollController.jumpTo(
-                                        index: value.toInt(),
-                                      );
-                                    },
-                                  )
-                                  : SizedBox.shrink();
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.skip_next),
-                          onPressed: goNext,
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                context.colorScheme.secondaryContainer,
-                            foregroundColor:
-                                context.colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      IconButton.filledTonal(
+                        icon: Icon(Icons.skip_next),
+                        onPressed: goNext,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
