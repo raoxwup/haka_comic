@@ -29,6 +29,7 @@ class ComicDetails extends StatefulWidget {
 }
 
 class _ComicDetailsState extends State<ComicDetails> {
+  /// 漫画详情
   final handler = fetchComicDetails.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic details', data.toString());
@@ -38,6 +39,9 @@ class _ComicDetailsState extends State<ComicDetails> {
       Log.error('Fetch comic details error', e);
     },
   );
+
+  /// 漫画章节
+  late final AsyncRequestHandler1<List<Chapter>, String> chaptersHandler;
 
   final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
   final ScrollController _scrollController = ScrollController();
@@ -50,8 +54,6 @@ class _ComicDetailsState extends State<ComicDetails> {
   );
 
   List<Chapter> _chapters = [];
-
-  void _updateChapters(List<Chapter> chapters) => _chapters = chapters;
 
   void _update() => setState(() {});
 
@@ -80,12 +82,30 @@ class _ComicDetailsState extends State<ComicDetails> {
 
     _helper.addListener(_updateReadRecord);
 
+    chaptersHandler =
+        fetchChapters.useRequest(
+            onSuccess: (data, _) {
+              Log.info('Fetch chapters success', data.toString());
+              // 哔咔最新的排在最前面
+              _chapters = data.reversed.toList();
+            },
+            onError: (e, _) {
+              Log.error('Fetch chapters error', e);
+            },
+          )
+          ..addListener(_update)
+          ..run(widget.id);
+
     super.initState();
   }
 
   @override
   void dispose() {
     handler
+      ..removeListener(_update)
+      ..dispose();
+
+    chaptersHandler
       ..removeListener(_update)
       ..dispose();
 
@@ -144,9 +164,12 @@ class _ComicDetailsState extends State<ComicDetails> {
         ],
       ),
       body: BasePage(
-        isLoading: handler.isLoading,
-        onRetry: handler.refresh,
-        error: handler.error,
+        isLoading: handler.isLoading || chaptersHandler.isLoading,
+        onRetry: () {
+          handler.refresh();
+          chaptersHandler.refresh();
+        },
+        error: handler.error ?? chaptersHandler.error,
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
@@ -203,24 +226,13 @@ class _ComicDetailsState extends State<ComicDetails> {
               SizedBox(height: 5),
               _buildDescription(data),
               SizedBox(height: 5),
-              _buildChaptersList(data),
+              ChaptersList(id: widget.id, chapters: chaptersHandler.data ?? []),
               SizedBox(height: 5),
               _buildRecommendation(data),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildChaptersList(Comic? data) {
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('目录', style: context.textTheme.titleMedium),
-        ChaptersList(id: widget.id, onChaptersUpdated: _updateChapters),
-      ],
     );
   }
 

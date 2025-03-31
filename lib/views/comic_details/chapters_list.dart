@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/log.dart';
 
 class ChaptersList extends StatefulWidget {
-  const ChaptersList({
-    super.key,
-    required this.id,
-    required this.onChaptersUpdated,
-  });
+  const ChaptersList({super.key, required this.chapters, required this.id});
+
+  final List<Chapter> chapters;
 
   final String id;
-
-  final Function(List<Chapter> chapters) onChaptersUpdated;
 
   @override
   State<ChaptersList> createState() => _ChaptersListState();
@@ -24,46 +18,20 @@ class _ChaptersListState extends State<ChaptersList> {
   bool expand = false;
 
   /// 正序章节列表
-  List<Chapter> _chapters = [];
-
-  late final AsyncRequestHandler1<List<Chapter>, String> handler;
-
-  void _update() => setState(() {});
-
-  @override
-  void initState() {
-    handler = fetchChapters.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch chapters success', data.toString());
-        // 哔咔最新的排在最前面
-        _chapters = data.reversed.toList();
-        widget.onChaptersUpdated(_chapters);
-      },
-      onError: (e, _) {
-        Log.error('Fetch chapters error', e);
-      },
-    );
-
-    handler
-      ..addListener(_update)
-      ..run(widget.id);
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
-  }
+  List<Chapter> get _chapters => widget.chapters.reversed.toList();
 
   @override
   Widget build(BuildContext context) {
-    return handler.isLoading
-        ? _buildCircularProgressIndicator()
-        : _buildChapterList();
+    return Column(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('目录', style: context.textTheme.titleMedium),
+        widget.chapters.isEmpty
+            ? _buildCircularProgressIndicator()
+            : _buildChapterList(),
+      ],
+    );
   }
 
   Widget _buildCircularProgressIndicator() => SizedBox(
@@ -73,8 +41,8 @@ class _ChaptersListState extends State<ChaptersList> {
   );
 
   Widget _buildChapterList() {
-    final data = handler.data ?? [];
-    final chapters = expand ? data : data.take(40).toList();
+    final chapters =
+        expand ? widget.chapters : widget.chapters.take(40).toList();
 
     return CustomScrollView(
       shrinkWrap: true,
@@ -113,8 +81,9 @@ class _ChaptersListState extends State<ChaptersList> {
             );
           },
         ),
-        if (data.length > 40) SliverToBoxAdapter(child: SizedBox(height: 10)),
-        if (data.length > 40)
+        if (widget.chapters.length > 40)
+          SliverToBoxAdapter(child: SizedBox(height: 10)),
+        if (widget.chapters.length > 40)
           SliverToBoxAdapter(
             child: Center(
               child: TextButton.icon(

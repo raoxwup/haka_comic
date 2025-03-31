@@ -102,39 +102,39 @@ class _VerticalListState extends State<VerticalList> {
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: (event) => _updatePointerCount(1),
-      onPointerUp: (event) {
-        _updatePointerCount(-1);
-        context.reader.openOrCloseToolbar();
-      },
+      onPointerUp: (event) => _updatePointerCount(-1),
       onPointerCancel: (event) => _updatePointerCount(-1),
-      child: InteractiveViewer(
-        scaleEnabled: isDesktop ? _isCtrlPressed : true,
-        minScale: 1,
-        maxScale: 3.5,
-        child: ScrollablePositionedList.builder(
-          initialScrollIndex: widget.initialIndex ?? 0,
-          padding: EdgeInsets.zero,
-          physics: _listPhysics,
-          itemCount: widget.images.length,
-          itemScrollController: widget.itemScrollController,
-          itemPositionsListener: itemPositionsListener,
-          itemBuilder: (context, index) {
-            final item = widget.images[index];
-            final imageSize = _imagesHelper.find(cid, item.uid);
-            return VerticalImage(
-              url: item.media.url,
-              onImageSizeChanged:
-                  (width, height) => _insertImageSize(
-                    ImageSize(
-                      width: width,
-                      height: height,
-                      imageId: item.uid,
-                      cid: cid,
+      child: GestureDetector(
+        onTap: () => context.reader.openOrCloseToolbar(),
+        child: InteractiveViewer(
+          scaleEnabled: isDesktop ? _isCtrlPressed : true,
+          minScale: 1,
+          maxScale: 3.5,
+          child: ScrollablePositionedList.builder(
+            initialScrollIndex: widget.initialIndex ?? 0,
+            padding: EdgeInsets.zero,
+            physics: _listPhysics,
+            itemCount: widget.images.length,
+            itemScrollController: widget.itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+            itemBuilder: (context, index) {
+              final item = widget.images[index];
+              final imageSize = _imagesHelper.find(cid, item.uid);
+              return VerticalImage(
+                url: item.media.url,
+                onImageSizeChanged:
+                    (width, height) => _insertImageSize(
+                      ImageSize(
+                        width: width,
+                        height: height,
+                        imageId: item.uid,
+                        cid: cid,
+                      ),
                     ),
-                  ),
-              imageSize: imageSize,
-            );
-          },
+                imageSize: imageSize,
+              );
+            },
+          ),
         ),
       ),
     );
