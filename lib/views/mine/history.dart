@@ -20,6 +20,8 @@ class _HistoryState extends State<History> {
   int _comicsCount = 0;
   int _page = 1;
 
+  bool _isLoading = false;
+
   bool get hasMore => _comics.length < _comicsCount;
 
   @override
@@ -51,14 +53,15 @@ class _HistoryState extends State<History> {
     });
   }
 
-  void _getComics(int page) {
+  Future<void> _getComics(int page) async {
+    await Future.delayed(Duration.zero);
     final comics = _helper.query(page);
     setState(() {
       _comics.addAll(comics);
     });
   }
 
-  _getComicsCount() {
+  void _getComicsCount() {
     final count = _helper.count();
     setState(() {
       _comicsCount = count;
@@ -70,9 +73,10 @@ class _HistoryState extends State<History> {
     // 添加保护条件，确保列表可滚动
     if (position.maxScrollExtent <= 0) return;
     if (position.pixels >= position.maxScrollExtent * 0.9) {
-      if (hasMore) {
+      if (hasMore && !_isLoading) {
+        _isLoading = true;
         _page = _page + 1;
-        _getComics(_page);
+        _getComics(_page).whenComplete(() => _isLoading = false);
       }
     }
   }
