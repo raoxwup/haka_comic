@@ -8,6 +8,7 @@ class PageSelector extends StatelessWidget {
     required this.currentPage,
     required this.pages,
     required this.onPageChange,
+    this.isSliver,
   });
 
   final int currentPage;
@@ -16,38 +17,42 @@ class PageSelector extends StatelessWidget {
 
   final ValueChanged<int> onPageChange;
 
+  final bool? isSliver;
+
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-        child: Row(
-          children: [
-            FilledButton.tonal(
-              onPressed:
-                  currentPage <= 1 ? null : () => onPageChange(currentPage - 1),
-              child: const Text('上一页'),
-            ),
-            const Spacer(),
-            ActionChip(
-              label: Text('页面: $currentPage / $pages'),
-              onPressed: () {
-                showPageSelector(context, pages, onPageChange);
-              },
-              side: BorderSide.none,
-            ),
-            const Spacer(),
-            FilledButton.tonal(
-              onPressed:
-                  currentPage >= pages
-                      ? null
-                      : () => onPageChange(currentPage + 1),
-              child: const Text('下一页'),
-            ),
-          ],
+    final Widget child = Row(
+      children: [
+        FilledButton.tonal(
+          onPressed:
+              currentPage <= 1 ? null : () => onPageChange(currentPage - 1),
+          child: const Text('上一页'),
         ),
-      ),
+        const Spacer(),
+        ActionChip(
+          label: Text('页面: $currentPage / $pages'),
+          onPressed: () {
+            showPageSelector(context, pages, onPageChange);
+          },
+          side: BorderSide.none,
+        ),
+        const Spacer(),
+        FilledButton.tonal(
+          onPressed:
+              currentPage >= pages ? null : () => onPageChange(currentPage + 1),
+          child: const Text('下一页'),
+        ),
+      ],
     );
+
+    return isSliver ?? true
+        ? SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+            child: child,
+          ),
+        )
+        : child;
   }
 
   void showPageSelector(

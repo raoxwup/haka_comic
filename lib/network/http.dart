@@ -219,3 +219,15 @@ Future<List<ChapterImage>> fetchChapterImages(
 
   return images;
 }
+
+/// 获取漫画分享ID
+Future<int> fetchComicShareId(String id) async {
+  final response = await Dio(
+    BaseOptions(responseType: ResponseType.json),
+  ).get<String>(
+    'https://recommend.go2778.com/pic/share/set',
+    queryParameters: {'c': id},
+  );
+  final json = jsonDecode(response.data ?? '{}');
+  return json['shareId'] as int;
+}

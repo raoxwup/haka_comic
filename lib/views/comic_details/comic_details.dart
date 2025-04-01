@@ -11,6 +11,7 @@ import 'package:haka_comic/utils/read_record_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
 import 'package:haka_comic/views/comic_details/collect_action.dart';
+import 'package:haka_comic/views/comic_details/comic_share_id.dart';
 import 'package:haka_comic/views/comic_details/creator.dart';
 import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
@@ -249,7 +250,7 @@ class _ComicDetailsState extends State<ComicDetails> {
 
   Widget _buildTitle(Comic? data) {
     return SizedBox(
-      height: 160,
+      height: 180,
       child: Row(
         spacing: 10,
         children: [
@@ -290,6 +291,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                     ),
                   ),
                 ),
+                ComicShareId(id: widget.id),
                 Row(
                   spacing: 10,
                   children: [

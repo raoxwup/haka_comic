@@ -15,7 +15,8 @@ class Favorites extends StatefulWidget {
   State<Favorites> createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites> {
+class _FavoritesState extends State<Favorites>
+    with AutomaticKeepAliveClientMixin {
   final _handler = fetchFavoriteComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
@@ -58,6 +59,7 @@ class _FavoritesState extends State<Favorites> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final width = context.width;
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
@@ -66,37 +68,70 @@ class _FavoritesState extends State<Favorites> {
       isLoading: _handler.isLoading,
       onRetry: _handler.refresh,
       error: _handler.error,
-      child: CustomScrollView(
-        slivers: [
-          PageSelector(
-            pages: pages,
-            onPageChange: _onPageChange,
-            currentPage: _page,
-          ),
-          SliverGrid.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: NestedScrollView(
+              headerSliverBuilder:
+                  (context, innerBoxIsScrolled) => [
+                    SliverOverlapAbsorber(
+                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                        context,
+                      ),
+                      sliver: SliverAppBar(
+                        toolbarHeight: 48.0,
+                        title: PageSelector(
+                          pages: pages,
+                          onPageChange: _onPageChange,
+                          currentPage: _page,
+                          isSliver: false,
+                        ),
+                        pinned: true,
+                        floating: true,
+                        snap: true,
+                        bottom: PreferredSize(
+                          preferredSize: const Size.fromHeight(0),
+                          child: SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ],
+              body: CustomScrollView(
+                slivers: [
+                  SliverGrid.builder(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent:
+                          UiMode.m1(context)
+                              ? width
+                              : UiMode.m2(context)
+                              ? width / 2
+                              : width / 3,
+                      mainAxisSpacing: 5,
+                      crossAxisSpacing: 5,
+                      childAspectRatio: 2.5,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ListItem(doc: comics[index]);
+                    },
+                    itemCount: comics.length,
+                  ),
+                ],
+              ),
             ),
-            itemBuilder: (context, index) {
-              return ListItem(doc: comics[index]);
-            },
-            itemCount: comics.length,
           ),
-          PageSelector(
-            pages: pages,
-            onPageChange: _onPageChange,
-            currentPage: _page,
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton(
+              onPressed: () => _onPageChange(1),
+              child: const Icon(Icons.refresh),
+            ),
           ),
         ],
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
