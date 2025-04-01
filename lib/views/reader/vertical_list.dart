@@ -121,6 +121,7 @@ class _VerticalListState extends State<VerticalList> {
               final item = widget.images[index];
               final imageSize = _imagesHelper.find(cid, item.uid);
               return VerticalImage(
+                key: ValueKey(item.uid),
                 url: item.media.url,
                 onImageSizeChanged:
                     (width, height) => _insertImageSize(

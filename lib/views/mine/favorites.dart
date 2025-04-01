@@ -71,52 +71,36 @@ class _FavoritesState extends State<Favorites>
       child: Stack(
         children: [
           Positioned.fill(
-            child: NestedScrollView(
-              headerSliverBuilder:
-                  (context, innerBoxIsScrolled) => [
-                    SliverOverlapAbsorber(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
-                      ),
-                      sliver: SliverAppBar(
-                        toolbarHeight: 48.0,
-                        title: PageSelector(
-                          pages: pages,
-                          onPageChange: _onPageChange,
-                          currentPage: _page,
-                          isSliver: false,
-                        ),
-                        pinned: true,
-                        floating: true,
-                        snap: true,
-                        bottom: PreferredSize(
-                          preferredSize: const Size.fromHeight(0),
-                          child: SizedBox.shrink(),
-                        ),
-                      ),
-                    ),
-                  ],
-              body: CustomScrollView(
-                slivers: [
-                  SliverGrid.builder(
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent:
-                          UiMode.m1(context)
-                              ? width
-                              : UiMode.m2(context)
-                              ? width / 2
-                              : width / 3,
-                      mainAxisSpacing: 5,
-                      crossAxisSpacing: 5,
-                      childAspectRatio: 2.5,
-                    ),
-                    itemBuilder: (context, index) {
-                      return ListItem(doc: comics[index]);
-                    },
-                    itemCount: comics.length,
+            child: CustomScrollView(
+              slivers: [
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: _page,
+                ),
+                SliverGrid.builder(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent:
+                        UiMode.m1(context)
+                            ? width
+                            : UiMode.m2(context)
+                            ? width / 2
+                            : width / 3,
+                    mainAxisSpacing: 5,
+                    crossAxisSpacing: 5,
+                    childAspectRatio: 2.5,
                   ),
-                ],
-              ),
+                  itemBuilder: (context, index) {
+                    return ListItem(doc: comics[index]);
+                  },
+                  itemCount: comics.length,
+                ),
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: _page,
+                ),
+              ],
             ),
           ),
           Positioned(

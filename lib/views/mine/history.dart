@@ -69,7 +69,7 @@ class _HistoryState extends State<History> {
     final position = _scrollController.position;
     // 添加保护条件，确保列表可滚动
     if (position.maxScrollExtent <= 0) return;
-    if (position.pixels == position.maxScrollExtent) {
+    if (position.pixels >= position.maxScrollExtent * 0.9) {
       if (hasMore) {
         _page = _page + 1;
         _getComics(_page);
