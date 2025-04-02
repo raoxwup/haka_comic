@@ -84,27 +84,30 @@ class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     final width = context.width;
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverGrid.builder(
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent:
-                UiMode.m1(context)
-                    ? width
-                    : UiMode.m2(context)
-                    ? width / 2
-                    : width / 3,
-            mainAxisSpacing: 5,
-            crossAxisSpacing: 5,
-            childAspectRatio: 2.5,
+    return Scaffold(
+      appBar: AppBar(title: const Text('浏览历史')),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverGrid.builder(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent:
+                  UiMode.m1(context)
+                      ? width
+                      : UiMode.m2(context)
+                      ? width / 2
+                      : width / 3,
+              mainAxisSpacing: 5,
+              crossAxisSpacing: 5,
+              childAspectRatio: 2.5,
+            ),
+            itemBuilder: (context, index) {
+              return ListItem(doc: _comics[index]);
+            },
+            itemCount: _comics.length,
           ),
-          itemBuilder: (context, index) {
-            return ListItem(doc: _comics[index]);
-          },
-          itemCount: _comics.length,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

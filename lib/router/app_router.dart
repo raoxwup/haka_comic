@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
@@ -12,6 +13,10 @@ import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
+import 'package:haka_comic/views/mine/comments.dart';
+import 'package:haka_comic/views/mine/downloads.dart';
+import 'package:haka_comic/views/mine/favorites.dart';
+import 'package:haka_comic/views/mine/history.dart';
 import 'package:haka_comic/views/random/random.dart' show Random;
 import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
@@ -167,6 +172,46 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: const Random(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/favorites',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Favorites(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/history',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const History(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/downloads',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Downloads(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/comments',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Comments(),
         );
       },
     ),

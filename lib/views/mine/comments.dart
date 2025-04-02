@@ -10,6 +10,6 @@ class Comments extends StatefulWidget {
 class _CommentsState extends State<Comments> {
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Comments'));
+    return Scaffold(appBar: AppBar(title: const Text('我的评论')));
   }
 }

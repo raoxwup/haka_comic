@@ -64,54 +64,47 @@ class _FavoritesState extends State<Favorites>
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
 
-    return BasePage(
-      isLoading: _handler.isLoading,
-      onRetry: _handler.refresh,
-      error: _handler.error,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomScrollView(
-              slivers: [
-                PageSelector(
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                  currentPage: _page,
-                ),
-                SliverGrid.builder(
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent:
-                        UiMode.m1(context)
-                            ? width
-                            : UiMode.m2(context)
-                            ? width / 2
-                            : width / 3,
-                    mainAxisSpacing: 5,
-                    crossAxisSpacing: 5,
-                    childAspectRatio: 2.5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ListItem(doc: comics[index]);
-                  },
-                  itemCount: comics.length,
-                ),
-                PageSelector(
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                  currentPage: _page,
-                ),
-              ],
+    return Scaffold(
+      appBar: AppBar(title: const Text('收藏漫画')),
+      body: BasePage(
+        isLoading: _handler.isLoading,
+        onRetry: _handler.refresh,
+        error: _handler.error,
+        child: CustomScrollView(
+          slivers: [
+            PageSelector(
+              pages: pages,
+              onPageChange: _onPageChange,
+              currentPage: _page,
             ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FloatingActionButton(
-              onPressed: () => _onPageChange(1),
-              child: const Icon(Icons.refresh),
+            SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent:
+                    UiMode.m1(context)
+                        ? width
+                        : UiMode.m2(context)
+                        ? width / 2
+                        : width / 3,
+                mainAxisSpacing: 5,
+                crossAxisSpacing: 5,
+                childAspectRatio: 2.5,
+              ),
+              itemBuilder: (context, index) {
+                return ListItem(doc: comics[index]);
+              },
+              itemCount: comics.length,
             ),
-          ),
-        ],
+            PageSelector(
+              pages: pages,
+              onPageChange: _onPageChange,
+              currentPage: _page,
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _onPageChange(1),
+        child: const Icon(Icons.refresh),
       ),
     );
   }
