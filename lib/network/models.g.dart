@@ -565,3 +565,52 @@ Map<String, dynamic> _$HistoryDocToJson(HistoryDoc instance) =>
       'updatedAt': instance.updatedAt,
       'createdAt': instance.createdAt,
     };
+
+UserProfileResponse _$UserProfileResponseFromJson(Map<String, dynamic> json) =>
+    UserProfileResponse(
+      user: User.fromJson(json['user'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$UserProfileResponseToJson(
+  UserProfileResponse instance,
+) => <String, dynamic>{'user': instance.user};
+
+User _$UserFromJson(Map<String, dynamic> json) => User(
+  id: json['_id'] as String,
+  birthday: json['birthday'] as String? ?? '',
+  email: json['email'] as String,
+  gender: json['gender'] as String? ?? 'm',
+  name: json['name'] as String? ?? '',
+  slogan: json['slogan'] as String? ?? '',
+  title: json['title'] as String? ?? '萌新',
+  verified: json['verified'] as bool? ?? false,
+  exp: (json['exp'] as num?)?.toInt() ?? 0,
+  level: (json['level'] as num?)?.toInt() ?? 0,
+  characters:
+      (json['characters'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      [],
+  created_at: json['created_at'] as String? ?? '',
+  avatar: ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  isPunched: json['isPunched'] as bool,
+  character: json['character'] as String,
+);
+
+Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
+  '_id': instance.id,
+  'birthday': instance.birthday,
+  'email': instance.email,
+  'gender': instance.gender,
+  'name': instance.name,
+  'slogan': instance.slogan,
+  'title': instance.title,
+  'verified': instance.verified,
+  'exp': instance.exp,
+  'level': instance.level,
+  'characters': instance.characters,
+  'created_at': instance.created_at,
+  'avatar': instance.avatar,
+  'isPunched': instance.isPunched,
+  'character': instance.character,
+};

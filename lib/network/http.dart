@@ -231,3 +231,13 @@ Future<int> fetchComicShareId(String id) async {
   final json = jsonDecode(response.data ?? '{}');
   return json['shareId'] as int;
 }
+
+/// 获取个人信息
+Future<UserProfileResponse> fetchUserProfile() async {
+  final response = await Client.get('users/profile');
+  final data = BaseResponse<UserProfileResponse>.fromJson(
+    response,
+    (data) => UserProfileResponse.fromJson(data),
+  );
+  return data.data;
+}

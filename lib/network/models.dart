@@ -983,3 +983,81 @@ class HistoryDoc extends Doc {
   @override
   Map<String, dynamic> toJson() => _$HistoryDocToJson(this);
 }
+
+@JsonSerializable()
+class UserProfileResponse {
+  final User user;
+
+  UserProfileResponse({required this.user});
+
+  factory UserProfileResponse.fromJson(Map<String, dynamic> json) =>
+      _$UserProfileResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserProfileResponseToJson(this);
+}
+
+@JsonSerializable()
+class User {
+  @JsonKey(name: '_id')
+  final String id;
+
+  @JsonKey(defaultValue: '')
+  final String birthday;
+
+  final String email;
+
+  @JsonKey(defaultValue: 'm')
+  final String gender;
+
+  @JsonKey(defaultValue: '')
+  final String name;
+
+  @JsonKey(defaultValue: '')
+  final String slogan;
+
+  @JsonKey(defaultValue: '萌新')
+  final String title;
+
+  @JsonKey(defaultValue: false)
+  final bool verified;
+
+  @JsonKey(defaultValue: 0)
+  final int exp;
+
+  @JsonKey(defaultValue: 0)
+  final int level;
+
+  @JsonKey(defaultValue: [])
+  final List<String> characters;
+
+  @JsonKey(defaultValue: "")
+  final String created_at;
+
+  final ImageDetail avatar;
+
+  final bool isPunched;
+
+  final String character;
+
+  User({
+    required this.id,
+    required this.birthday,
+    required this.email,
+    required this.gender,
+    required this.name,
+    required this.slogan,
+    required this.title,
+    required this.verified,
+    required this.exp,
+    required this.level,
+    required this.characters,
+    required this.created_at,
+    required this.avatar,
+    required this.isPunched,
+    required this.character,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+}
