@@ -19,7 +19,7 @@ void main(List<String> args) {
   );
 }
 
-final colorScheme = ColorScheme.fromSeed(seedColor: Colors.deepPurple);
+final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
 
 class App extends StatelessWidget {
   const App({super.key});

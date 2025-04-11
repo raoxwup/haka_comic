@@ -241,3 +241,16 @@ Future<UserProfileResponse> fetchUserProfile() async {
   );
   return data.data;
 }
+
+/// 获取排行榜
+Future<ComicRankResponse> fetchComicRank(ComicRankPayload payload) async {
+  final response = await Client.get(
+    'comics/leaderboard',
+    query: payload.toJson(),
+  );
+  final data = BaseResponse<ComicRankResponse>.fromJson(
+    response,
+    (data) => ComicRankResponse.fromJson(data),
+  );
+  return data.data;
+}

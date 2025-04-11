@@ -614,3 +614,14 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'isPunched': instance.isPunched,
   'character': instance.character,
 };
+
+ComicRankResponse _$ComicRankResponseFromJson(Map<String, dynamic> json) =>
+    ComicRankResponse(
+      comics:
+          (json['comics'] as List<dynamic>)
+              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$ComicRankResponseToJson(ComicRankResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};

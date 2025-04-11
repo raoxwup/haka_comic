@@ -1061,3 +1061,34 @@ class User {
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
+
+enum ComicRankType {
+  /// 按日排行
+  H24,
+
+  /// 按周排行
+  D7,
+
+  /// 按月排行
+  D30,
+}
+
+class ComicRankPayload {
+  final ComicRankType type;
+
+  ComicRankPayload({required this.type});
+
+  Map<String, dynamic> toJson() => {'tt': type.name, 'ct': 'VC'};
+}
+
+@JsonSerializable()
+class ComicRankResponse {
+  final List<Doc> comics;
+
+  ComicRankResponse({required this.comics});
+
+  factory ComicRankResponse.fromJson(Map<String, dynamic> json) =>
+      _$ComicRankResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ComicRankResponseToJson(this);
+}
