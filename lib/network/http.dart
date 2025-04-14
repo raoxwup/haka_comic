@@ -254,3 +254,8 @@ Future<ComicRankResponse> fetchComicRank(ComicRankPayload payload) async {
   );
   return data.data;
 }
+
+/// 打卡
+Future<void> punchIn() async {
+  await Client.post('users/punch-in');
+}

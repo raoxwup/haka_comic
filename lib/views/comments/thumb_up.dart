@@ -53,6 +53,8 @@ class _ThumbUpState extends State<ThumbUp> {
 
     _handler.addListener(_update);
 
+    _handler.isLoading = false;
+
     super.initState();
   }
 

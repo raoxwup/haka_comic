@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -64,11 +65,7 @@ class _CommentsPageState extends State<CommentsPage> {
       onError: (e, _) {
         Log.error('Fetch comic comments error', e);
       },
-    );
-
-    handler
-      ..addListener(_update)
-      ..run(CommentsPayload(id: widget.id, page: _page));
+    )..addListener(_update);
 
     _scrollController.addListener(_onScroll);
 
@@ -90,12 +87,16 @@ class _CommentsPageState extends State<CommentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('评论')),
-      body:
-          handler.error != null
-              ? _buildError()
-              : Stack(children: [_buildPage(), _buildBottom()]),
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted:
+          () => handler.run(CommentsPayload(id: widget.id, page: _page)),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('评论')),
+        body:
+            handler.error != null
+                ? _buildError()
+                : Stack(children: [_buildPage(), _buildBottom()]),
+      ),
     );
   }
 

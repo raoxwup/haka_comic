@@ -12,12 +12,10 @@ extension WaitFuture<T> on Future<T> {
 }
 
 abstract class AsyncRequestHandler<T, P> extends ChangeNotifier {
-  bool _isLoading = false;
+  bool isLoading = true;
   T? _data;
   Object? _error;
   bool _isDisposed = false;
-
-  bool get isLoading => _isLoading;
   T? get data => _data;
   Object? get error => _error;
 
@@ -42,14 +40,14 @@ abstract class AsyncRequestHandler<T, P> extends ChangeNotifier {
   void _commonSetup(P params) {
     if (_isDisposed) return;
     onBefore?.call(params);
-    _isLoading = true;
+    isLoading = true;
     _error = null;
     notifyListeners();
   }
 
   void _commonFinally(P params) {
     if (_isDisposed) return;
-    _isLoading = false;
+    isLoading = false;
     notifyListeners();
     onFinally?.call(params);
   }

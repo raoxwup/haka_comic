@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
@@ -230,6 +229,7 @@ Page<dynamic> customTransitionPage({
         child: child,
         transitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // 主页面滑动动画
           final slideAnimation = Tween<Offset>(
             begin: const Offset(1.0, 0.0),
             end: Offset.zero,
@@ -237,21 +237,15 @@ Page<dynamic> customTransitionPage({
             CurvedAnimation(parent: animation, curve: Curves.easeInOut),
           );
 
-          final secondarySlideAnimation = Tween<Offset>(
-            begin: Offset.zero,
-            end: const Offset(-0.3, 0.0),
-          ).animate(
-            CurvedAnimation(
-              parent: secondaryAnimation,
-              curve: Curves.easeInOut,
-            ),
+          // 次级页面淡出动画
+          final fadeAnimation = Tween<double>(begin: 1.0, end: 0.5).animate(
+            CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeIn),
           );
 
-          return SlideTransition(
-            position: slideAnimation,
+          return RepaintBoundary(
             child: SlideTransition(
-              position: secondarySlideAnimation,
-              child: child,
+              position: slideAnimation,
+              child: FadeTransition(opacity: fadeAnimation, child: child),
             ),
           );
         },

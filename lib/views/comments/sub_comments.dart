@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -67,9 +68,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
       },
     );
 
-    handler
-      ..addListener(_update)
-      ..run(SubCommentsPayload(id: widget.comment.id, page: _page));
+    handler.addListener(_update);
 
     _scrollController.addListener(_onScroll);
 
@@ -91,12 +90,18 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('子评论')),
-      body:
-          handler.error != null
-              ? _buildError()
-              : Stack(children: [_buildList(_comments), _buildBottom()]),
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted:
+          () => handler.run(
+            SubCommentsPayload(id: widget.comment.id, page: _page),
+          ),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('子评论')),
+        body:
+            handler.error != null
+                ? _buildError()
+                : Stack(children: [_buildList(_comments), _buildBottom()]),
+      ),
     );
   }
 

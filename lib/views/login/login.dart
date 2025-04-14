@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -55,13 +54,7 @@ class _LoginState extends State<Login> {
     _passwordController.text = AppConf.instance.password;
 
     handler.addListener(_listener);
-
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    handler.isLoading = false;
 
     super.initState();
   }

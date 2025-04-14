@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/history_helper.dart';
@@ -73,9 +74,7 @@ class _ComicDetailsState extends State<ComicDetails> {
 
   @override
   void initState() {
-    handler
-      ..addListener(_update)
-      ..run(widget.id);
+    handler.addListener(_update);
 
     _scrollController.addListener(_handleScroll);
 
@@ -83,19 +82,16 @@ class _ComicDetailsState extends State<ComicDetails> {
 
     _helper.addListener(_updateReadRecord);
 
-    chaptersHandler =
-        fetchChapters.useRequest(
-            onSuccess: (data, _) {
-              Log.info('Fetch chapters success', data.toString());
-              // 哔咔最新的排在最前面
-              _chapters = data.reversed.toList();
-            },
-            onError: (e, _) {
-              Log.error('Fetch chapters error', e);
-            },
-          )
-          ..addListener(_update)
-          ..run(widget.id);
+    chaptersHandler = fetchChapters.useRequest(
+      onSuccess: (data, _) {
+        Log.info('Fetch chapters success', data.toString());
+        // 哔咔最新的排在最前面
+        _chapters = data.reversed.toList();
+      },
+      onError: (e, _) {
+        Log.error('Fetch chapters error', e);
+      },
+    )..addListener(_update);
 
     super.initState();
   }
@@ -124,113 +120,127 @@ class _ComicDetailsState extends State<ComicDetails> {
     final data = handler.data?.comic;
     final bottom = context.bottom;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: ValueListenableBuilder<bool>(
-          valueListenable: _showTitleNotifier,
-          builder: (context, value, child) {
-            return AnimatedOpacity(
-              opacity: value ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Text(data?.title ?? ''),
-            );
-          },
-        ),
-        actions: [
-          MenuAnchor(
-            builder:
-                (context, controller, widget) => IconButton(
-                  icon: Icon(Icons.more_horiz),
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted: () {
+        handler.run(widget.id);
+        chaptersHandler.run(widget.id);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: ValueListenableBuilder<bool>(
+            valueListenable: _showTitleNotifier,
+            builder: (context, value, child) {
+              return AnimatedOpacity(
+                opacity: value ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Text(data?.title ?? ''),
+              );
+            },
+          ),
+          actions: [
+            MenuAnchor(
+              builder:
+                  (context, controller, widget) => IconButton(
+                    icon: Icon(Icons.more_horiz),
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                  ),
+              menuChildren: [
+                MenuItemButton(
+                  leadingIcon: Icon(Icons.copy),
+                  child: const Text('复制标题'),
+                  onPressed: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: data?.title ?? ''),
+                    );
+                    showSnackBar('标题复制成功!');
                   },
                 ),
-            menuChildren: [
-              MenuItemButton(
-                leadingIcon: Icon(Icons.copy),
-                child: const Text('复制标题'),
-                onPressed: () async {
-                  await Clipboard.setData(
-                    ClipboardData(text: data?.title ?? ''),
-                  );
-                  showSnackBar('标题复制成功!');
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: BasePage(
-        isLoading: handler.isLoading || chaptersHandler.isLoading,
-        onRetry: () {
-          handler.refresh();
-          chaptersHandler.refresh();
-        },
-        error: handler.error ?? chaptersHandler.error,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
-          child: Column(
-            spacing: 15,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTitle(data),
-              _buildTags(data, '分类'),
-              _buildTags(data, '标签'),
-              _buildActions(data),
-              if (UiMode.m1(context))
-                ValueListenableBuilder(
-                  valueListenable: _readRecordNotifier,
-                  builder: (context, value, child) {
-                    return Row(
-                      spacing: 10,
-                      children: [
-                        Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 40),
-                            child: ElevatedButton(
-                              onPressed:
-                                  () => context.push(
-                                    '/reader/${widget.id}/${_chapters.first.id}/0',
-                                    extra: _chapters,
-                                  ),
-                              child: const Text('从头开始'),
-                            ),
-                          ),
-                        ),
-                        if (value != null)
+              ],
+            ),
+          ],
+        ),
+        body: BasePage(
+          isLoading: handler.isLoading || chaptersHandler.isLoading,
+          onRetry: () {
+            handler.refresh();
+            chaptersHandler.refresh();
+          },
+          error: handler.error ?? chaptersHandler.error,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
+            child: Column(
+              spacing: 15,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitle(data),
+                _buildTags(data, '分类'),
+                _buildTags(data, '标签'),
+                _buildActions(data),
+                if (UiMode.m1(context))
+                  ValueListenableBuilder(
+                    valueListenable: _readRecordNotifier,
+                    builder: (context, value, child) {
+                      return Row(
+                        spacing: 10,
+                        children: [
                           Expanded(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(minHeight: 40),
-                              child: FilledButton(
+                              child: ElevatedButton(
                                 onPressed:
                                     () => context.push(
-                                      '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
+                                      '/reader/${widget.id}/${_chapters.first.id}/0',
                                       extra: _chapters,
                                     ),
-                                child: const Text('继续阅读'),
+                                child: const Text('从头开始'),
                               ),
                             ),
                           ),
-                      ],
-                    );
-                  },
+                          if (value != null)
+                            Expanded(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 40,
+                                ),
+                                child: FilledButton(
+                                  onPressed:
+                                      () => context.push(
+                                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
+                                        extra: _chapters,
+                                      ),
+                                  child: const Text('继续阅读'),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                _buildReadRecord(),
+                // SizedBox(height: 8),
+                const Divider(),
+                ComicCreator(
+                  creator: data?.creator,
+                  updatedAt: data?.updated_at,
                 ),
-              _buildReadRecord(),
-              // SizedBox(height: 8),
-              const Divider(),
-              ComicCreator(creator: data?.creator, updatedAt: data?.updated_at),
-              SizedBox(height: 5),
-              _buildDescription(data),
-              SizedBox(height: 5),
-              ChaptersList(id: widget.id, chapters: chaptersHandler.data ?? []),
-              SizedBox(height: 5),
-              _buildRecommendation(data),
-            ],
+                SizedBox(height: 5),
+                _buildDescription(data),
+                SizedBox(height: 5),
+                ChaptersList(
+                  id: widget.id,
+                  chapters: chaptersHandler.data ?? [],
+                ),
+                SizedBox(height: 5),
+                _buildRecommendation(data),
+              ],
+            ),
           ),
         ),
       ),

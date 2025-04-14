@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
@@ -48,19 +49,7 @@ class _ComicsState extends State<Comics> {
 
   @override
   void initState() {
-    handler
-      ..addListener(_update)
-      ..run(
-        ComicsPayload(
-          c: widget.c,
-          s: sortType,
-          page: page,
-          t: widget.t,
-          ca: widget.ca,
-          a: widget.a,
-          ct: widget.ct,
-        ),
-      );
+    handler.addListener(_update);
     super.initState();
   }
 
@@ -95,53 +84,73 @@ class _ComicsState extends State<Comics> {
     final int pages = handler.data?.comics.pages ?? 1;
     final width = context.width;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '最近更新',
-        ),
-        actions: [
-          IconButton(
-            tooltip: '排序',
-            icon: const Icon(Icons.sort),
-            onPressed: _buildSortTypeSelector,
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted: () {
+        handler.run(
+          ComicsPayload(
+            c: widget.c,
+            s: sortType,
+            page: page,
+            t: widget.t,
+            ca: widget.ca,
+            a: widget.a,
+            ct: widget.ct,
           ),
-        ],
-      ),
-      body: BasePage(
-        isLoading: handler.isLoading,
-        onRetry: handler.refresh,
-        error: handler.error,
-        child: CustomScrollView(
-          slivers: [
-            PageSelector(
-              pages: pages,
-              onPageChange: _onPageChange,
-              currentPage: page,
-            ),
-            SliverGrid.builder(
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent:
-                    UiMode.m1(context)
-                        ? width
-                        : UiMode.m2(context)
-                        ? width / 2
-                        : width / 3,
-                mainAxisSpacing: 5,
-                crossAxisSpacing: 5,
-                childAspectRatio: 2.5,
-              ),
-              itemBuilder: (context, index) {
-                return ListItem(doc: comics[index]);
-              },
-              itemCount: comics.length,
-            ),
-            PageSelector(
-              pages: pages,
-              onPageChange: _onPageChange,
-              currentPage: page,
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.c ??
+                widget.t ??
+                widget.a ??
+                widget.ct ??
+                widget.ca ??
+                '最近更新',
+          ),
+          actions: [
+            IconButton(
+              tooltip: '排序',
+              icon: const Icon(Icons.sort),
+              onPressed: _buildSortTypeSelector,
             ),
           ],
+        ),
+        body: BasePage(
+          isLoading: handler.isLoading,
+          onRetry: handler.refresh,
+          error: handler.error,
+          child: CustomScrollView(
+            slivers: [
+              PageSelector(
+                pages: pages,
+                onPageChange: _onPageChange,
+                currentPage: page,
+              ),
+              SliverGrid.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent:
+                      UiMode.m1(context)
+                          ? width
+                          : UiMode.m2(context)
+                          ? width / 2
+                          : width / 3,
+                  mainAxisSpacing: 5,
+                  crossAxisSpacing: 5,
+                  childAspectRatio: 2.5,
+                ),
+                itemBuilder: (context, index) {
+                  return ListItem(doc: comics[index]);
+                },
+                itemCount: comics.length,
+              ),
+              PageSelector(
+                pages: pages,
+                onPageChange: _onPageChange,
+                currentPage: page,
+              ),
+            ],
+          ),
         ),
       ),
     );

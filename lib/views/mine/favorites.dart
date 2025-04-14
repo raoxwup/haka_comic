@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
@@ -27,15 +28,11 @@ class _FavoritesState extends State<Favorites>
   );
 
   int _page = 1;
-  // 漫画排序方式应该是失效了
   final ComicSortType _sortType = ComicSortType.dd;
 
   @override
   void initState() {
-    _handler
-      ..addListener(_update)
-      ..run(UserFavoritePayload(page: _page, sort: _sortType));
-
+    _handler.addListener(_update);
     super.initState();
   }
 
@@ -64,47 +61,51 @@ class _FavoritesState extends State<Favorites>
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('收藏漫画')),
-      body: BasePage(
-        isLoading: _handler.isLoading,
-        onRetry: _handler.refresh,
-        error: _handler.error,
-        child: CustomScrollView(
-          slivers: [
-            PageSelector(
-              pages: pages,
-              onPageChange: _onPageChange,
-              currentPage: _page,
-            ),
-            SliverGrid.builder(
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent:
-                    UiMode.m1(context)
-                        ? width
-                        : UiMode.m2(context)
-                        ? width / 2
-                        : width / 3,
-                mainAxisSpacing: 5,
-                crossAxisSpacing: 5,
-                childAspectRatio: 2.5,
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted:
+          () => _handler.run(UserFavoritePayload(page: _page, sort: _sortType)),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('收藏漫画')),
+        body: BasePage(
+          isLoading: _handler.isLoading,
+          onRetry: _handler.refresh,
+          error: _handler.error,
+          child: CustomScrollView(
+            slivers: [
+              PageSelector(
+                pages: pages,
+                onPageChange: _onPageChange,
+                currentPage: _page,
               ),
-              itemBuilder: (context, index) {
-                return ListItem(doc: comics[index]);
-              },
-              itemCount: comics.length,
-            ),
-            PageSelector(
-              pages: pages,
-              onPageChange: _onPageChange,
-              currentPage: _page,
-            ),
-          ],
+              SliverGrid.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent:
+                      UiMode.m1(context)
+                          ? width
+                          : UiMode.m2(context)
+                          ? width / 2
+                          : width / 3,
+                  mainAxisSpacing: 5,
+                  crossAxisSpacing: 5,
+                  childAspectRatio: 2.5,
+                ),
+                itemBuilder: (context, index) {
+                  return ListItem(doc: comics[index]);
+                },
+                itemCount: comics.length,
+              ),
+              PageSelector(
+                pages: pages,
+                onPageChange: _onPageChange,
+                currentPage: _page,
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onPageChange(1),
-        child: const Icon(Icons.refresh),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _onPageChange(1),
+          child: const Icon(Icons.refresh),
+        ),
       ),
     );
   }

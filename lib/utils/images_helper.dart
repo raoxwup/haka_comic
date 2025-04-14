@@ -18,8 +18,8 @@ class ImagesHelper {
         id INTEGER PRIMARY KEY,
         cid TEXT NOT NULL,
         image_id TEXT NOT NULL,
-        width REAL NOT NULL,
-        height REAL NOT NULL,
+        width INTEGER NOT NULL,
+        height INTEGER NOT NULL,
         UNIQUE(cid, image_id)
       )
     ''');
@@ -66,8 +66,8 @@ class ImagesHelper {
 }
 
 class ImageSize {
-  final double width;
-  final double height;
+  final int width;
+  final int height;
   final String imageId;
   final String cid;
 
@@ -79,8 +79,8 @@ class ImageSize {
   });
 
   factory ImageSize.fromJson(Map<String, dynamic> json) => ImageSize(
-    width: json['width'] as double,
-    height: json['height'] as double,
+    width: json['width'] as int,
+    height: json['height'] as int,
     imageId: json['image_id'] as String,
     cid: json['cid'] as String,
   );

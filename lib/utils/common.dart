@@ -15,6 +15,12 @@ void showSnackBar(String message) {
     SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating, // 可选样式调整
+      action: SnackBarAction(
+        label: '取消',
+        onPressed: () {
+          currentState.removeCurrentSnackBar();
+        },
+      ),
     ),
   );
 }

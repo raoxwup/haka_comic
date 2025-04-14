@@ -49,7 +49,7 @@ class _VerticalListState extends State<VerticalList> {
   /// 可见的第一项图片索引
   int _visibleFirstIndex = 0;
 
-  /// 图片尺寸数据
+  /// 图片尺寸数据数据库
   final _imagesHelper = ImagesHelper();
 
   bool _handleKeyEvent(KeyEvent event) {
@@ -76,6 +76,15 @@ class _VerticalListState extends State<VerticalList> {
 
   String get cid => context.reader.widget.id;
 
+  /// 图片尺寸缓存
+  final Map<String, ImageSize> _imageSizeCache = {};
+
+  void _initImageSizeCache() {
+    _imagesHelper.query(cid).forEach((imageSize) {
+      _imageSizeCache[imageSize.imageId] = imageSize;
+    });
+  }
+
   @override
   void initState() {
     if (isDesktop) {
@@ -83,6 +92,8 @@ class _VerticalListState extends State<VerticalList> {
     }
 
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
+
+    _initImageSizeCache();
 
     super.initState();
   }
@@ -119,18 +130,19 @@ class _VerticalListState extends State<VerticalList> {
             itemPositionsListener: itemPositionsListener,
             itemBuilder: (context, index) {
               final item = widget.images[index];
-              final imageSize = _imagesHelper.find(cid, item.uid);
+              final imageSize = _imageSizeCache[item.uid];
               return VerticalImage(
                 url: item.media.url,
-                onImageSizeChanged:
-                    (width, height) => _insertImageSize(
-                      ImageSize(
-                        width: width,
-                        height: height,
-                        imageId: item.uid,
-                        cid: cid,
-                      ),
-                    ),
+                onImageSizeChanged: (width, height) {
+                  final size = ImageSize(
+                    width: width,
+                    height: height,
+                    imageId: item.uid,
+                    cid: cid,
+                  );
+                  _insertImageSize(size);
+                  _imageSizeCache[item.uid] = size;
+                },
                 imageSize: imageSize,
               );
             },
@@ -216,7 +228,7 @@ class VerticalImage extends StatefulWidget {
   final String url;
 
   /// 图片尺寸回调
-  final Function(double, double) onImageSizeChanged;
+  final Function(int, int) onImageSizeChanged;
 
   /// 缓存的图片尺寸
   final ImageSize? imageSize;
@@ -306,8 +318,8 @@ class _VerticalImageState extends State<VerticalImage> {
           _currentListener = ImageStreamListener((imageInfo, synchronousCall) {
             if (!mounted) return;
             widget.onImageSizeChanged(
-              imageInfo.image.width.toDouble(),
-              imageInfo.image.height.toDouble(),
+              imageInfo.image.width,
+              imageInfo.image.height,
             );
             _removeListener();
           });
