@@ -165,7 +165,14 @@ class _HistoryComicsState extends State<HistoryComics> {
   @override
   void initState() {
     _getHistory();
+    _helper.addListener(_getHistory);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _helper.removeListener(_getHistory);
+    super.dispose();
   }
 
   @override
@@ -180,27 +187,33 @@ class _HistoryComicsState extends State<HistoryComics> {
             title: Text('最近浏览', style: context.textTheme.titleMedium),
             trailing: const Icon(Icons.chevron_right),
           ),
-          SizedBox(
-            height: 135,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final item = _comics[index];
-                return InkWell(
-                  onTap: () => context.push('/details/${item.id}'),
-                  child: SizedBox(
-                    width: 100,
-                    child: BaseImage(
-                      url: item.thumb.url,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
-                  ),
-                );
-              },
-              separatorBuilder: (context, index) => SizedBox(width: 5),
-              itemCount: _comics.length,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 13),
+            child: SizedBox(
+              height: 135,
+              child:
+                  _comics.isEmpty
+                      ? const Empty()
+                      : ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          final item = _comics[index];
+                          return InkWell(
+                            onTap: () => context.push('/details/${item.uid}'),
+                            child: SizedBox(
+                              width: 100,
+                              child: BaseImage(
+                                url: item.thumb.url,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder:
+                            (context, index) => SizedBox(width: 5),
+                        itemCount: _comics.length,
+                      ),
             ),
           ),
         ],
@@ -257,36 +270,53 @@ class _FavoritesState extends State<Favorites> {
             title: Text('收藏漫画', style: context.textTheme.titleMedium),
             trailing: const Icon(Icons.chevron_right),
           ),
-          SizedBox(
-            height: 135,
-            child: BasePage(
-              isLoading: _handler.isLoading,
-              onRetry: _handler.refresh,
-              error: _handler.error,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  final item = comics[index];
-                  return InkWell(
-                    onTap: () => context.push('/details/${item.id}'),
-                    child: SizedBox(
-                      width: 100,
-                      child: BaseImage(
-                        url: item.thumb.url,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) => SizedBox(width: 5),
-                itemCount: comics.length,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 13),
+            child: SizedBox(
+              height: 135,
+              child: BasePage(
+                isLoading: _handler.isLoading,
+                onRetry: _handler.refresh,
+                error: _handler.error,
+                child:
+                    comics.isEmpty
+                        ? const Empty()
+                        : ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            final item = comics[index];
+                            return InkWell(
+                              onTap: () => context.push('/details/${item.uid}'),
+                              child: SizedBox(
+                                width: 100,
+                                child: BaseImage(
+                                  url: item.thumb.url,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              ),
+                            );
+                          },
+                          separatorBuilder:
+                              (context, index) => SizedBox(width: 5),
+                          itemCount: comics.length,
+                        ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class Empty extends StatelessWidget {
+  const Empty({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset('assets/images/icon_empty.png', width: 100),
     );
   }
 }
