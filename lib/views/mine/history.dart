@@ -46,23 +46,22 @@ class _HistoryState extends State<History> {
     super.dispose();
   }
 
-  void _update() {
-    final comics = _helper.query(1);
+  Future<void> _update() async {
+    final comics = await _helper.query(1);
     setState(() {
       _comics = comics;
     });
   }
 
   Future<void> _getComics(int page) async {
-    await Future.delayed(Duration.zero);
-    final comics = _helper.query(page);
+    final comics = await _helper.query(page);
     setState(() {
       _comics.addAll(comics);
     });
   }
 
-  void _getComicsCount() {
-    final count = _helper.count();
+  Future<void> _getComicsCount() async {
+    final count = await _helper.count();
     setState(() {
       _comicsCount = count;
     });

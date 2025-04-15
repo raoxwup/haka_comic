@@ -2,21 +2,26 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
 class HistoryHelper with ChangeNotifier {
   static final _instance = HistoryHelper._create();
   static String get _dbPath => '${SetupConf.instance.dataPath}/history.db';
 
   factory HistoryHelper() => _instance;
-
   static HistoryHelper get instance => _instance;
 
-  late Database _db;
+  late SqliteDatabase _db;
 
-  HistoryHelper._create() {
-    _db = sqlite3.open(_dbPath);
-    _db.execute('''
+  HistoryHelper._create();
+
+  Future<void> initialize() async {
+    _db = SqliteDatabase(path: _dbPath);
+    await _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    await _db.execute('''
       CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY,
         cid TEXT UNIQUE NOT NULL,
@@ -27,7 +32,7 @@ class HistoryHelper with ChangeNotifier {
         pages_count INTEGER DEFAULT 0,
         eps_count INTEGER DEFAULT 0,
         finished INTEGER DEFAULT 0,
-        categories TE XT NOT NULL,
+        categories TEXT NOT NULL,
         file_server TEXT NOT NULL,
         path TEXT NOT NULL,
         original_name TEXT NOT NULL,
@@ -37,7 +42,7 @@ class HistoryHelper with ChangeNotifier {
       )
     ''');
 
-    _db.execute('''
+    await _db.execute('''
       CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
       AFTER UPDATE ON history 
       BEGIN
@@ -45,83 +50,82 @@ class HistoryHelper with ChangeNotifier {
       END;
     ''');
 
-    _db.execute('''
+    await _db.execute('''
       CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
     ''');
   }
 
-  void insert(Comic comic) {
-    final stmt = _db.prepare('''
-      INSERT OR REPLACE INTO history (
-        cid,
-        title,
-        author,
-        total_views,
-        total_likes,
-        pages_count,
-        eps_count,
-        finished,
-        categories,
-        file_server,
-        path,
-        original_name,
-        likes_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(cid) DO UPDATE SET
-        title = excluded.title,
-        author = excluded.author,
-        total_views = excluded.total_views,
-        total_likes = excluded.total_likes,
-        pages_count = excluded.pages_count,
-        eps_count = excluded.eps_count,
-        finished = excluded.finished,
-        categories = excluded.categories,
-        file_server = excluded.file_server,
-        path = excluded.path,
-        original_name = excluded.original_name,
-        likes_count = excluded.likes_count
-    ''');
-
-    stmt.execute([
-      comic.id,
-      comic.title,
-      comic.author,
-      comic.totalViews,
-      comic.totalLikes,
-      comic.pagesCount,
-      comic.epsCount,
-      comic.finished ? 1 : 0,
-      jsonEncode(comic.categories),
-      comic.thumb.fileServer,
-      comic.thumb.path,
-      comic.thumb.originalName,
-      comic.likesCount,
-    ]);
-
-    stmt.dispose();
+  Future<void> insert(Comic comic) async {
+    await _db.writeTransaction((tx) async {
+      await tx.execute(
+        '''
+        INSERT OR REPLACE INTO history (
+          cid,
+          title,
+          author,
+          total_views,
+          total_likes,
+          pages_count,
+          eps_count,
+          finished,
+          categories,
+          file_server,
+          path,
+          original_name,
+          likes_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(cid) DO UPDATE SET
+          title = excluded.title,
+          author = excluded.author,
+          total_views = excluded.total_views,
+          total_likes = excluded.total_likes,
+          pages_count = excluded.pages_count,
+          eps_count = excluded.eps_count,
+          finished = excluded.finished,
+          categories = excluded.categories,
+          file_server = excluded.file_server,
+          path = excluded.path,
+          original_name = excluded.original_name,
+          likes_count = excluded.likes_count
+        ''',
+        [
+          comic.id,
+          comic.title,
+          comic.author,
+          comic.totalViews,
+          comic.totalLikes,
+          comic.pagesCount,
+          comic.epsCount,
+          comic.finished ? 1 : 0,
+          jsonEncode(comic.categories),
+          comic.thumb.fileServer,
+          comic.thumb.path,
+          comic.thumb.originalName,
+          comic.likesCount,
+        ],
+      );
+    });
     notifyListeners();
   }
 
-  void delete(String id) {
-    _db.execute('DELETE FROM history WHERE cid = ?', [id]);
+  Future<void> delete(String id) async {
+    await _db.execute('DELETE FROM history WHERE cid = ?', [id]);
     notifyListeners();
   }
 
-  void deleteAll() {
-    _db.execute('DELETE FROM history');
+  Future<void> deleteAll() async {
+    await _db.execute('DELETE FROM history');
     notifyListeners();
   }
 
-  List<HistoryDoc> query(int page) {
-    final result = _db.select(
+  Future<List<HistoryDoc>> query(int page) async {
+    final result = await _db.getAll(
       'SELECT * FROM history ORDER BY updated_at DESC LIMIT 20 OFFSET ?',
       [(page - 1) * 20],
     );
 
-    final List<Map<String, dynamic>> results = [];
-
-    for (final row in result) {
-      results.add({
+    return result.map((row) {
+      return HistoryDoc.fromJson({
         "id": row["cid"],
         "title": row["title"],
         "author": row["author"],
@@ -141,13 +145,11 @@ class HistoryHelper with ChangeNotifier {
         "updatedAt": row["updated_at"],
         "createdAt": row["created_at"],
       });
-    }
-
-    return results.map((map) => HistoryDoc.fromJson(map)).toList();
+    }).toList();
   }
 
-  int count() {
-    final resultSet = _db.select('SELECT COUNT(*) FROM history');
-    return resultSet.first["COUNT(*)"] as int;
+  Future<int> count() async {
+    final result = await _db.get('SELECT COUNT(*) FROM history');
+    return result['COUNT(*)'] as int;
   }
 }

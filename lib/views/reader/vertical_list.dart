@@ -52,9 +52,6 @@ class _VerticalListState extends State<VerticalList> {
   /// 图片尺寸数据数据库
   final _imagesHelper = ImagesHelper();
 
-  /// 防抖计时器 - 用于减少频繁的位置更新回调
-  Timer? _debounceTimer;
-
   /// 处理键盘事件
   /// 返回false允许事件继续传播
   bool _handleKeyEvent(KeyEvent event) {
@@ -91,11 +88,12 @@ class _VerticalListState extends State<VerticalList> {
   final Map<String, ImageSize> _imageSizeCache = {};
 
   /// 初始化图片尺寸缓存
-  void _initImageSizeCache() {
+  Future<void> _initImageSizeCache() async {
     // 一次性查询所有图片尺寸并缓存
-    _imagesHelper.query(cid).forEach((imageSize) {
+    final sizes = await _imagesHelper.query(cid);
+    for (var imageSize in sizes) {
       _imageSizeCache[imageSize.imageId] = imageSize;
-    });
+    }
   }
 
   @override
@@ -118,9 +116,6 @@ class _VerticalListState extends State<VerticalList> {
     }
 
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
-
-    // 取消防抖计时器
-    _debounceTimer?.cancel();
 
     super.dispose();
   }
@@ -196,46 +191,37 @@ class _VerticalListState extends State<VerticalList> {
   /// 处理列表项位置变化
   /// 使用防抖减少频繁更新
   void _onItemPositionsChanged() {
-    // 取消之前的计时器
-    _debounceTimer?.cancel();
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
 
-    // 设置新的防抖计时器，50ms内只处理最后一次位置变化
-    _debounceTimer = Timer(const Duration(milliseconds: 50), () {
-      if (!mounted) return;
+    final visibleIndices =
+        positions
+            .where(
+              (position) =>
+                  position.itemTrailingEdge > 0 && position.itemLeadingEdge < 1,
+            )
+            .map((position) => position.index)
+            .toList();
 
-      final positions = itemPositionsListener.itemPositions.value;
-      if (positions.isEmpty) return;
+    if (visibleIndices.isEmpty) return;
 
-      final visibleIndices =
-          positions
-              .where(
-                (position) =>
-                    position.itemTrailingEdge > 0 &&
-                    position.itemLeadingEdge < 1,
-              )
-              .map((position) => position.index)
-              .toList();
+    visibleIndices.sort();
+    int lastIndex = visibleIndices.last;
+    int firstIndex = visibleIndices.first;
 
-      if (visibleIndices.isEmpty) return;
+    // 根据滚动方向预加载不同方向的图片
+    if (_visibleFirstIndex > lastIndex) {
+      // 向上滚动，预加载上方图片
+      _preloadImages(firstIndex - 1, firstIndex - 3);
+    } else {
+      // 向下滚动，预加载下方图片
+      _preloadImages(lastIndex + 1, lastIndex + 3);
+    }
 
-      visibleIndices.sort();
-      int lastIndex = visibleIndices.last;
-      int firstIndex = visibleIndices.first;
+    _visibleFirstIndex = firstIndex;
 
-      // 根据滚动方向预加载不同方向的图片
-      if (_visibleFirstIndex > lastIndex) {
-        // 向上滚动，预加载上方图片
-        _preloadImages(firstIndex - 1, firstIndex - 3);
-      } else {
-        // 向下滚动，预加载下方图片
-        _preloadImages(lastIndex + 1, lastIndex + 3);
-      }
-
-      _visibleFirstIndex = firstIndex;
-
-      // 通知父组件当前可见的最后一个图片索引
-      widget.onItemVisibleChanged(lastIndex);
-    });
+    // 通知父组件当前可见的最后一个图片索引
+    widget.onItemVisibleChanged(lastIndex);
   }
 
   /// 预加载指定范围内的图片
@@ -342,7 +328,7 @@ class _VerticalImageState extends State<VerticalImage> {
       progressIndicatorBuilder: (context, url, downloadProgress) {
         return createPlaceholder(
           child: CircularProgressIndicator(
-            value: downloadProgress.progress,
+            value: downloadProgress.progress ?? 0,
             strokeWidth: 3,
             constraints: BoxConstraints.tight(const Size(28, 28)),
             backgroundColor: Colors.grey.shade300,

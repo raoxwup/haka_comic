@@ -75,15 +75,12 @@ class _ReaderState extends State<Reader> {
   /// 更新当前页码并保存阅读记录
   void onItemVisibleChanged(int index) {
     _currentVisibleIndexNotifier.value = index;
-    // 使用微任务避免阻塞UI线程
-    Future.microtask(
-      () => _helper.insert(
-        ComicReadRecord(
-          cid: widget.id,
-          chapterId: currentChapter.id,
-          pageNo: index,
-          chapterTitle: currentChapter.title,
-        ),
+    _helper.insert(
+      ComicReadRecord(
+        cid: widget.id,
+        chapterId: currentChapter.id,
+        pageNo: index,
+        chapterTitle: currentChapter.title,
       ),
     );
   }

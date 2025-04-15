@@ -1,48 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
 class ReadRecordHelper with ChangeNotifier {
-  static ReadRecordHelper instance = ReadRecordHelper._internal();
+  static final ReadRecordHelper _instance = ReadRecordHelper._internal();
 
-  factory ReadRecordHelper() => instance;
+  factory ReadRecordHelper() => _instance;
+  static ReadRecordHelper get instance => _instance;
 
+  late SqliteDatabase _db;
   String get dbPath => '${SetupConf.instance.dataPath}/read_record.db';
 
-  late Database _db;
+  ReadRecordHelper._internal();
 
-  ReadRecordHelper._internal() {
-    _db = sqlite3.open(dbPath);
-    _db.execute('''
+  Future<void> initialize() async {
+    _db = SqliteDatabase(path: dbPath);
+    await _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    await _db.execute('''
       CREATE TABLE IF NOT EXISTS read_record (
         id INTEGER PRIMARY KEY,
         cid TEXT UNIQUE NOT NULL,
         chapter_id TEXT NOT NULL,
         chapter_title TEXT NOT NULL,
         page_no INTEGER NOT NULL
-      )
+      );
     ''');
 
-    _db.execute('''
+    await _db.execute('''
       CREATE INDEX IF NOT EXISTS idx_read_record_cid
       ON read_record (cid);
     ''');
   }
 
-  void insert(ComicReadRecord record) {
+  Future<void> insert(ComicReadRecord record) async {
     try {
-      _db.execute(
-        '''
-        INSERT INTO read_record (cid, chapter_id, chapter_title, page_no)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(cid) DO UPDATE SET
-          chapter_id = excluded.chapter_id,
-          chapter_title = excluded.chapter_title,
-          page_no = excluded.page_no
-      ''',
-        [record.cid, record.chapterId, record.chapterTitle, record.pageNo],
-      );
+      await _db.writeTransaction((tx) async {
+        await tx.execute(
+          '''
+          INSERT INTO read_record (cid, chapter_id, chapter_title, page_no)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(cid) DO UPDATE SET
+            chapter_id = excluded.chapter_id,
+            chapter_title = excluded.chapter_title,
+            page_no = excluded.page_no
+          ''',
+          [record.cid, record.chapterId, record.chapterTitle, record.pageNo],
+        );
+      });
       notifyListeners();
     } catch (e) {
       Log.error('insert read record error', e);
@@ -50,13 +58,16 @@ class ReadRecordHelper with ChangeNotifier {
     }
   }
 
-  ComicReadRecord? query(String cid) {
-    final result = _db.select('SELECT * FROM read_record WHERE cid = ?', [cid]);
-    if (result.isEmpty) return null;
-    return ComicReadRecord.fromJson(result.first);
+  Future<ComicReadRecord?> query(String cid) async {
+    final result = await _db.get('SELECT * FROM read_record WHERE cid = ?', [
+      cid,
+    ]);
+    return result.isEmpty ? null : ComicReadRecord.fromJson(result);
   }
 
-  void close() => _db.dispose();
+  Future<void> close() async {
+    await _db.close();
+  }
 }
 
 class ComicReadRecord {

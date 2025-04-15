@@ -68,8 +68,8 @@ class _ComicDetailsState extends State<ComicDetails> {
     }
   }
 
-  void _updateReadRecord() {
-    _readRecordNotifier.value = _helper.query(widget.id);
+  Future<void> _updateReadRecord() async {
+    _readRecordNotifier.value = await _helper.query(widget.id);
   }
 
   @override
@@ -78,7 +78,7 @@ class _ComicDetailsState extends State<ComicDetails> {
 
     _scrollController.addListener(_handleScroll);
 
-    _readRecordNotifier.value = _helper.query(widget.id);
+    _updateReadRecord();
 
     _helper.addListener(_updateReadRecord);
 

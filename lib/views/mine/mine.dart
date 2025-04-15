@@ -153,8 +153,9 @@ class _HistoryComicsState extends State<HistoryComics> {
   final HistoryHelper _helper = HistoryHelper();
   List<HistoryDoc> _comics = [];
 
-  void _getHistory() {
-    setState(() => _comics = _helper.query(1));
+  Future<void> _getHistory() async {
+    final comics = await _helper.query(1);
+    setState(() => _comics = comics);
   }
 
   @override

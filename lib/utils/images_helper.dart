@@ -1,19 +1,25 @@
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
 class ImagesHelper {
-  static ImagesHelper instance = ImagesHelper._internal();
+  static final ImagesHelper _instance = ImagesHelper._internal();
 
-  factory ImagesHelper() => instance;
+  factory ImagesHelper() => _instance;
 
-  late Database _db;
+  static ImagesHelper get instance => _instance;
 
+  late SqliteDatabase _db;
   String get dbPath => '${SetupConf.instance.dataPath}/images.db';
 
-  ImagesHelper._internal() {
-    _db = sqlite3.open(dbPath);
+  ImagesHelper._internal();
 
-    _db.execute('''
+  Future<void> initialize() async {
+    _db = SqliteDatabase(path: dbPath);
+    await _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    await _db.execute('''
       CREATE TABLE IF NOT EXISTS images (
         id INTEGER PRIMARY KEY,
         cid TEXT NOT NULL,
@@ -24,45 +30,56 @@ class ImagesHelper {
       )
     ''');
 
-    _db.execute('''
+    await _db.execute('''
       CREATE INDEX IF NOT EXISTS idx_images_cid_image_id
       ON images (cid, image_id);
     ''');
   }
 
-  void insert(ImageSize imageSize) {
-    _db.execute(
-      '''
+  Future<void> insert(ImageSize imageSize) async {
+    await _db.writeTransaction((tx) async {
+      await tx.execute(
+        '''
         INSERT INTO images (cid, image_id, width, height)
         VALUES (?, ?, ?, ?)
         ON CONFLICT(cid, image_id) DO UPDATE SET
           width = excluded.width,
           height = excluded.height
-      ''',
-      [imageSize.cid, imageSize.imageId, imageSize.width, imageSize.height],
-    );
+        ''',
+        [imageSize.cid, imageSize.imageId, imageSize.width, imageSize.height],
+      );
+    });
   }
 
-  List<ImageSize> query(String cid) {
-    final result = _db.select('SELECT * FROM images WHERE cid = ?', [cid]);
+  Future<List<ImageSize>> query(String cid) async {
+    final result = await _db.getAll('SELECT * FROM images WHERE cid = ?', [
+      cid,
+    ]);
     return result.map((row) => ImageSize.fromJson(row)).toList();
   }
 
-  ImageSize? find(String cid, String imageId) {
-    final result = _db.select(
+  Future<ImageSize?> find(String cid, String imageId) async {
+    final result = await _db.get(
       'SELECT * FROM images WHERE cid = ? AND image_id = ?',
       [cid, imageId],
     );
     if (result.isEmpty) return null;
-    return ImageSize.fromJson(result.first);
+    return ImageSize.fromJson(result);
   }
 
-  /// 清除最先插入的三千条数据,以便节省空间
-  void trim() => _db.execute('DELETE FROM images ORDER BY id ASC LIMIT 3000');
+  Future<void> trim() async {
+    await _db.execute(
+      'DELETE FROM images WHERE id IN (SELECT id FROM images ORDER BY id ASC LIMIT 3000)',
+    );
+  }
 
-  void clear() => _db.execute('DELETE FROM images');
+  Future<void> clear() async {
+    await _db.execute('DELETE FROM images');
+  }
 
-  void close() => _db.dispose();
+  Future<void> close() async {
+    await _db.close();
+  }
 }
 
 class ImageSize {
