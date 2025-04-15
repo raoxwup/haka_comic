@@ -28,7 +28,12 @@ class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
     final route = ModalRoute.of(context);
     if (route != null) {
       _routeAnimation = route.animation;
-      _routeAnimation?.addStatusListener(_handleRouteAnimationStatus);
+      // 确保触发回调
+      if (_routeAnimation?.status == AnimationStatus.completed) {
+        widget.onRouteAnimationCompleted?.call();
+      } else {
+        _routeAnimation?.addStatusListener(_handleRouteAnimationStatus);
+      }
     }
   }
 

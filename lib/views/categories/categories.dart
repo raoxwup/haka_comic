@@ -9,7 +9,9 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:go_router/go_router.dart';
 
 class Categories extends StatefulWidget {
-  const Categories({super.key});
+  const Categories({super.key, required this.isRouteAnimationCompleted});
+
+  final bool isRouteAnimationCompleted;
 
   @override
   State<Categories> createState() => _CategoriesState();
@@ -57,7 +59,7 @@ class _CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     return BasePage(
-      isLoading: handler.isLoading,
+      isLoading: handler.isLoading || !widget.isRouteAnimationCompleted,
       onRetry: handler.refresh,
       error: handler.error,
       child: _buildCategoryList(),

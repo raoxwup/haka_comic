@@ -17,7 +17,7 @@ class BasePage extends StatefulWidget {
 
   final bool isLoading;
 
-  final Function() onRetry;
+  final VoidCallback onRetry;
 
   final Widget child;
 

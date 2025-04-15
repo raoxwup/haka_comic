@@ -43,6 +43,7 @@ class Reader extends StatefulWidget {
 }
 
 class _ReaderState extends State<Reader> {
+  /// 章节图片请求处理器
   final _handler = fetchChapterImages.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch chapter images success', data.toString());
@@ -52,56 +53,64 @@ class _ReaderState extends State<Reader> {
     },
   );
 
-  /// 当前章节index
+  /// 当前章节索引
   late int _currentChapterIndex;
 
-  /// 是否切换了章节
+  /// 标记是否切换了章节（用于重置页码）
   bool _isChapterChanged = false;
 
-  /// 是否显示顶部，底部工具栏
+  /// 控制工具栏显示状态
   final ValueNotifier<bool> _showToolbarNotifier = ValueNotifier(false);
 
-  /// 当前可见的页码
+  /// 当前可见页码通知器
   final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
 
-  /// 滚动控制
+  /// 滚动控制器 - 用于精确控制列表滚动位置
   final ItemScrollController itemScrollController = ItemScrollController();
 
-  /// 阅读记录
+  /// 阅读记录数据库助手
   final _helper = ReadRecordHelper();
 
+  /// 页面可见性变化回调
+  /// 更新当前页码并保存阅读记录
   void onItemVisibleChanged(int index) {
     _currentVisibleIndexNotifier.value = index;
-    _helper.insert(
-      ComicReadRecord(
-        cid: widget.id,
-        chapterId: currentChapter.id,
-        pageNo: index,
-        chapterTitle: currentChapter.title,
+    // 使用微任务避免阻塞UI线程
+    Future.microtask(
+      () => _helper.insert(
+        ComicReadRecord(
+          cid: widget.id,
+          chapterId: currentChapter.id,
+          pageNo: index,
+          chapterTitle: currentChapter.title,
+        ),
       ),
     );
   }
 
+  /// 触发UI更新的简化方法
   void _update() => setState(() {});
 
-  // 当前章节
+  /// 获取当前章节
   Chapter get currentChapter => widget.chapters[_currentChapterIndex];
 
-  // 是否是最后一章
+  /// 检查是否为最后一章
   bool get isLast => _currentChapterIndex == widget.chapters.length - 1;
 
-  // 是否是第一章
+  /// 检查是否为第一章
   bool get isFirst => _currentChapterIndex == 0;
 
-  // 初始页码
+  /// 获取初始页码 - 章节切换时重置为0，否则使用传入的页码
   int get initialIndex => _isChapterChanged ? 0 : widget.pageNo;
 
+  /// 根据章节ID查找对应的索引
   int getCurrentChapterIndex() {
     return widget.chapters.indexWhere(
       (chapter) => chapter.id == widget.chapterId,
     );
   }
 
+  /// 跳转到指定章节
   void go(int index) {
     setState(() {
       _currentChapterIndex = index;
@@ -116,13 +125,13 @@ class _ReaderState extends State<Reader> {
     );
   }
 
-  /// 下一页
+  /// 跳转到下一章
   void goNext() {
     if (isLast) return;
     go(_currentChapterIndex + 1);
   }
 
-  /// 上一页
+  /// 跳转到上一章
   void goPrevious() {
     if (isFirst) return;
     go(_currentChapterIndex - 1);
@@ -130,32 +139,38 @@ class _ReaderState extends State<Reader> {
 
   @override
   void initState() {
+    super.initState();
+
+    // 初始化当前章节索引
     _currentChapterIndex = getCurrentChapterIndex();
 
+    // 设置监听器并加载初始章节
     _handler
       ..addListener(_update)
       ..run(
         FetchChapterImagesPayload(id: widget.id, order: currentChapter.order),
       );
 
+    // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-
-    super.initState();
   }
 
   @override
   void dispose() {
+    // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
+  /// 切换工具栏显示状态
   void openOrCloseToolbar() {
     _showToolbarNotifier.value = !_showToolbarNotifier.value;
-    if (_showToolbarNotifier.value) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    }
+    // 根据工具栏状态切换系统UI模式
+    SystemChrome.setEnabledSystemUIMode(
+      _showToolbarNotifier.value
+          ? SystemUiMode.edgeToEdge
+          : SystemUiMode.immersive,
+    );
   }
 
   @override
@@ -165,6 +180,7 @@ class _ReaderState extends State<Reader> {
     return Scaffold(
       body: Stack(
         children: [
+          // 主阅读区域
           Positioned.fill(
             child: BasePage(
               isLoading: _handler.isLoading,
@@ -178,22 +194,27 @@ class _ReaderState extends State<Reader> {
               ),
             ),
           ),
+          // 章节标签
           _buildChapterTag(data),
+          // 下一章按钮 - 仅在非最后一章时显示
           if (!isLast) _buildNextActionButton(data),
+          // 顶部工具栏
           _buildAppBar(),
+          // 底部控制栏
           _buildBottom(data),
         ],
       ),
     );
   }
 
+  /// 构建顶部应用栏
   Widget _buildAppBar() {
     final top = context.top;
     return ValueListenableBuilder(
       valueListenable: _showToolbarNotifier,
       builder: (context, value, child) {
         return AnimatedPositioned(
-          duration: Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 250),
           top: value ? 0 : -(kToolbarHeight + top),
           left: 0,
           right: 0,
@@ -205,7 +226,7 @@ class _ReaderState extends State<Reader> {
                 alpha: 0.92,
               ),
               actions: [
-                IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+                IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
               ],
             ),
           ),
@@ -214,6 +235,7 @@ class _ReaderState extends State<Reader> {
     );
   }
 
+  /// 构建章节标签指示器
   Widget _buildChapterTag(List<ChapterImage> data) {
     return Positioned(
       left: context.left + 12,
@@ -222,8 +244,9 @@ class _ReaderState extends State<Reader> {
       child: ValueListenableBuilder(
         valueListenable: _currentVisibleIndexNotifier,
         builder: (context, value, child) {
+          final total = data.isEmpty ? 1 : data.length;
           return Text(
-            '${currentChapter.title} ${value + 1} / ${data.isEmpty ? 1 : data.length}',
+            '${currentChapter.title} ${value + 1} / $total',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -279,10 +302,13 @@ class _ReaderState extends State<Reader> {
     );
   }
 
+  /// 构建下一章浮动按钮
+  /// 仅在接近章节末尾时显示
   Widget _buildNextActionButton(List<ChapterImage> data) {
     return ValueListenableBuilder<int>(
       valueListenable: _currentVisibleIndexNotifier,
       builder: (context, currentIndex, child) {
+        // 仅在章节末尾附近显示下一章按钮
         final isShow =
             !_handler.isLoading &&
             data.isNotEmpty &&
@@ -301,7 +327,7 @@ class _ReaderState extends State<Reader> {
                 ignoring: !isShow,
                 child: FloatingActionButton(
                   onPressed: goNext,
-                  child: Icon(Icons.skip_next),
+                  child: const Icon(Icons.skip_next),
                 ),
               ),
             ),
@@ -311,6 +337,7 @@ class _ReaderState extends State<Reader> {
     );
   }
 
+  /// 构建底部控制栏
   Widget _buildBottom(List<ChapterImage> data) {
     final bottom = context.bottom;
     return ValueListenableBuilder(
@@ -321,7 +348,7 @@ class _ReaderState extends State<Reader> {
           left: 0,
           right: 0,
           height: bottom + kBottomBarHeight,
-          duration: Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 250),
           child: WithBlur(
             child: Container(
               padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
@@ -333,13 +360,14 @@ class _ReaderState extends State<Reader> {
                   Row(
                     children: [
                       IconButton.filledTonal(
-                        icon: Icon(Icons.skip_previous),
-                        onPressed: goPrevious,
+                        icon: const Icon(Icons.skip_previous),
+                        onPressed: isFirst ? null : goPrevious,
                       ),
                       Expanded(
                         child: ValueListenableBuilder(
                           valueListenable: _currentVisibleIndexNotifier,
                           builder: (context, value, child) {
+                            // 只有当有多个图片时才显示滑块
                             return data.length > 1
                                 ? Slider(
                                   year2023: true,
@@ -349,20 +377,21 @@ class _ReaderState extends State<Reader> {
                                   divisions: data.length - 1,
                                   label: (value + 1).toString(),
                                   onChanged: (double value) {
+                                    final intValue = value.toInt();
                                     _currentVisibleIndexNotifier.value =
-                                        value.toInt();
+                                        intValue;
                                     itemScrollController.jumpTo(
-                                      index: value.toInt(),
+                                      index: intValue,
                                     );
                                   },
                                 )
-                                : SizedBox.shrink();
+                                : const SizedBox.shrink();
                           },
                         ),
                       ),
                       IconButton.filledTonal(
-                        icon: Icon(Icons.skip_next),
-                        onPressed: goNext,
+                        icon: const Icon(Icons.skip_next),
+                        onPressed: isLast ? null : goNext,
                       ),
                     ],
                   ),

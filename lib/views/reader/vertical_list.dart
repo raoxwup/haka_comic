@@ -199,8 +199,8 @@ class _VerticalListState extends State<VerticalList> {
     // 取消之前的计时器
     _debounceTimer?.cancel();
 
-    // 设置新的防抖计时器，100ms内只处理最后一次位置变化
-    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+    // 设置新的防抖计时器，50ms内只处理最后一次位置变化
+    _debounceTimer = Timer(const Duration(milliseconds: 50), () {
       if (!mounted) return;
 
       final positions = itemPositionsListener.itemPositions.value;
@@ -289,22 +289,24 @@ class VerticalImage extends StatefulWidget {
 
 class _VerticalImageState extends State<VerticalImage> {
   int _version = 0;
-  ImageStream? _currentImageStream;
-  ImageStreamListener? _currentListener;
+  ImageStream? _imageStream;
+  ImageStreamListener? _listener;
 
+  /// 刷新图片，清除缓存并重新加载
   Future<void> _refreshImage() async {
     final provider = CachedNetworkImageProvider(widget.url);
     await provider.evict();
-    setState(() {
-      _version++;
-    });
+    if (mounted) {
+      setState(() => _version++);
+    }
   }
 
+  /// 移除图片流监听器
   void _removeListener() {
-    if (_currentImageStream != null && _currentListener != null) {
-      _currentImageStream!.removeListener(_currentListener!);
-      _currentImageStream = null;
-      _currentListener = null;
+    if (_imageStream != null && _listener != null) {
+      _imageStream!.removeListener(_listener!);
+      _imageStream = null;
+      _listener = null;
     }
   }
 
@@ -316,65 +318,67 @@ class _VerticalImageState extends State<VerticalImage> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.sizeOf(context);
-    final imageSize = widget.imageSize;
-    final width = size.width;
+    // 计算图片高度，优先使用缓存的尺寸
+    final width = context.width;
     final height =
-        imageSize != null
-            ? (imageSize.height * width) / imageSize.width
-            : size.height * 0.6;
+        widget.imageSize != null
+            ? (widget.imageSize!.height * width) / widget.imageSize!.width
+            : context.height * 0.6;
+
+    // 创建占位容器，避免重复代码
+    Widget createPlaceholder({required Widget child}) {
+      return SizedBox(
+        height: height,
+        width: width,
+        child: Center(child: child),
+      );
+    }
 
     return CachedNetworkImage(
       key: ValueKey('${widget.url}_$_version'),
       imageUrl: widget.url,
       fit: BoxFit.fitWidth,
+      fadeOutDuration: Duration.zero,
       progressIndicatorBuilder: (context, url, downloadProgress) {
-        return SizedBox(
-          height: height,
-          width: width,
-          child: Center(
-            child: CircularProgressIndicator(
-              value: downloadProgress.progress ?? 0,
-              strokeWidth: 3,
-              constraints: BoxConstraints.tight(const Size(28, 28)),
-              backgroundColor: Colors.grey.shade300,
-              color: context.colorScheme.primary,
-              strokeCap: StrokeCap.round,
-            ),
+        return createPlaceholder(
+          child: CircularProgressIndicator(
+            value: downloadProgress.progress,
+            strokeWidth: 3,
+            constraints: BoxConstraints.tight(const Size(28, 28)),
+            backgroundColor: Colors.grey.shade300,
+            color: context.colorScheme.primary,
+            strokeCap: StrokeCap.round,
           ),
         );
       },
-      fadeOutDuration: Duration.zero,
       errorWidget:
-          (context, url, error) => SizedBox(
-            height: height,
-            width: width,
-            child: Center(
-              child: IconButton(
-                onPressed: _refreshImage,
-                icon: Icon(Icons.refresh),
-              ),
+          (context, url, error) => createPlaceholder(
+            child: IconButton(
+              onPressed: _refreshImage,
+              icon: const Icon(Icons.refresh),
             ),
           ),
       imageBuilder: (context, imageProvider) {
-        final resolve = imageProvider.resolve(ImageConfiguration.empty);
+        final resolve = imageProvider.resolve(const ImageConfiguration());
 
-        if (resolve != _currentImageStream) {
+        // 只在图片流变化时更新监听器
+        if (resolve != _imageStream) {
           _removeListener();
-          _currentImageStream = resolve;
-        }
+          _imageStream = resolve;
 
-        if (_currentListener == null) {
-          _currentListener = ImageStreamListener((imageInfo, synchronousCall) {
+          _listener = ImageStreamListener((imageInfo, _) {
             if (!mounted) return;
             widget.onImageSizeChanged(
               imageInfo.image.width,
               imageInfo.image.height,
             );
+            // 获取尺寸后移除监听器，避免内存泄漏
             _removeListener();
           });
-          _currentImageStream!.addListener(_currentListener!);
+
+          _imageStream!.addListener(_listener!);
         }
+
         return Image(image: imageProvider);
       },
     );
