@@ -20,7 +20,7 @@ class _MineState extends State<Mine> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
       children: [
         const ProFile(),
         const HistoryComics(),

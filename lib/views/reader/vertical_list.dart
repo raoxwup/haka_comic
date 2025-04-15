@@ -43,15 +43,20 @@ class _VerticalListState extends State<VerticalList> {
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
 
-  /// 已加载图片索引
+  /// 已加载图片索引 - 用于避免重复预加载
   final Set<int> _loadedImages = {};
 
-  /// 可见的第一项图片索引
+  /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
   /// 图片尺寸数据数据库
   final _imagesHelper = ImagesHelper();
 
+  /// 防抖计时器 - 用于减少频繁的位置更新回调
+  Timer? _debounceTimer;
+
+  /// 处理键盘事件
+  /// 返回false允许事件继续传播
   bool _handleKeyEvent(KeyEvent event) {
     if (!isDesktop) return false;
     final key = event.logicalKey;
@@ -59,27 +64,35 @@ class _VerticalListState extends State<VerticalList> {
         key == LogicalKeyboardKey.controlLeft ||
         key == LogicalKeyboardKey.controlRight;
 
+    // 优化：避免不必要的setState调用
     if (event is KeyDownEvent && isControl) {
-      setState(() {
-        _isCtrlPressed = true;
-        _listPhysics = const NeverScrollableScrollPhysics();
-      });
+      if (!_isCtrlPressed) {
+        setState(() {
+          _isCtrlPressed = true;
+          _listPhysics = const NeverScrollableScrollPhysics();
+        });
+      }
     } else if (event is KeyUpEvent && isControl) {
-      setState(() {
-        _isCtrlPressed = false;
-        _listPhysics = const AlwaysScrollableScrollPhysics();
-      });
+      if (_isCtrlPressed) {
+        setState(() {
+          _isCtrlPressed = false;
+          _listPhysics = const AlwaysScrollableScrollPhysics();
+        });
+      }
     }
 
     return false;
   }
 
+  /// 获取当前章节ID
   String get cid => context.reader.widget.id;
 
-  /// 图片尺寸缓存
+  /// 图片尺寸缓存 - 避免重复查询数据库
   final Map<String, ImageSize> _imageSizeCache = {};
 
+  /// 初始化图片尺寸缓存
   void _initImageSizeCache() {
+    // 一次性查询所有图片尺寸并缓存
     _imagesHelper.query(cid).forEach((imageSize) {
       _imageSizeCache[imageSize.imageId] = imageSize;
     });
@@ -105,6 +118,9 @@ class _VerticalListState extends State<VerticalList> {
     }
 
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
+
+    // 取消防抖计时器
+    _debounceTimer?.cancel();
 
     super.dispose();
   }
@@ -152,8 +168,10 @@ class _VerticalListState extends State<VerticalList> {
     );
   }
 
+  /// 更新触摸点数量并相应地更新滚动物理效果
   void _updatePointerCount(int delta) {
     final newCount = _activePointers + delta;
+    // 确保计数不会为负
     final clampedCount = newCount.clamp(0, double.maxFinite.toInt());
 
     if (clampedCount == _activePointers) return;
@@ -163,6 +181,7 @@ class _VerticalListState extends State<VerticalList> {
             ? const NeverScrollableScrollPhysics()
             : const AlwaysScrollableScrollPhysics();
 
+    // 优化：只在物理效果类型变化时才调用setState
     if (newPhysics.runtimeType != _listPhysics.runtimeType) {
       setState(() {
         _activePointers = clampedCount;
@@ -174,45 +193,76 @@ class _VerticalListState extends State<VerticalList> {
     }
   }
 
+  /// 处理列表项位置变化
+  /// 使用防抖减少频繁更新
   void _onItemPositionsChanged() {
-    final positions = itemPositionsListener.itemPositions.value;
-    final visibleIndices =
-        positions
-            .where(
-              (position) =>
-                  position.itemTrailingEdge > 0 && position.itemLeadingEdge < 1,
-            )
-            .map((position) => position.index)
-            .toList();
-    visibleIndices.sort();
-    int lastIndex = visibleIndices.last;
-    int firstIndex = visibleIndices.first;
-    if (_visibleFirstIndex > lastIndex) {
-      _preloadImages(firstIndex - 1, firstIndex - 3); // 上翻
-    } else {
-      _preloadImages(lastIndex + 1, lastIndex + 3); // 下翻
-    }
+    // 取消之前的计时器
+    _debounceTimer?.cancel();
 
-    _visibleFirstIndex = firstIndex;
+    // 设置新的防抖计时器，100ms内只处理最后一次位置变化
+    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
 
-    widget.onItemVisibleChanged(lastIndex);
+      final positions = itemPositionsListener.itemPositions.value;
+      if (positions.isEmpty) return;
+
+      final visibleIndices =
+          positions
+              .where(
+                (position) =>
+                    position.itemTrailingEdge > 0 &&
+                    position.itemLeadingEdge < 1,
+              )
+              .map((position) => position.index)
+              .toList();
+
+      if (visibleIndices.isEmpty) return;
+
+      visibleIndices.sort();
+      int lastIndex = visibleIndices.last;
+      int firstIndex = visibleIndices.first;
+
+      // 根据滚动方向预加载不同方向的图片
+      if (_visibleFirstIndex > lastIndex) {
+        // 向上滚动，预加载上方图片
+        _preloadImages(firstIndex - 1, firstIndex - 3);
+      } else {
+        // 向下滚动，预加载下方图片
+        _preloadImages(lastIndex + 1, lastIndex + 3);
+      }
+
+      _visibleFirstIndex = firstIndex;
+
+      // 通知父组件当前可见的最后一个图片索引
+      widget.onItemVisibleChanged(lastIndex);
+    });
   }
 
-  /// 预加载
+  /// 预加载指定范围内的图片
+  /// 优化：避免重复加载和越界访问
   void _preloadImages(int startIndex, int endIndex) {
-    for (int i = startIndex; i <= endIndex; i++) {
+    // 确保方向正确
+    final start = startIndex < endIndex ? startIndex : endIndex;
+    final end = startIndex < endIndex ? endIndex : startIndex;
+
+    for (int i = start; i <= end; i++) {
+      // 检查索引是否有效
       if (i < 0 || i >= widget.images.length) continue;
+      // 避免重复加载
       if (_loadedImages.contains(i)) continue;
+
       final imageUrl = widget.images[i].media.url;
+      // 使用缓存网络图片提供器预加载
       final imageProvider = CachedNetworkImageProvider(imageUrl);
       precacheImage(imageProvider, context);
       _loadedImages.add(i);
     }
   }
 
-  // 图片宽高回调
+  /// 将图片尺寸信息插入数据库
+  /// 使用microtask确保UI不被阻塞
   void _insertImageSize(ImageSize imageSize) {
-    _imagesHelper.insert(imageSize);
+    Future.microtask(() => _imagesHelper.insert(imageSize));
   }
 }
 

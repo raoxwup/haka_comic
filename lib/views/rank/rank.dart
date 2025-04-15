@@ -55,7 +55,7 @@ class _RankState extends State<Rank> {
                 type: ComicRankType.D30,
                 isRouteAnimationCompleted: isRouteAnimationCompleted,
               ),
-              Center(child: Text('骑士榜')),
+              const KnightRank(),
             ],
           ),
         ),
@@ -144,4 +144,18 @@ class _ComicRankState extends State<ComicRank>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+class KnightRank extends StatefulWidget {
+  const KnightRank({super.key});
+
+  @override
+  State<KnightRank> createState() => _KnightRankState();
+}
+
+class _KnightRankState extends State<KnightRank> {
+  @override
+  Widget build(BuildContext context) {
+    return const Text('骑士榜');
+  }
 }
