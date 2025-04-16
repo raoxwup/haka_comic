@@ -4,6 +4,44 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
+final migrations =
+    SqliteMigrations()..add(
+      SqliteMigration(1, (tx) async {
+        await tx.execute('''
+          CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY,
+            cid TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL,
+            author TEXT,
+            total_views INTEGER DEFAULT 0,
+            total_likes INTEGER,
+            pages_count INTEGER DEFAULT 0,
+            eps_count INTEGER DEFAULT 0,
+            finished INTEGER DEFAULT 0,
+            categories TEXT NOT NULL,
+            file_server TEXT NOT NULL,
+            path TEXT NOT NULL,
+            original_name TEXT NOT NULL,
+            likes_count INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        ''');
+
+        await tx.execute('''
+          CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
+          AFTER UPDATE ON history 
+          BEGIN
+            UPDATE history SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+          END;
+        ''');
+
+        await tx.execute('''
+          CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
+        ''');
+      }),
+    );
+
 class HistoryHelper with ChangeNotifier {
   static final _instance = HistoryHelper._create();
   static String get _dbPath => '${SetupConf.instance.dataPath}/history.db';
@@ -17,42 +55,7 @@ class HistoryHelper with ChangeNotifier {
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: _dbPath);
-    await _initializeDatabase();
-  }
-
-  Future<void> _initializeDatabase() async {
-    await _db.execute('''
-      CREATE TABLE IF NOT EXISTS history (
-        id INTEGER PRIMARY KEY,
-        cid TEXT UNIQUE NOT NULL,
-        title TEXT NOT NULL,
-        author TEXT,
-        total_views INTEGER DEFAULT 0,
-        total_likes INTEGER,
-        pages_count INTEGER DEFAULT 0,
-        eps_count INTEGER DEFAULT 0,
-        finished INTEGER DEFAULT 0,
-        categories TEXT NOT NULL,
-        file_server TEXT NOT NULL,
-        path TEXT NOT NULL,
-        original_name TEXT NOT NULL,
-        likes_count INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
-
-    await _db.execute('''
-      CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
-      AFTER UPDATE ON history 
-      BEGIN
-        UPDATE history SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
-      END;
-    ''');
-
-    await _db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
-    ''');
+    await migrations.migrate(_db);
   }
 
   Future<void> insert(Comic comic) async {

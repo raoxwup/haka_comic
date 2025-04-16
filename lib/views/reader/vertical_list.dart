@@ -117,6 +117,8 @@ class _VerticalListState extends State<VerticalList> {
 
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
 
+    _preloadDebounceTimer?.cancel();
+
     super.dispose();
   }
 
@@ -188,6 +190,9 @@ class _VerticalListState extends State<VerticalList> {
     }
   }
 
+  // 最大预加载数量限制
+  static const int _maxPreloadCount = 3;
+
   /// 处理列表项位置变化
   /// 使用防抖减少频繁更新
   void _onItemPositionsChanged() {
@@ -212,10 +217,10 @@ class _VerticalListState extends State<VerticalList> {
     // 根据滚动方向预加载不同方向的图片
     if (_visibleFirstIndex > lastIndex) {
       // 向上滚动，预加载上方图片
-      _preloadImages(firstIndex - 1, firstIndex - 3);
+      _preloadImages(firstIndex - 1, firstIndex - _maxPreloadCount);
     } else {
       // 向下滚动，预加载下方图片
-      _preloadImages(lastIndex + 1, lastIndex + 3);
+      _preloadImages(lastIndex + 1, lastIndex + _maxPreloadCount);
     }
 
     _visibleFirstIndex = firstIndex;
@@ -226,29 +231,36 @@ class _VerticalListState extends State<VerticalList> {
 
   /// 预加载指定范围内的图片
   /// 优化：避免重复加载和越界访问
+  // 用于控制预加载频率的计时器
+  Timer? _preloadDebounceTimer;
+
   void _preloadImages(int startIndex, int endIndex) {
-    // 确保方向正确
-    final start = startIndex < endIndex ? startIndex : endIndex;
-    final end = startIndex < endIndex ? endIndex : startIndex;
+    // 取消之前的预加载计时器
+    _preloadDebounceTimer?.cancel();
 
-    for (int i = start; i <= end; i++) {
-      // 检查索引是否有效
-      if (i < 0 || i >= widget.images.length) continue;
-      // 避免重复加载
-      if (_loadedImages.contains(i)) continue;
+    // 设置新的防抖计时器，50ms内只处理最后一次预加载请求
+    _preloadDebounceTimer = Timer(const Duration(milliseconds: 50), () {
+      // 确保方向正确
+      final start = startIndex < endIndex ? startIndex : endIndex;
+      final end = startIndex < endIndex ? endIndex : startIndex;
 
-      final imageUrl = widget.images[i].media.url;
-      // 使用缓存网络图片提供器预加载
-      final imageProvider = CachedNetworkImageProvider(imageUrl);
-      precacheImage(imageProvider, context);
-      _loadedImages.add(i);
-    }
+      for (int i = start; i <= end; i++) {
+        // 检查索引是否有效
+        if (i < 0 || i >= widget.images.length) continue;
+        // 避免重复加载
+        if (_loadedImages.contains(i)) continue;
+
+        final imageUrl = widget.images[i].media.url;
+        final imageProvider = CachedNetworkImageProvider(imageUrl);
+        precacheImage(imageProvider, context);
+        _loadedImages.add(i);
+      }
+    });
   }
 
   /// 将图片尺寸信息插入数据库
-  /// 使用microtask确保UI不被阻塞
   void _insertImageSize(ImageSize imageSize) {
-    Future.microtask(() => _imagesHelper.insert(imageSize));
+    _imagesHelper.insert(imageSize);
   }
 }
 

@@ -3,6 +3,26 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
+final migrations =
+    SqliteMigrations()..add(
+      SqliteMigration(1, (tx) async {
+        await tx.execute('''
+          CREATE TABLE IF NOT EXISTS read_record (
+            id INTEGER PRIMARY KEY,
+            cid TEXT UNIQUE NOT NULL,
+            chapter_id TEXT NOT NULL,
+            chapter_title TEXT NOT NULL,
+            page_no INTEGER NOT NULL
+          );
+        ''');
+
+        await tx.execute('''
+          CREATE INDEX IF NOT EXISTS idx_read_record_cid
+          ON read_record (cid);
+        ''');
+      }),
+    );
+
 class ReadRecordHelper with ChangeNotifier {
   static final ReadRecordHelper _instance = ReadRecordHelper._internal();
 
@@ -16,24 +36,7 @@ class ReadRecordHelper with ChangeNotifier {
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);
-    await _initializeDatabase();
-  }
-
-  Future<void> _initializeDatabase() async {
-    await _db.execute('''
-      CREATE TABLE IF NOT EXISTS read_record (
-        id INTEGER PRIMARY KEY,
-        cid TEXT UNIQUE NOT NULL,
-        chapter_id TEXT NOT NULL,
-        chapter_title TEXT NOT NULL,
-        page_no INTEGER NOT NULL
-      );
-    ''');
-
-    await _db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_read_record_cid
-      ON read_record (cid);
-    ''');
+    await migrations.migrate(_db);
   }
 
   Future<void> insert(ComicReadRecord record) async {

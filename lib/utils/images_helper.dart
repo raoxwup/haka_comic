@@ -1,6 +1,27 @@
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
+final migrations =
+    SqliteMigrations()..add(
+      SqliteMigration(1, (tx) async {
+        await tx.execute('''
+          CREATE TABLE IF NOT EXISTS images (
+            id INTEGER PRIMARY KEY,
+            cid TEXT NOT NULL,
+            image_id TEXT NOT NULL,
+            width INTEGER NOT NULL,
+            height INTEGER NOT NULL,
+            UNIQUE(cid, image_id)
+          )
+        ''');
+
+        await tx.execute('''
+          CREATE INDEX IF NOT EXISTS idx_images_cid_image_id
+          ON images (cid, image_id);
+        ''');
+      }),
+    );
+
 class ImagesHelper {
   static final ImagesHelper _instance = ImagesHelper._internal();
 
@@ -15,25 +36,7 @@ class ImagesHelper {
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);
-    await _initializeDatabase();
-  }
-
-  Future<void> _initializeDatabase() async {
-    await _db.execute('''
-      CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY,
-        cid TEXT NOT NULL,
-        image_id TEXT NOT NULL,
-        width INTEGER NOT NULL,
-        height INTEGER NOT NULL,
-        UNIQUE(cid, image_id)
-      )
-    ''');
-
-    await _db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_images_cid_image_id
-      ON images (cid, image_id);
-    ''');
+    await migrations.migrate(_db);
   }
 
   Future<void> insert(ImageSize imageSize) async {
