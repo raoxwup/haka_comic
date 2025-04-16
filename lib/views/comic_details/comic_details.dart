@@ -115,6 +115,15 @@ class _ComicDetailsState extends State<ComicDetails> {
     super.dispose();
   }
 
+  /// 进入阅读
+  void _startRead(String chapterId, [int pageNo = 0]) {
+    final data = handler.data?.comic;
+    context.push(
+      '/reader/${widget.id}/$chapterId/$pageNo/${data?.title}',
+      extra: _chapters,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = handler.data?.comic;
@@ -194,11 +203,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(minHeight: 40),
                               child: ElevatedButton(
-                                onPressed:
-                                    () => context.push(
-                                      '/reader/${widget.id}/${_chapters.first.id}/0',
-                                      extra: _chapters,
-                                    ),
+                                onPressed: () => _startRead(_chapters.first.id),
                                 child: const Text('从头开始'),
                               ),
                             ),
@@ -211,9 +216,9 @@ class _ComicDetailsState extends State<ComicDetails> {
                                 ),
                                 child: FilledButton(
                                   onPressed:
-                                      () => context.push(
-                                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
-                                        extra: _chapters,
+                                      () => _startRead(
+                                        value.chapterId,
+                                        value.pageNo,
                                       ),
                                   child: const Text('继续阅读'),
                                 ),
@@ -234,8 +239,8 @@ class _ComicDetailsState extends State<ComicDetails> {
                 _buildDescription(data),
                 SizedBox(height: 5),
                 ChaptersList(
-                  id: widget.id,
                   chapters: chaptersHandler.data ?? [],
+                  startRead: _startRead,
                 ),
                 SizedBox(height: 5),
                 _buildRecommendation(data),
@@ -341,22 +346,14 @@ class _ComicDetailsState extends State<ComicDetails> {
                   avatar: Icon(Icons.menu_book),
                   shape: StadiumBorder(),
                   label: Text('从头开始'),
-                  onPressed:
-                      () => context.push(
-                        '/reader/${widget.id}/${_chapters.first.id}/0',
-                        extra: _chapters,
-                      ),
+                  onPressed: () => _startRead(_chapters.first.id),
                 ),
               if (UiMode.notM1(context) && value != null)
                 ActionChip(
                   avatar: Icon(Icons.bookmark),
                   shape: StadiumBorder(),
                   label: Text('继续阅读'),
-                  onPressed:
-                      () => context.push(
-                        '/reader/${widget.id}/${value.chapterId}/${value.pageNo}',
-                        extra: _chapters,
-                      ),
+                  onPressed: () => _startRead(value.chapterId, value.pageNo),
                 ),
               LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
               CollectAction(

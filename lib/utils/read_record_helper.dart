@@ -62,10 +62,11 @@ class ReadRecordHelper with ChangeNotifier {
   }
 
   Future<ComicReadRecord?> query(String cid) async {
-    final result = await _db.get('SELECT * FROM read_record WHERE cid = ?', [
-      cid,
-    ]);
-    return result.isEmpty ? null : ComicReadRecord.fromJson(result);
+    final result = await _db.getOptional(
+      'SELECT * FROM read_record WHERE cid = ?',
+      [cid],
+    );
+    return result == null ? null : ComicReadRecord.fromJson(result);
   }
 
   Future<void> close() async {

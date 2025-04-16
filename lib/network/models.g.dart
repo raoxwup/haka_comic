@@ -578,7 +578,7 @@ Map<String, dynamic> _$UserProfileResponseToJson(
 User _$UserFromJson(Map<String, dynamic> json) => User(
   id: json['_id'] as String,
   birthday: json['birthday'] as String? ?? '',
-  email: json['email'] as String,
+  email: json['email'] as String? ?? '',
   gender: json['gender'] as String? ?? 'm',
   name: json['name'] as String? ?? '',
   slogan: json['slogan'] as String? ?? '',
@@ -593,8 +593,9 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       [],
   created_at: json['created_at'] as String? ?? '',
   avatar: ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
-  isPunched: json['isPunched'] as bool,
-  character: json['character'] as String,
+  isPunched: json['isPunched'] as bool? ?? false,
+  character: json['character'] as String? ?? '',
+  comicsUploaded: (json['comicsUploaded'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -613,6 +614,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'avatar': instance.avatar,
   'isPunched': instance.isPunched,
   'character': instance.character,
+  'comicsUploaded': instance.comicsUploaded,
 };
 
 ComicRankResponse _$ComicRankResponseFromJson(Map<String, dynamic> json) =>
@@ -625,3 +627,14 @@ ComicRankResponse _$ComicRankResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ComicRankResponseToJson(ComicRankResponse instance) =>
     <String, dynamic>{'comics': instance.comics};
+
+KnightRankResponse _$KnightRankResponseFromJson(Map<String, dynamic> json) =>
+    KnightRankResponse(
+      users:
+          (json['users'] as List<dynamic>)
+              .map((e) => User.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$KnightRankResponseToJson(KnightRankResponse instance) =>
+    <String, dynamic>{'users': instance.users};

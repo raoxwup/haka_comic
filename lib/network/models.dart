@@ -1004,6 +1004,7 @@ class User {
   @JsonKey(defaultValue: '')
   final String birthday;
 
+  @JsonKey(defaultValue: '')
   final String email;
 
   @JsonKey(defaultValue: 'm')
@@ -1035,9 +1036,14 @@ class User {
 
   final ImageDetail avatar;
 
+  @JsonKey(defaultValue: false)
   final bool isPunched;
 
+  @JsonKey(defaultValue: '')
   final String character;
+
+  @JsonKey(defaultValue: 0)
+  final int comicsUploaded;
 
   User({
     required this.id,
@@ -1055,6 +1061,7 @@ class User {
     required this.avatar,
     required this.isPunched,
     required this.character,
+    required this.comicsUploaded,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -1091,4 +1098,16 @@ class ComicRankResponse {
       _$ComicRankResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ComicRankResponseToJson(this);
+}
+
+@JsonSerializable()
+class KnightRankResponse {
+  final List<User> users;
+
+  KnightRankResponse({required this.users});
+
+  factory KnightRankResponse.fromJson(Map<String, dynamic> json) =>
+      _$KnightRankResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KnightRankResponseToJson(this);
 }

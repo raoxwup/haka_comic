@@ -62,11 +62,11 @@ class ImagesHelper {
   }
 
   Future<ImageSize?> find(String cid, String imageId) async {
-    final result = await _db.get(
+    final result = await _db.getOptional(
       'SELECT * FROM images WHERE cid = ? AND image_id = ?',
       [cid, imageId],
     );
-    if (result.isEmpty) return null;
+    if (result == null) return null;
     return ImageSize.fromJson(result);
   }
 

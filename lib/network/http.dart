@@ -259,3 +259,13 @@ Future<ComicRankResponse> fetchComicRank(ComicRankPayload payload) async {
 Future<void> punchIn() async {
   await Client.post('users/punch-in');
 }
+
+/// 获取骑士排行榜
+Future<KnightRankResponse> fetchKnightRank() async {
+  final response = await Client.get('comics/knight-leaderboard');
+  final data = BaseResponse<KnightRankResponse>.fromJson(
+    response,
+    (data) => KnightRankResponse.fromJson(data),
+  );
+  return data.data;
+}

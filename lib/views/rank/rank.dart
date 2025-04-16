@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -6,6 +7,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
 class Rank extends StatefulWidget {
@@ -154,8 +156,94 @@ class KnightRank extends StatefulWidget {
 }
 
 class _KnightRankState extends State<KnightRank> {
+  final _handler = fetchKnightRank.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch knight rank success', data.toString());
+    },
+    onError: (e, _) {
+      Log.error('Fetch knight rank error', e);
+    },
+  );
+
+  void _update() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _handler
+      ..addListener(_update)
+      ..run();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _handler
+      ..removeListener(_update)
+      ..dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Text('骑士榜');
+    final users = _handler.data?.users ?? [];
+
+    return BasePage(
+      isLoading: _handler.isLoading,
+      onRetry: _handler.refresh,
+      error: _handler.error,
+      child: ListView.separated(
+        itemBuilder: (context, index) {
+          final user = users[index];
+          return InkWell(
+            onTap: () => context.push('/comics?ca=${user.id}'),
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BaseImage(
+                    url: user.avatar.url,
+                    width: 48,
+                    height: 48,
+                    shape: const CircleBorder(),
+                  ),
+                  Expanded(
+                    child: Column(
+                      spacing: 4,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              user.name,
+                              style: context.textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${user.comicsUploaded}本',
+                              style: context.textTheme.titleMedium?.copyWith(
+                                color: context.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          'Lv.${user.level} (${user.title})',
+                          style: context.textTheme.labelMedium,
+                        ),
+                        Text(user.slogan, style: context.textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemCount: users.length,
+      ),
+    );
   }
 }

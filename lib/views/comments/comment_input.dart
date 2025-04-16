@@ -24,6 +24,7 @@ class _CommentInputState extends State<CommentInput> {
   @override
   void initState() {
     _handler = widget.handler;
+    _handler.isLoading = false;
 
     _handler.addListener(_update);
 

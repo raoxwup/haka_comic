@@ -24,6 +24,7 @@ class Reader extends StatefulWidget {
     required this.chapters,
     required this.chapterId,
     required this.pageNo,
+    required this.title,
   });
 
   /// 漫画id
@@ -37,6 +38,9 @@ class Reader extends StatefulWidget {
 
   /// 开始页码
   final int pageNo;
+
+  /// 漫画名称
+  final String title;
 
   @override
   State<Reader> createState() => _ReaderState();
@@ -218,7 +222,7 @@ class _ReaderState extends State<Reader> {
           height: kToolbarHeight + top,
           child: WithBlur(
             child: AppBar(
-              title: Text(currentChapter.title),
+              title: Text(widget.title),
               backgroundColor: context.colorScheme.surface.withValues(
                 alpha: 0.92,
               ),
