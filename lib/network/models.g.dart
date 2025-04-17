@@ -638,3 +638,16 @@ KnightRankResponse _$KnightRankResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$KnightRankResponseToJson(KnightRankResponse instance) =>
     <String, dynamic>{'users': instance.users};
+
+RandomComicsResponse _$RandomComicsResponseFromJson(
+  Map<String, dynamic> json,
+) => RandomComicsResponse(
+  comics:
+      (json['comics'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$RandomComicsResponseToJson(
+  RandomComicsResponse instance,
+) => <String, dynamic>{'comics': instance.comics};

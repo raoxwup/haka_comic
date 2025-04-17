@@ -269,3 +269,13 @@ Future<KnightRankResponse> fetchKnightRank() async {
   );
   return data.data;
 }
+
+/// 获取随机漫画
+Future<RandomComicsResponse> fetchRandomComics() async {
+  final response = await Client.get('comics/random');
+  final data = BaseResponse<RandomComicsResponse>.fromJson(
+    response,
+    (data) => RandomComicsResponse.fromJson(data),
+  );
+  return data.data;
+}

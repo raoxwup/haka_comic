@@ -1111,3 +1111,15 @@ class KnightRankResponse {
 
   Map<String, dynamic> toJson() => _$KnightRankResponseToJson(this);
 }
+
+@JsonSerializable()
+class RandomComicsResponse {
+  final List<Doc> comics;
+
+  RandomComicsResponse({required this.comics});
+
+  factory RandomComicsResponse.fromJson(Map<String, dynamic> json) =>
+      _$RandomComicsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RandomComicsResponseToJson(this);
+}

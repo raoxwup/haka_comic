@@ -29,7 +29,8 @@ class VerticalList extends StatefulWidget {
   State<VerticalList> createState() => _VerticalListState();
 }
 
-class _VerticalListState extends State<VerticalList> {
+class _VerticalListState extends State<VerticalList>
+    with SingleTickerProviderStateMixin {
   /// ctrl是否点击
   bool _isCtrlPressed = false;
 
@@ -51,6 +52,13 @@ class _VerticalListState extends State<VerticalList> {
 
   /// 图片尺寸数据数据库
   final _imagesHelper = ImagesHelper();
+
+  ///双击缩放相关
+  final TransformationController _transformationController =
+      TransformationController();
+  Offset _doubleTapPosition = Offset.zero;
+  late AnimationController _animationController;
+  late Animation<Matrix4> _animation;
 
   /// 处理键盘事件
   /// 返回false允许事件继续传播
@@ -106,6 +114,13 @@ class _VerticalListState extends State<VerticalList> {
 
     _initImageSizeCache();
 
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+    )..addListener(() {
+      _transformationController.value = _animation.value;
+    });
+
     super.initState();
   }
 
@@ -119,7 +134,37 @@ class _VerticalListState extends State<VerticalList> {
 
     _preloadDebounceTimer?.cancel();
 
+    _transformationController.dispose();
+
+    _animationController.dispose();
+
     super.dispose();
+  }
+
+  /// 双击放大/恢复
+  void _handleDoubleTap() {
+    Matrix4 endMatrix;
+    if (_transformationController.value != Matrix4.identity()) {
+      endMatrix = Matrix4.identity();
+    } else {
+      endMatrix =
+          Matrix4.identity()
+            ..translate(
+              -_doubleTapPosition.dx * 2.0,
+              -_doubleTapPosition.dy * 2.0,
+            )
+            ..scale(3.0);
+    }
+    _animation = Matrix4Tween(
+      begin: _transformationController.value,
+      end: endMatrix,
+    ).animate(CurveTween(curve: Curves.easeOut).animate(_animationController));
+    _animationController.forward(from: 0);
+  }
+
+  /// 获取双击位置
+  void _handleDoubleTapDown(TapDownDetails details) {
+    _doubleTapPosition = details.localPosition;
   }
 
   @override
@@ -130,7 +175,10 @@ class _VerticalListState extends State<VerticalList> {
       onPointerCancel: (event) => _updatePointerCount(-1),
       child: GestureDetector(
         onTap: () => context.reader.openOrCloseToolbar(),
+        onDoubleTapDown: _handleDoubleTapDown,
+        onDoubleTap: _handleDoubleTap,
         child: InteractiveViewer(
+          transformationController: _transformationController,
           scaleEnabled: isDesktop ? _isCtrlPressed : true,
           minScale: 1,
           maxScale: 3.5,
