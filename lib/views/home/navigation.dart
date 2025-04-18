@@ -65,7 +65,8 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       leading: Text(title, style: context.textTheme.titleLarge),
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
-      labelType: NavigationRailLabelType.selected,
+      labelType: NavigationRailLabelType.all,
+      elevation: 1,
       trailing: Expanded(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 20),

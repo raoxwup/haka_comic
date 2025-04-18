@@ -139,10 +139,12 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/reader/:id/:chapterId/:pageNo/:title',
+      path: '/reader/:id/:chapterId/:pageNo',
       pageBuilder: (context, state) {
+        final extra = state.extra as Map;
         final List<models.Chapter> chapters =
-            state.extra as List<models.Chapter>;
+            extra['chapters'] as List<models.Chapter>;
+        final title = extra['title'] as String;
         return customTransitionPage(
           context: context,
           state: state,
@@ -151,7 +153,7 @@ final GoRouter appRouter = GoRouter(
             chapters: chapters,
             chapterId: state.pathParameters['chapterId']!,
             pageNo: int.tryParse(state.pathParameters['pageNo']!) ?? 0,
-            title: state.pathParameters['title']!,
+            title: title,
           ),
         );
       },

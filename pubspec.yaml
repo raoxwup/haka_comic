@@ -47,6 +47,7 @@ flutter:
     - assets/images/forum.jpg
     - assets/images/latest.jpg
     - assets/images/random.jpg
+    - assets/images/icon_success.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

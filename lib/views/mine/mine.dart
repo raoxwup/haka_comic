@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
@@ -110,41 +111,68 @@ class ProFile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Row(
-        spacing: 15,
+    return SizedBox(
+      height: 200,
+      child: Stack(
+        fit: StackFit.expand, // 确保 Stack 填满 Container
         children: [
-          BaseImage(
-            url: user?.avatar?.url ?? '',
-            width: 64,
-            height: 64,
-            shape: const CircleBorder(),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 5,
-              children: [
-                Text(
-                  user?.name ?? '',
-                  style: context.textTheme.titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          // 模糊背景层
+          Positioned.fill(
+            child: ClipRect(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(
+                  sigmaX: 2,
+                  sigmaY: 2,
+                ), // 调整 sigma 值控制模糊程度
+                child: Image.asset(
+                  alignment: Alignment.centerRight,
+                  'assets/images/icon_success.png',
+                  fit: BoxFit.fitHeight,
                 ),
-                Text(
-                  'Lv.${user?.level}  Exp: ${user?.exp}',
+              ),
+            ),
+          ),
+          // 头像内容层
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              BaseImage(
+                url: user?.avatar?.url ?? '',
+                width: 80,
+                height: 80,
+                shape: const CircleBorder(),
+              ),
+              Text(
+                user?.name ?? '',
+                style: context.textTheme.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Lv.${user?.level}  Exp: ${user?.exp}',
+                style: context.textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  user?.slogan ?? '~~',
                   style: context.textTheme.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          FilledButton.tonalIcon(
-            onPressed: () {},
-            icon: const Icon(Icons.edit),
-            label: const Text('编辑'),
+          Positioned(
+            right: 10,
+            top: 10,
+            child: IconButton.filled(
+              onPressed: () {},
+              icon: const Icon(Icons.drive_file_rename_outline),
+            ),
           ),
         ],
       ),

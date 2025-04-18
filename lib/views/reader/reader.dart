@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -206,6 +207,30 @@ class _ReaderState extends State<Reader> {
           _buildBottom(data),
         ],
       ),
+      drawer: Drawer(
+        child: ListView.builder(
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Text(
+                '章节列表',
+                textAlign: TextAlign.center,
+                style: context.textTheme.titleLarge,
+              );
+            }
+            final int chapterIndex = index - 1;
+            return ListTile(
+              enabled: chapterIndex != _currentChapterIndex,
+              title: Text(widget.chapters[chapterIndex].title),
+              onTap: () {
+                context.pop();
+                openOrCloseToolbar();
+                go(chapterIndex);
+              },
+            );
+          },
+          itemCount: widget.chapters.length + 1,
+        ),
+      ),
     );
   }
 
@@ -223,6 +248,14 @@ class _ReaderState extends State<Reader> {
           height: kToolbarHeight + top,
           child: WithBlur(
             child: AppBar(
+              leading: IconButton(
+                icon: Icon(
+                  (isIos || isMacOS)
+                      ? Icons.arrow_back_ios_new
+                      : Icons.arrow_back,
+                ),
+                onPressed: () => context.pop(),
+              ),
               title: Text(widget.title),
               backgroundColor: context.colorScheme.surface.withValues(
                 alpha: 0.92,
@@ -250,7 +283,7 @@ class _ReaderState extends State<Reader> {
           return Row(
             spacing: 5,
             children: [
-              Expanded(child: ShadowText(text: currentChapter.title)),
+              Flexible(child: ShadowText(text: currentChapter.title)),
               ShadowText(text: '${value + 1} / $total'),
             ],
           );
@@ -351,6 +384,21 @@ class _ReaderState extends State<Reader> {
                         onPressed: isLast ? null : goNext,
                       ),
                     ],
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.colorScheme.onSurface,
+                          ),
+                          child: const Text('章节'),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

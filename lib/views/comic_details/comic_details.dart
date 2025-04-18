@@ -119,8 +119,8 @@ class _ComicDetailsState extends State<ComicDetails> {
   void _startRead(String chapterId, [int pageNo = 0]) {
     final data = handler.data?.comic;
     context.push(
-      '/reader/${widget.id}/$chapterId/$pageNo/${data?.title}',
-      extra: _chapters,
+      '/reader/${widget.id}/$chapterId/$pageNo',
+      extra: {'chapters': _chapters, 'title': data?.title},
     );
   }
 
