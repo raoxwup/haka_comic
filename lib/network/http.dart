@@ -279,3 +279,13 @@ Future<RandomComicsResponse> fetchRandomComics() async {
   );
   return data.data;
 }
+
+/// 获取个人评论
+Future<PersonalCommentsResponse> fetchPersonalComments(int page) async {
+  final response = await Client.get('users/my-comments', query: {'page': page});
+  final data = BaseResponse<PersonalCommentsResponse>.fromJson(
+    response,
+    (data) => PersonalCommentsResponse.fromJson(data),
+  );
+  return data.data;
+}

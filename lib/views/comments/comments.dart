@@ -147,7 +147,7 @@ class _CommentsPageState extends State<CommentsPage> {
   Widget _buildError() {
     return ErrorPage(
       errorMessage: getTextBeforeNewLine(handler.error.toString()),
-      onRetry: handler.refresh,
+      onRetry: _refresh,
     );
   }
 

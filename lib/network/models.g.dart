@@ -592,7 +592,10 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
           .toList() ??
       [],
   created_at: json['created_at'] as String? ?? '',
-  avatar: ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  avatar:
+      json['avatar'] == null
+          ? null
+          : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
   isPunched: json['isPunched'] as bool? ?? false,
   character: json['character'] as String? ?? '',
   comicsUploaded: (json['comicsUploaded'] as num?)?.toInt() ?? 0,
@@ -651,3 +654,78 @@ RandomComicsResponse _$RandomComicsResponseFromJson(
 Map<String, dynamic> _$RandomComicsResponseToJson(
   RandomComicsResponse instance,
 ) => <String, dynamic>{'comics': instance.comics};
+
+Source _$SourceFromJson(Map<String, dynamic> json) =>
+    Source(title: json['title'] as String, id: json['_id'] as String);
+
+Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
+  'title': instance.title,
+  '_id': instance.id,
+};
+
+PersonalComment _$PersonalCommentFromJson(Map<String, dynamic> json) =>
+    PersonalComment(
+      uid: json['_id'] as String,
+      content: json['content'] as String,
+      comic:
+          json['_comic'] == null
+              ? null
+              : Source.fromJson(json['_comic'] as Map<String, dynamic>),
+      game:
+          json['_game'] == null
+              ? null
+              : Source.fromJson(json['_game'] as Map<String, dynamic>),
+      totalComments: (json['totalComments'] as num?)?.toInt(),
+      hide: json['hide'] as bool? ?? false,
+      created_at: json['created_at'] as String,
+      id: json['id'] as String?,
+      likesCount: (json['likesCount'] as num).toInt(),
+      commentsCount: (json['commentsCount'] as num?)?.toInt() ?? 0,
+      isLiked: json['isLiked'] as bool,
+    );
+
+Map<String, dynamic> _$PersonalCommentToJson(PersonalComment instance) =>
+    <String, dynamic>{
+      '_id': instance.uid,
+      'content': instance.content,
+      '_comic': instance.comic,
+      '_game': instance.game,
+      'totalComments': instance.totalComments,
+      'hide': instance.hide,
+      'created_at': instance.created_at,
+      'id': instance.id,
+      'likesCount': instance.likesCount,
+      'commentsCount': instance.commentsCount,
+      'isLiked': instance.isLiked,
+    };
+
+PersonalComments _$PersonalCommentsFromJson(Map<String, dynamic> json) =>
+    PersonalComments(
+      docs:
+          (json['docs'] as List<dynamic>)
+              .map((e) => PersonalComment.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      pages: (json['pages'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: json['page'] as String,
+    );
+
+Map<String, dynamic> _$PersonalCommentsToJson(PersonalComments instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'pages': instance.pages,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+    };
+
+PersonalCommentsResponse _$PersonalCommentsResponseFromJson(
+  Map<String, dynamic> json,
+) => PersonalCommentsResponse(
+  comments: PersonalComments.fromJson(json['comments'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$PersonalCommentsResponseToJson(
+  PersonalCommentsResponse instance,
+) => <String, dynamic>{'comments': instance.comments};

@@ -203,7 +203,7 @@ class _KnightRankState extends State<KnightRank> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BaseImage(
-                    url: user.avatar.url,
+                    url: user.avatar?.url ?? '',
                     width: 48,
                     height: 48,
                     shape: const CircleBorder(),

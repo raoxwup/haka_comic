@@ -1034,7 +1034,7 @@ class User {
   @JsonKey(defaultValue: "")
   final String created_at;
 
-  final ImageDetail avatar;
+  final ImageDetail? avatar;
 
   @JsonKey(defaultValue: false)
   final bool isPunched;
@@ -1122,4 +1122,105 @@ class RandomComicsResponse {
       _$RandomComicsResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$RandomComicsResponseToJson(this);
+}
+
+@JsonSerializable()
+class Source {
+  final String title;
+
+  @JsonKey(name: '_id')
+  final String id;
+
+  Source({required this.title, required this.id});
+
+  factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SourceToJson(this);
+}
+
+@JsonSerializable()
+class PersonalComment {
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String content;
+
+  @JsonKey(name: '_comic')
+  final Source? comic;
+
+  @JsonKey(name: '_game')
+  final Source? game;
+
+  final int? totalComments;
+
+  @JsonKey(defaultValue: false)
+  final bool hide;
+
+  final String created_at;
+
+  final String? id;
+
+  final int likesCount;
+
+  @JsonKey(defaultValue: 0)
+  final int commentsCount;
+
+  final bool isLiked;
+
+  PersonalComment({
+    required this.uid,
+    required this.content,
+    required this.comic,
+    required this.game,
+    required this.totalComments,
+    required this.hide,
+    required this.created_at,
+    required this.id,
+    required this.likesCount,
+    required this.commentsCount,
+    required this.isLiked,
+  });
+
+  factory PersonalComment.fromJson(Map<String, dynamic> json) =>
+      _$PersonalCommentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PersonalCommentToJson(this);
+}
+
+@JsonSerializable()
+class PersonalComments {
+  final List<PersonalComment> docs;
+
+  final int pages;
+
+  final int total;
+
+  final int limit;
+
+  final String page;
+
+  PersonalComments({
+    required this.docs,
+    required this.pages,
+    required this.total,
+    required this.limit,
+    required this.page,
+  });
+
+  factory PersonalComments.fromJson(Map<String, dynamic> json) =>
+      _$PersonalCommentsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PersonalCommentsToJson(this);
+}
+
+@JsonSerializable()
+class PersonalCommentsResponse {
+  final PersonalComments comments;
+
+  PersonalCommentsResponse({required this.comments});
+
+  factory PersonalCommentsResponse.fromJson(Map<String, dynamic> json) =>
+      _$PersonalCommentsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PersonalCommentsResponseToJson(this);
 }

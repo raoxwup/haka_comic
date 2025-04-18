@@ -12,7 +12,8 @@ import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
-import 'package:haka_comic/views/mine/comments.dart';
+import 'package:haka_comic/views/mine/comments/comments.dart';
+import 'package:haka_comic/views/mine/comments/sub_comments.dart';
 import 'package:haka_comic/views/mine/downloads.dart';
 import 'package:haka_comic/views/mine/favorites.dart';
 import 'package:haka_comic/views/mine/history.dart';
@@ -206,12 +207,26 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/comments',
+      path: '/personal_comments',
       pageBuilder: (context, state) {
+        final user = state.extra as models.User;
         return customTransitionPage(
           context: context,
           state: state,
-          child: const Comments(),
+          child: Comments(user: user),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/personal_sub_comments',
+      pageBuilder: (context, state) {
+        final extra = state.extra as Map;
+        final comment = extra['comment'] as models.PersonalComment;
+        final user = extra['user'] as models.User;
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: PersonalSubComment(comment: comment, user: user),
         );
       },
     ),

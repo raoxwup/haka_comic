@@ -9,54 +9,14 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
-class Mine extends StatelessWidget {
+class Mine extends StatefulWidget {
   const Mine({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-      children: const [
-        ProFile(),
-        HistoryComics(),
-        Favorites(),
-        _MenuItem(icon: Icons.download, title: '我的下载', route: '/downloads'),
-        _MenuItem(icon: Icons.comment, title: '我的评论', route: '/comments'),
-      ],
-    );
-  }
+  State<Mine> createState() => _MineState();
 }
 
-class _MenuItem extends StatelessWidget {
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () => context.push(route),
-      leading: Icon(icon),
-      title: Text(title, style: context.textTheme.titleMedium),
-      trailing: const Icon(Icons.chevron_right),
-    );
-  }
-}
-
-class ProFile extends StatefulWidget {
-  const ProFile({super.key});
-
-  @override
-  State<ProFile> createState() => _ProFileState();
-}
-
-class _ProFileState extends State<ProFile> {
+class _MineState extends State<Mine> {
   late final _profileHandler = fetchUserProfile.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch user profile success', data.toString());
@@ -92,51 +52,101 @@ class _ProFileState extends State<ProFile> {
   @override
   Widget build(BuildContext context) {
     final user = _profileHandler.data?.user;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 84),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: BasePage(
-          isLoading: _profileHandler.isLoading,
-          error: _profileHandler.error,
-          onRetry: _profileHandler.refresh,
-          child: Row(
-            spacing: 15,
-            children: [
-              BaseImage(
-                url: user?.avatar.url ?? '',
-                width: 64,
-                height: 64,
-                shape: const CircleBorder(),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 5,
-                  children: [
-                    Text(
-                      user?.name ?? '',
-                      style: context.textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      'Lv.${user?.level}  Exp: ${user?.exp}',
-                      style: context.textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              FilledButton.tonalIcon(
-                onPressed: () {},
-                icon: const Icon(Icons.edit),
-                label: const Text('编辑'),
-              ),
-            ],
+    return BasePage(
+      isLoading: _profileHandler.isLoading,
+      onRetry: _profileHandler.refresh,
+      error: _profileHandler.error,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+        children: [
+          ProFile(user: user),
+          const HistoryComics(),
+          const Favorites(),
+          const _MenuItem(
+            icon: Icons.download,
+            title: '我的下载',
+            route: '/downloads',
           ),
-        ),
+          _MenuItem(
+            icon: Icons.comment,
+            title: '我的评论',
+            route: '/personal_comments',
+            extra: user,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuItem extends StatelessWidget {
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.route,
+    this.extra,
+  });
+
+  final IconData icon;
+  final String title;
+  final String route;
+  final Object? extra;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () => context.push(route, extra: extra),
+      leading: Icon(icon),
+      title: Text(title, style: context.textTheme.titleMedium),
+      trailing: const Icon(Icons.chevron_right),
+    );
+  }
+}
+
+class ProFile extends StatelessWidget {
+  const ProFile({super.key, required this.user});
+
+  final User? user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        spacing: 15,
+        children: [
+          BaseImage(
+            url: user?.avatar?.url ?? '',
+            width: 64,
+            height: 64,
+            shape: const CircleBorder(),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 5,
+              children: [
+                Text(
+                  user?.name ?? '',
+                  style: context.textTheme.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Lv.${user?.level}  Exp: ${user?.exp}',
+                  style: context.textTheme.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: () {},
+            icon: const Icon(Icons.edit),
+            label: const Text('编辑'),
+          ),
+        ],
       ),
     );
   }
@@ -281,6 +291,13 @@ class _ComicSection extends StatelessWidget {
                         isLoading: isLoading,
                         onRetry: onRetry,
                         error: error,
+                        errorBuilder:
+                            (_) => Center(
+                              child: IconButton(
+                                onPressed: onRetry,
+                                icon: const Icon(Icons.refresh),
+                              ),
+                            ),
                         child: isEmpty ? const Empty() : _buildList(),
                       )
                       : isEmpty

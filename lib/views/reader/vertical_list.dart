@@ -239,10 +239,9 @@ class _VerticalListState extends State<VerticalList>
   }
 
   // 最大预加载数量限制
-  static const int _maxPreloadCount = 3;
+  static const int _maxPreloadCount = 4;
 
   /// 处理列表项位置变化
-  /// 使用防抖减少频繁更新
   void _onItemPositionsChanged() {
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
