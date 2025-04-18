@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/images_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/read_record_helper.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/shadow_text.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -246,57 +247,12 @@ class _ReaderState extends State<Reader> {
         valueListenable: _currentVisibleIndexNotifier,
         builder: (context, value, child) {
           final total = data.isEmpty ? 1 : data.length;
-          return Text(
-            '${currentChapter.title} ${value + 1} / $total',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              shadows: [
-                // 添加8个方向的阴影（偏移1像素）
-                Shadow(
-                  offset: Offset(-1, -1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(1, -1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(-1, 1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(1, 1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(-1, 0),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(1, 0),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(0, -1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-                Shadow(
-                  offset: Offset(0, 1),
-                  color: Colors.white,
-                  blurRadius: 0,
-                ),
-              ],
-            ),
+          return Row(
+            spacing: 5,
+            children: [
+              Expanded(child: ShadowText(text: currentChapter.title)),
+              ShadowText(text: '${value + 1} / $total'),
+            ],
           );
         },
       ),

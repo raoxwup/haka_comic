@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
@@ -55,11 +56,11 @@ class _ListItemState extends State<ListItem> {
                     spacing: 10,
                     children: [
                       Text(
-                        '${item.totalLikes ?? item.likesCount} likes',
+                        '${formatNumber(item.totalLikes ?? item.likesCount)} likes',
                         style: context.textTheme.labelSmall,
                       ),
                       Text(
-                        '${item.totalViews} views',
+                        '${formatNumber(item.totalViews)} views',
                         style: context.textTheme.labelSmall,
                       ),
                     ],

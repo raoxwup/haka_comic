@@ -311,16 +311,28 @@ class _ComicDetailsState extends State<ComicDetails> {
                   spacing: 10,
                   children: [
                     IconText(
-                      icon: Icon(Icons.favorite, size: 16),
-                      text: '${data?.totalLikes ?? data?.likesCount}',
+                      icon: Icon(Icons.favorite, size: 16, color: Colors.red),
+                      text: formatNumber(
+                        data?.totalLikes ?? data?.likesCount ?? 0,
+                      ),
                     ),
                     IconText(
-                      icon: const Icon(Icons.visibility, size: 16),
-                      text: '${data?.totalViews ?? data?.viewsCount}',
+                      icon: const Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
+                      text: formatNumber(
+                        data?.totalViews ?? data?.viewsCount ?? 0,
+                      ),
                     ),
                     IconText(
-                      icon: const Icon(Icons.image, size: 16),
-                      text: '${data?.pagesCount}',
+                      icon: const Icon(
+                        Icons.image,
+                        size: 16,
+                        color: Colors.green,
+                      ),
+                      text: formatNumber(data?.pagesCount ?? 0),
                     ),
                   ],
                 ),
@@ -438,10 +450,14 @@ class _ComicDetailsState extends State<ComicDetails> {
                     color: context.colorScheme.primary,
                     size: 18,
                   ),
-                  Text(
-                    '上次阅读到${value.chapterTitle} P${value.pageNo + 1}',
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      color: context.colorScheme.primary,
+                  Expanded(
+                    child: Text(
+                      '上次阅读到${value.chapterTitle} P${value.pageNo + 1}',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: context.colorScheme.primary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

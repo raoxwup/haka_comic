@@ -121,3 +121,31 @@ bool isWindows = Platform.isWindows;
 bool isLinux = Platform.isLinux;
 
 bool get isDesktop => isMacOS || isWindows || isLinux;
+
+String formatNumber(int number, {int decimalDigits = 0}) {
+  if (number >= 100000) {
+    final value = number / 1000;
+    String formatted = value.toStringAsFixed(decimalDigits);
+
+    // 移除末尾的零和小数点（如将 123.0k 变为 123k）
+    formatted = formatted.replaceAll(RegExp(r'\.?0+$'), '');
+
+    return '${formatted}k';
+  } else {
+    // 手动添加千位分隔符（如 99999 → 99,999）
+    return _addThousandsSeparator(number.toString());
+  }
+}
+
+// 原生实现千位分隔符
+String _addThousandsSeparator(String numberStr) {
+  final length = numberStr.length;
+  final buffer = StringBuffer();
+  for (var i = 0; i < length; i++) {
+    if (i > 0 && (length - i) % 3 == 0) {
+      buffer.write(',');
+    }
+    buffer.write(numberStr[i]);
+  }
+  return buffer.toString();
+}
