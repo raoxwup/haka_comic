@@ -12,7 +12,14 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
-      body: const Center(child: Text('Settings')),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('暗色模式'),
+            trailing: Switch(value: false, onChanged: (value) {}),
+          ),
+        ],
+      ),
     );
   }
 }

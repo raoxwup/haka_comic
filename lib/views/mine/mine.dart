@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
@@ -112,30 +113,50 @@ class ProFile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200,
+      height: 200 + context.top,
       child: Stack(
         fit: StackFit.expand, // 确保 Stack 填满 Container
         children: [
-          // 模糊背景层
           Positioned.fill(
             child: ClipRect(
               child: ImageFiltered(
                 imageFilter: ImageFilter.blur(
-                  sigmaX: 2,
-                  sigmaY: 2,
+                  sigmaX: 6,
+                  sigmaY: 6,
+                  tileMode: TileMode.mirror,
                 ), // 调整 sigma 值控制模糊程度
-                child: Image.asset(
-                  alignment: Alignment.centerRight,
-                  'assets/images/icon_success.png',
-                  fit: BoxFit.fitHeight,
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.transparent, context.colorScheme.surface],
+                      stops: [0.0, 0.5], // 调整这个值可以控制渐变范围
+                    ).createShader(bounds);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image:
+                            user?.avatar?.url != null
+                                ? CachedNetworkImageProvider(
+                                  user?.avatar?.url ?? '',
+                                )
+                                : const AssetImage('assets/images/login.png'),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-          // 头像内容层
+          // 模糊背景层
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: context.top),
               BaseImage(
                 url: user?.avatar?.url ?? '',
                 width: 80,
@@ -166,14 +187,14 @@ class ProFile extends StatelessWidget {
               ),
             ],
           ),
-          Positioned(
-            right: 10,
-            top: 10,
-            child: IconButton.filled(
-              onPressed: () {},
-              icon: const Icon(Icons.drive_file_rename_outline),
-            ),
-          ),
+          // Positioned(
+          //   right: 10,
+          //   top: 10,
+          //   child: IconButton(
+          //     onPressed: () {},
+          //     icon: const Icon(Icons.drive_file_rename_outline),
+          //   ),
+          // ),
         ],
       ),
     );

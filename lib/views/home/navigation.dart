@@ -1,18 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 
-const List<dynamic> destinations = [
+final List<dynamic> destinations = [
   {
     "icon": Icon(Icons.category_outlined),
     "selectedIcon": Icon(Icons.category),
     "label": '分类',
+    "extendBodyBehindAppBar": false,
+    "buildAppBar":
+        (BuildContext context) => AppBar(
+          title: const Text('分类'),
+          actions:
+              actions
+                  .map(
+                    (e) => IconButton(
+                      tooltip: e['label'],
+                      onPressed: () => context.push(e['path']),
+                      icon: e['icon']!,
+                    ),
+                  )
+                  .toList(),
+        ),
   },
   {
     "icon": Icon(Icons.person_outline),
     "selectedIcon": Icon(Icons.person),
     "label": '我的',
+    "extendBodyBehindAppBar": true,
+    "buildAppBar":
+        (BuildContext context) => AppBar(
+          title: const Text('我的'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent, // 透明状态栏
+            statusBarBrightness: Brightness.light, // iOS 状态栏文字黑色
+            statusBarIconBrightness: Brightness.light, // Android 状态栏图标黑色
+          ),
+          actions:
+              actions
+                  .map(
+                    (e) => IconButton(
+                      tooltip: e['label'],
+                      onPressed: () => context.push(e['path']),
+                      icon: e['icon']!,
+                    ),
+                  )
+                  .toList(),
+        ),
   },
 ];
 

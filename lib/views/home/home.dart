@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/categories/categories.dart';
@@ -34,21 +33,11 @@ class _HomeState extends State<Home> {
             isRouteAnimationCompleted = true;
           }),
       child: Scaffold(
+        extendBodyBehindAppBar:
+            destinations[_selectedIndex]['extendBodyBehindAppBar'],
         appBar:
             UiMode.m1(context)
-                ? AppBar(
-                  title: Text(destinations[_selectedIndex]['label']),
-                  actions:
-                      actions
-                          .map(
-                            (e) => IconButton(
-                              tooltip: e['label'],
-                              onPressed: () => context.push(e['path']),
-                              icon: e['icon']!,
-                            ),
-                          )
-                          .toList(),
-                )
+                ? destinations[_selectedIndex]['buildAppBar'](context)
                 : null,
         body: Row(
           children: [

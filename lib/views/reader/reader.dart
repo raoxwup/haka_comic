@@ -181,6 +181,7 @@ class _ReaderState extends State<Reader> {
     final data = _handler.data ?? [];
 
     return Scaffold(
+      backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
           // 主阅读区域
