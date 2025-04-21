@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/model/app_data.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
-import 'package:provider/provider.dart';
+import 'package:haka_comic/views/settings/theme_switch.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -45,94 +44,8 @@ class _SettingsState extends State<Settings> {
                           style: context.textTheme.bodySmall,
                         ),
                         SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        context
-                                            .colorScheme
-                                            .surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {},
-                                          child: Text(
-                                            'System',
-                                            style:
-                                                context.textTheme.titleMedium,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {},
-                                          child: Text(
-                                            'Light',
-                                            style:
-                                                context.textTheme.titleMedium,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {},
-                                          child: Text(
-                                            'Dark',
-                                            style:
-                                                context.textTheme.titleMedium,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 0,
-                                top: 0,
-                                bottom: 0,
-                                width: context.width / 3,
-                                child: Container(
-                                  margin: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: context.colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        ThemeSwitch(),
                         SizedBox(height: 20),
-                        // ListTile(
-                        //   leading: Icon(Icons.light_mode),
-                        //   title: Text('浅色主题'),
-                        //   onTap: () {
-                        //     context.read<AppData>().setThemeMode(
-                        //       ThemeMode.light,
-                        //     );
-                        //   },
-                        // ),
-                        // ListTile(
-                        //   leading: Icon(Icons.dark_mode),
-                        //   title: Text('深色主题'),
-                        //   onTap: () {
-                        //     context.read<AppData>().setThemeMode(
-                        //       ThemeMode.dark,
-                        //     );
-                        //   },
-                        // ),
                       ],
                     ),
                   );
