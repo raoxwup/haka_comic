@@ -22,6 +22,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.32
   path_provider: ^2.1.5
   sqlite_async: ^0.11.4
+  provider: ^6.1.4
 
 dev_dependencies:
   flutter_test:

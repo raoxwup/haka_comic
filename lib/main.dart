@@ -1,26 +1,35 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/model/app_data.dart';
 import 'package:haka_comic/router/app_router.dart';
+import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:provider/provider.dart';
 
 void main(List<String> args) {
   runZonedGuarded(
     () {
       WidgetsFlutterBinding.ensureInitialized();
-      StartupPrepare.prepare().then((_) => runApp(const App())).wait();
+      StartupPrepare.prepare()
+          .then(
+            (_) => runApp(
+              MultiProvider(
+                providers: [ChangeNotifierProvider(create: (_) => AppData())],
+                child: const App(),
+              ),
+            ),
+          )
+          .wait();
     },
     (Object error, StackTrace stackTrace) {
       Log.error('runZonedGuarded', error, stackTrace);
     },
   );
 }
-
-final colorScheme = ColorScheme.fromSeed(seedColor: Colors.deepPurple);
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -41,15 +50,9 @@ class _AppState extends State<App> {
     return MaterialApp.router(
       title: "HaKa Comic",
       routerConfig: appRouter,
-      theme: ThemeData(
-        colorScheme: colorScheme,
-        appBarTheme: AppBarTheme(
-          scrolledUnderElevation: 0,
-          surfaceTintColor: Colors.transparent,
-          backgroundColor: colorScheme.surface,
-        ),
-        fontFamily: Platform.isWindows ? 'HarmonyOS Sans SC' : null,
-      ),
+      theme: getLightTheme(lightColorScheme),
+      darkTheme: getDarkTheme(darkColorScheme),
+      themeMode: context.select<AppData, ThemeMode>((data) => data.themeMode),
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: scaffoldMessengerKey,
       builder: (context, child) {
