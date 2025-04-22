@@ -729,3 +729,14 @@ PersonalCommentsResponse _$PersonalCommentsResponseFromJson(
 Map<String, dynamic> _$PersonalCommentsResponseToJson(
   PersonalCommentsResponse instance,
 ) => <String, dynamic>{'comments': instance.comments};
+
+HotSearchWordsResponse _$HotSearchWordsResponseFromJson(
+  Map<String, dynamic> json,
+) => HotSearchWordsResponse(
+  keywords:
+      (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
+);
+
+Map<String, dynamic> _$HotSearchWordsResponseToJson(
+  HotSearchWordsResponse instance,
+) => <String, dynamic>{'keywords': instance.keywords};

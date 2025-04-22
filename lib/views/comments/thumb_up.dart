@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class ThumbUp extends StatefulWidget {
   const ThumbUp({
@@ -47,7 +47,7 @@ class _ThumbUpState extends State<ThumbUp> {
       },
       onError: (e, _) {
         Log.error('Like comment error', e);
-        showSnackBar('点赞失败');
+        Toast.show(message: '点赞失败');
       },
     );
 

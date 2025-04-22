@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:haka_comic/model/app_data.dart';
+import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:provider/provider.dart';
 
@@ -49,7 +49,7 @@ class _ThemeSwitchState extends State<ThemeSwitch>
   }
 
   void _handleTap(ThemeMode mode) {
-    context.read<AppData>().setThemeMode(mode);
+    context.read<ThemeProvider>().setThemeMode(mode);
   }
 
   @override
@@ -59,12 +59,15 @@ class _ThemeSwitchState extends State<ThemeSwitch>
   }
 
   void _handleThemeChange() {
-    final width = context.width - 16 * 2 - 5 * 2;
+    final width =
+        context.width > 400
+            ? 400 - 16 * 2 - 5 * 2
+            : context.width - 16 * 2 - 5 * 2;
     // ThemeMode themeMode = context.select<AppData, ThemeMode>(
     //   (data) => data.themeMode,
     // );
 
-    final themeMode = context.watch<AppData>().themeMode;
+    final themeMode = context.watch<ThemeProvider>().themeMode;
     int index = switch (themeMode) {
       ThemeMode.system => 0,
       ThemeMode.light => 1,
@@ -83,7 +86,11 @@ class _ThemeSwitchState extends State<ThemeSwitch>
 
   @override
   Widget build(BuildContext context) {
-    final width = context.width - 16 * 2 - 5 * 2;
+    // 因为constraints限制，最大宽度为400
+    final width =
+        context.width > 400
+            ? 400 - 16 * 2 - 5 * 2
+            : context.width - 16 * 2 - 5 * 2;
     return Container(
       width: double.infinity,
       height: 50,

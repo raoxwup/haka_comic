@@ -289,3 +289,13 @@ Future<PersonalCommentsResponse> fetchPersonalComments(int page) async {
   );
   return data.data;
 }
+
+/// 获取热搜词
+Future<HotSearchWordsResponse> fetchHotSearchWords() async {
+  final response = await Client.get('keywords');
+  final data = BaseResponse<HotSearchWordsResponse>.fromJson(
+    response,
+    (data) => HotSearchWordsResponse.fromJson(data),
+  );
+  return data.data;
+}

@@ -209,27 +209,34 @@ class _ReaderState extends State<Reader> {
         ],
       ),
       drawer: Drawer(
-        child: ListView.builder(
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Text(
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.fromLTRB(0, context.top + 10, 0, 10),
+              child: Text(
                 '章节列表',
                 textAlign: TextAlign.center,
                 style: context.textTheme.titleLarge,
-              );
-            }
-            final int chapterIndex = index - 1;
-            return ListTile(
-              enabled: chapterIndex != _currentChapterIndex,
-              title: Text(widget.chapters[chapterIndex].title),
-              onTap: () {
-                context.pop();
-                openOrCloseToolbar();
-                go(chapterIndex);
-              },
-            );
-          },
-          itemCount: widget.chapters.length + 1,
+              ),
+            ),
+            Expanded(
+              child: ScrollablePositionedList.builder(
+                initialScrollIndex: _currentChapterIndex,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    enabled: index != _currentChapterIndex,
+                    title: Text(widget.chapters[index].title),
+                    onTap: () {
+                      context.pop();
+                      openOrCloseToolbar();
+                      go(index);
+                    },
+                  );
+                },
+                itemCount: widget.chapters.length,
+              ),
+            ),
+          ],
         ),
       ),
     );

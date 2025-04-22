@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class CollectAction extends StatefulWidget {
   const CollectAction({super.key, required this.id, required this.isFavorite});
@@ -43,7 +43,7 @@ class _CollectActionState extends State<CollectAction>
       },
       onError: (e, _) {
         Log.error('Favorite comic error', e);
-        showSnackBar('收藏失败');
+        Toast.show(message: '收藏失败');
         setState(() {
           _isFavorite = !_isFavorite;
         });

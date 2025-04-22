@@ -10,6 +10,7 @@ import 'package:haka_comic/views/comments/comment_input.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class CommentsPage extends StatefulWidget {
   const CommentsPage({super.key, required this.id});
@@ -300,7 +301,7 @@ class _CommentsPageState extends State<CommentsPage> {
               },
               onError: (e, _) {
                 Log.error('Send comment error', e);
-                showSnackBar('评论失败');
+                Toast.show(message: '评论失败');
               },
             ),
           ),

@@ -23,6 +23,7 @@ dependencies:
   path_provider: ^2.1.5
   sqlite_async: ^0.11.4
   provider: ^6.1.4
+  dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:

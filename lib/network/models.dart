@@ -1224,3 +1224,15 @@ class PersonalCommentsResponse {
 
   Map<String, dynamic> toJson() => _$PersonalCommentsResponseToJson(this);
 }
+
+@JsonSerializable()
+class HotSearchWordsResponse {
+  final List<String> keywords;
+
+  HotSearchWordsResponse({required this.keywords});
+
+  factory HotSearchWordsResponse.fromJson(Map<String, dynamic> json) =>
+      _$HotSearchWordsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HotSearchWordsResponseToJson(this);
+}

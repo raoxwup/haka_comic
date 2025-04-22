@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class ComicShareId extends StatefulWidget {
   const ComicShareId({super.key, required this.id});
@@ -45,7 +45,7 @@ class _ComicShareIdState extends State<ComicShareId> {
 
   void copy() async {
     await Clipboard.setData(ClipboardData(text: 'PICA${_handler.data}'));
-    showSnackBar('复制成功');
+    Toast.show(message: '已复制');
   }
 
   @override

@@ -35,10 +35,10 @@ final List<dynamic> destinations = [
           title: const Text('我的'),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent, // 透明状态栏
-            statusBarBrightness: Brightness.light, // iOS 状态栏文字黑色
-            statusBarIconBrightness: Brightness.light, // Android 状态栏图标黑色
+          systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.dark,
           ),
           actions:
               actions

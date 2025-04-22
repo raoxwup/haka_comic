@@ -10,6 +10,7 @@ import 'package:haka_comic/views/comments/comment_input.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class PersonalSubComment extends StatefulWidget {
   const PersonalSubComment({
@@ -360,7 +361,7 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
               },
               onError: (e, _) {
                 Log.error('Send reply error', e);
-                showSnackBar('回复失败');
+                Toast.show(message: '回复失败');
               },
             ),
           ),

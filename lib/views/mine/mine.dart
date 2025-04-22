@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class Mine extends StatefulWidget {
   const Mine({super.key});
@@ -32,7 +32,7 @@ class _MineState extends State<Mine> {
   final _punchInHandler = punchIn.useRequest(
     onSuccess: (_, __) {
       Log.info('Punch in success', '');
-      showSnackBar('打卡成功');
+      Toast.show(message: '打卡成功');
     },
     onError: (e, _) => Log.error('Punch in error', e),
   );

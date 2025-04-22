@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/model/app_data.dart';
+import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -18,7 +19,9 @@ void main(List<String> args) {
           .then(
             (_) => runApp(
               MultiProvider(
-                providers: [ChangeNotifierProvider(create: (_) => AppData())],
+                providers: [
+                  ChangeNotifierProvider(create: (_) => ThemeProvider()),
+                ],
                 child: const App(),
               ),
             ),
@@ -47,16 +50,23 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: "HaKa Comic",
-      routerConfig: appRouter,
-      theme: getLightTheme(lightColorScheme),
-      darkTheme: getDarkTheme(darkColorScheme),
-      themeMode: context.select<AppData, ThemeMode>((data) => data.themeMode),
-      debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: scaffoldMessengerKey,
-      builder: (context, child) {
-        return _SystemUiProvider(child!);
+    final themeMode = context.select<ThemeProvider, ThemeMode>(
+      (data) => data.themeMode,
+    );
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        return MaterialApp.router(
+          title: "HaKa Comic",
+          routerConfig: appRouter,
+          theme: getLightTheme(lightDynamic ?? lightColorScheme),
+          darkTheme: getDarkTheme(darkDynamic ?? darkColorScheme),
+          themeMode: themeMode,
+          debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: scaffoldMessengerKey,
+          builder: (context, child) {
+            return _SystemUiProvider(child!);
+          },
+        );
       },
     );
   }

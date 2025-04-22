@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 final ColorScheme lightColorScheme = ColorScheme.fromSeed(
-  seedColor: Colors.deepPurple,
+  seedColor: Colors.green,
   brightness: Brightness.light,
 );
 
 final ColorScheme darkColorScheme = ColorScheme.fromSeed(
-  seedColor: Colors.deepPurple,
+  seedColor: Colors.green,
   brightness: Brightness.dark,
 );
 

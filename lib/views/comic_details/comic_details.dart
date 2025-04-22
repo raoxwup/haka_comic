@@ -20,6 +20,7 @@ import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/widgets/tag.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class ComicDetails extends StatefulWidget {
   const ComicDetails({super.key, required this.id});
@@ -167,7 +168,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                     await Clipboard.setData(
                       ClipboardData(text: data?.title ?? ''),
                     );
-                    showSnackBar('标题复制成功!');
+                    Toast.show(message: '已复制');
                   },
                 ),
               ],

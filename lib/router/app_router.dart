@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 // import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart' as models;
 // import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
@@ -35,6 +36,7 @@ import 'package:haka_comic/views/settings/settings.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
+  navigatorKey: navigatorKey,
   redirect: (context, state) {
     if (AppConf.instance.isLogged) {
       return null;

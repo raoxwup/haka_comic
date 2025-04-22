@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class Comments extends StatefulWidget {
   const Comments({super.key, required this.user});
@@ -119,7 +120,7 @@ class _CommentsState extends State<Comments> {
         return InkWell(
           onTap: () {
             if (item.comic == null) {
-              showSnackBar("暂不支持跳转游戏");
+              Toast.show(message: "暂不支持跳转游戏");
               return;
             }
             context.push('/details/${item.comic!.id}');

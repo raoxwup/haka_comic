@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class PageSelector extends StatelessWidget {
   const PageSelector({
@@ -106,7 +106,7 @@ class PageSelector extends StatelessWidget {
     }
     if (res != "") {
       Future.delayed(const Duration(milliseconds: 500), () {
-        showSnackBar('跳转页码不正确');
+        Toast.show(message: '跳转页码不正确');
       });
     }
   }

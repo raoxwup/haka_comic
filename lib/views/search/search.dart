@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/router/aware_page_wrapper.dart';
+import 'package:haka_comic/views/search/hot_search_words.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -10,37 +12,48 @@ class Search extends StatefulWidget {
 
 class _SearchState extends State<Search> {
   final TextEditingController _searchController = TextEditingController();
+  bool isRouteAnimationCompleted = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          textAlignVertical: TextAlignVertical.center,
-          decoration: InputDecoration(
-            hintText: '搜索',
-            border: InputBorder.none,
-            suffixIcon: IconButton(
-              onPressed: () {
-                if (_searchController.text.isEmpty) {
-                  context.pop();
-                } else {
-                  _searchController.clear();
-                }
-              },
-              icon: Icon(Icons.close),
+    return RouteAwarePageWrapper(
+      onRouteAnimationCompleted:
+          () => setState(() => isRouteAnimationCompleted = true),
+      child: Scaffold(
+        appBar: AppBar(
+          title: TextField(
+            controller: _searchController,
+            autofocus: true,
+            textAlignVertical: TextAlignVertical.center,
+            decoration: InputDecoration(
+              hintText: '搜索',
+              border: InputBorder.none,
+              suffixIcon: IconButton(
+                onPressed: () {
+                  if (_searchController.text.isEmpty) {
+                    context.pop();
+                  } else {
+                    _searchController.clear();
+                  }
+                },
+                icon: Icon(Icons.close),
+              ),
             ),
+            onSubmitted: (value) {
+              if (value.isNotEmpty) {
+                context.push('/search_comics?keyword=$value');
+              }
+            },
           ),
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              context.push('/search_comics?keyword=$value');
-            }
-          },
+        ),
+        body: Column(
+          children: [
+            HotSearchWords(
+              isRouteAnimationCompleted: isRouteAnimationCompleted,
+            ),
+          ],
         ),
       ),
-      body: Center(child: const Text('Search')),
     );
   }
 }

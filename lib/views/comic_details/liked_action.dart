@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class LikedAction extends StatefulWidget {
   const LikedAction({super.key, required this.id, required this.isLiked});
@@ -43,7 +43,7 @@ class _LikedActionState extends State<LikedAction>
       },
       onError: (e, _) {
         Log.error('Like comic error', e);
-        showSnackBar('点赞失败');
+        Toast.show(message: '点赞失败');
         setState(() {
           _isLiked = !_isLiked;
         });

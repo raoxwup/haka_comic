@@ -19,7 +19,7 @@ class _SettingsState extends State<Settings> {
         children: [
           ListTile(
             leading: Icon(Icons.contrast),
-            title: Text('颜色主题'),
+            title: Text('主题模式'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               showModalBottomSheet(
@@ -38,9 +38,9 @@ class _SettingsState extends State<Settings> {
                       children: [
                         ThemeIcon(),
                         SizedBox(height: 20),
-                        Text('选择颜色模式', style: context.textTheme.titleMedium),
+                        Text('选择主题模式', style: context.textTheme.titleMedium),
                         Text(
-                          '选择跟随系统，亮暗模式会随着系统的变化而变化',
+                          '选择System，亮暗模式会随着系统模式的变化而变化',
                           style: context.textTheme.bodySmall,
                         ),
                         SizedBox(height: 20),
