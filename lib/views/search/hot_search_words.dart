@@ -46,30 +46,43 @@ class _HotSearchWordsState extends State<HotSearchWords> {
   @override
   Widget build(BuildContext context) {
     final words = _handler.data?.keywords ?? [];
-    return BasePage(
-      error: _handler.error,
-      isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
-      onRetry: _handler.refresh,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children:
-                words
-                    .map(
-                      (e) => Tag(
-                        tag: e,
-                        size: TagSize.medium,
-                        color: context.colorScheme.surfaceContainerHighest,
-                        onPressed:
-                            () => context.push('/search_comics?keyword=$e'),
-                      ),
-                    )
-                    .toList(),
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 150),
+      child: BasePage(
+        error: _handler.error,
+        isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
+        onRetry: _handler.refresh,
+        errorBuilder:
+            (context) => Center(
+              child: IconButton(
+                onPressed: _handler.refresh,
+                icon: Icon(Icons.refresh),
+              ),
+            ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Text('热门搜索', style: context.textTheme.titleMedium),
+            Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              children:
+                  words
+                      .map(
+                        (e) => Tag(
+                          tag: e,
+                          size: TagSize.medium,
+                          color: context.colorScheme.surfaceContainerHighest,
+                          onPressed:
+                              () => context.push('/search_comics?keyword=$e'),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

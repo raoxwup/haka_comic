@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
+import 'package:haka_comic/network/cache.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 
@@ -292,7 +292,14 @@ Future<PersonalCommentsResponse> fetchPersonalComments(int page) async {
 
 /// 获取热搜词
 Future<HotSearchWordsResponse> fetchHotSearchWords() async {
-  final response = await Client.get('keywords');
+  Map<String, dynamic> response;
+  final map = Cache.get('keywords');
+  if (map != null) {
+    response = map;
+  } else {
+    response = await Client.get('keywords');
+    Cache.add('keywords', response);
+  }
   final data = BaseResponse<HotSearchWordsResponse>.fromJson(
     response,
     (data) => HotSearchWordsResponse.fromJson(data),

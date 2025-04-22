@@ -35,11 +35,7 @@ final List<dynamic> destinations = [
           title: const Text('我的'),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.dark,
-          ),
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
           actions:
               actions
                   .map(

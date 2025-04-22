@@ -23,7 +23,6 @@ class _SearchState extends State<Search> {
         appBar: AppBar(
           title: TextField(
             controller: _searchController,
-            autofocus: true,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               hintText: '搜索',
@@ -46,12 +45,15 @@ class _SearchState extends State<Search> {
             },
           ),
         ),
-        body: Column(
-          children: [
-            HotSearchWords(
-              isRouteAnimationCompleted: isRouteAnimationCompleted,
-            ),
-          ],
+        body: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              HotSearchWords(
+                isRouteAnimationCompleted: isRouteAnimationCompleted,
+              ),
+            ],
+          ),
         ),
       ),
     );

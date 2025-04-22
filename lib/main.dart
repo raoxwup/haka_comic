@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,6 +49,33 @@ class _AppState extends State<App> {
     super.initState();
   }
 
+  ColorScheme _generateColorScheme(
+    Color? primaryColor, [
+    Brightness? brightness,
+  ]) {
+    final Color seedColor = primaryColor ?? kFallbackAccentColor;
+
+    final ColorScheme newScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness ?? Brightness.light,
+    );
+
+    return newScheme.harmonized();
+  }
+
+  ThemeData getTheme(ColorScheme colorScheme, [Brightness? brightness]) =>
+      ThemeData(
+        colorScheme: colorScheme,
+        brightness: brightness,
+        // 调试模式下使用
+        fontFamily: Platform.isWindows ? 'HarmonyOS Sans SC' : null,
+        appBarTheme: AppBarTheme(
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: colorScheme.surface,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final themeMode = context.select<ThemeProvider, ThemeMode>(
@@ -55,11 +83,18 @@ class _AppState extends State<App> {
     );
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        final ColorScheme lightScheme = _generateColorScheme(
+          lightDynamic?.primary,
+        );
+        final ColorScheme darkScheme = _generateColorScheme(
+          darkDynamic?.primary,
+          Brightness.dark,
+        );
         return MaterialApp.router(
           title: "HaKa Comic",
           routerConfig: appRouter,
-          theme: getLightTheme(lightDynamic ?? lightColorScheme),
-          darkTheme: getDarkTheme(darkDynamic ?? darkColorScheme),
+          theme: getTheme(lightScheme),
+          darkTheme: getTheme(darkScheme, Brightness.dark),
           themeMode: themeMode,
           debugShowCheckedModeBanner: false,
           scaffoldMessengerKey: scaffoldMessengerKey,
