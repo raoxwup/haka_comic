@@ -4,6 +4,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/theme/theme.dart';
@@ -22,6 +23,7 @@ void main(List<String> args) {
               MultiProvider(
                 providers: [
                   ChangeNotifierProvider(create: (_) => ThemeProvider()),
+                  ChangeNotifierProvider(create: (_) => SearchProvider()),
                 ],
                 child: const App(),
               ),

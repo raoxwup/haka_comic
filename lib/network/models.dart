@@ -769,6 +769,7 @@ class SearchComic {
 
   final List<String> categories;
 
+  @JsonKey(fromJson: _totalLikesFromJson)
   final int? totalLikes;
 
   final String title;
@@ -778,8 +779,21 @@ class SearchComic {
   @JsonKey(name: '_id')
   final String id;
 
-  @JsonKey(defaultValue: 0)
+  // 这个字段还有返回String的 ......
+  @JsonKey(defaultValue: 0, fromJson: _likesCountFromJson)
   final int likesCount;
+
+  static int _likesCountFromJson(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static int? _totalLikesFromJson(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
 
   SearchComic({
     required this.updated_at,

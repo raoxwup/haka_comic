@@ -426,11 +426,14 @@ SearchComic _$SearchComicFromJson(Map<String, dynamic> json) => SearchComic(
   totalViews: (json['totalViews'] as num?)?.toInt(),
   categories:
       (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
-  totalLikes: (json['totalLikes'] as num?)?.toInt(),
+  totalLikes: SearchComic._totalLikesFromJson(json['totalLikes']),
   title: json['title'] as String,
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   id: json['_id'] as String,
-  likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+  likesCount:
+      json['likesCount'] == null
+          ? 0
+          : SearchComic._likesCountFromJson(json['likesCount']),
 );
 
 Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>

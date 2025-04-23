@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -10,6 +11,7 @@ import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/views/comics/search_list_item.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:provider/provider.dart';
 
 class SearchComics extends StatefulWidget {
   const SearchComics({super.key, required this.keyword});
@@ -100,6 +102,7 @@ class _SearchComicsState extends State<SearchComics> {
             ),
             onSubmitted: (value) {
               if (value.isNotEmpty) {
+                context.read<SearchProvider>().add(value);
                 _onPageChange(1);
               }
             },
