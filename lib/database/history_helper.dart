@@ -43,15 +43,14 @@ final migrations =
     );
 
 class HistoryHelper with ChangeNotifier {
+  HistoryHelper._create();
+
   static final _instance = HistoryHelper._create();
-  static String get _dbPath => '${SetupConf.instance.dataPath}/history.db';
 
   factory HistoryHelper() => _instance;
-  static HistoryHelper get instance => _instance;
 
   late SqliteDatabase _db;
-
-  HistoryHelper._create();
+  String get _dbPath => '${SetupConf.dataPath}/history.db';
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: _dbPath);

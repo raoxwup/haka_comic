@@ -50,9 +50,6 @@ class _VerticalListState extends State<VerticalList>
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
-  /// 图片尺寸数据数据库
-  final _imagesHelper = ImagesHelper();
-
   ///双击缩放相关
   final TransformationController _transformationController =
       TransformationController();
@@ -98,7 +95,7 @@ class _VerticalListState extends State<VerticalList>
   /// 初始化图片尺寸缓存
   Future<void> _initImageSizeCache() async {
     // 一次性查询所有图片尺寸并缓存
-    final sizes = await _imagesHelper.query(cid);
+    final sizes = await ImagesHelper.query(cid);
     for (var imageSize in sizes) {
       _imageSizeCache[imageSize.imageId] = imageSize;
     }
@@ -307,7 +304,7 @@ class _VerticalListState extends State<VerticalList>
 
   /// 将图片尺寸信息插入数据库
   void _insertImageSize(ImageSize imageSize) {
-    _imagesHelper.insert(imageSize);
+    ImagesHelper.insert(imageSize);
   }
 }
 

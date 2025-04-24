@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/history_helper.dart';
+import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -115,23 +115,23 @@ class ProFile extends StatelessWidget {
     return SizedBox(
       height: 200 + context.top,
       child: Stack(
-        fit: StackFit.expand, // 确保 Stack 填满 Container
+        fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: ClipRect(
               child: ImageFiltered(
                 imageFilter: ImageFilter.blur(
-                  sigmaX: 6,
-                  sigmaY: 6,
+                  sigmaX: 8,
+                  sigmaY: 8,
                   tileMode: TileMode.mirror,
-                ), // 调整 sigma 值控制模糊程度
+                ),
                 child: ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [Colors.transparent, context.colorScheme.surface],
-                      stops: [0.0, 0.5], // 调整这个值可以控制渐变范围
+                      stops: [0.0, 0.5],
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
@@ -187,14 +187,14 @@ class ProFile extends StatelessWidget {
               ),
             ],
           ),
-          // Positioned(
-          //   right: 10,
-          //   top: 10,
-          //   child: IconButton(
-          //     onPressed: () {},
-          //     icon: const Icon(Icons.drive_file_rename_outline),
-          //   ),
-          // ),
+          Positioned(
+            right: 10,
+            top: 10 + context.top,
+            child: IconButton(
+              onPressed: () => context.push('/personal_editor', extra: user),
+              icon: Icon(Icons.drive_file_rename_outline),
+            ),
+          ),
         ],
       ),
     );

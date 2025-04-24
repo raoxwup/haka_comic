@@ -16,6 +16,7 @@ import 'package:haka_comic/views/login/login.dart';
 import 'package:haka_comic/views/mine/comments/comments.dart';
 import 'package:haka_comic/views/mine/comments/sub_comments.dart';
 import 'package:haka_comic/views/mine/downloads.dart';
+import 'package:haka_comic/views/mine/editor.dart';
 import 'package:haka_comic/views/mine/favorites.dart';
 import 'package:haka_comic/views/mine/history.dart';
 import 'package:haka_comic/views/random/random.dart' show Random;
@@ -231,6 +232,17 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: PersonalSubComment(comment: comment, user: user),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/personal_editor',
+      pageBuilder: (context, state) {
+        final user = state.extra as models.User;
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: Editor(user: user),
         );
       },
     ),

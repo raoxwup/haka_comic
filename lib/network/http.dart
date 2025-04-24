@@ -306,3 +306,11 @@ Future<HotSearchWordsResponse> fetchHotSearchWords() async {
   );
   return data.data;
 }
+
+/// 更新头像
+Future<void> updateAvatar(String base64) async {
+  await Client.put(
+    'users/avatar',
+    data: {"avatar": "data:image/jpeg;base64,$base64"},
+  );
+}

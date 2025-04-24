@@ -24,15 +24,14 @@ final migrations =
     );
 
 class ReadRecordHelper with ChangeNotifier {
-  static final ReadRecordHelper _instance = ReadRecordHelper._internal();
+  ReadRecordHelper._internal();
+
+  static final _instance = ReadRecordHelper._internal();
 
   factory ReadRecordHelper() => _instance;
-  static ReadRecordHelper get instance => _instance;
 
   late SqliteDatabase _db;
-  String get dbPath => '${SetupConf.instance.dataPath}/read_record.db';
-
-  ReadRecordHelper._internal();
+  String get dbPath => '${SetupConf.dataPath}/read_record.db';
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);

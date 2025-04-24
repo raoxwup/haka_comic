@@ -23,23 +23,15 @@ final migrations =
     );
 
 class ImagesHelper {
-  static final ImagesHelper _instance = ImagesHelper._internal();
+  static late SqliteDatabase _db;
+  static String get dbPath => '${SetupConf.dataPath}/images.db';
 
-  factory ImagesHelper() => _instance;
-
-  static ImagesHelper get instance => _instance;
-
-  late SqliteDatabase _db;
-  String get dbPath => '${SetupConf.instance.dataPath}/images.db';
-
-  ImagesHelper._internal();
-
-  Future<void> initialize() async {
+  static Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);
     await migrations.migrate(_db);
   }
 
-  Future<void> insert(ImageSize imageSize) async {
+  static Future<void> insert(ImageSize imageSize) async {
     await _db.writeTransaction((tx) async {
       await tx.execute(
         '''
@@ -54,14 +46,14 @@ class ImagesHelper {
     });
   }
 
-  Future<List<ImageSize>> query(String cid) async {
+  static Future<List<ImageSize>> query(String cid) async {
     final result = await _db.getAll('SELECT * FROM images WHERE cid = ?', [
       cid,
     ]);
     return result.map((row) => ImageSize.fromJson(row)).toList();
   }
 
-  Future<ImageSize?> find(String cid, String imageId) async {
+  static Future<ImageSize?> find(String cid, String imageId) async {
     final result = await _db.getOptional(
       'SELECT * FROM images WHERE cid = ? AND image_id = ?',
       [cid, imageId],
@@ -70,17 +62,17 @@ class ImagesHelper {
     return ImageSize.fromJson(result);
   }
 
-  Future<void> trim() async {
+  static Future<void> trim() async {
     await _db.execute(
       'DELETE FROM images WHERE id IN (SELECT id FROM images ORDER BY id ASC LIMIT 3000)',
     );
   }
 
-  Future<void> clear() async {
+  static Future<void> clear() async {
     await _db.execute('DELETE FROM images');
   }
 
-  Future<void> close() async {
+  static Future<void> close() async {
     await _db.close();
   }
 }

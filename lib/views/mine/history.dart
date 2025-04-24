@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/history_helper.dart';
+import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
 

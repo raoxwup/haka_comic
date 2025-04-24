@@ -9,7 +9,7 @@ import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/startup_prepare.dart';
+import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:provider/provider.dart';
 

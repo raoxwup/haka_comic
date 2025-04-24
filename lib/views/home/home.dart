@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
                 : null,
         body: Row(
           children: [
-            if (UiMode.notM1(context)) buildAppNavigationBar(),
+            if (!UiMode.m1(context)) buildAppNavigationBar(),
             Expanded(
               child: IndexedStack(
                 index: _selectedIndex,

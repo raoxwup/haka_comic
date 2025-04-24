@@ -6,8 +6,8 @@ import 'package:haka_comic/utils/ui.dart';
 
 final List<dynamic> destinations = [
   {
-    "icon": Icon(Icons.category_outlined),
-    "selectedIcon": Icon(Icons.category),
+    "icon": Icons.category_outlined,
+    "selectedIcon": Icons.category,
     "label": '分类',
     "extendBodyBehindAppBar": false,
     "buildAppBar":
@@ -19,15 +19,15 @@ final List<dynamic> destinations = [
                     (e) => IconButton(
                       tooltip: e['label'],
                       onPressed: () => context.push(e['path']),
-                      icon: e['icon']!,
+                      icon: Icon(e['icon']),
                     ),
                   )
                   .toList(),
         ),
   },
   {
-    "icon": Icon(Icons.person_outline),
-    "selectedIcon": Icon(Icons.person),
+    "icon": Icons.person_outline,
+    "selectedIcon": Icons.person,
     "label": '我的',
     "extendBodyBehindAppBar": true,
     "buildAppBar":
@@ -42,7 +42,7 @@ final List<dynamic> destinations = [
                     (e) => IconButton(
                       tooltip: e['label'],
                       onPressed: () => context.push(e['path']),
-                      icon: e['icon']!,
+                      icon: Icon(e['icon']),
                     ),
                   )
                   .toList(),
@@ -51,8 +51,8 @@ final List<dynamic> destinations = [
 ];
 
 const List<dynamic> actions = [
-  {"icon": Icon(Icons.search), "label": '搜索', "path": '/search'},
-  {"icon": Icon(Icons.settings), "label": '设置', "path": '/settings'},
+  {"icon": Icons.search, "label": '搜索', "path": '/search'},
+  {"icon": Icons.settings, "label": '设置', "path": '/settings'},
 ];
 
 class AppNavigationBar extends StatefulWidget {
@@ -84,9 +84,9 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
           destinations
               .map(
                 (e) => NavigationDestination(
-                  icon: e['icon'],
+                  icon: Icon(e['icon']),
                   label: e['label'],
-                  selectedIcon: e['selectedIcon'],
+                  selectedIcon: Icon(e['selectedIcon']),
                 ),
               )
               .toList(),
@@ -99,7 +99,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       leading: Text(title, style: context.textTheme.titleLarge),
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
-      labelType: NavigationRailLabelType.all,
+      labelType: NavigationRailLabelType.none,
       elevation: 1,
       trailing: Expanded(
         child: Padding(
@@ -112,7 +112,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                     .map(
                       (e) => IconButton(
                         tooltip: e['label'],
-                        icon: e['icon']!,
+                        icon: Icon(e['icon']),
                         onPressed: () => context.push(e['path']),
                       ),
                     )
@@ -124,9 +124,9 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
           destinations
               .map(
                 (e) => NavigationRailDestination(
-                  icon: e['icon']!,
-                  selectedIcon: e['selectedIcon']!,
-                  label: Text(e['label']!),
+                  icon: Icon(e['icon']),
+                  selectedIcon: Icon(e['selectedIcon']),
+                  label: Text(e['label']),
                 ),
               )
               .toList(),
