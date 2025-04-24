@@ -116,7 +116,7 @@ class _CommentsState extends State<Comments> {
       itemBuilder: (_, index) {
         if (index >= _comments.length) return _buildLoader();
         final item = _comments[index];
-        final time = getFormattedDate(item.created_at);
+        final time = getFormattedTime(item.created_at);
         return InkWell(
           onTap: () {
             if (item.comic == null) {

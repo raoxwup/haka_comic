@@ -170,7 +170,7 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
                 content = _buildLoader();
               } else {
                 final item = data[index];
-                final time = getFormattedDate(item.created_at);
+                final time = getFormattedTime(item.created_at);
 
                 content = Padding(
                   padding: const EdgeInsets.symmetric(
@@ -326,7 +326,7 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        getFormattedDate(comment.created_at),
+                        getFormattedTime(comment.created_at),
                         style: context.textTheme.bodySmall,
                       ),
                       Text(

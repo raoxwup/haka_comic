@@ -30,7 +30,7 @@ String getTextBeforeNewLine(String text) {
   return index != -1 ? text.substring(0, index) : text;
 }
 
-String getFormattedDate(String dateString) {
+String getFormattedTime(String dateString) {
   // 解析为 DateTime 对象（自动识别 UTC）
   DateTime dateTime = DateTime.parse(dateString);
 
@@ -47,6 +47,20 @@ String getFormattedDate(String dateString) {
 
   // 拼接为 YYYY-MM-DD HH:mm:ss 格式
   String formattedDate = "$year-$month-$day $hour:$minute:$second";
+
+  return formattedDate;
+}
+
+String getFormattedDate(String dateString) {
+  DateTime dateTime = DateTime.parse(dateString);
+
+  DateTime localDateTime = dateTime.toLocal();
+
+  String year = localDateTime.year.toString();
+  String month = _addLeadingZero(localDateTime.month);
+  String day = _addLeadingZero(localDateTime.day);
+
+  String formattedDate = "$year-$month-$day";
 
   return formattedDate;
 }

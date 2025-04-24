@@ -175,7 +175,7 @@ class _CommentsPageState extends State<CommentsPage> {
         if (index >= data.length) return _buildLoader();
 
         final item = data[index];
-        final time = getFormattedDate(item.created_at);
+        final time = getFormattedTime(item.created_at);
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
