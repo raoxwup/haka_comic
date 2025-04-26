@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -9,7 +10,7 @@ import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/toast.dart';
+import 'package:provider/provider.dart';
 
 class Mine extends StatefulWidget {
   const Mine({super.key});
@@ -19,45 +20,26 @@ class Mine extends StatefulWidget {
 }
 
 class _MineState extends State<Mine> {
-  late final _profileHandler = fetchUserProfile.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch user profile success', data.toString());
-      if (!data.user.isPunched) {
-        _punchInHandler.run();
-      }
-    },
-    onError: (e, _) => Log.error('Fetch user profile error', e),
-  );
-
-  final _punchInHandler = punchIn.useRequest(
-    onSuccess: (_, __) {
-      Log.info('Punch in success', '');
-      Toast.show(message: '打卡成功');
-    },
-    onError: (e, _) => Log.error('Punch in error', e),
-  );
-
   @override
   void initState() {
     super.initState();
-    _profileHandler
-      ..addListener(() => setState(() {}))
-      ..run();
+    context.read<UserProvider>().userProfileHandler.run();
   }
 
   @override
   void dispose() {
-    _profileHandler.dispose();
+    context.read<UserProvider>().handlerDispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = _profileHandler.data?.user;
+    final user = context.select<UserProvider, User?>((value) => value.user);
+    final userProfileHandler = context.read<UserProvider>().userProfileHandler;
     return BasePage(
-      isLoading: _profileHandler.isLoading,
-      onRetry: _profileHandler.refresh,
-      error: _profileHandler.error,
+      isLoading: userProfileHandler.isLoading,
+      onRetry: userProfileHandler.refresh,
+      error: userProfileHandler.error,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [
@@ -191,7 +173,7 @@ class ProFile extends StatelessWidget {
             right: 10,
             top: 10 + context.top,
             child: IconButton(
-              onPressed: () => context.push('/personal_editor', extra: user),
+              onPressed: () => context.push('/personal_editor'),
               icon: Icon(Icons.drive_file_rename_outline),
             ),
           ),

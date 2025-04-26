@@ -238,11 +238,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/personal_editor',
       pageBuilder: (context, state) {
-        final user = state.extra as models.User;
         return customTransitionPage(
           context: context,
           state: state,
-          child: Editor(user: user),
+          child: Editor(),
         );
       },
     ),

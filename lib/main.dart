@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
+import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -24,6 +25,7 @@ void main(List<String> args) {
                 providers: [
                   ChangeNotifierProvider(create: (_) => ThemeProvider()),
                   ChangeNotifierProvider(create: (_) => SearchProvider()),
+                  ChangeNotifierProvider(create: (_) => UserProvider()),
                 ],
                 child: const App(),
               ),
