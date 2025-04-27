@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/loader.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -65,11 +66,13 @@ class _EditorState extends State<Editor> {
             TextField(
               minLines: 3,
               maxLines: 8,
+              autofocus: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               onSubmitted: (s) {
                 context.pop();
               },
             ),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Spacer(),
@@ -87,6 +90,15 @@ class _EditorState extends State<Editor> {
         );
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // 渲染第一帧
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //   Loader.show();
+    // });
   }
 
   @override

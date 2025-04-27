@@ -658,7 +658,10 @@ class SubComment {
   final int totalComments;
 
   @JsonKey(name: '_comic')
-  final String comic;
+  final String? comic;
+
+  @JsonKey(name: '_game')
+  final String? game;
 
   @JsonKey(name: '_parent')
   final String parent;
@@ -676,6 +679,7 @@ class SubComment {
     required this.totalComments,
     required this.comic,
     required this.parent,
+    required this.game,
   });
 
   factory SubComment.fromJson(Map<String, dynamic> json) =>

@@ -366,8 +366,9 @@ SubComment _$SubCommentFromJson(Map<String, dynamic> json) => SubComment(
   isTop: json['isTop'] as bool,
   likesCount: (json['likesCount'] as num).toInt(),
   totalComments: (json['totalComments'] as num).toInt(),
-  comic: json['_comic'] as String,
+  comic: json['_comic'] as String?,
   parent: json['_parent'] as String,
+  game: json['_game'] as String?,
 );
 
 Map<String, dynamic> _$SubCommentToJson(SubComment instance) =>
@@ -383,6 +384,7 @@ Map<String, dynamic> _$SubCommentToJson(SubComment instance) =>
       'likesCount': instance.likesCount,
       'totalComments': instance.totalComments,
       '_comic': instance.comic,
+      '_game': instance.game,
       '_parent': instance.parent,
     };
 

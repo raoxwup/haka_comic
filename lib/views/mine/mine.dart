@@ -55,7 +55,6 @@ class _MineState extends State<Mine> {
             icon: Icons.comment,
             title: '我的评论',
             route: '/personal_comments',
-            extra: user,
           ),
         ],
       ),
@@ -68,18 +67,16 @@ class _MenuItem extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.route,
-    this.extra,
   });
 
   final IconData icon;
   final String title;
   final String route;
-  final Object? extra;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () => context.push(route, extra: extra),
+      onTap: () => context.push(route),
       leading: Icon(icon),
       title: Text(title, style: context.textTheme.titleMedium),
       trailing: const Icon(Icons.chevron_right),

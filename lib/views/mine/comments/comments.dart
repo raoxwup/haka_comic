@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -10,11 +11,10 @@ import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:provider/provider.dart';
 
 class Comments extends StatefulWidget {
-  const Comments({super.key, required this.user});
-
-  final User user;
+  const Comments({super.key});
 
   @override
   State<Comments> createState() => _CommentsState();
@@ -111,6 +111,7 @@ class _CommentsState extends State<Comments> {
   }
 
   Widget _buildList() {
+    final user = context.select<UserProvider, User?>((value) => value.user);
     return ListView.separated(
       controller: _scrollController,
       itemBuilder: (_, index) {
@@ -131,7 +132,7 @@ class _CommentsState extends State<Comments> {
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                widget.user.avatar == null
+                user?.avatar == null
                     ? Card(
                       clipBehavior: Clip.hardEdge,
                       elevation: 0,
@@ -144,7 +145,7 @@ class _CommentsState extends State<Comments> {
                       ),
                     )
                     : BaseImage(
-                      url: widget.user.avatar!.url,
+                      url: user!.avatar!.url,
                       width: 64,
                       height: 64,
                       shape: CircleBorder(),
@@ -158,7 +159,7 @@ class _CommentsState extends State<Comments> {
                       Row(
                         children: [
                           Text(
-                            widget.user.name,
+                            user?.name ?? '',
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -191,7 +192,7 @@ class _CommentsState extends State<Comments> {
                             onTap:
                                 () => context.push(
                                   '/personal_sub_comments',
-                                  extra: {'comment': item, 'user': widget.user},
+                                  extra: {'comment': item, 'user': user},
                                 ),
                             borderRadius: BorderRadius.all(Radius.circular(99)),
                             child: Padding(

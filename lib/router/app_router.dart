@@ -214,11 +214,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/personal_comments',
       pageBuilder: (context, state) {
-        final user = state.extra as models.User;
         return customTransitionPage(
           context: context,
           state: state,
-          child: Comments(user: user),
+          child: const Comments(),
         );
       },
     ),
@@ -241,7 +240,7 @@ final GoRouter appRouter = GoRouter(
         return customTransitionPage(
           context: context,
           state: state,
-          child: Editor(),
+          child: const Editor(),
         );
       },
     ),
