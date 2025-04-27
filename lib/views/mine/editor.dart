@@ -9,7 +9,6 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
-import 'package:haka_comic/widgets/loader.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +22,9 @@ class Editor extends StatefulWidget {
 
 class _EditorState extends State<Editor> {
   late final _avatarUpdateHandler = updateAvatar.useRequest(
+    onBefore: (_) {
+      show();
+    },
     onSuccess: (data, _) {
       Toast.show(message: '头像更新成功');
       Log.info('Update avatar success', 'avatar');
@@ -31,6 +33,27 @@ class _EditorState extends State<Editor> {
     onError: (e, _) {
       Toast.show(message: '头像更新失败');
       Log.error('Update avatar error', e);
+    },
+    onFinally: (_) {
+      context.pop();
+    },
+  );
+
+  late final _sloganUpdateHandler = updateProfile.useRequest(
+    onBefore: (_) {
+      show();
+    },
+    onSuccess: (data, _) {
+      Toast.show(message: '自我介绍更新成功');
+      Log.info('Update slogan success', 'slogan');
+      context.read<UserProvider>().userProfileHandler.run();
+    },
+    onError: (e, _) {
+      Toast.show(message: '自我介绍更新失败');
+      Log.error('Update slogan error', e);
+    },
+    onFinally: (_) {
+      context.pop();
     },
   );
 
@@ -47,7 +70,7 @@ class _EditorState extends State<Editor> {
         final bytes = await File(pickedFile.path).readAsBytes();
         // 转换为 Base64
         final base64 = base64Encode(bytes);
-        _avatarUpdateHandler.run(base64);
+        await _avatarUpdateHandler.run(base64);
       }
     } catch (e) {
       Log.error("Error picking image", e);
@@ -55,20 +78,34 @@ class _EditorState extends State<Editor> {
     }
   }
 
-  void showSloganEditor() {
+  void show() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
+        return Center(child: const CircularProgressIndicator());
+      },
+    );
+  }
+
+  void showSloganEditor() async {
+    String slogan = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        var controller = TextEditingController();
         return SimpleDialog(
           contentPadding: const EdgeInsets.all(20),
           title: const Text('编辑'),
           children: [
             TextField(
+              controller: controller,
               minLines: 3,
               maxLines: 8,
               autofocus: true,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               onSubmitted: (s) {
+                slogan = s;
                 context.pop();
               },
             ),
@@ -81,7 +118,10 @@ class _EditorState extends State<Editor> {
                   child: const Text('取消'),
                 ),
                 TextButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () {
+                    slogan = controller.text;
+                    context.pop();
+                  },
                   child: const Text('确定'),
                 ),
               ],
@@ -90,15 +130,9 @@ class _EditorState extends State<Editor> {
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // 渲染第一帧
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   Loader.show();
-    // });
+    if (slogan.isNotEmpty) {
+      _sloganUpdateHandler.run(slogan);
+    }
   }
 
   @override

@@ -314,3 +314,8 @@ Future<void> updateAvatar(String base64) async {
     data: {"avatar": "data:image/jpeg;base64,$base64"},
   );
 }
+
+/// 更新简介
+Future<void> updateProfile(String slogan) async {
+  await Client.put('users/profile', data: {"slogan": slogan});
+}
