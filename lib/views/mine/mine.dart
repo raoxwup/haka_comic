@@ -27,12 +27,6 @@ class _MineState extends State<Mine> {
   }
 
   @override
-  void dispose() {
-    context.read<UserProvider>().handlerDispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final user = context.select<UserProvider, User?>((value) => value.user);
     final userProfileHandler = context.read<UserProvider>().userProfileHandler;

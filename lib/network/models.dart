@@ -1254,3 +1254,15 @@ class HotSearchWordsResponse {
 
   Map<String, dynamic> toJson() => _$HotSearchWordsResponseToJson(this);
 }
+
+class UpdatePasswordPayload {
+  final String oldPassword;
+  final String newPassword;
+
+  UpdatePasswordPayload({required this.oldPassword, required this.newPassword});
+
+  Map<String, dynamic> toJson() => {
+    'new_password': newPassword,
+    'old_password': oldPassword,
+  };
+}

@@ -232,6 +232,18 @@ Future<int> fetchComicShareId(String id) async {
   return json['shareId'] as int;
 }
 
+/// 根据分享ID获取漫画信息
+Future<String> fetchComicIdByShareId(String shareId) async {
+  final response = await Dio(
+    BaseOptions(responseType: ResponseType.json),
+  ).get<String>(
+    'https://recommend.go2778.com/pic/share/get',
+    queryParameters: {'shareId': shareId},
+  );
+  final json = jsonDecode(response.data ?? '{}');
+  return json['cid'] as String;
+}
+
 /// 获取个人信息
 Future<UserProfileResponse> fetchUserProfile() async {
   final response = await Client.get('users/profile');
@@ -318,4 +330,9 @@ Future<void> updateAvatar(String base64) async {
 /// 更新简介
 Future<void> updateProfile(String slogan) async {
   await Client.put('users/profile', data: {"slogan": slogan});
+}
+
+/// 更新密码
+Future<void> updatePassword(UpdatePasswordPayload payload) async {
+  await Client.put('users/password', data: payload.toJson());
 }

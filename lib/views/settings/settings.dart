@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
 import 'package:haka_comic/views/settings/theme_switch.dart';
@@ -52,6 +53,12 @@ class _SettingsState extends State<Settings> {
                 },
               );
             },
+          ),
+          TextButton(
+            onPressed: () {
+              logout();
+            },
+            child: Text('退出登录'),
           ),
         ],
       ),

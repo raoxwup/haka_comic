@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
+import 'package:haka_comic/views/home/share_dialog.dart';
 
 final List<dynamic> destinations = [
   {
@@ -18,7 +19,7 @@ final List<dynamic> destinations = [
                   .map(
                     (e) => IconButton(
                       tooltip: e['label'],
-                      onPressed: () => context.push(e['path']),
+                      onPressed: () => e['onPressed'](context),
                       icon: Icon(e['icon']),
                     ),
                   )
@@ -41,7 +42,7 @@ final List<dynamic> destinations = [
                   .map(
                     (e) => IconButton(
                       tooltip: e['label'],
-                      onPressed: () => context.push(e['path']),
+                      onPressed: () => e['onPressed'](context),
                       icon: Icon(e['icon']),
                     ),
                   )
@@ -50,9 +51,28 @@ final List<dynamic> destinations = [
   },
 ];
 
-const List<dynamic> actions = [
-  {"icon": Icons.search, "label": '搜索', "path": '/search'},
-  {"icon": Icons.settings, "label": '设置', "path": '/settings'},
+final List<dynamic> actions = [
+  {
+    "icon": Icons.search,
+    "label": '搜索',
+    "onPressed": (BuildContext context) {
+      context.push('/search');
+    },
+  },
+  {
+    "icon": Icons.content_paste_go,
+    "label": '漫画ID搜索',
+    "onPressed": (BuildContext context) {
+      showDialog(context: context, builder: (context) => const ShareDialog());
+    },
+  },
+  {
+    "icon": Icons.settings,
+    "label": '设置',
+    "onPressed": (BuildContext context) {
+      context.push('/settings');
+    },
+  },
 ];
 
 class AppNavigationBar extends StatefulWidget {
@@ -113,7 +133,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                       (e) => IconButton(
                         tooltip: e['label'],
                         icon: Icon(e['icon']),
-                        onPressed: () => context.push(e['path']),
+                        onPressed: () => e['onPressed'](context),
                       ),
                     )
                     .toList(),
