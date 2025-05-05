@@ -65,7 +65,6 @@ class _ShareDialogState extends State<ShareDialog> {
       children: [
         TextField(
           controller: _controller,
-          autofocus: true,
           decoration: const InputDecoration(border: OutlineInputBorder()),
         ),
         const SizedBox(height: 10),

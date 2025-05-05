@@ -396,14 +396,15 @@ class _ReaderState extends State<Reader> {
                   Expanded(
                     child: Row(
                       children: [
-                        TextButton(
+                        TextButton.icon(
                           onPressed: () {
                             Scaffold.of(context).openDrawer();
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: context.colorScheme.onSurface,
                           ),
-                          child: const Text('章节'),
+                          label: const Text('章节'),
+                          icon: const Icon(Icons.menu),
                         ),
                       ],
                     ),

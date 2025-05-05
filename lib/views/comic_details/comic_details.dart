@@ -265,83 +265,80 @@ class _ComicDetailsState extends State<ComicDetails> {
   }
 
   Widget _buildTitle(Comic? data) {
-    return SizedBox(
-      height: 180,
-      child: Row(
-        spacing: 10,
-        children: [
-          BaseImage(url: data?.thumb.url ?? '', aspectRatio: 0.7),
-          Expanded(
-            child: Column(
-              spacing: 8,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data?.title ?? '',
-                  style: context.textTheme.titleMedium,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                InkWell(
-                  onTap:
-                      (data?.author == null || data!.author.isEmpty)
-                          ? null
-                          : () => context.push('/comics?a=${data.author}'),
-                  child: Text(
-                    '作者: ${data?.author}',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colorScheme.primary,
-                    ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 10,
+      children: [
+        BaseImage(url: data?.thumb.url ?? '', height: 170, width: 115),
+        Expanded(
+          child: Column(
+            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                data?.title ?? '',
+                style: context.textTheme.titleMedium,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+              ),
+              InkWell(
+                onTap:
+                    (data?.author == null || data!.author.isEmpty)
+                        ? null
+                        : () => context.push('/comics?a=${data.author}'),
+                child: Text(
+                  '作者: ${data?.author}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.primary,
                   ),
                 ),
-                InkWell(
-                  onTap:
-                      (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
-                          ? null
-                          : () =>
-                              context.push('/comics?ct=${data.chineseTeam}'),
-                  child: Text(
-                    '汉化: ${data?.chineseTeam}',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colorScheme.primary,
-                    ),
+              ),
+              InkWell(
+                onTap:
+                    (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
+                        ? null
+                        : () => context.push('/comics?ct=${data.chineseTeam}'),
+                child: Text(
+                  '汉化: ${data?.chineseTeam}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.primary,
                   ),
                 ),
-                ComicShareId(id: widget.id),
-                Row(
-                  spacing: 10,
-                  children: [
-                    IconText(
-                      icon: Icon(Icons.favorite, size: 16, color: Colors.red),
-                      text: formatNumber(
-                        data?.totalLikes ?? data?.likesCount ?? 0,
-                      ),
+              ),
+              ComicShareId(id: widget.id),
+              Row(
+                spacing: 10,
+                children: [
+                  IconText(
+                    icon: Icon(Icons.favorite, size: 16, color: Colors.red),
+                    text: formatNumber(
+                      data?.totalLikes ?? data?.likesCount ?? 0,
                     ),
-                    IconText(
-                      icon: const Icon(
-                        Icons.visibility,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      text: formatNumber(
-                        data?.totalViews ?? data?.viewsCount ?? 0,
-                      ),
+                  ),
+                  IconText(
+                    icon: const Icon(
+                      Icons.visibility,
+                      size: 16,
+                      color: Colors.amber,
                     ),
-                    IconText(
-                      icon: const Icon(
-                        Icons.image,
-                        size: 16,
-                        color: Colors.green,
-                      ),
-                      text: formatNumber(data?.pagesCount ?? 0),
+                    text: formatNumber(
+                      data?.totalViews ?? data?.viewsCount ?? 0,
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  IconText(
+                    icon: const Icon(
+                      Icons.image,
+                      size: 16,
+                      color: Colors.green,
+                    ),
+                    text: formatNumber(data?.pagesCount ?? 0),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
