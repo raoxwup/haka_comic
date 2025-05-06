@@ -66,6 +66,30 @@ class _SettingsState extends State<Settings> {
           ),
           SizedBox(height: 20),
           Block(
+            title: '哔咔相关',
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('修改密码'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {},
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Block(
+            title: '通用',
+            children: [
+              ListTile(
+                leading: Icon(Icons.cleaning_services),
+                title: Text('清理缓存'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {},
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Block(
             children: [
               ListTile(
                 leading: Icon(Icons.logout),
@@ -118,10 +142,7 @@ class Block extends StatelessWidget {
       children: [
         if (title != null)
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 12.0,
-            ),
+            padding: const EdgeInsets.fromLTRB(12.0, 0, 12.0, 8.0),
             child: Text(
               title!,
               style: context.textTheme.bodySmall?.copyWith(
@@ -132,7 +153,7 @@ class Block extends StatelessWidget {
         Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: context.colorScheme.surfaceContainerLowest,
+            color: context.colorScheme.secondaryContainer,
             borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
           child: Material(
