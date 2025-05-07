@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
 import 'package:haka_comic/views/settings/theme_switch.dart';
 
@@ -77,17 +78,7 @@ class _SettingsState extends State<Settings> {
             ],
           ),
           SizedBox(height: 20),
-          Block(
-            title: '通用',
-            children: [
-              ListTile(
-                leading: Icon(Icons.cleaning_services),
-                title: Text('清理缓存'),
-                trailing: Icon(Icons.chevron_right),
-                onTap: () {},
-              ),
-            ],
-          ),
+          Block(title: '通用', children: [const ClearCache()]),
           SizedBox(height: 20),
           Block(
             children: [
@@ -153,7 +144,9 @@ class Block extends StatelessWidget {
         Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: context.colorScheme.secondaryContainer,
+            color: context.colorScheme.secondaryContainer.withValues(
+              alpha: 0.5,
+            ),
             borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
           child: Material(

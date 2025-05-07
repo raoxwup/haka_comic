@@ -25,6 +25,7 @@ dependencies:
   provider: ^6.1.4
   dynamic_color: ^1.7.0
   image_picker: ^1.1.2
+  flutter_cache_manager: ^3.4.1
 
 dev_dependencies:
   flutter_test:
