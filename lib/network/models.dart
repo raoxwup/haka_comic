@@ -1266,3 +1266,33 @@ class UpdatePasswordPayload {
     'old_password': oldPassword,
   };
 }
+
+class RegisterPayload {
+  final String birthday;
+  final String email;
+  final String gender;
+  final String name;
+  final String password;
+
+  RegisterPayload({
+    required this.birthday,
+    required this.email,
+    required this.gender,
+    required this.name,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'birthday': birthday,
+    'email': email,
+    'gender': gender,
+    'name': name,
+    'password': password,
+    'question1': '1',
+    'question2': '2',
+    'question3': '3',
+    'answer1': '4',
+    'answer2': '5',
+    'answer3': '6',
+  };
+}

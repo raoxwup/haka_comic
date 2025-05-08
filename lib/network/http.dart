@@ -336,3 +336,9 @@ Future<void> updateProfile(String slogan) async {
 Future<void> updatePassword(UpdatePasswordPayload payload) async {
   await Client.put('users/password', data: payload.toJson());
 }
+
+/// 注册
+Future<void> register(RegisterPayload payload) async {
+  final response = await Client.post('auth/register', data: payload.toJson());
+  print(response);
+}
