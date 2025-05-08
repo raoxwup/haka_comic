@@ -64,7 +64,7 @@ class Block extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: context.colorScheme.secondaryContainer.withValues(
-              alpha: 0.65,
+              alpha: 0.45,
             ),
             borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
