@@ -8,7 +8,55 @@ const secretKey =
     "~d}\$Q7\$eIni=V)9\\RK/P.RM4;9[7|@/CA}b~OW!3?EV`:<>M7pddUBL5n|0/*Cn";
 const nonce = "4ce7a7aa759b40f794d189a88b84aba8";
 
+/// 图片质量
 enum ImageQuality { low, medium, high, original }
+
+String getImageQualityDisplayName(ImageQuality quality) {
+  return switch (quality) {
+    ImageQuality.low => '低',
+    ImageQuality.medium => '中',
+    ImageQuality.high => '高',
+    ImageQuality.original => '原画',
+  };
+}
+
+ImageQuality getImageQuality(String name) {
+  return switch (name) {
+    'low' => ImageQuality.low,
+    'medium' => ImageQuality.medium,
+    'high' => ImageQuality.high,
+    'original' => ImageQuality.original,
+    _ => ImageQuality.original,
+  };
+}
+
+///选择分流
+enum Server { one, two, three }
+
+String getServerDisplayName(Server server) {
+  return switch (server) {
+    Server.one => '分流一',
+    Server.two => '分流二',
+    Server.three => '分流三',
+  };
+}
+
+String getServerName(Server server) {
+  return switch (server) {
+    Server.one => '1',
+    Server.two => '2',
+    Server.three => '3',
+  };
+}
+
+Server getServer(String name) {
+  return switch (name) {
+    '1' => Server.one,
+    '2' => Server.two,
+    '3' => Server.three,
+    _ => Server.one,
+  };
+}
 
 Map<String, String> defaultHeaders = {
   "accept": "application/vnd.picacomic.com.v1+json",
@@ -16,11 +64,9 @@ Map<String, String> defaultHeaders = {
   "Content-Type": "application/json; charset=UTF-8",
   "api-key": apiKey,
   "app-build-version": "45",
-  "app-channel": "1",
   "app-platform": "android",
   "app-uuid": "defaultUuid",
   "app-version": "2.2.1.3.3.4",
-  "image-quality": ImageQuality.original.name,
   "nonce": nonce,
 };
 
@@ -54,10 +100,13 @@ String getTimestamp() {
 Map<String, String> getHeaders(String url, Method method) {
   final timestamp = getTimestamp();
   final signature = getSignature(url, timestamp, nonce, method);
+  final conf = AppConf();
   return {
     ...defaultHeaders,
     "time": timestamp,
     "signature": signature,
-    "authorization": AppConf.instance.token,
+    "authorization": conf.token,
+    "app-channel": getServerName(conf.server),
+    "image-quality": conf.imageQuality.name,
   };
 }

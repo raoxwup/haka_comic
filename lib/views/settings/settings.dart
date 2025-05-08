@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
+import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
@@ -22,7 +24,14 @@ class _SettingsState extends State<Settings> {
         children: [
           Block(title: '外观', children: [const t.Theme()]),
           const SizedBox(height: 20),
-          Block(title: '哔咔相关', children: [const ChangePassword()]),
+          Block(
+            title: '哔咔相关',
+            children: [
+              const ChangePassword(),
+              const ChangeImageQuality(),
+              const ChangeServer(),
+            ],
+          ),
           const SizedBox(height: 20),
           Block(title: '通用', children: [const ClearCache()]),
           const SizedBox(height: 20),

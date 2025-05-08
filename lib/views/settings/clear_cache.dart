@@ -88,13 +88,21 @@ class _ClearCacheState extends State<ClearCache> {
     return ListTile(
       leading: Icon(Icons.cleaning_services),
       title: Text('清理缓存'),
-      subtitle: Text(
-        _isClearing
-            ? "清理中..."
-            : "缓存大小: ${_isCalculating ? '计算中...' : formatSize(_cacheSize)}",
-        style: const TextStyle(fontSize: 12),
+      trailing: Row(
+        spacing: 5.0,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _isClearing
+                ? "清理中..."
+                : _isCalculating
+                ? '计算中...'
+                : formatSize(_cacheSize),
+            style: const TextStyle(fontSize: 12),
+          ),
+          const Icon(Icons.chevron_right),
+        ],
       ),
-      trailing: Icon(Icons.chevron_right),
       onTap: () async {
         final bool? result = await showDialog(
           context: context,

@@ -21,10 +21,16 @@ class _ThemeState extends State<Theme> {
     return ListTile(
       leading: Icon(Icons.contrast),
       title: Text('主题模式'),
-      trailing: Icon(Icons.chevron_right),
-      subtitle: Text(
-        ThemeProvider.themeModeToString[themeMode] ?? 'System',
-        style: const TextStyle(fontSize: 12),
+      trailing: Row(
+        spacing: 5.0,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            ThemeProvider.themeModeToString[themeMode] ?? 'System',
+            style: const TextStyle(fontSize: 12),
+          ),
+          const Icon(Icons.chevron_right),
+        ],
       ),
       onTap: () {
         showModalBottomSheet(

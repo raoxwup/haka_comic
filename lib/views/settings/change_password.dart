@@ -7,14 +7,9 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
-class ChangePassword extends StatefulWidget {
+class ChangePassword extends StatelessWidget {
   const ChangePassword({super.key});
 
-  @override
-  State<ChangePassword> createState() => _ChangePasswordState();
-}
-
-class _ChangePasswordState extends State<ChangePassword> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -75,6 +70,7 @@ class _ChangePassWordDialogState extends State<ChangePassWordDialog> {
       children: [
         TextField(
           controller: controller,
+          autofocus: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             hintText: '新密码',
