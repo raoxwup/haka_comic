@@ -151,7 +151,7 @@ class _ComicDetailsState extends State<ComicDetails> {
             MenuAnchor(
               builder:
                   (context, controller, widget) => IconButton(
-                    icon: Icon(Icons.more_horiz),
+                    icon: const Icon(Icons.more_horiz),
                     onPressed: () {
                       if (controller.isOpen) {
                         controller.close();
@@ -162,7 +162,7 @@ class _ComicDetailsState extends State<ComicDetails> {
                   ),
               menuChildren: [
                 MenuItemButton(
-                  leadingIcon: Icon(Icons.copy),
+                  leadingIcon: const Icon(Icons.copy),
                   child: const Text('复制标题'),
                   onPressed: () async {
                     await Clipboard.setData(
@@ -236,14 +236,14 @@ class _ComicDetailsState extends State<ComicDetails> {
                   creator: data?.creator,
                   updatedAt: data?.updated_at,
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 _buildDescription(data),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 ChaptersList(
                   chapters: chaptersHandler.data ?? [],
                   startRead: _startRead,
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 _buildRecommendation(data),
               ],
             ),
@@ -310,7 +310,11 @@ class _ComicDetailsState extends State<ComicDetails> {
                 spacing: 10,
                 children: [
                   IconText(
-                    icon: Icon(Icons.favorite, size: 16, color: Colors.red),
+                    icon: const Icon(
+                      Icons.favorite,
+                      size: 16,
+                      color: Colors.red,
+                    ),
                     text: formatNumber(
                       data?.totalLikes ?? data?.likesCount ?? 0,
                     ),
@@ -353,16 +357,16 @@ class _ComicDetailsState extends State<ComicDetails> {
             children: [
               if (UiMode.notM1(context))
                 ActionChip(
-                  avatar: Icon(Icons.menu_book),
-                  shape: StadiumBorder(),
-                  label: Text('从头开始'),
+                  avatar: const Icon(Icons.menu_book),
+                  shape: const StadiumBorder(),
+                  label: const Text('从头开始'),
                   onPressed: () => _startRead(_chapters.first.id),
                 ),
               if (UiMode.notM1(context) && value != null)
                 ActionChip(
-                  avatar: Icon(Icons.bookmark),
-                  shape: StadiumBorder(),
-                  label: Text('继续阅读'),
+                  avatar: const Icon(Icons.bookmark),
+                  shape: const StadiumBorder(),
+                  label: const Text('继续阅读'),
                   onPressed: () => _startRead(value.chapterId, value.pageNo),
                 ),
               LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
@@ -371,8 +375,8 @@ class _ComicDetailsState extends State<ComicDetails> {
                 id: widget.id,
               ),
               ActionChip(
-                avatar: Icon(Icons.comment),
-                shape: StadiumBorder(),
+                avatar: const Icon(Icons.comment),
+                shape: const StadiumBorder(),
                 label: Text('${data?.commentsCount}'),
                 onPressed:
                     data?.allowComment ?? true
@@ -382,9 +386,9 @@ class _ComicDetailsState extends State<ComicDetails> {
                         : null,
               ),
               ActionChip(
-                avatar: Icon(Icons.download),
-                shape: StadiumBorder(),
-                label: Text('下载'),
+                avatar: const Icon(Icons.download),
+                shape: const StadiumBorder(),
+                label: const Text('下载'),
                 onPressed: () {},
               ),
             ],
@@ -431,7 +435,7 @@ class _ComicDetailsState extends State<ComicDetails> {
       valueListenable: _readRecordNotifier,
       builder: (context, value, child) {
         return value == null
-            ? SizedBox.shrink()
+            ? const SizedBox.shrink()
             : Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
               decoration: BoxDecoration(

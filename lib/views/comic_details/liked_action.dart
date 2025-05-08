@@ -75,8 +75,8 @@ class _LikedActionState extends State<LikedAction>
         scale: _animation,
         child: Icon(_isLiked ? Icons.favorite : Icons.favorite_border),
       ),
-      shape: StadiumBorder(),
-      label: Text('点赞'),
+      shape: const StadiumBorder(),
+      label: const Text('点赞'),
       onPressed: _handlePress,
     );
   }

@@ -13,9 +13,9 @@ class _LogoutState extends State<Logout> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.logout),
-      title: Text('退出登录'),
-      trailing: Icon(Icons.chevron_right),
+      leading: const Icon(Icons.logout),
+      title: const Text('退出登录'),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         final bool? result = await showDialog(
           context: context,

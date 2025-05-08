@@ -94,7 +94,7 @@ class _ThemeSwitchState extends State<ThemeSwitch>
     return Container(
       width: double.infinity,
       height: 50,
-      padding: EdgeInsets.all(5.0),
+      padding: const EdgeInsets.all(5.0),
       decoration: BoxDecoration(
         color: context.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(99),

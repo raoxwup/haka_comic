@@ -20,12 +20,12 @@ class _ListItemState extends State<ListItem> {
   Widget build(BuildContext context) {
     final item = widget.doc;
     return InkWell(
-      borderRadius: BorderRadius.all(Radius.circular(12)),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
       onTap: () {
         context.push('/details/${item.uid}');
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         child: Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,

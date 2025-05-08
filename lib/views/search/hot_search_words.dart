@@ -49,7 +49,7 @@ class _HotSearchWordsState extends State<HotSearchWords> {
   Widget build(BuildContext context) {
     final words = _handler.data?.keywords ?? [];
     return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: 150),
+      constraints: const BoxConstraints(minHeight: 150),
       child: BasePage(
         error: _handler.error,
         isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
@@ -58,7 +58,7 @@ class _HotSearchWordsState extends State<HotSearchWords> {
             (context) => Center(
               child: IconButton(
                 onPressed: _handler.refresh,
-                icon: Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh),
               ),
             ),
         child: Column(

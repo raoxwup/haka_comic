@@ -20,12 +20,12 @@ class _SearchListItemState extends State<SearchListItem> {
   Widget build(BuildContext context) {
     final item = widget.comic;
     return InkWell(
-      borderRadius: BorderRadius.all(Radius.circular(12)),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
       onTap: () {
         context.push('/details/${item.id}');
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         child: Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,

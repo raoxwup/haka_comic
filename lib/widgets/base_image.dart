@@ -74,7 +74,7 @@ class _BaseImageState extends State<BaseImage> {
                       onPressed: () {
                         keyNotifier.value = UniqueKey();
                       },
-                      icon: Icon(Icons.refresh),
+                      icon: const Icon(Icons.refresh),
                     ),
                   ),
               imageBuilder: widget.imageBuilder,

@@ -113,7 +113,7 @@ class _VerticalListState extends State<VerticalList>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 200),
     )..addListener(() {
       _transformationController.value = _animation.value;
     });

@@ -60,7 +60,7 @@ class _CommentInputState extends State<CommentInput> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: '评论',
-              border: OutlineInputBorder(borderSide: BorderSide.none),
+              border: const OutlineInputBorder(borderSide: BorderSide.none),
               filled: true,
               fillColor: context.colorScheme.surfaceContainerHighest,
             ),
@@ -70,7 +70,7 @@ class _CommentInputState extends State<CommentInput> {
           Row(
             spacing: 5,
             children: [
-              Spacer(),
+              const Spacer(),
               TextButton(
                 onPressed: () => context.pop(),
                 child: Text('取消', style: context.textTheme.bodyMedium),
@@ -85,7 +85,7 @@ class _CommentInputState extends State<CommentInput> {
                             SendCommentPayload(id: widget.id, content: content),
                           );
                         },
-                child: Text('发送'),
+                child: const Text('发送'),
               ),
             ],
           ),

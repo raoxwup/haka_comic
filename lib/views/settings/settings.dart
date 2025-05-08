@@ -22,20 +22,16 @@ class _SettingsState extends State<Settings> {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          Block(title: '外观', children: [const t.Theme()]),
+          const Block(title: '外观', children: [t.Theme()]),
           const SizedBox(height: 20),
-          Block(
+          const Block(
             title: '哔咔相关',
-            children: [
-              const ChangePassword(),
-              const ChangeImageQuality(),
-              const ChangeServer(),
-            ],
+            children: [ChangePassword(), ChangeImageQuality(), ChangeServer()],
           ),
           const SizedBox(height: 20),
-          Block(title: '通用', children: [const ClearCache()]),
+          const Block(title: '通用', children: [ClearCache()]),
           const SizedBox(height: 20),
-          Block(children: [const Logout()]),
+          const Block(children: [Logout()]),
         ],
       ),
     );

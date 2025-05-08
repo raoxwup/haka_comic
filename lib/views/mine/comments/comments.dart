@@ -136,11 +136,11 @@ class _CommentsState extends State<Comments> {
                     ? Card(
                       clipBehavior: Clip.hardEdge,
                       elevation: 0,
-                      shape: CircleBorder(),
+                      shape: const CircleBorder(),
                       child: Container(
                         width: 64,
                         height: 64,
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         child: Image.asset('assets/images/user.png'),
                       ),
                     )
@@ -148,7 +148,7 @@ class _CommentsState extends State<Comments> {
                       url: user!.avatar!.url,
                       width: 64,
                       height: 64,
-                      shape: CircleBorder(),
+                      shape: const CircleBorder(),
                     ),
                 Expanded(
                   child: Column(
@@ -194,7 +194,9 @@ class _CommentsState extends State<Comments> {
                                   '/personal_sub_comments',
                                   extra: {'comment': item, 'user': user},
                                 ),
-                            borderRadius: BorderRadius.all(Radius.circular(99)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(99),
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -204,7 +206,7 @@ class _CommentsState extends State<Comments> {
                                 spacing: 5,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.comment_outlined, size: 16),
+                                  const Icon(Icons.comment_outlined, size: 16),
                                   Text(
                                     (item.totalComments ?? item.commentsCount)
                                         .toString(),
@@ -231,7 +233,7 @@ class _CommentsState extends State<Comments> {
 
   Widget _buildLoader() {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child:
             hasMore
@@ -249,7 +251,7 @@ class _CommentsState extends State<Comments> {
       child: Column(
         spacing: 8,
         children: [
-          SizedBox(height: 80),
+          const SizedBox(height: 80),
           Image.asset('assets/images/icon_no_comment.png', width: 200),
           const Text('暂无评论'),
         ],

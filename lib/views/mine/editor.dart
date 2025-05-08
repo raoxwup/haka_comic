@@ -83,7 +83,7 @@ class _EditorState extends State<Editor> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return Center(child: const CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }
@@ -112,7 +112,7 @@ class _EditorState extends State<Editor> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Spacer(),
+                const Spacer(),
                 TextButton(
                   onPressed: () => context.pop(),
                   child: const Text('取消'),
@@ -145,7 +145,7 @@ class _EditorState extends State<Editor> {
   Widget build(BuildContext context) {
     final user = context.select<UserProvider, User?>((value) => value.user);
     return Scaffold(
-      appBar: AppBar(title: Text('编辑')),
+      appBar: AppBar(title: const Text('编辑')),
       body: ListView(
         children: [
           ListItem(
@@ -155,7 +155,7 @@ class _EditorState extends State<Editor> {
               url: user?.avatar?.url ?? '',
               width: 64,
               height: 64,
-              shape: CircleBorder(),
+              shape: const CircleBorder(),
             ),
           ),
           ListItem(
@@ -186,7 +186,7 @@ class _EditorState extends State<Editor> {
               user?.slogan ?? '',
               style: context.textTheme.bodySmall,
             ),
-            trailing: Icon(Icons.edit_outlined),
+            trailing: const Icon(Icons.edit_outlined),
             onTap: showSloganEditor,
           ),
         ],

@@ -81,7 +81,7 @@ class _CategoriesState extends State<Categories> {
         crossAxisSpacing: 3,
         childAspectRatio: 1 / 1.3,
       ),
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       itemCount: extraMenus.length + categories.length,
       itemBuilder: (context, index) {
         if (index < extraMenus.length) return _buildMenuItem(extraMenus[index]);

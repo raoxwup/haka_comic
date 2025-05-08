@@ -19,8 +19,8 @@ class _ThemeState extends State<Theme> {
       (data) => data.themeMode,
     );
     return ListTile(
-      leading: Icon(Icons.contrast),
-      title: Text('主题模式'),
+      leading: const Icon(Icons.contrast),
+      title: const Text('主题模式'),
       trailing: Row(
         spacing: 5.0,
         mainAxisSize: MainAxisSize.min,
@@ -35,11 +35,11 @@ class _ThemeState extends State<Theme> {
       onTap: () {
         showModalBottomSheet(
           context: context,
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
           useSafeArea: true,
-          constraints: BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 400),
           isScrollControlled: true,
           builder: (context) {
             return Padding(
@@ -47,16 +47,16 @@ class _ThemeState extends State<Theme> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ThemeIcon(),
-                  SizedBox(height: 20),
+                  const ThemeIcon(),
+                  const SizedBox(height: 20),
                   Text('选择主题模式', style: context.textTheme.titleMedium),
                   Text(
                     '选择System，亮暗模式会随着系统模式的变化而变化',
                     style: context.textTheme.bodySmall,
                   ),
-                  SizedBox(height: 20),
-                  ThemeSwitch(),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                  const ThemeSwitch(),
+                  const SizedBox(height: 20),
                 ],
               ),
             );

@@ -133,7 +133,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
               children: [
                 Text('评论', style: context.textTheme.bodySmall),
                 const Spacer(),
-                Icon(Icons.send, size: 16),
+                const Icon(Icons.send, size: 16),
               ],
             ),
           ),
@@ -187,11 +187,11 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                                   ? Card(
                                     clipBehavior: Clip.hardEdge,
                                     elevation: 0,
-                                    shape: CircleBorder(),
+                                    shape: const CircleBorder(),
                                     child: Container(
                                       width: 40,
                                       height: 40,
-                                      padding: EdgeInsets.all(5),
+                                      padding: const EdgeInsets.all(5),
                                       child: Image.asset(
                                         'assets/images/user.png',
                                       ),
@@ -201,7 +201,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                                     url: item.user.avatar!.url,
                                     width: 40,
                                     height: 40,
-                                    shape: CircleBorder(),
+                                    shape: const CircleBorder(),
                                   ),
                         ),
                       ),
@@ -257,7 +257,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
 
   Widget _buildLoader() {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child:
             _hasMore
@@ -293,11 +293,11 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                             ? Card(
                               clipBehavior: Clip.hardEdge,
                               elevation: 0,
-                              shape: CircleBorder(),
+                              shape: const CircleBorder(),
                               child: Container(
                                 width: 40,
                                 height: 40,
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 child: Image.asset('assets/images/user.png'),
                               ),
                             )
@@ -305,7 +305,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
                               url: comment.user.avatar!.url,
                               width: 40,
                               height: 40,
-                              shape: CircleBorder(),
+                              shape: const CircleBorder(),
                             ),
                   ),
                 ),
@@ -347,7 +347,7 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(),
+      shape: const RoundedRectangleBorder(),
       builder:
           (context) => CommentInput(
             id: widget.comment.id,

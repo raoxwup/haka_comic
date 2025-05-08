@@ -73,7 +73,7 @@ class _ThumbUpState extends State<ThumbUp> {
       onTap: () {
         _handler.run(widget.id);
       },
-      borderRadius: BorderRadius.all(Radius.circular(99)),
+      borderRadius: const BorderRadius.all(Radius.circular(99)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         child: Row(

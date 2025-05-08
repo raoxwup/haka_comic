@@ -97,7 +97,7 @@ class _SearchComicsState extends State<SearchComics> {
                     _searchController.clear();
                   }
                 },
-                icon: Icon(Icons.close),
+                icon: const Icon(Icons.close),
               ),
             ),
             onSubmitted: (value) {

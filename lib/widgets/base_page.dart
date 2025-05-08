@@ -42,7 +42,7 @@ class _BasePageState extends State<BasePage> {
         : widget.isLoading
         ? widget.indicatorBuilder != null
             ? widget.indicatorBuilder!(context)
-            : Center(child: CircularProgressIndicator())
+            : const Center(child: CircularProgressIndicator())
         : widget.child;
   }
 }

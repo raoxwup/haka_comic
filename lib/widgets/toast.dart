@@ -41,8 +41,8 @@ class Toast {
           textStyle:
               textStyle ??
               (brightness == Brightness.light
-                  ? TextStyle(color: Colors.white, fontSize: 14)
-                  : TextStyle(color: Colors.black87, fontSize: 14)),
+                  ? const TextStyle(color: Colors.white, fontSize: 14)
+                  : const TextStyle(color: Colors.black87, fontSize: 14)),
           padding: padding,
           borderRadius: borderRadius,
         );

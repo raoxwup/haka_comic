@@ -56,7 +56,7 @@ class _SearchState extends State<Search> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: history.isEmpty ? 0 : 20,
             children: [
-              SearchHistory(),
+              const SearchHistory(),
               HotSearchWords(
                 isRouteAnimationCompleted: isRouteAnimationCompleted,
               ),

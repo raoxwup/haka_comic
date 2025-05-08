@@ -86,8 +86,8 @@ class _ClearCacheState extends State<ClearCache> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.cleaning_services),
-      title: Text('清理缓存'),
+      leading: const Icon(Icons.cleaning_services),
+      title: const Text('清理缓存'),
       trailing: Row(
         spacing: 5.0,
         mainAxisSize: MainAxisSize.min,

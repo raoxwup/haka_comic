@@ -34,10 +34,10 @@ class _ChaptersListState extends State<ChaptersList> {
     );
   }
 
-  Widget _buildCircularProgressIndicator() => SizedBox(
+  Widget _buildCircularProgressIndicator() => const SizedBox(
     height: 200,
     width: double.infinity,
-    child: Center(child: const CircularProgressIndicator()),
+    child: Center(child: CircularProgressIndicator()),
   );
 
   Widget _buildChapterList() {
@@ -78,7 +78,7 @@ class _ChaptersListState extends State<ChaptersList> {
           },
         ),
         if (widget.chapters.length > 40)
-          SliverToBoxAdapter(child: SizedBox(height: 10)),
+          const SliverToBoxAdapter(child: SizedBox(height: 10)),
         if (widget.chapters.length > 40)
           SliverToBoxAdapter(
             child: Center(

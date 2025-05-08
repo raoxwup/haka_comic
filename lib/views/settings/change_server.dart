@@ -48,8 +48,8 @@ class _ChangeServerState extends State<ChangeServer> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.swap_horiz),
-      title: Text('切换分流'),
+      leading: const Icon(Icons.swap_horiz),
+      title: const Text('切换分流'),
       trailing: Row(
         spacing: 5.0,
         mainAxisSize: MainAxisSize.min,

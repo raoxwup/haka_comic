@@ -45,7 +45,7 @@ class _MineState extends State<Mine> {
             title: '我的下载',
             route: '/downloads',
           ),
-          _MenuItem(
+          const _MenuItem(
             icon: Icons.comment,
             title: '我的评论',
             route: '/personal_comments',
@@ -148,7 +148,7 @@ class ProFile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Text(
@@ -165,7 +165,7 @@ class ProFile extends StatelessWidget {
             top: 10 + context.top,
             child: IconButton(
               onPressed: () => context.push('/personal_editor'),
-              icon: Icon(Icons.drive_file_rename_outline),
+              icon: const Icon(Icons.drive_file_rename_outline),
             ),
           ),
         ],

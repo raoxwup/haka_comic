@@ -113,7 +113,7 @@ class IconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(radius, radius);
+    final center = const Offset(radius, radius);
 
     // 绘制渐变背景
     final gradient = LinearGradient(

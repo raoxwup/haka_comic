@@ -74,10 +74,10 @@ void showCreator(BuildContext context, Creator? creator) {
     context: context,
     builder: (context) {
       return SimpleDialog(
-        contentPadding: EdgeInsets.all(20),
+        contentPadding: const EdgeInsets.all(20),
         children: [
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               spacing: 4,
               children: [
@@ -87,11 +87,11 @@ void showCreator(BuildContext context, Creator? creator) {
                     ? Card(
                       clipBehavior: Clip.hardEdge,
                       elevation: 0,
-                      shape: CircleBorder(),
+                      shape: const CircleBorder(),
                       child: Container(
                         width: 110,
                         height: 110,
-                        padding: EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(10),
                         child: Image.asset('assets/images/user.png'),
                       ),
                     )
@@ -99,10 +99,10 @@ void showCreator(BuildContext context, Creator? creator) {
                       url: creator?.avatar?.url ?? '',
                       width: 110,
                       height: 110,
-                      shape: CircleBorder(),
+                      shape: const CircleBorder(),
                     ),
                 Text(creator?.slogan ?? '暂无简介'),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   spacing: 2,
                   mainAxisAlignment: MainAxisAlignment.end,

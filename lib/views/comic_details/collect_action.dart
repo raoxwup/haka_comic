@@ -75,8 +75,8 @@ class _CollectActionState extends State<CollectAction>
         scale: _animation,
         child: Icon(_isFavorite ? Icons.star : Icons.star_outline),
       ),
-      shape: StadiumBorder(),
-      label: Text('收藏'),
+      shape: const StadiumBorder(),
+      label: const Text('收藏'),
       onPressed: _handlePress,
     );
   }

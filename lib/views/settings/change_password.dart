@@ -65,8 +65,8 @@ class _ChangePassWordDialogState extends State<ChangePassWordDialog> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      contentPadding: EdgeInsets.all(20),
-      title: Text('修改密码'),
+      contentPadding: const EdgeInsets.all(20),
+      title: const Text('修改密码'),
       children: [
         TextField(
           controller: controller,

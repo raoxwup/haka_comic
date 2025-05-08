@@ -136,7 +136,7 @@ class _CommentsPageState extends State<CommentsPage> {
               children: [
                 Text('评论', style: context.textTheme.bodySmall),
                 const Spacer(),
-                Icon(Icons.send, size: 16),
+                const Icon(Icons.send, size: 16),
               ],
             ),
           ),
@@ -157,7 +157,7 @@ class _CommentsPageState extends State<CommentsPage> {
       child: Column(
         spacing: 8,
         children: [
-          SizedBox(height: 80),
+          const SizedBox(height: 80),
           Image.asset('assets/images/icon_no_comment.png', width: 200),
           const Text('暂无评论'),
         ],
@@ -193,11 +193,11 @@ class _CommentsPageState extends State<CommentsPage> {
                           ? Card(
                             clipBehavior: Clip.hardEdge,
                             elevation: 0,
-                            shape: CircleBorder(),
+                            shape: const CircleBorder(),
                             child: Container(
                               width: 40,
                               height: 40,
-                              padding: EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(5),
                               child: Image.asset('assets/images/user.png'),
                             ),
                           )
@@ -205,7 +205,7 @@ class _CommentsPageState extends State<CommentsPage> {
                             url: item.user.avatar!.url,
                             width: 40,
                             height: 40,
-                            shape: CircleBorder(),
+                            shape: const CircleBorder(),
                           ),
                 ),
               ),
@@ -237,7 +237,9 @@ class _CommentsPageState extends State<CommentsPage> {
                         InkWell(
                           onTap:
                               () => context.push('/sub_comments', extra: item),
-                          borderRadius: BorderRadius.all(Radius.circular(99)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(99),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -247,7 +249,7 @@ class _CommentsPageState extends State<CommentsPage> {
                               spacing: 5,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.comment_outlined, size: 16),
+                                const Icon(Icons.comment_outlined, size: 16),
                                 Text(
                                   (item.totalComments ?? item.commentsCount)
                                       .toString(),
@@ -272,7 +274,7 @@ class _CommentsPageState extends State<CommentsPage> {
 
   Widget _buildLoader() {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child:
             _hasMore
@@ -289,7 +291,7 @@ class _CommentsPageState extends State<CommentsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(),
+      shape: const RoundedRectangleBorder(),
       builder:
           (context) => CommentInput(
             id: widget.id,

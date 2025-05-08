@@ -45,8 +45,8 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('排序方式'),
-      contentPadding: EdgeInsets.all(20),
+      title: const Text('排序方式'),
+      contentPadding: const EdgeInsets.all(20),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
