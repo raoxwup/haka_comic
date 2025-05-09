@@ -7,6 +7,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SetupConf {
   static late String dataPath;
+  static late String documentsPath;
 
   static Future<void> initialize() async {
     await Future.wait([initPath()]);
@@ -14,5 +15,6 @@ class SetupConf {
 
   static Future<void> initPath() async {
     dataPath = (await getApplicationSupportDirectory()).path;
+    documentsPath = (await getApplicationDocumentsDirectory()).path;
   }
 }
