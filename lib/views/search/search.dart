@@ -39,7 +39,7 @@ class _SearchState extends State<Search> {
                     _searchController.clear();
                   }
                 },
-                icon: Icon(Icons.close),
+                icon: const Icon(Icons.close),
               ),
             ),
             onSubmitted: (value) {

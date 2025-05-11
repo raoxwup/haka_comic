@@ -13,9 +13,9 @@ class ChangePassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.edit),
-      title: Text('修改密码'),
-      trailing: Icon(Icons.chevron_right),
+      leading: const Icon(Icons.edit),
+      title: const Text('修改密码'),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () {
         showDialog(
           context: context,
