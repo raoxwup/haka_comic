@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'package:dio/dio.dart';
-import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:path/path.dart' as p;

@@ -5,6 +5,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -389,7 +390,19 @@ class _ComicDetailsState extends State<ComicDetails> {
                 avatar: const Icon(Icons.download),
                 shape: const StadiumBorder(),
                 label: const Text('下载'),
-                onPressed: () {},
+                onPressed: () {
+                  context.push(
+                    '/downloader',
+                    extra: {
+                      'chapters': _chapters,
+                      'downloadComic': DownloadComic(
+                        id: widget.id,
+                        title: data?.title ?? '',
+                        cover: data?.thumb.url ?? '',
+                      ),
+                    },
+                  );
+                },
               ),
             ],
           );

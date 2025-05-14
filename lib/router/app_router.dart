@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart' as models;
+import 'package:haka_comic/utils/download_manager.dart';
 // import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
+import 'package:haka_comic/views/comic_details/downloader.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/comics/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
@@ -241,6 +243,20 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: const Editor(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/downloader',
+      pageBuilder: (context, state) {
+        final extra = state.extra as Map;
+        final DownloadComic downloadComic =
+            extra['downloadComic'] as DownloadComic;
+        final chapters = extra['chapters'] as List<models.Chapter>;
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: Downloader(chapters: chapters, downloadComic: downloadComic),
         );
       },
     ),
