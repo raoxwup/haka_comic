@@ -1,18 +1,23 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-void _downloadIsolateEntry(SendPort sendPort) {
+void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
+  final (sendPort, rootToken) = args;
+  BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
+
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 
   final List<ComicDownloadTask> tasks = [];
   final dio = Dio();
-  final cancelToken = CancelToken();
+  var cancelToken = CancelToken();
+  late final String token;
 
   Future<void> downloadImage(String url, String path) async {
     const maxRetries = 3;
@@ -29,10 +34,7 @@ void _downloadIsolateEntry(SendPort sendPort) {
 
   void download(ComicDownloadTask task) async {
     int i = 0;
-    final dirPath =
-        (await getDownloadsDirectory())?.path ??
-        (await getApplicationDocumentsDirectory()).path;
-
+    final dirPath = (await getApplicationDocumentsDirectory()).path;
     for (var chapter in task.chapters) {
       for (var image in chapter.images) {
         if (i++ < task.completed) {
@@ -53,8 +55,9 @@ void _downloadIsolateEntry(SendPort sendPort) {
 
   Future<void> chapterInitialize(DownloadChapter chapter, String id) async {
     if (chapter.images.isNotEmpty) return;
-    final response = await fetchChapterImages(
+    final response = await fetchChapterImagesIsolate(
       FetchChapterImagesPayload(id: id, order: chapter.order),
+      token,
     );
     chapter.images.addAll(response.map((e) => e.media));
   }
@@ -82,6 +85,8 @@ void _downloadIsolateEntry(SendPort sendPort) {
   receivePort.listen((message) {
     if (message is ComicDownloadTask) {
       add(message);
+    } else if (message is String) {
+      token = message;
     }
   });
 }
@@ -90,13 +95,16 @@ class DownloadManager {
   static final ReceivePort mainReceivePort = ReceivePort();
   static late final Isolate workerIsolate;
   static late final SendPort workerSendPort;
+  static final rootToken = RootIsolateToken.instance!;
 
   static Future<void> initialize() async {
     final completer = Completer<void>();
-    workerIsolate = await Isolate.spawn(
-      _downloadIsolateEntry,
+    final directory = await getApplicationDocumentsDirectory();
+    print(directory.path);
+    workerIsolate = await Isolate.spawn(_downloadIsolateEntry, (
       mainReceivePort.sendPort,
-    );
+      rootToken,
+    ));
 
     mainReceivePort.listen((message) {
       if (message is SendPort) {

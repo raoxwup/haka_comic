@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:haka_comic/network/cache.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/network/utils.dart';
 
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
@@ -341,4 +342,65 @@ Future<void> updatePassword(UpdatePasswordPayload payload) async {
 Future<void> register(RegisterPayload payload) async {
   final response = await Client.post('auth/register', data: payload.toJson());
   print(response);
+}
+
+/// 获取章节图片Isolate版
+Future<List<ChapterImage>> fetchChapterImagesIsolate(
+  FetchChapterImagesPayload payload,
+  String token,
+) async {
+  List<ChapterImage> images = [];
+  int page = 1;
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: host,
+      responseType: ResponseType.json,
+      connectTimeout: const Duration(seconds: 10),
+      validateStatus: (status) {
+        return status == 200 || status == 400 || status == 401;
+      },
+    ),
+  );
+  final url = 'comics/${payload.id}/order/${payload.order}/pages';
+  final timestamp = getTimestamp();
+  final signature = getSignature(
+    '$url?page=$page',
+    timestamp,
+    nonce,
+    Method.get,
+  );
+  dio.options.headers = {
+    ...defaultHeaders,
+    "time": timestamp,
+    "signature": signature,
+    "authorization": token,
+    "app-channel": '1',
+    "image-quality": 'original',
+  };
+  final response = await dio.get(url, queryParameters: {'page': page});
+  if (response.statusCode != 200) {
+    throw Exception('Failed to load chapter images');
+  }
+  final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
+    response.data,
+    (data) => FetchChapterImagesResponse.fromJson(data),
+  );
+  images.addAll(data.data.pages.docs);
+  final pages = data.data.pages;
+
+  final requests = List.generate(
+    pages.pages - 1,
+    (index) => Client.get(url, query: {'page': index + 2}),
+  );
+  final responses = await Future.wait(requests);
+
+  for (var response in responses) {
+    final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
+      response,
+      (data) => FetchChapterImagesResponse.fromJson(data),
+    );
+    images.addAll(data.data.pages.docs);
+  }
+
+  return images;
 }

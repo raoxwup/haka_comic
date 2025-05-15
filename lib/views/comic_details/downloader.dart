@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 
@@ -23,6 +24,7 @@ class _DownloaderState extends State<Downloader> {
   void startDownload(List<Chapter> chapters) async {
     print(jsonEncode(chapters));
     await DownloadManager.initialize();
+    DownloadManager.workerSendPort.send(AppConf().token);
     DownloadManager.workerSendPort.send(
       ComicDownloadTask(
         comic: widget.downloadComic,
