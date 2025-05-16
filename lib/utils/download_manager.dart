@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
   final (sendPort, rootToken) = args;
@@ -14,12 +16,24 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 
-  final List<ComicDownloadTask> tasks = [];
-  final dio = Dio();
-  var cancelToken = CancelToken();
-  late final String token;
+  receivePort.listen((message) {
+    if (message is ComicDownloadTask) {
+      _ComicDownloader.add(message);
+    }
+  });
+}
 
-  Future<void> downloadImage(String url, String path) async {
+class _ComicDownloader {
+  static final List<ComicDownloadTask> tasks = [];
+  static final dio = Dio();
+
+  static final Map<String, CancelToken> _cancelTokens = <String, CancelToken>{};
+
+  static Future<void> _downloadImage(
+    String url,
+    String path,
+    CancelToken? cancelToken,
+  ) async {
     const maxRetries = 3;
     for (var i = 0; i < maxRetries; i++) {
       try {
@@ -27,12 +41,12 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
         return;
       } catch (e) {
         if (i == maxRetries - 1) rethrow;
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(Duration(seconds: 2 * i));
       }
     }
   }
 
-  void download(ComicDownloadTask task) async {
+  static Future<void> download(ComicDownloadTask task) async {
     int i = 0;
     final dirPath = (await getApplicationDocumentsDirectory()).path;
     for (var chapter in task.chapters) {
@@ -43,18 +57,29 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
         final path = p.join(
           dirPath,
           'comics',
-          task.comic.title,
-          chapter.title,
+          sanitizeFileName(task.comic.title),
+          sanitizeFileName(chapter.title),
           image.originalName,
         );
-        await downloadImage(image.url, path);
+        await _downloadImage(image.url, path, _cancelTokens[task.comic.id]);
         task.completed++;
       }
     }
   }
 
-  Future<void> chapterInitialize(DownloadChapter chapter, String id) async {
+  static Future<void> chapterInitialize(
+    DownloadChapter chapter,
+    String id,
+  ) async {
     if (chapter.images.isNotEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('token is null');
+    }
+
     final response = await fetchChapterImagesIsolate(
       FetchChapterImagesPayload(id: id, order: chapter.order),
       token,
@@ -62,7 +87,7 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
     chapter.images.addAll(response.map((e) => e.media));
   }
 
-  Future<void> update(ComicDownloadTask task) async {
+  static Future<void> update(ComicDownloadTask task) async {
     task.total = 0;
     for (var chapter in task.chapters) {
       await chapterInitialize(chapter, task.comic.id);
@@ -71,49 +96,55 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) {
     download(task);
   }
 
-  void add(ComicDownloadTask task) {
+  static void add(ComicDownloadTask task) {
     final index = tasks.indexWhere((t) => task.comic.id == t.comic.id);
     if (index != -1) {
       tasks[index].chapters.addAll(task.chapters);
       update(tasks[index]);
     } else {
+      _cancelTokens[task.comic.id] = CancelToken();
       tasks.add(task);
       update(task);
     }
   }
 
-  receivePort.listen((message) {
-    if (message is ComicDownloadTask) {
-      add(message);
-    } else if (message is String) {
-      token = message;
-    }
-  });
+  static void pause(ComicDownloadTask task) {
+    _cancelTokens[task.comic.id]?.cancel();
+    _cancelTokens[task.comic.id] = CancelToken();
+  }
 }
 
 class DownloadManager {
-  static final ReceivePort mainReceivePort = ReceivePort();
-  static late final Isolate workerIsolate;
-  static late final SendPort workerSendPort;
-  static final rootToken = RootIsolateToken.instance!;
+  static final ReceivePort _mainReceivePort = ReceivePort();
+  static late final Isolate _workerIsolate;
+  static late final SendPort _workerSendPort;
+  static final _rootToken = RootIsolateToken.instance!;
 
   static Future<void> initialize() async {
     final completer = Completer<void>();
-    final directory = await getApplicationDocumentsDirectory();
-    print(directory.path);
-    workerIsolate = await Isolate.spawn(_downloadIsolateEntry, (
-      mainReceivePort.sendPort,
-      rootToken,
+
+    _workerIsolate = await Isolate.spawn(_downloadIsolateEntry, (
+      _mainReceivePort.sendPort,
+      _rootToken,
     ));
 
-    mainReceivePort.listen((message) {
+    _mainReceivePort.listen((message) {
       if (message is SendPort) {
-        workerSendPort = message;
+        _workerSendPort = message;
         completer.complete();
       }
     });
 
     return completer.future;
+  }
+
+  static void addTask(ComicDownloadTask task) {
+    _workerSendPort.send(task);
+  }
+
+  static void dispose() {
+    _mainReceivePort.close();
+    _workerIsolate.kill();
   }
 }
 

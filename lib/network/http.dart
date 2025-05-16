@@ -379,7 +379,7 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
   };
   final response = await dio.get(url, queryParameters: {'page': page});
   if (response.statusCode != 200) {
-    throw Exception('Failed to load chapter images');
+    throw Exception('获取章节图片失败');
   }
   final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
     response.data,

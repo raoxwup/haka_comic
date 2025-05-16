@@ -3,6 +3,7 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/utils/download_manager.dart';
 
 class StartupPrepare {
   /// 初始化
@@ -12,6 +13,7 @@ class StartupPrepare {
       HistoryHelper().initialize(),
       ImagesHelper.initialize(),
       ReadRecordHelper().initialize(),
+      DownloadManager.initialize(),
     ]);
   }
 }
