@@ -27,11 +27,9 @@ class _DownloaderState extends State<Downloader> {
             chapters
                 .map(
                   (chapter) => DownloadChapter(
-                    uid: chapter.uid,
+                    id: chapter.uid,
                     title: chapter.title,
                     order: chapter.order,
-                    updated_at: chapter.updated_at,
-                    id: chapter.id,
                   ),
                 )
                 .toList(),

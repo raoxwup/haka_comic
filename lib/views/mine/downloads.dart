@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -13,16 +14,23 @@ class Downloads extends StatefulWidget {
 
 class _DownloadsState extends State<Downloads> {
   List<ComicDownloadTask> tasks = [];
+  late StreamSubscription _subscription;
 
   @override
   void initState() {
     super.initState();
-    DownloadManager.streamController.stream.listen(
+    _subscription = DownloadManager.streamController.stream.listen(
       (event) => setState(() {
         tasks = event;
       }),
     );
     DownloadManager.getTasks();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -50,37 +58,48 @@ class _DownloadsState extends State<Downloads> {
                 key: ValueKey(task.comic.id),
                 width: double.infinity,
                 height: 170,
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    BaseImage(url: task.comic.cover, aspectRatio: 13 / 17),
-                    Expanded(
-                      child: Column(
-                        spacing: 5,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            task.comic.title,
-                            style: context.textTheme.titleSmall,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      BaseImage(url: task.comic.cover, aspectRatio: 13 / 17),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Column(
+                            spacing: 5,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                task.comic.title,
+                                style: context.textTheme.titleMedium,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${task.completed} / ${task.total}',
+                                    style: context.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                              LinearProgressIndicator(
+                                value:
+                                    task.total == 0
+                                        ? null
+                                        : task.completed / task.total,
+                              ),
+                            ],
                           ),
-                          const Spacer(),
-                          LinearProgressIndicator(
-                            value:
-                                task.total == 0
-                                    ? null
-                                    : task.completed / task.total,
-                            semanticsLabel:
-                                task.total == 0
-                                    ? 'Loading...'
-                                    : '${task.completed} / ${task.total}',
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

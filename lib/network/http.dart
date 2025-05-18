@@ -344,14 +344,8 @@ Future<void> register(RegisterPayload payload) async {
   print(response);
 }
 
-/// 获取章节图片Isolate版
-Future<List<ChapterImage>> fetchChapterImagesIsolate(
-  FetchChapterImagesPayload payload,
-  String token,
-) async {
-  List<ChapterImage> images = [];
-  int page = 1;
-  final dio = Dio(
+class DownloadIsolateClient {
+  static final _dio = Dio(
     BaseOptions(
       baseUrl: host,
       responseType: ResponseType.json,
@@ -361,26 +355,49 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
       },
     ),
   );
-  final url = 'comics/${payload.id}/order/${payload.order}/pages';
-  final timestamp = getTimestamp();
-  final signature = getSignature(
-    '$url?page=$page',
-    timestamp,
-    nonce,
-    Method.get,
-  );
-  dio.options.headers = {
-    ...defaultHeaders,
-    "time": timestamp,
-    "signature": signature,
-    "authorization": token,
-    "app-channel": '1',
-    "image-quality": 'original',
-  };
-  final response = await dio.get(url, queryParameters: {'page': page});
-  if (response.statusCode != 200) {
-    throw Exception('获取章节图片失败');
+
+  static Future<Response> get(
+    String url,
+    String token, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final timestamp = getTimestamp();
+    final signature = getSignature(
+      '$url?page=${queryParameters?['page'] ?? 1}',
+      timestamp,
+      nonce,
+      Method.get,
+    );
+    _dio.options.headers = {
+      ...defaultHeaders,
+      "time": timestamp,
+      "signature": signature,
+      "app-channel": '1',
+      "image-quality": 'original',
+      "authorization": token,
+    };
+    final response = await _dio.get(url, queryParameters: queryParameters);
+    if (response.statusCode != 200) {
+      throw Exception('获取章节图片失败');
+    }
+    return response;
   }
+}
+
+/// 获取章节图片Isolate版
+Future<List<ChapterImage>> fetchChapterImagesIsolate(
+  FetchChapterImagesPayload payload,
+  String token,
+) async {
+  List<ChapterImage> images = [];
+  int page = 1;
+  final url = 'comics/${payload.id}/order/${payload.order}/pages';
+  final response = await DownloadIsolateClient.get(
+    url,
+    token,
+    queryParameters: {'page': page},
+  );
+
   final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
     response.data,
     (data) => FetchChapterImagesResponse.fromJson(data),
@@ -390,13 +407,17 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
 
   final requests = List.generate(
     pages.pages - 1,
-    (index) => Client.get(url, query: {'page': index + 2}),
+    (index) => DownloadIsolateClient.get(
+      url,
+      token,
+      queryParameters: {'page': index + 2},
+    ),
   );
   final responses = await Future.wait(requests);
 
   for (var response in responses) {
     final data = BaseResponse<FetchChapterImagesResponse>.fromJson(
-      response,
+      response.data,
       (data) => FetchChapterImagesResponse.fromJson(data),
     );
     images.addAll(data.data.pages.docs);
