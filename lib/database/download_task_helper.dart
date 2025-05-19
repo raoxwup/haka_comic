@@ -75,7 +75,11 @@ class DownloadTaskHelper {
     await migrations.migrate(_db);
   }
 
-  /// Insert or update a list of download tasks
+  /// 插入或者更新单个下载任务
+  Future<void> insertSingleTask(ComicDownloadTask task) async =>
+      await insert([task]);
+
+  /// 插入或者更新下载任务列表
   Future<void> insert(List<ComicDownloadTask> tasks) async {
     await _db.writeTransaction((tx) async {
       for (var task in tasks) {
@@ -139,7 +143,7 @@ class DownloadTaskHelper {
     });
   }
 
-  /// Get all download tasks
+  /// 获取所有的下载任务
   Future<List<ComicDownloadTask>> getAll() async {
     final result = await _db.readTransaction((tx) async {
       return await tx.getAll('''
@@ -213,7 +217,7 @@ class DownloadTaskHelper {
     return tasksMap.values.toList();
   }
 
-  /// Delete a task by comic ID
+  /// 根据comicId移除下载任务
   Future<void> delete(String id) async {
     await _db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM download_task WHERE id = ?', [id]);

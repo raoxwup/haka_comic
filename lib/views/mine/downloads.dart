@@ -4,6 +4,7 @@ import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class Downloads extends StatefulWidget {
   const Downloads({super.key});
@@ -14,7 +15,13 @@ class Downloads extends StatefulWidget {
 
 class _DownloadsState extends State<Downloads> {
   List<ComicDownloadTask> tasks = [];
-  late StreamSubscription _subscription;
+  late final StreamSubscription _subscription;
+
+  final _iconMap = {
+    DownloadTaskStatus.paused: Icons.play_arrow,
+    DownloadTaskStatus.downloading: Icons.pause,
+    DownloadTaskStatus.error: Icons.refresh,
+  };
 
   @override
   void initState() {
@@ -37,7 +44,7 @@ class _DownloadsState extends State<Downloads> {
   Widget build(BuildContext context) {
     final width = context.width;
     return Scaffold(
-      appBar: AppBar(title: const Text('下载')),
+      appBar: AppBar(title: const Text('我的下载')),
       body: CustomScrollView(
         slivers: [
           SliverGrid.builder(
@@ -50,20 +57,22 @@ class _DownloadsState extends State<Downloads> {
                       : width / 3,
               mainAxisSpacing: 5,
               crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
+              childAspectRatio: 2.8,
             ),
             itemBuilder: (context, index) {
               final task = tasks[index];
-              return SizedBox(
+              return InkWell(
                 key: ValueKey(task.comic.id),
-                width: double.infinity,
-                height: 170,
+                onTap: () {
+                  Toast.show(message: "功能开发中...");
+                },
+                borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     spacing: 8,
                     children: [
-                      BaseImage(url: task.comic.cover, aspectRatio: 13 / 17),
+                      BaseImage(url: task.comic.cover, aspectRatio: 14 / 19),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 5),
@@ -74,21 +83,28 @@ class _DownloadsState extends State<Downloads> {
                             children: [
                               Text(
                                 task.comic.title,
-                                style: context.textTheme.titleMedium,
-                                maxLines: 3,
+                                style: context.textTheme.titleSmall,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const Spacer(),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '${task.completed} / ${task.total}',
                                     style: context.textTheme.bodySmall,
                                   ),
+                                  if (_iconMap.containsKey(task.status))
+                                    IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(_iconMap[task.status]!),
+                                    ),
                                 ],
                               ),
                               LinearProgressIndicator(
+                                borderRadius: BorderRadius.circular(99),
                                 value:
                                     task.total == 0
                                         ? null

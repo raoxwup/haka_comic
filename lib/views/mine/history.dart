@@ -84,7 +84,7 @@ class _HistoryState extends State<History> {
   Widget build(BuildContext context) {
     final width = context.width;
     return Scaffold(
-      appBar: AppBar(title: const Text('浏览历史')),
+      appBar: AppBar(title: const Text('最近浏览')),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
