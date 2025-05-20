@@ -166,6 +166,8 @@ String _addThousandsSeparator(String numberStr) {
 
 /// 清理名称中的非法字符（路径分隔符和系统保留字符）
 String sanitizeFileName(String name, {String replacement = '_'}) {
-  final sanitized = name.replaceAll(RegExp(r'[/\\]'), replacement);
+  final sanitized = name
+      .replaceAll(RegExp(r'[/\\]'), replacement)
+      .replaceAll(' ', '');
   return sanitized;
 }

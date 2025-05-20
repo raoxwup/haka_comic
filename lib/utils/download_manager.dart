@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/http.dart';
@@ -32,14 +34,14 @@ void _downloadIsolateEntry((SendPort, RootIsolateToken) args) async {
 }
 
 /// 下载命令类型
-enum _CommandType { pause, resume, cancel, query }
+enum _CommandType { pause, resume, delete, query }
 
 /// 下载命令
 class _DownloadCommand {
-  final String comicId;
+  final dynamic params;
   final _CommandType type;
 
-  const _DownloadCommand({required this.comicId, required this.type});
+  const _DownloadCommand({required this.params, required this.type});
 }
 
 /// 漫画下载器
@@ -92,7 +94,7 @@ class _ComicDownloader {
     for (var task in tasks) {
       _cancelTokens[task.comic.id] = CancelToken();
       if (task.status == DownloadTaskStatus.downloading) {
-        download(task);
+        update(task);
       }
     }
   }
@@ -125,44 +127,8 @@ class _ComicDownloader {
     }
   }
 
-  /// 下载任务
-  // static Future<void> download(ComicDownloadTask task) async {
-  //   int i = 0;
-
-  //   for (var chapter in task.chapters) {
-  //     for (var image in chapter.images) {
-  //       if (i++ < task.completed) {
-  //         continue;
-  //       }
-
-  //       final path = p.join(
-  //         _dirPath,
-  //         sanitizeFileName(task.comic.title),
-  //         sanitizeFileName(chapter.title),
-  //         image.originalName,
-  //       );
-
-  //       await _downloadImage(image.url, path, _cancelTokens[task.comic.id]);
-  //       task.completed++;
-
-  //       if (task.completed >= task.total) {
-  //         task.status = DownloadTaskStatus.completed;
-  //         // 开启下一个排队中的任务
-  //         final nextTask = tasks.firstWhereOrNull(
-  //           (t) => t.status == DownloadTaskStatus.queued,
-  //         );
-  //         if (nextTask != null) {
-  //           nextTask.status = DownloadTaskStatus.downloading;
-  //           update(nextTask);
-  //         }
-  //       }
-
-  //       notify(task: task);
-  //     }
-  //   }
-  // }
+  /// 下载
   static Future<void> download(ComicDownloadTask task) async {
-    // 收集所有需要下载的图片及其对应章节
     final remaining = <MapEntry<DownloadChapter, ImageDetail>>[];
     int i = 0;
     for (final chapter in task.chapters) {
@@ -172,14 +138,12 @@ class _ComicDownloader {
       }
     }
 
-    // 设置每批并发下载数量
     const batchSize = 3;
 
     for (int start = 0; start < remaining.length; start += batchSize) {
       final end = (start + batchSize).clamp(0, remaining.length);
       final batch = remaining.sublist(start, end);
 
-      // 创建当前批次的下载任务集合
       final futures = <Future>[];
 
       for (final entry in batch) {
@@ -193,26 +157,14 @@ class _ComicDownloader {
           image.originalName,
         );
 
-        // 创建下载任务并添加回调
         futures.add(
           _downloadImage(image.url, path, _cancelTokens[task.comic.id]).then((
             _,
           ) {
-            // 更新完成数量并通知
             task.completed++;
-
-            // 检查任务是否全部完成
             if (task.completed >= task.total) {
               task.status = DownloadTaskStatus.completed;
-
-              // 启动下一个排队任务
-              final nextTask = tasks.firstWhereOrNull(
-                (t) => t.status == DownloadTaskStatus.queued,
-              );
-              if (nextTask != null) {
-                nextTask.status = DownloadTaskStatus.downloading;
-                update(nextTask);
-              }
+              startNextTask();
             }
 
             notify(task: task);
@@ -220,8 +172,17 @@ class _ComicDownloader {
         );
       }
 
-      // 等待当前批次全部完成
-      await Future.wait(futures);
+      try {
+        await Future.wait(futures);
+      } catch (error) {
+        debugPrint('Error downloading image: $error');
+        _cancelTokens[task.comic.id]?.cancel();
+        _cancelTokens[task.comic.id] = CancelToken();
+        task.status = DownloadTaskStatus.error;
+        startNextTask();
+        notify(task: task);
+        return;
+      }
     }
   }
 
@@ -265,6 +226,17 @@ class _ComicDownloader {
     chapter.images.addAll(response.map((e) => e.media));
   }
 
+  /// 开启下一个排队任务
+  static Future<void> startNextTask() async {
+    final nextTask = tasks.firstWhereOrNull(
+      (t) => t.status == DownloadTaskStatus.queued,
+    );
+    if (nextTask != null) {
+      nextTask.status = DownloadTaskStatus.downloading;
+      update(nextTask);
+    }
+  }
+
   /// 更新任务
   static Future<void> update(ComicDownloadTask task) async {
     try {
@@ -304,7 +276,7 @@ class _ComicDownloader {
         task.status = DownloadTaskStatus.downloading;
         update(task);
       } else {
-        tasks[index].status = DownloadTaskStatus.queued;
+        task.status = DownloadTaskStatus.queued;
       }
       _cancelTokens[task.comic.id] = CancelToken();
       tasks.add(task);
@@ -323,6 +295,38 @@ class _ComicDownloader {
     }
   }
 
+  /// 恢复下载任务
+  static void resume(String comicId) {
+    final index = tasks.indexWhere((t) => comicId == t.comic.id);
+    if (index != -1) {
+      tasks[index].status = DownloadTaskStatus.downloading;
+      update(tasks[index]);
+      notify(task: tasks[index]);
+    }
+  }
+
+  /// 删除下载任务
+  static void delete(List<String> taskIds) {
+    for (var id in taskIds) {
+      _cancelTokens[id]?.cancel();
+      _cancelTokens.remove(id);
+      final index = tasks.indexWhere((t) => t.comic.id == id);
+      if (index != -1) {
+        final path = p.join(
+          _dirPath,
+          sanitizeFileName(tasks[index].comic.title),
+        );
+        if (Directory(path).existsSync()) {
+          Directory(path).deleteSync(recursive: true);
+        }
+        tasks.removeAt(index);
+      }
+    }
+    final downloadTaskHelper = DownloadTaskHelper();
+    downloadTaskHelper.deleteBatch(taskIds);
+    notify(cache: false);
+  }
+
   /// 发送，缓存最新下载任务列表
   static void notify({bool cache = true, ComicDownloadTask? task}) {
     mainIsolateSendPort.send(tasks);
@@ -338,17 +342,13 @@ class _ComicDownloader {
         notify(cache: false);
         break;
       case _CommandType.pause:
-        pause(command.comicId);
+        pause(command.params);
         break;
       case _CommandType.resume:
-        final index = tasks.indexWhere((t) => command.comicId == t.comic.id);
-        if (index != -1) {
-          update(tasks[index]);
-        }
+        resume(command.params);
         break;
-      case _CommandType.cancel:
-        pause(command.comicId);
-        tasks.removeWhere((t) => t.comic.id == command.comicId);
+      case _CommandType.delete:
+        delete(command.params);
         break;
     }
   }
@@ -386,7 +386,7 @@ class DownloadManager {
 
   // 查询下载任务
   static void getTasks() => _workerSendPort.send(
-    const _DownloadCommand(type: _CommandType.query, comicId: ''),
+    const _DownloadCommand(type: _CommandType.query, params: null),
   );
 
   /// 添加下载任务
@@ -395,23 +395,23 @@ class DownloadManager {
   }
 
   /// 暂停下载任务
-  static void pauseTask(String comicId) {
+  static void pauseTask(String taskId) {
     _workerSendPort.send(
-      _DownloadCommand(comicId: comicId, type: _CommandType.pause),
+      _DownloadCommand(params: taskId, type: _CommandType.pause),
     );
   }
 
   /// 恢复下载任务
-  static void resumeTask(String comicId) {
+  static void resumeTask(String taskId) {
     _workerSendPort.send(
-      _DownloadCommand(comicId: comicId, type: _CommandType.resume),
+      _DownloadCommand(params: taskId, type: _CommandType.resume),
     );
   }
 
   /// 取消下载任务
-  static void cancelTask(String comicId) {
+  static void deleteTasks(List<String> taskIds) {
     _workerSendPort.send(
-      _DownloadCommand(comicId: comicId, type: _CommandType.cancel),
+      _DownloadCommand(params: taskIds, type: _CommandType.delete),
     );
   }
 

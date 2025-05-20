@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/download_manager.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class Downloader extends StatefulWidget {
   const Downloader({
@@ -17,9 +20,26 @@ class Downloader extends StatefulWidget {
 }
 
 class _DownloaderState extends State<Downloader> {
-  Set<String> selectedChapterIds = {};
+  /// 选中的章节
+  List<Chapter> selectedChapters = [];
+
+  /// 已下载的章节Id
+  Set<String> downloadedChapterIds = {};
+
+  Future<void> initDownloadedChapters() async {
+    final downloadTaskHelper = DownloadTaskHelper();
+    await downloadTaskHelper.initialize();
+    final downloadChapters = await downloadTaskHelper.getDownloadChapters(
+      widget.downloadComic.id,
+    );
+    setState(() {
+      downloadedChapterIds =
+          downloadChapters.map((chapter) => chapter.id).toSet();
+    });
+  }
 
   void startDownload(List<Chapter> chapters) {
+    if (chapters.isEmpty) return;
     DownloadManager.addTask(
       ComicDownloadTask(
         comic: widget.downloadComic,
@@ -35,6 +55,14 @@ class _DownloaderState extends State<Downloader> {
                 .toList(),
       ),
     );
+    context.pop();
+    Toast.show(message: "已添加到下载队列");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initDownloadedChapters();
   }
 
   @override
@@ -45,26 +73,32 @@ class _DownloaderState extends State<Downloader> {
         itemCount: widget.chapters.length,
         itemBuilder: (context, index) {
           final chapter = widget.chapters[index];
+          final isDownloaded = downloadedChapterIds.contains(chapter.uid);
+          final selected = selectedChapters.contains(chapter);
           return ListTile(
+            enabled: !isDownloaded,
             title: Text(chapter.title),
             trailing: Checkbox(
-              value: selectedChapterIds.contains(chapter.uid),
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value == true) {
-                    selectedChapterIds.add(chapter.uid);
-                  } else {
-                    selectedChapterIds.remove(chapter.uid);
-                  }
-                });
-              },
+              value: selected || isDownloaded,
+              onChanged:
+                  isDownloaded
+                      ? null
+                      : (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            selectedChapters.add(chapter);
+                          } else {
+                            selectedChapters.remove(chapter);
+                          }
+                        });
+                      },
             ),
             onTap: () {
               setState(() {
-                if (selectedChapterIds.contains(chapter.uid)) {
-                  selectedChapterIds.remove(chapter.uid);
+                if (selected) {
+                  selectedChapters.remove(chapter);
                 } else {
-                  selectedChapterIds.add(chapter.uid);
+                  selectedChapters.add(chapter);
                 }
               });
             },
@@ -76,25 +110,32 @@ class _DownloaderState extends State<Downloader> {
           spacing: 8,
           children: [
             Expanded(
-              child: TextButton(
-                onPressed: () {
-                  startDownload(widget.chapters);
+              child: Builder(
+                builder: (context) {
+                  final canDownloadChapters =
+                      widget.chapters
+                          .where(
+                            (chapter) =>
+                                !downloadedChapterIds.contains(chapter.uid),
+                          )
+                          .toList();
+                  return TextButton(
+                    onPressed:
+                        canDownloadChapters.isNotEmpty
+                            ? () {
+                              startDownload(canDownloadChapters);
+                            }
+                            : null,
+                    child: const Text('下载全部'),
+                  );
                 },
-                child: const Text('下载全部'),
               ),
             ),
             Expanded(
               child: FilledButton(
                 onPressed:
-                    selectedChapterIds.isNotEmpty
+                    selectedChapters.isNotEmpty
                         ? () {
-                          List<Chapter> selectedChapters = [];
-                          for (var chapterId in selectedChapterIds) {
-                            final chapter = widget.chapters.firstWhere(
-                              (c) => c.uid == chapterId,
-                            );
-                            selectedChapters.add(chapter);
-                          }
                           startDownload(selectedChapters);
                         }
                         : null,

@@ -16,11 +16,28 @@ class Downloads extends StatefulWidget {
 class _DownloadsState extends State<Downloads> {
   List<ComicDownloadTask> tasks = [];
   late final StreamSubscription _subscription;
+  bool _isSelecting = false;
+  List<ComicDownloadTask> _selectedTasks = [];
 
-  final _iconMap = {
-    DownloadTaskStatus.paused: Icons.play_arrow,
-    DownloadTaskStatus.downloading: Icons.pause,
-    DownloadTaskStatus.error: Icons.refresh,
+  final Map<DownloadTaskStatus, Map<String, dynamic>> _iconMap = {
+    DownloadTaskStatus.paused: {
+      "icon": Icons.play_arrow,
+      "action": (String comicId) {
+        DownloadManager.resumeTask(comicId);
+      },
+    },
+    DownloadTaskStatus.downloading: {
+      "icon": Icons.pause,
+      "action": (String comicId) {
+        DownloadManager.pauseTask(comicId);
+      },
+    },
+    DownloadTaskStatus.error: {
+      "icon": Icons.refresh,
+      "action": (String comicId) {
+        DownloadManager.resumeTask(comicId);
+      },
+    },
   };
 
   @override
@@ -40,11 +57,47 @@ class _DownloadsState extends State<Downloads> {
     super.dispose();
   }
 
+  void clearTasks() {
+    DownloadManager.deleteTasks(_selectedTasks.map((e) => e.comic.id).toList());
+    setState(() {
+      tasks.removeWhere((t) => _selectedTasks.contains(t));
+    });
+    close();
+  }
+
+  void close() {
+    setState(() {
+      _isSelecting = false;
+      _selectedTasks = [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
     return Scaffold(
-      appBar: AppBar(title: const Text('我的下载')),
+      appBar: AppBar(
+        title: const Text('我的下载'),
+        actions:
+            _isSelecting
+                ? [
+                  IconButton(
+                    onPressed: () => setState(() => _selectedTasks = []),
+                    icon: const Icon(Icons.deselect),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(() => _selectedTasks = tasks),
+                    icon: const Icon(Icons.select_all),
+                  ),
+                  IconButton(onPressed: close, icon: const Icon(Icons.close)),
+                ]
+                : [
+                  IconButton(
+                    onPressed: () => setState(() => _isSelecting = true),
+                    icon: const Icon(Icons.checklist_rtl),
+                  ),
+                ],
+      ),
       body: CustomScrollView(
         slivers: [
           SliverGrid.builder(
@@ -64,6 +117,16 @@ class _DownloadsState extends State<Downloads> {
               return InkWell(
                 key: ValueKey(task.comic.id),
                 onTap: () {
+                  if (_isSelecting) {
+                    setState(() {
+                      if (_selectedTasks.contains(task)) {
+                        _selectedTasks.remove(task);
+                      } else {
+                        _selectedTasks.add(task);
+                      }
+                    });
+                    return;
+                  }
                   Toast.show(message: "功能开发中...");
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -98,8 +161,14 @@ class _DownloadsState extends State<Downloads> {
                                   ),
                                   if (_iconMap.containsKey(task.status))
                                     IconButton(
-                                      onPressed: () {},
-                                      icon: Icon(_iconMap[task.status]!),
+                                      onPressed: () {
+                                        _iconMap[task.status]!["action"](
+                                          task.comic.id,
+                                        );
+                                      },
+                                      icon: Icon(
+                                        _iconMap[task.status]!["icon"],
+                                      ),
                                     ),
                                 ],
                               ),
@@ -114,6 +183,19 @@ class _DownloadsState extends State<Downloads> {
                           ),
                         ),
                       ),
+                      if (_isSelecting)
+                        Checkbox(
+                          value: _selectedTasks.contains(task),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == true) {
+                                _selectedTasks.add(task);
+                              } else {
+                                _selectedTasks.remove(task);
+                              }
+                            });
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -123,6 +205,16 @@ class _DownloadsState extends State<Downloads> {
           ),
         ],
       ),
+      persistentFooterButtons:
+          _isSelecting
+              ? [
+                FilledButton.tonalIcon(
+                  onPressed: clearTasks,
+                  label: const Text('删除'),
+                  icon: const Icon(Icons.delete_forever),
+                ),
+              ]
+              : null,
     );
   }
 }

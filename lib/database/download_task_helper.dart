@@ -6,15 +6,25 @@ import 'package:sqlite_async/sqlite_async.dart';
 final migrations =
     SqliteMigrations()..add(
       SqliteMigration(1, (tx) async {
-        await tx.execute('PRAGMA foreign_keys = ON;');
+        // await tx.execute('PRAGMA foreign_keys = ON;');
 
         await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_task(
             id TEXT PRIMARY KEY,
             total INTEGER DEFAULT 0,
             completed INTEGER DEFAULT 0,
-            status TEXT NOT NULL
+            status TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
           )
+        ''');
+
+        await tx.execute('''
+          CREATE TRIGGER IF NOT EXISTS update_download_task_timestamp 
+          AFTER UPDATE ON download_task 
+          BEGIN
+              UPDATE download_task SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+          END;
         ''');
 
         await tx.execute('''
@@ -32,6 +42,7 @@ final migrations =
             title TEXT NOT NULL,
             chapter_order INTEGER NOT NULL,
             task_id TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (task_id) REFERENCES download_task (id) ON DELETE CASCADE
           )
         ''');
@@ -43,6 +54,7 @@ final migrations =
             path TEXT NOT NULL,
             original_name TEXT NOT NULL,
             chapter_id TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (chapter_id) REFERENCES download_chapter (id) ON DELETE CASCADE,
             CONSTRAINT unique_file_server_path UNIQUE (file_server, path)
           )
@@ -69,10 +81,14 @@ class DownloadTaskHelper {
 
   late SqliteDatabase _db;
 
+  bool isInitialized = false;
+
   Future<void> initialize() async {
+    if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
     _db = SqliteDatabase(path: '$dbPath/download_task.db');
     await migrations.migrate(_db);
+    isInitialized = true;
   }
 
   /// 插入或者更新单个下载任务
@@ -164,7 +180,7 @@ class DownloadTaskHelper {
         JOIN download_comic c ON t.id = c.id
         LEFT JOIN download_chapter ch ON t.id = ch.task_id
         LEFT JOIN chapter_image img ON ch.id = img.chapter_id
-        ORDER BY t.id, ch.chapter_order, img.id
+        ORDER BY t.created_at ASC, ch.ROWID ASC, img.id ASC
       ''');
     });
 
@@ -222,5 +238,45 @@ class DownloadTaskHelper {
     await _db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM download_task WHERE id = ?', [id]);
     });
+  }
+
+  /// 批量移除下载任务
+  Future<void> deleteBatch(List<String> ids) async {
+    final params = ids.map((id) => [id]).toList();
+    await _db.writeTransaction((tx) async {
+      // await tx.getAll('PRAGMA foreign_keys = ON;');
+      // final result = await tx.get('PRAGMA foreign_keys;');
+      // print(result);
+
+      await tx.executeBatch('DELETE FROM download_task WHERE id = ?', params);
+
+      // 外键无效, sqlite_async不知道怎么启用外键，这里手动删除
+      await tx.executeBatch(
+        'DELETE FROM chapter_image WHERE chapter_id IN (SELECT id FROM download_chapter WHERE task_id = ?)',
+        params,
+      );
+      await tx.executeBatch(
+        'DELETE FROM download_chapter WHERE task_id = ?',
+        params,
+      );
+      await tx.executeBatch('DELETE FROM download_comic WHERE id = ?', params);
+    });
+  }
+
+  /// 根据comicId查询下载章节
+  Future<List<DownloadChapter>> getDownloadChapters(String id) async {
+    final result = await _db.readTransaction((tx) async {
+      return await tx.getAll(
+        'SELECT id, title, chapter_order FROM download_chapter WHERE task_id = ?',
+        [id],
+      );
+    });
+    return result.map((row) {
+      return DownloadChapter(
+        id: row['id'],
+        title: row['title'],
+        order: row['chapter_order'],
+      );
+    }).toList();
   }
 }
