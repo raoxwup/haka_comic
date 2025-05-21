@@ -64,3 +64,17 @@ jobs:
           name: android-apks
           path: artifacts/
           retention-days: 5
+
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v5
+        with:
+          server_address: smtp.qq.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Android Build
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          body: |
+            Build job of ${{ github.repository }} completed successfully!
+          attachments: artifacts/

@@ -176,6 +176,14 @@ class _ComicDownloader {
         await Future.wait(futures);
       } catch (error) {
         debugPrint('Error downloading image: $error');
+
+        // 检查是否为取消导致的错误
+        final isCancelled =
+            error is DioException && error.type == DioExceptionType.cancel;
+        if (isCancelled) {
+          return;
+        }
+
         _cancelTokens[task.comic.id]?.cancel();
         _cancelTokens[task.comic.id] = CancelToken();
         task.status = DownloadTaskStatus.error;
