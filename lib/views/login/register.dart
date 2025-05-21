@@ -16,6 +16,7 @@ class _RegisterState extends State<Register> {
   final _genderController = TextEditingController();
   final _birthdateController = TextEditingController();
   final targetYear = DateTime.now().year - 18;
+  // 'bot' -> 机器人 'm' -> 男 'f' -> 女
   @override
   Widget build(BuildContext context) {
     return Scaffold(
