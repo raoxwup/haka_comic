@@ -77,4 +77,4 @@ jobs:
           from: ${{ secrets.EMAIL_FROM }}
           body: |
             Build job of ${{ github.repository }} completed successfully!
-          attachments: artifacts/
+          attachments: artifacts/split/*.apk
