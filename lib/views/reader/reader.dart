@@ -368,7 +368,6 @@ class _ReaderState extends State<Reader> {
                             // 只有当有多个图片时才显示滑块
                             return data.length > 1
                                 ? Slider(
-                                  year2023: true,
                                   value: value.toDouble(),
                                   min: 0,
                                   max: (data.length - 1).toDouble(),
