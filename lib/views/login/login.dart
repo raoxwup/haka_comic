@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -81,7 +82,7 @@ class _LoginState extends State<Login> {
             spacing: 20,
             children: [
               const SizedBox(height: 70),
-              Image.asset('assets/images/login.png', width: 180),
+              Image.asset('assets/images/login.png', width: 160),
               _buildLoginForm(),
             ],
           ),
@@ -100,7 +101,6 @@ class _LoginState extends State<Login> {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          spacing: 20,
           children: [
             TextFormField(
               controller: _emailController,
@@ -114,6 +114,7 @@ class _LoginState extends State<Login> {
                 _passwordFocusNode.requestFocus();
               },
             ),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _passwordController,
               obscureText: !_showPassword,
@@ -141,10 +142,29 @@ class _LoginState extends State<Login> {
               onChanged: _update,
               onFieldSubmitted: (value) => enable ? _login() : null,
             ),
-            Button.filled(
-              onPressed: enable ? _login : null,
-              isLoading: handler.isLoading,
-              child: const Text('登录'),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Button.filled(
+                    onPressed: enable ? _login : null,
+                    isLoading: handler.isLoading,
+                    child: const Text('登录'),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('没有账号？'),
+                TextButton(
+                  onPressed: () {
+                    context.push('/register');
+                  },
+                  child: const Text('注册'),
+                ),
+              ],
             ),
           ],
         ),

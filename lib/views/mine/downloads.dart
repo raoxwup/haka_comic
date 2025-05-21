@@ -4,6 +4,7 @@ import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class Downloads extends StatefulWidget {
@@ -100,6 +101,7 @@ class _DownloadsState extends State<Downloads> {
       ),
       body: CustomScrollView(
         slivers: [
+          if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
           SliverGrid.builder(
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent:

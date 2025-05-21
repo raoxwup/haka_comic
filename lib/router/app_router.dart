@@ -15,6 +15,7 @@ import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
+import 'package:haka_comic/views/login/register.dart';
 import 'package:haka_comic/views/mine/comments/comments.dart';
 import 'package:haka_comic/views/mine/comments/sub_comments.dart';
 import 'package:haka_comic/views/mine/downloads.dart';
@@ -41,10 +42,21 @@ import 'package:haka_comic/views/settings/settings.dart';
 final GoRouter appRouter = GoRouter(
   navigatorKey: navigatorKey,
   redirect: (context, state) {
-    if (AppConf.instance.isLogged) {
-      return null;
+    final isLoggedIn = AppConf.instance.isLogged;
+    final currentPath = state.matchedLocation; // 获取当前匹配的路由路径
+
+    final allowPaths = ['/login', '/register'];
+
+    if (!isLoggedIn &&
+        !allowPaths.any((path) => currentPath.startsWith(path))) {
+      return '/login';
     }
-    return '/login';
+
+    if (isLoggedIn && (currentPath == '/login' || currentPath == '/register')) {
+      return '/';
+    }
+
+    return null;
   },
   routes: <RouteBase>[
     GoRoute(
@@ -63,6 +75,16 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: const Login(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/register',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Register(),
         );
       },
     ),
