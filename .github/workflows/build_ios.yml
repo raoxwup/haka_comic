@@ -22,12 +22,10 @@ jobs:
           mkdir -p /Users/runner/work/haka_comic/haka_comic/build/ios/iphoneos/Payload
           mv /Users/runner/work/haka_comic/haka_comic/build/ios/iphoneos/Runner.app /Users/runner/work/haka_comic/haka_comic/build/ios/iphoneos/Payload
           cd /Users/runner/work/haka_comic/haka_comic/build/ios/iphoneos/
-          zip -r haka_comic-ios.ipa Payload
+          zip -r no-codesign-ios.ipa Payload
       - name: Add version to filename
         run: |
-          APP_VERSION=$(grep "version:" pubspec.yaml | cut -d':' -f2 | tr -d ' ')
-          mkdir -p artifacts
-          mv build/ios/iphoneos/haka_comic-ios.ipa artifacts/haka_comic-ios-$APP_VERSION.ipa
+          mv build/ios/iphoneos/no-codesign-ios.ipa artifacts/no-codesign-ios.ipa
       - uses: actions/upload-artifact@v4
         with:
           name: ios_build

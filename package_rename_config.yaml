@@ -8,4 +8,4 @@ package_rename_config:
   ios:
     app_name: "HaKa Comic"
     bundle_name: "HaKaComic"
-    package_name: "com.github.raoxwup.haka_comic"
+    package_name: "com.github.raoxwup.hakacomic"
