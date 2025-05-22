@@ -7,11 +7,13 @@ class Empty extends StatelessWidget {
     this.width = double.infinity,
     this.height = 200,
     this.imageWidth = 120,
+    this.imageUrl = 'assets/images/icon_empty.png',
   });
 
   final double height;
   final double width;
   final double imageWidth;
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class Empty extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Image.asset('assets/images/icon_empty.png', width: imageWidth),
+            Image.asset(imageUrl, width: imageWidth),
             Text('没有数据哦~', style: context.textTheme.bodySmall),
           ],
         ),

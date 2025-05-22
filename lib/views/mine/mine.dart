@@ -10,6 +10,7 @@ import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:provider/provider.dart';
 
 class Mine extends StatefulWidget {
@@ -320,10 +321,16 @@ class _ComicSection extends StatelessWidget {
                                 icon: const Icon(Icons.refresh),
                               ),
                             ),
-                        child: isEmpty ? const Empty() : _buildList(),
+                        child:
+                            isEmpty
+                                ? const Empty(
+                                  imageWidth: 100,
+                                  height: double.infinity,
+                                )
+                                : _buildList(),
                       )
                       : isEmpty
-                      ? const Empty()
+                      ? const Empty(imageWidth: 100, height: double.infinity)
                       : _buildList(),
             ),
           ),
@@ -361,17 +368,6 @@ class _ComicItem extends StatelessWidget {
           height: double.infinity,
         ),
       ),
-    );
-  }
-}
-
-class Empty extends StatelessWidget {
-  const Empty({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Image.asset('assets/images/icon_empty.png', width: 100),
     );
   }
 }

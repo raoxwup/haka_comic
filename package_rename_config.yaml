@@ -4,3 +4,8 @@ package_rename_config:
     organization: "com.github.raoxwup"
     copyright_notice: "Copyright (C) 2025 com.github.raoxwup. All rights reserved."
     exe_name: "HaKaComic"
+
+  ios:
+    app_name: "HaKa Comic"
+    bundle_name: "HaKaComic"
+    package_name: "com.github.raoxwup.haka_comic"

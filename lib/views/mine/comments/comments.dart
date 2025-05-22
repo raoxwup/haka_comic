@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
@@ -247,16 +248,7 @@ class _CommentsState extends State<Comments> {
   }
 
   Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        spacing: 8,
-        children: [
-          const SizedBox(height: 80),
-          Image.asset('assets/images/icon_no_comment.png', width: 200),
-          const Text('暂无评论'),
-        ],
-      ),
-    );
+    return const Empty(imageUrl: 'assets/images/icon_no_comment.png');
   }
 
   Widget _buildError() {
