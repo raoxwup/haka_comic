@@ -28,6 +28,8 @@ dependencies:
   image_picker: ^1.1.2
   flutter_cache_manager: ^3.4.1
   path: ^1.9.1
+  package_info_plus: ^8.3.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +55,8 @@ flutter:
     - assets/images/forum.jpg
     - assets/images/latest.jpg
     - assets/images/random.jpg
+    - assets/icons/ios/Light.png
+    - assets/icons/ios/Dark.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

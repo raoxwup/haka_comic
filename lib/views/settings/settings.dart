@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
@@ -29,7 +30,20 @@ class _SettingsState extends State<Settings> {
             children: [ChangePassword(), ChangeImageQuality(), ChangeServer()],
           ),
           const SizedBox(height: 20),
-          const Block(title: '通用', children: [ClearCache()]),
+          Block(
+            title: '通用',
+            children: [
+              const ClearCache(),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('关于'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  context.push('/about');
+                },
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
           const Block(children: [Logout()]),
         ],

@@ -1,12 +1,12 @@
-name: Android Build
+name: Cross-Platform Build
 
 on:
   push:
     branches: [main]
 
 jobs:
-  build:
-    name: Build APKs
+  android-build:
+    name: Android Build
     runs-on: ubuntu-latest
 
     steps:
@@ -23,9 +23,8 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          flutter-version: "3.32.0"
+          flutter-version-file: pubspec.yaml
 
-      # 创建 key.properties 并注入 Secrets
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
@@ -33,7 +32,6 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=upload-keystore.jks" >> android/key.properties
 
-      # 将 Base64 编码的密钥库文件解码并保存
       - name: Set up keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
@@ -41,14 +39,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 构建带签名的 APK
+        # 构建带签名的 APK
       - name: Build Universal APK
         run: flutter build apk --release
 
       - name: Move Universal APK
         run: |
           mkdir -p artifacts/universal
-          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/
+          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/app-universal-release.apk
 
       - name: Build Split APKs
         run: flutter build apk --split-per-abi
@@ -58,23 +56,67 @@ jobs:
           mkdir -p artifacts/split
           mv build/app/outputs/apk/release/*.apk artifacts/split/
 
-      - name: Upload APK artifacts
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: artifacts/
           retention-days: 5
 
-      - name: Send Email
+      - name: Notify Android Build
         uses: dawidd6/action-send-mail@v5
         with:
           server_address: smtp.qq.com
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Android Build
+          subject: Android Build Success
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
-          body: |
-            Build job of ${{ github.repository }} completed successfully!
-          attachments: artifacts/split/*.apk
+          body: Android build completed. APKs attached.
+          attachments: artifacts/split/*.apk,artifacts/universal/*.apk
+
+  ios-build:
+    name: iOS Build
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version-file: pubspec.yaml
+          architecture: x64
+
+      - run: sudo xcode-select --switch /Applications/Xcode_16.0.app
+
+      - run: flutter pub get
+
+      - name: Build unsigned IPA
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p build/ios/iphoneos/Payload
+          mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
+          cd build/ios/iphoneos/
+          zip -r no-codesign-ios.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/iphoneos/no-codesign-ios.ipa
+          retention-days: 5
+
+      - name: Notify iOS Build
+        uses: dawidd6/action-send-mail@v5
+        with:
+          server_address: smtp.qq.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: iOS Build Success
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          body: iOS build completed. IPA attached.
+          attachments: build/ios/iphoneos/no-codesign-ios.ipa

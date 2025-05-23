@@ -340,8 +340,7 @@ Future<void> updatePassword(UpdatePasswordPayload payload) async {
 
 /// 注册
 Future<void> register(RegisterPayload payload) async {
-  final response = await Client.post('auth/register', data: payload.toJson());
-  print(response);
+  await Client.post('auth/register', data: payload.toJson());
 }
 
 class DownloadIsolateClient {
@@ -424,4 +423,14 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
   }
 
   return images;
+}
+
+///用于检查是否有新的release发布
+Future<Response<dynamic>> checkUpdate() async {
+  // 访问地址 e.g. https://github.com/raoxwup/haka_comic/releases/tag/1.0.0-beta1
+  final dio = Dio(BaseOptions(responseType: ResponseType.json));
+  final response = await dio.get(
+    'https://api.github.com/repos/raoxwup/haka_comic/releases/latest',
+  );
+  return response;
 }
