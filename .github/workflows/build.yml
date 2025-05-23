@@ -74,7 +74,7 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           body: Android build completed. APKs attached.
-          attachments: artifacts/split/*.apk,artifacts/universal/*.apk
+          attachments: artifacts/split/app-arm64-v8a-release.apk
 
   ios-build:
     name: iOS Build

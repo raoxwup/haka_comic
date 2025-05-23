@@ -23,6 +23,9 @@ class AppConf {
   /// 分流
   Server _server = Server.one;
 
+  /// 启动时是否检查更新
+  bool _checkUpdate = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -35,6 +38,7 @@ class AppConf {
       prefs.getString('imageQuality') ?? 'original',
     );
     instance._server = getServer(prefs.getString('server') ?? '1');
+    instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
   }
 
   set email(String value) =>
@@ -55,12 +59,17 @@ class AppConf {
     value,
     (v) => _server = value,
   );
+  set checkUpdate(bool value) {
+    _checkUpdate = value;
+    SharedPreferencesUtil.prefs.setBool('checkUpdate', value);
+  }
 
   String get email => _email;
   String get password => _password;
   String get token => _token;
   ImageQuality get imageQuality => _imageQuality;
   Server get server => _server;
+  bool get checkUpdate => _checkUpdate;
 
   void _saveToPrefs<T>(
     String key,
@@ -85,11 +94,13 @@ class AppConf {
     _token = '';
     _imageQuality = ImageQuality.original;
     _server = Server.one;
+    _checkUpdate = true;
     SharedPreferencesUtil.prefs
       ..remove('email')
       ..remove('password')
       ..remove('token')
       ..remove('imageQuality')
-      ..remove('server');
+      ..remove('server')
+      ..remove('checkUpdate');
   }
 }
