@@ -591,8 +591,11 @@ class Comments {
 
   final int total;
 
+  @JsonKey(defaultValue: 20)
   final int limit;
 
+  /// 极端情况下又返回的不是字符串....
+  @JsonKey(fromJson: _pageFormat)
   final String page;
 
   final int pages;
@@ -604,6 +607,8 @@ class Comments {
     required this.page,
     required this.pages,
   });
+
+  static String _pageFormat(dynamic value) => value.toString();
 
   factory Comments.fromJson(Map<String, dynamic> json) =>
       _$CommentsFromJson(json);

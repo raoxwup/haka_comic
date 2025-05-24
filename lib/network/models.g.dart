@@ -334,8 +334,8 @@ Comments _$CommentsFromJson(Map<String, dynamic> json) => Comments(
           .map((e) => Comment.fromJson(e as Map<String, dynamic>))
           .toList(),
   total: (json['total'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
-  page: json['page'] as String,
+  limit: (json['limit'] as num?)?.toInt() ?? 20,
+  page: Comments._pageFormat(json['page']),
   pages: (json['pages'] as num).toInt(),
 );
 
