@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class About extends StatefulWidget {
@@ -17,12 +18,10 @@ class About extends StatefulWidget {
 class _AboutState extends State<About> {
   String version = '';
   bool _checkUpdate = AppConf().checkUpdate;
-  late final _handler = fetchLatestRelease.useRequest(
-    onSuccess: (data, _) {
-      final latestReleaseVersion = data["tag_name"] as String;
-      // 目前先简单判断版本号是否一致
-      if (latestReleaseVersion != version) {
-        Toast.show(message: '有新版本可用');
+  late final _handler = checkIsUpdated.useRequest(
+    onSuccess: (shouldCheckUpdate, _) {
+      if (shouldCheckUpdate) {
+        showUpdateDialog();
       } else {
         Toast.show(message: '当前已是最新版本');
       }
@@ -38,7 +37,6 @@ class _AboutState extends State<About> {
   @override
   initState() {
     super.initState();
-    _getVersion();
     _handler
       ..addListener(update)
       ..isLoading = false;
@@ -50,13 +48,6 @@ class _AboutState extends State<About> {
       ..removeListener(update)
       ..dispose();
     super.dispose();
-  }
-
-  Future<void> _getVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      version = packageInfo.version;
-    });
   }
 
   Future<void> _launchURL(String url) async {
@@ -86,7 +77,7 @@ class _AboutState extends State<About> {
             ),
           ),
           const SizedBox(height: 5),
-          Text('Version $version', textAlign: TextAlign.center),
+          Text('Version ${SetupConf.appVersion}', textAlign: TextAlign.center),
           const SizedBox(height: 15),
           Text(
             'Haka Comic是一个开源免费的第三方哔咔漫画客户端',
@@ -126,4 +117,25 @@ class _AboutState extends State<About> {
       ),
     );
   }
+}
+
+void showUpdateDialog() {
+  showDialog(
+    context: navigatorKey.currentContext!,
+    builder:
+        (context) => AlertDialog(
+          title: const Text('更新'),
+          content: const Text('有新版本可用，是否前往下载?'),
+          actions: [
+            TextButton(child: const Text('取消'), onPressed: () => context.pop()),
+            TextButton(
+              child: const Text('前往'),
+              onPressed:
+                  () => launchUrl(
+                    Uri.parse('https://github.com/raoxwup/haka_comic/releases'),
+                  ),
+            ),
+          ],
+        ),
+  );
 }

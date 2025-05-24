@@ -3,15 +3,18 @@ import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/model/user_provider.dart';
+import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/about/about.dart';
 import 'package:provider/provider.dart';
 
 void main(List<String> args) {
@@ -49,8 +52,21 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   initState() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (AppConf().checkUpdate) {
+      checkUpdate();
+    }
+  }
+
+  void checkUpdate() async {
+    await Future.delayed(const Duration(seconds: 1));
+    final result = await checkIsUpdated();
+    if (result) {
+      if (mounted) {
+        showUpdateDialog();
+      }
+    }
   }
 
   ColorScheme _generateColorScheme(

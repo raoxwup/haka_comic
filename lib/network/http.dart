@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/cache.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
+import 'package:haka_comic/utils/version.dart';
+import 'package:yaml/yaml.dart';
 
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
@@ -426,14 +429,18 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
 }
 
 ///用于检查是否有新的release发布
-Future<Map<String, dynamic>> fetchLatestRelease() async {
-  // 访问地址 e.g. https://github.com/raoxwup/haka_comic/releases/tag/1.0.0-beta1
-  final dio = Dio(BaseOptions(responseType: ResponseType.json));
-  final response = await dio.get(
-    'https://api.github.com/repos/raoxwup/haka_comic/releases/latest',
+Future<bool> checkIsUpdated() async {
+  final response = await Dio().get(
+    'https://cdn.jsdelivr.net/gh/raoxwup/haka_comic@main/pubspec.yaml',
   );
   if (response.statusCode != 200) {
-    throw Exception('获取最新版本失败');
+    return false;
   }
-  return response.data as Map<String, dynamic>;
+  final data = loadYaml(response.data);
+  if (data['version'] != null) {
+    final version = Version.parse(data['version']);
+    final currentVersion = Version.parse(SetupConf.appVersion);
+    return currentVersion.compareTo(version) < 0;
+  }
+  return false;
 }
