@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -12,10 +13,14 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+part 'gesture.dart';
 part 'vertical_list.dart';
+part 'horizontal_list.dart';
 
 const kBottomBarHeight = 105.0;
 
@@ -59,6 +64,9 @@ class _ReaderState extends State<Reader> {
     },
   );
 
+  /// 阅读模式
+  Axis readMode = AppConf().readMode == '1' ? Axis.vertical : Axis.horizontal;
+
   /// 当前章节索引
   late int _currentChapterIndex;
 
@@ -69,10 +77,11 @@ class _ReaderState extends State<Reader> {
   final ValueNotifier<bool> _showToolbarNotifier = ValueNotifier(false);
 
   /// 当前可见页码通知器
-  final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
+  late final ValueNotifier<int> _currentVisibleIndexNotifier = ValueNotifier(0);
 
   /// 滚动控制器 - 用于精确控制列表滚动位置
   final ItemScrollController itemScrollController = ItemScrollController();
+  final PageController pageController = PageController();
 
   /// 阅读记录数据库助手
   final _helper = ReadRecordHelper();
@@ -103,8 +112,13 @@ class _ReaderState extends State<Reader> {
   /// 检查是否为第一章
   bool get isFirst => _currentChapterIndex == 0;
 
-  /// 获取初始页码 - 章节切换时重置为0，否则使用传入的页码
-  int get initialIndex => _isChapterChanged ? 0 : widget.pageNo;
+  /// 获取初始页码 - 章节切换时重置为0，否则使用当前页码或传入的页码
+  int get initialIndex =>
+      _currentVisibleIndexNotifier.value != 0
+          ? _currentVisibleIndexNotifier.value
+          : _isChapterChanged
+          ? 0
+          : widget.pageNo;
 
   /// 根据章节ID查找对应的索引
   int getCurrentChapterIndex() {
@@ -140,6 +154,24 @@ class _ReaderState extends State<Reader> {
     go(_currentChapterIndex - 1);
   }
 
+  /// 修改阅读模式
+  void changeReadMode(Axis mode) {
+    setState(() {
+      readMode = mode;
+    });
+    AppConf().readMode = readMode == Axis.vertical ? '1' : '2';
+  }
+
+  /// 跳转制定页
+  void jumpToPage(int index) {
+    _currentVisibleIndexNotifier.value = index;
+    if (readMode == Axis.vertical) {
+      itemScrollController.jumpTo(index: index);
+    } else {
+      pageController.jumpToPage(index);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -162,6 +194,7 @@ class _ReaderState extends State<Reader> {
   void dispose() {
     // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    pageController.dispose();
     super.dispose();
   }
 
@@ -180,6 +213,21 @@ class _ReaderState extends State<Reader> {
   Widget build(BuildContext context) {
     final data = _handler.data ?? [];
 
+    Widget listWidget =
+        readMode == Axis.vertical
+            ? VerticalList(
+              images: data,
+              onItemVisibleChanged: onItemVisibleChanged,
+              initialIndex: initialIndex,
+              itemScrollController: itemScrollController,
+            )
+            : HorizontalList(
+              images: data,
+              onItemVisibleChanged: onItemVisibleChanged,
+              initialIndex: initialIndex,
+              pageController: pageController,
+            );
+
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
@@ -190,12 +238,7 @@ class _ReaderState extends State<Reader> {
               isLoading: _handler.isLoading,
               onRetry: _handler.refresh,
               error: _handler.error,
-              child: VerticalList(
-                images: data,
-                onItemVisibleChanged: onItemVisibleChanged,
-                initialIndex: initialIndex,
-                itemScrollController: itemScrollController,
-              ),
+              child: listWidget,
             ),
           ),
           // 章节标签
@@ -268,9 +311,6 @@ class _ReaderState extends State<Reader> {
               backgroundColor: context.colorScheme.surface.withValues(
                 alpha: 0.92,
               ),
-              actions: [
-                IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
-              ],
             ),
           ),
         );
@@ -375,11 +415,7 @@ class _ReaderState extends State<Reader> {
                                   label: (value + 1).toString(),
                                   onChanged: (double value) {
                                     final intValue = value.toInt();
-                                    _currentVisibleIndexNotifier.value =
-                                        intValue;
-                                    itemScrollController.jumpTo(
-                                      index: intValue,
-                                    );
+                                    jumpToPage(intValue);
                                   },
                                 )
                                 : const SizedBox.shrink();
@@ -404,6 +440,26 @@ class _ReaderState extends State<Reader> {
                           ),
                           label: const Text('章节'),
                           icon: const Icon(Icons.menu),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            changeReadMode(
+                              readMode == Axis.horizontal
+                                  ? Axis.vertical
+                                  : Axis.horizontal,
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.colorScheme.onSurface,
+                          ),
+                          label: Text(
+                            readMode == Axis.horizontal ? '竖向' : '横向',
+                          ),
+                          icon: Icon(
+                            readMode == Axis.horizontal
+                                ? Icons.swap_vert
+                                : Icons.swap_horiz,
+                          ),
                         ),
                       ],
                     ),

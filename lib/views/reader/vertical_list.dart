@@ -29,17 +29,7 @@ class VerticalList extends StatefulWidget {
   State<VerticalList> createState() => _VerticalListState();
 }
 
-class _VerticalListState extends State<VerticalList>
-    with SingleTickerProviderStateMixin {
-  /// ctrl是否点击
-  bool _isCtrlPressed = false;
-
-  /// 当前触摸点个数
-  int _activePointers = 0;
-
-  /// 滑动控制
-  ScrollPhysics _listPhysics = const AlwaysScrollableScrollPhysics();
-
+class _VerticalListState extends State<VerticalList> {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
@@ -49,42 +39,6 @@ class _VerticalListState extends State<VerticalList>
 
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
-
-  ///双击缩放相关
-  final TransformationController _transformationController =
-      TransformationController();
-  Offset _doubleTapPosition = Offset.zero;
-  late AnimationController _animationController;
-  late Animation<Matrix4> _animation;
-
-  /// 处理键盘事件
-  /// 返回false允许事件继续传播
-  bool _handleKeyEvent(KeyEvent event) {
-    if (!isDesktop) return false;
-    final key = event.logicalKey;
-    final isControl =
-        key == LogicalKeyboardKey.controlLeft ||
-        key == LogicalKeyboardKey.controlRight;
-
-    // 优化：避免不必要的setState调用
-    if (event is KeyDownEvent && isControl) {
-      if (!_isCtrlPressed) {
-        setState(() {
-          _isCtrlPressed = true;
-          _listPhysics = const NeverScrollableScrollPhysics();
-        });
-      }
-    } else if (event is KeyUpEvent && isControl) {
-      if (_isCtrlPressed) {
-        setState(() {
-          _isCtrlPressed = false;
-          _listPhysics = const AlwaysScrollableScrollPhysics();
-        });
-      }
-    }
-
-    return false;
-  }
 
   /// 获取当前章节ID
   String get cid => context.reader.widget.id;
@@ -103,136 +57,55 @@ class _VerticalListState extends State<VerticalList>
 
   @override
   void initState() {
-    if (isDesktop) {
-      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
-    }
-
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
 
     _initImageSizeCache();
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    )..addListener(() {
-      _transformationController.value = _animation.value;
-    });
 
     super.initState();
   }
 
   @override
   void dispose() {
-    if (isDesktop) {
-      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
-    }
-
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
 
     _preloadDebounceTimer?.cancel();
 
-    _transformationController.dispose();
-
-    _animationController.dispose();
-
     super.dispose();
-  }
-
-  /// 双击放大/恢复
-  void _handleDoubleTap() {
-    Matrix4 endMatrix;
-    if (_transformationController.value != Matrix4.identity()) {
-      endMatrix = Matrix4.identity();
-    } else {
-      endMatrix =
-          Matrix4.identity()
-            ..translate(
-              -_doubleTapPosition.dx * 2.0,
-              -_doubleTapPosition.dy * 2.0,
-            )
-            ..scale(3.0);
-    }
-    _animation = Matrix4Tween(
-      begin: _transformationController.value,
-      end: endMatrix,
-    ).animate(CurveTween(curve: Curves.easeOut).animate(_animationController));
-    _animationController.forward(from: 0);
-  }
-
-  /// 获取双击位置
-  void _handleDoubleTapDown(TapDownDetails details) {
-    _doubleTapPosition = details.localPosition;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (event) => _updatePointerCount(1),
-      onPointerUp: (event) => _updatePointerCount(-1),
-      onPointerCancel: (event) => _updatePointerCount(-1),
-      child: GestureDetector(
-        onTap: () => context.reader.openOrCloseToolbar(),
-        onDoubleTapDown: _handleDoubleTapDown,
-        onDoubleTap: _handleDoubleTap,
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          scaleEnabled: isDesktop ? _isCtrlPressed : true,
-          minScale: 1,
-          maxScale: 3.5,
-          child: ScrollablePositionedList.builder(
-            initialScrollIndex: widget.initialIndex ?? 0,
-            padding: EdgeInsets.zero,
-            physics: _listPhysics,
-            itemCount: widget.images.length,
-            itemScrollController: widget.itemScrollController,
-            itemPositionsListener: itemPositionsListener,
-            itemBuilder: (context, index) {
-              final item = widget.images[index];
-              final imageSize = _imageSizeCache[item.uid];
-              return VerticalImage(
-                url: item.media.url,
-                onImageSizeChanged: (width, height) {
-                  final size = ImageSize(
-                    width: width,
-                    height: height,
-                    imageId: item.uid,
-                    cid: cid,
-                  );
-                  _insertImageSize(size);
-                  _imageSizeCache[item.uid] = size;
-                },
-                imageSize: imageSize,
+    final physics =
+        ScrollPhysicsInherited.of(context) ??
+        const AlwaysScrollableScrollPhysics();
+    return GestureWrapper(
+      child: ScrollablePositionedList.builder(
+        initialScrollIndex: widget.initialIndex ?? 0,
+        padding: EdgeInsets.zero,
+        physics: physics,
+        itemCount: widget.images.length,
+        itemScrollController: widget.itemScrollController,
+        itemPositionsListener: itemPositionsListener,
+        itemBuilder: (context, index) {
+          final item = widget.images[index];
+          final imageSize = _imageSizeCache[item.uid];
+          return VerticalImage(
+            url: item.media.url,
+            onImageSizeChanged: (width, height) {
+              final size = ImageSize(
+                width: width,
+                height: height,
+                imageId: item.uid,
+                cid: cid,
               );
+              _insertImageSize(size);
+              _imageSizeCache[item.uid] = size;
             },
-          ),
-        ),
+            imageSize: imageSize,
+          );
+        },
       ),
     );
-  }
-
-  /// 更新触摸点数量并相应地更新滚动物理效果
-  void _updatePointerCount(int delta) {
-    final newCount = _activePointers + delta;
-    // 确保计数不会为负
-    final clampedCount = newCount.clamp(0, double.maxFinite.toInt());
-
-    if (clampedCount == _activePointers) return;
-
-    final newPhysics =
-        clampedCount >= 2
-            ? const NeverScrollableScrollPhysics()
-            : const AlwaysScrollableScrollPhysics();
-
-    // 优化：只在物理效果类型变化时才调用setState
-    if (newPhysics.runtimeType != _listPhysics.runtimeType) {
-      setState(() {
-        _activePointers = clampedCount;
-        _listPhysics = newPhysics;
-      });
-    } else {
-      // 仅更新内部状态不触发重建
-      _activePointers = clampedCount;
-    }
   }
 
   // 最大预加载数量限制
@@ -380,6 +253,7 @@ class _VerticalImageState extends State<VerticalImage> {
       key: ValueKey('${widget.url}_$_version'),
       imageUrl: widget.url,
       fit: BoxFit.fitWidth,
+      width: width,
       fadeOutDuration: Duration.zero,
       progressIndicatorBuilder: (context, url, downloadProgress) {
         return createPlaceholder(

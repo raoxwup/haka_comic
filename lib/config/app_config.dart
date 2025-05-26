@@ -26,6 +26,9 @@ class AppConf {
   /// 启动时是否检查更新
   bool _checkUpdate = true;
 
+  /// 漫画阅读方向
+  String _readMode = '1'; // 1: 条漫模式 2: 横向从左到右
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -39,6 +42,7 @@ class AppConf {
     );
     instance._server = getServer(prefs.getString('server') ?? '1');
     instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
+    instance._readMode = prefs.getString('readMode') ?? '1';
   }
 
   set email(String value) =>
@@ -64,12 +68,16 @@ class AppConf {
     SharedPreferencesUtil.prefs.setBool('checkUpdate', value);
   }
 
+  set readMode(String value) =>
+      _saveToPrefs('readMode', value, value, (v) => _readMode = v);
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
   ImageQuality get imageQuality => _imageQuality;
   Server get server => _server;
   bool get checkUpdate => _checkUpdate;
+  String get readMode => _readMode;
 
   void _saveToPrefs<T>(
     String key,
@@ -95,12 +103,14 @@ class AppConf {
     _imageQuality = ImageQuality.original;
     _server = Server.one;
     _checkUpdate = true;
+    _readMode = '1';
     SharedPreferencesUtil.prefs
       ..remove('email')
       ..remove('password')
       ..remove('token')
       ..remove('imageQuality')
       ..remove('server')
-      ..remove('checkUpdate');
+      ..remove('checkUpdate')
+      ..remove('readMode');
   }
 }
