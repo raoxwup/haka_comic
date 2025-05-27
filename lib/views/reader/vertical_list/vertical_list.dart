@@ -1,7 +1,15 @@
-part of 'reader.dart';
+import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:haka_comic/database/images_helper.dart';
+import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/vertical_list/gesture.dart';
+import 'package:haka_comic/views/reader/reader_inherited.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 extension _ReaderContext on BuildContext {
-  _ReaderState get reader => findAncestorStateOfType<_ReaderState>()!;
+  ReaderInherited get reader => ReaderInherited.of(this, listen: false);
 }
 
 /// 条漫模式
@@ -40,8 +48,8 @@ class _VerticalListState extends State<VerticalList> {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
-  /// 获取当前章节ID
-  String get cid => context.reader.widget.id;
+  /// 获取当前漫画ID
+  String get cid => context.reader.cid;
 
   /// 图片尺寸缓存 - 避免重复查询数据库
   final Map<String, ImageSize> _imageSizeCache = {};

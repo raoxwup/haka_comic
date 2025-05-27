@@ -1,5 +1,6 @@
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/views/reader/reader.dart';
 
 class AppConf {
   static final AppConf instance = AppConf._internal();
@@ -27,7 +28,7 @@ class AppConf {
   bool _checkUpdate = true;
 
   /// 漫画阅读方向
-  String _readMode = '1'; // 1: 条漫模式 2: 横向从左到右
+  ReadMode _readMode = ReadMode.vertical;
 
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
@@ -42,7 +43,9 @@ class AppConf {
     );
     instance._server = getServer(prefs.getString('server') ?? '1');
     instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
-    instance._readMode = prefs.getString('readMode') ?? '1';
+    instance._readMode = stringToReadMode(
+      prefs.getString('readMode') ?? ReadMode.vertical.name,
+    );
   }
 
   set email(String value) =>
@@ -68,8 +71,8 @@ class AppConf {
     SharedPreferencesUtil.prefs.setBool('checkUpdate', value);
   }
 
-  set readMode(String value) =>
-      _saveToPrefs('readMode', value, value, (v) => _readMode = v);
+  set readMode(ReadMode value) =>
+      _saveToPrefs('readMode', value.name, value, (v) => _readMode = v);
 
   String get email => _email;
   String get password => _password;
@@ -77,7 +80,7 @@ class AppConf {
   ImageQuality get imageQuality => _imageQuality;
   Server get server => _server;
   bool get checkUpdate => _checkUpdate;
-  String get readMode => _readMode;
+  ReadMode get readMode => _readMode;
 
   void _saveToPrefs<T>(
     String key,
@@ -103,7 +106,7 @@ class AppConf {
     _imageQuality = ImageQuality.original;
     _server = Server.one;
     _checkUpdate = true;
-    _readMode = '1';
+    _readMode = ReadMode.vertical;
     SharedPreferencesUtil.prefs
       ..remove('email')
       ..remove('password')

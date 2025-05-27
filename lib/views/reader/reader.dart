@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -7,20 +6,15 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/views/reader/horizontal_list/horizontal_list.dart';
+import 'package:haka_comic/views/reader/reader_inherited.dart';
+import 'package:haka_comic/views/reader/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-
-part 'gesture.dart';
-part 'vertical_list.dart';
-part 'horizontal_list.dart';
 
 const kBottomBarHeight = 105.0;
 
@@ -54,7 +48,7 @@ class Reader extends StatefulWidget {
 }
 
 class _ReaderState extends State<Reader> {
-  /// 章节图片请求处理器
+  /// 章节图片请求
   final _handler = fetchChapterImages.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch chapter images success', data.toString());
@@ -65,7 +59,7 @@ class _ReaderState extends State<Reader> {
   );
 
   /// 阅读模式
-  Axis readMode = AppConf().readMode == '1' ? Axis.vertical : Axis.horizontal;
+  ReadMode readMode = AppConf().readMode;
 
   /// 当前章节索引
   late int _currentChapterIndex;
@@ -155,17 +149,17 @@ class _ReaderState extends State<Reader> {
   }
 
   /// 修改阅读模式
-  void changeReadMode(Axis mode) {
+  void changeReadMode(ReadMode mode) {
     setState(() {
       readMode = mode;
+      AppConf().readMode = mode;
     });
-    AppConf().readMode = readMode == Axis.vertical ? '1' : '2';
   }
 
-  /// 跳转制定页
+  /// 跳转指定页
   void jumpToPage(int index) {
     _currentVisibleIndexNotifier.value = index;
-    if (readMode == Axis.vertical) {
+    if (readMode == ReadMode.vertical) {
       itemScrollController.jumpTo(index: index);
     } else {
       pageController.jumpToPage(index);
@@ -214,7 +208,7 @@ class _ReaderState extends State<Reader> {
     final data = _handler.data ?? [];
 
     Widget listWidget =
-        readMode == Axis.vertical
+        readMode == ReadMode.vertical
             ? VerticalList(
               images: data,
               onItemVisibleChanged: onItemVisibleChanged,
@@ -238,7 +232,11 @@ class _ReaderState extends State<Reader> {
               isLoading: _handler.isLoading,
               onRetry: _handler.refresh,
               error: _handler.error,
-              child: listWidget,
+              child: ReaderInherited(
+                cid: widget.id,
+                openOrCloseToolbar: openOrCloseToolbar,
+                child: listWidget,
+              ),
             ),
           ),
           // 章节标签
@@ -444,19 +442,19 @@ class _ReaderState extends State<Reader> {
                         TextButton.icon(
                           onPressed: () {
                             changeReadMode(
-                              readMode == Axis.horizontal
-                                  ? Axis.vertical
-                                  : Axis.horizontal,
+                              readMode == ReadMode.leftToRight
+                                  ? ReadMode.vertical
+                                  : ReadMode.leftToRight,
                             );
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: context.colorScheme.onSurface,
                           ),
                           label: Text(
-                            readMode == Axis.horizontal ? '竖向' : '横向',
+                            readMode == ReadMode.leftToRight ? '竖向' : '横向',
                           ),
                           icon: Icon(
-                            readMode == Axis.horizontal
+                            readMode == ReadMode.leftToRight
                                 ? Icons.swap_vert
                                 : Icons.swap_horiz,
                           ),
@@ -472,4 +470,20 @@ class _ReaderState extends State<Reader> {
       },
     );
   }
+}
+
+enum ReadMode {
+  /// 条漫模式
+  vertical,
+
+  /// 横向从左到右
+  leftToRight,
+}
+
+ReadMode stringToReadMode(String mode) {
+  return switch (mode) {
+    'vertical' => ReadMode.vertical,
+    'leftToRight' => ReadMode.leftToRight,
+    _ => ReadMode.vertical,
+  };
 }

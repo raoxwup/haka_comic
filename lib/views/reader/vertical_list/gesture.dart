@@ -1,4 +1,7 @@
-part of 'reader.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/views/reader/reader_inherited.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
   final ScrollPhysics physics;
@@ -171,7 +174,12 @@ class _GestureWrapperState extends State<GestureWrapper>
         onPointerUp: (event) => _updatePointerCount(-1),
         onPointerCancel: (event) => _updatePointerCount(-1),
         child: GestureDetector(
-          onTap: () => context.reader.openOrCloseToolbar(),
+          onTap:
+              () =>
+                  ReaderInherited.of(
+                    context,
+                    listen: false,
+                  ).openOrCloseToolbar(),
           onDoubleTapDown: _handleDoubleTapDown,
           onDoubleTap: _handleDoubleTap,
           child: InteractiveViewer(
