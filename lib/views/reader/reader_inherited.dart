@@ -7,11 +7,14 @@ class ReaderInherited extends InheritedWidget {
   /// 打开或关闭工具栏
   final VoidCallback openOrCloseToolbar;
 
+  final Size size;
+
   const ReaderInherited({
     super.key,
     required this.cid,
     required this.openOrCloseToolbar,
     required super.child,
+    required this.size,
   });
 
   static ReaderInherited of(BuildContext context, {bool listen = true}) {
@@ -25,6 +28,6 @@ class ReaderInherited extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant ReaderInherited oldWidget) {
-    return cid != oldWidget.cid;
+    return size != oldWidget.size;
   }
 }

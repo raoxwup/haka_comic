@@ -48,8 +48,6 @@ class _HorizontalListState extends State<HorizontalList> {
   /// 图片尺寸缓存 - 避免重复查询数据库
   final Map<String, ImageSize> _imageSizeCache = {};
 
-  final scaleStateController = PhotoViewScaleStateController();
-
   /// 初始化图片尺寸缓存
   Future<void> _initImageSizeCache() async {
     // 一次性查询所有图片尺寸并缓存
@@ -84,96 +82,87 @@ class _HorizontalListState extends State<HorizontalList> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: PhotoViewGallery.builder(
-            backgroundDecoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerLowest,
-            ),
-            scrollPhysics: const BouncingScrollPhysics(),
-            itemCount: widget.images.length,
-            pageController: widget.pageController,
-            onPageChanged: (index) {
-              _onItemPositionsChanged(index);
-            },
-            builder: (context, index) {
-              final item = widget.images[index];
-              final imageSize = _imageSizeCache[item.uid];
+    final width = context.width;
+    double leftFraction = 0.3;
+    double centerFraction = 0.4;
 
-              photoViewControllers[index] ??= PhotoViewController();
+    if (width > 600) {
+      leftFraction = 0.2;
+      centerFraction = 0.6;
+    }
 
-              return PhotoViewGalleryPageOptions.customChild(
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 3,
-                controller: photoViewControllers[index],
-                child: HorizontalImage(
-                  url: item.media.url,
-                  onImageSizeChanged: (width, height) {
-                    final size = ImageSize(
-                      width: width,
-                      height: height,
-                      imageId: item.uid,
-                      cid: cid,
-                    );
-                    _insertImageSize(size);
-                    _imageSizeCache[item.uid] = size;
+    final leftWidth = width * leftFraction;
+    final centerWidth = width * centerFraction;
+
+    return GestureDetector(
+      onTapDown: (details) {
+        final dx = details.localPosition.dx;
+        if (dx < leftWidth) {
+          widget.pageController.previousPage(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.linear,
+          );
+        } else if (dx < (leftWidth + centerWidth)) {
+          ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+        } else {
+          widget.pageController.nextPage(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.linear,
+          );
+        }
+      },
+      child: PhotoViewGallery.builder(
+        backgroundDecoration: BoxDecoration(
+          color: context.colorScheme.surfaceContainerLowest,
+        ),
+        scrollPhysics: const BouncingScrollPhysics(),
+        // scrollPhysics: const PageScrollPhysics(),
+        itemCount: widget.images.length,
+        pageController: widget.pageController,
+        onPageChanged: (index) {
+          _onItemPositionsChanged(index);
+        },
+        builder: (context, index) {
+          final item = widget.images[index];
+          final imageSize = _imageSizeCache[item.uid];
+
+          photoViewControllers[index] ??= PhotoViewController();
+
+          return PhotoViewGalleryPageOptions(
+            minScale: PhotoViewComputedScale.contained * 1,
+            maxScale: PhotoViewComputedScale.covered * 10,
+            controller: photoViewControllers[index],
+            imageProvider: CachedNetworkImageProvider(item.media.url),
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: IconButton(
+                  onPressed: () async {
+                    final provider = CachedNetworkImageProvider(item.media.url);
+                    provider.evict();
                   },
-                  imageSize: imageSize,
+                  icon: const Icon(Icons.refresh),
                 ),
               );
             },
-          ),
-        ),
-
-        Positioned.fill(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              double leftFraction = 0.3;
-              double centerFraction = 0.4;
-
-              if (width > 600) {
-                leftFraction = 0.2;
-                centerFraction = 0.6;
-              }
-
-              final leftWidth = width * leftFraction;
-              final centerWidth = width * centerFraction;
-              return GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTapDown: (details) {
-                  final dx = details.localPosition.dx;
-
-                  if (dx < leftWidth) {
-                    widget.pageController.previousPage(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.linear,
-                    );
-                  } else if (dx < (leftWidth + centerWidth)) {
-                    ReaderInherited.of(
-                      context,
-                      listen: false,
-                    ).openOrCloseToolbar();
-                  } else {
-                    widget.pageController.nextPage(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.linear,
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Container(color: Colors.transparent, width: leftWidth),
-                    Container(color: Colors.transparent, width: centerWidth),
-                    Expanded(child: Container(color: Colors.transparent)),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+          );
+        },
+        loadingBuilder: (context, event) {
+          return Center(
+            child: CircularProgressIndicator(
+              value:
+                  event == null
+                      ? 0
+                      : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+              strokeWidth: 3,
+              constraints: BoxConstraints.tight(const Size(28, 28)),
+              backgroundColor: Colors.grey.shade300,
+              color: context.colorScheme.primary,
+              strokeCap: StrokeCap.round,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -197,9 +186,6 @@ class _HorizontalListState extends State<HorizontalList> {
     widget.onItemVisibleChanged(index);
   }
 
-  /// 预加载指定范围内的图片
-  /// 优化：避免重复加载和越界访问
-  // 用于控制预加载频率的计时器
   Timer? _preloadDebounceTimer;
 
   void _preloadImages(int startIndex, int endIndex) {
@@ -300,7 +286,8 @@ class _HorizontalImageState extends State<HorizontalImage> {
     return CachedNetworkImage(
       key: ValueKey('${widget.url}_$_version'),
       imageUrl: widget.url,
-      fit: BoxFit.fitWidth,
+      width: double.infinity,
+      height: double.infinity,
       fadeOutDuration: Duration.zero,
       progressIndicatorBuilder: (context, url, downloadProgress) {
         return createPlaceholder(

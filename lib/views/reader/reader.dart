@@ -232,10 +232,19 @@ class _ReaderState extends State<Reader> {
               isLoading: _handler.isLoading,
               onRetry: _handler.refresh,
               error: _handler.error,
-              child: ReaderInherited(
-                cid: widget.id,
-                openOrCloseToolbar: openOrCloseToolbar,
-                child: listWidget,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
+                  return ReaderInherited(
+                    cid: widget.id,
+                    openOrCloseToolbar: openOrCloseToolbar,
+                    size: size,
+                    child: listWidget,
+                  );
+                },
               ),
             ),
           ),
