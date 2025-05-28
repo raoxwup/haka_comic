@@ -723,10 +723,11 @@ packages:
   photo_view:
     dependency: "direct main"
     description:
-      name: photo_view
-      sha256: "1fc3d970a91295fbd1364296575f854c9863f225505c28c46e0a03e48960c75e"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: a856bde5b2c3e1ffb3dca7976f2c9301457f939f
+      resolved-ref: a856bde5b2c3e1ffb3dca7976f2c9301457f939f
+      url: "https://github.com/raoxwup/photo_view.git"
+    source: git
     version: "0.15.0"
   platform:
     dependency: transitive

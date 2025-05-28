@@ -72,6 +72,7 @@ class _HorizontalListState extends State<HorizontalList> {
   @override
   void dispose() {
     _preloadDebounceTimer?.cancel();
+    _tapTimer?.cancel();
 
     for (var controller in photoViewControllers.values) {
       controller.dispose();
@@ -80,8 +81,14 @@ class _HorizontalListState extends State<HorizontalList> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Timer? _tapTimer;
+  void _handleTap(
+    BuildContext context,
+    TapDownDetails details,
+    PhotoViewControllerValue value,
+  ) {
+    _tapTimer?.cancel();
+
     final width = context.width;
     double leftFraction = 0.3;
     double centerFraction = 0.4;
@@ -94,75 +101,75 @@ class _HorizontalListState extends State<HorizontalList> {
     final leftWidth = width * leftFraction;
     final centerWidth = width * centerFraction;
 
-    return GestureDetector(
-      onTapDown: (details) {
-        final dx = details.localPosition.dx;
-        if (dx < leftWidth) {
-          widget.pageController.previousPage(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.linear,
-          );
-        } else if (dx < (leftWidth + centerWidth)) {
-          ReaderInherited.of(context, listen: false).openOrCloseToolbar();
-        } else {
-          widget.pageController.nextPage(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.linear,
-          );
-        }
-      },
-      child: PhotoViewGallery.builder(
-        backgroundDecoration: BoxDecoration(
-          color: context.colorScheme.surfaceContainerLowest,
-        ),
-        scrollPhysics: const BouncingScrollPhysics(),
-        // scrollPhysics: const PageScrollPhysics(),
-        itemCount: widget.images.length,
-        pageController: widget.pageController,
-        onPageChanged: (index) {
-          _onItemPositionsChanged(index);
-        },
-        builder: (context, index) {
-          final item = widget.images[index];
-          final imageSize = _imageSizeCache[item.uid];
+    _tapTimer = Timer(const Duration(milliseconds: 300), () {
+      final dx = details.localPosition.dx;
+      if (dx < leftWidth) {
+        widget.pageController.previousPage(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.linear,
+        );
+      } else if (dx < (leftWidth + centerWidth)) {
+        ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+      } else {
+        widget.pageController.nextPage(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.linear,
+        );
+      }
+    });
+  }
 
-          photoViewControllers[index] ??= PhotoViewController();
-
-          return PhotoViewGalleryPageOptions(
-            minScale: PhotoViewComputedScale.contained * 1,
-            maxScale: PhotoViewComputedScale.covered * 10,
-            controller: photoViewControllers[index],
-            imageProvider: CachedNetworkImageProvider(item.media.url),
-            filterQuality: FilterQuality.medium,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: IconButton(
-                  onPressed: () async {
-                    final provider = CachedNetworkImageProvider(item.media.url);
-                    provider.evict();
-                  },
-                  icon: const Icon(Icons.refresh),
-                ),
-              );
-            },
-          );
-        },
-        loadingBuilder: (context, event) {
-          return Center(
-            child: CircularProgressIndicator(
-              value:
-                  event == null
-                      ? 0
-                      : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
-              strokeWidth: 3,
-              constraints: BoxConstraints.tight(const Size(28, 28)),
-              backgroundColor: Colors.grey.shade300,
-              color: context.colorScheme.primary,
-              strokeCap: StrokeCap.round,
-            ),
-          );
-        },
+  @override
+  Widget build(BuildContext context) {
+    return PhotoViewGallery.builder(
+      backgroundDecoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerLowest,
       ),
+      scrollPhysics: const BouncingScrollPhysics(),
+      itemCount: widget.images.length,
+      pageController: widget.pageController,
+      onPageChanged: _onItemPositionsChanged,
+      builder: (context, index) {
+        final item = widget.images[index];
+
+        photoViewControllers[index] ??= PhotoViewController();
+
+        return PhotoViewGalleryPageOptions(
+          minScale: PhotoViewComputedScale.contained * 1,
+          maxScale: PhotoViewComputedScale.covered * 10,
+          controller: photoViewControllers[index],
+          imageProvider: CachedNetworkImageProvider(item.media.url),
+          filterQuality: FilterQuality.medium,
+          // onTapDown: _handleTap,
+          errorBuilder: (context, error, stackTrace, retry) {
+            return Center(
+              child: IconButton(
+                onPressed: () async {
+                  final provider = CachedNetworkImageProvider(item.media.url);
+                  provider.evict();
+                  retry();
+                },
+                icon: const Icon(Icons.refresh),
+              ),
+            );
+          },
+        );
+      },
+      loadingBuilder: (context, event) {
+        return Center(
+          child: CircularProgressIndicator(
+            value:
+                event == null
+                    ? 0
+                    : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+            strokeWidth: 3,
+            constraints: BoxConstraints.tight(const Size(28, 28)),
+            backgroundColor: Colors.grey.shade300,
+            color: context.colorScheme.primary,
+            strokeCap: StrokeCap.round,
+          ),
+        );
+      },
     );
   }
 
