@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.0.0-beta.3
+version: 1.0.0-beta.4
 
 environment:
   sdk: ^3.7.0
@@ -33,7 +33,7 @@ dependencies:
   photo_view:
     git:
       url: https://github.com/raoxwup/photo_view.git
-      ref: a856bde5b2c3e1ffb3dca7976f2c9301457f939f
+      ref: 3ce29c865a3a37d496ebe905f4f181b8e613375a
 
 dev_dependencies:
   flutter_test:

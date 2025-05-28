@@ -40,27 +40,13 @@ class _HorizontalListState extends State<HorizontalList> {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
-  final Map<int, PhotoViewController> photoViewControllers = {};
+  final Map<String, PhotoViewController> photoViewControllers = {};
 
   /// 获取当前章节ID
   String get cid => ReaderInherited.of(context, listen: false).cid;
 
-  /// 图片尺寸缓存 - 避免重复查询数据库
-  final Map<String, ImageSize> _imageSizeCache = {};
-
-  /// 初始化图片尺寸缓存
-  Future<void> _initImageSizeCache() async {
-    // 一次性查询所有图片尺寸并缓存
-    final sizes = await ImagesHelper.query(cid);
-    for (var imageSize in sizes) {
-      _imageSizeCache[imageSize.imageId] = imageSize;
-    }
-  }
-
   @override
   void initState() {
-    _initImageSizeCache();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.pageController.jumpToPage(widget.initialIndex ?? 0);
       _onItemPositionsChanged(widget.initialIndex ?? 0);
@@ -72,7 +58,6 @@ class _HorizontalListState extends State<HorizontalList> {
   @override
   void dispose() {
     _preloadDebounceTimer?.cancel();
-    _tapTimer?.cancel();
 
     for (var controller in photoViewControllers.values) {
       controller.dispose();
@@ -81,14 +66,10 @@ class _HorizontalListState extends State<HorizontalList> {
     super.dispose();
   }
 
-  Timer? _tapTimer;
-  void _handleTap(
-    BuildContext context,
-    TapDownDetails details,
-    PhotoViewControllerValue value,
-  ) {
-    _tapTimer?.cancel();
+  TapDownDetails? _tapDetails;
 
+  void _handleTap() {
+    if (_tapDetails == null) return;
     final width = context.width;
     double leftFraction = 0.3;
     double centerFraction = 0.4;
@@ -101,75 +82,87 @@ class _HorizontalListState extends State<HorizontalList> {
     final leftWidth = width * leftFraction;
     final centerWidth = width * centerFraction;
 
-    _tapTimer = Timer(const Duration(milliseconds: 300), () {
-      final dx = details.localPosition.dx;
-      if (dx < leftWidth) {
-        widget.pageController.previousPage(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.linear,
-        );
-      } else if (dx < (leftWidth + centerWidth)) {
-        ReaderInherited.of(context, listen: false).openOrCloseToolbar();
-      } else {
-        widget.pageController.nextPage(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.linear,
-        );
-      }
-    });
+    final dx = _tapDetails!.localPosition.dx;
+    if (dx < leftWidth) {
+      widget.pageController.previousPage(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.linear,
+      );
+    } else if (dx < (leftWidth + centerWidth)) {
+      ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+    } else {
+      widget.pageController.nextPage(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.linear,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return PhotoViewGallery.builder(
-      backgroundDecoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerLowest,
+    return GestureDetector(
+      onTapDown: (details) {
+        _tapDetails = details;
+      },
+      onTap: _handleTap,
+      child: PhotoViewGallery.builder(
+        backgroundDecoration: BoxDecoration(
+          color: context.colorScheme.surfaceContainerLowest,
+        ),
+        scrollPhysics: const BouncingScrollPhysics(),
+        itemCount: widget.images.length,
+        pageController: widget.pageController,
+        onPageChanged: _onItemPositionsChanged,
+        builder: (context, index) {
+          final item = widget.images[index];
+
+          photoViewControllers[item.uid] ??= PhotoViewController();
+
+          return PhotoViewGalleryPageOptions(
+            minScale: PhotoViewComputedScale.contained * 1,
+            maxScale: PhotoViewComputedScale.covered * 4,
+            controller: photoViewControllers[item.uid],
+            imageProvider: CachedNetworkImageProvider(item.media.url),
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (context, error, stackTrace, retry) {
+              return Center(
+                child: IconButton(
+                  onPressed: () async {
+                    final provider = CachedNetworkImageProvider(item.media.url);
+                    provider.evict();
+                    retry();
+                  },
+                  icon: const Icon(Icons.refresh),
+                ),
+              );
+            },
+            onImageFrame: (info, synchronousCall) {
+              final imageSize = ImageSize(
+                imageId: item.uid,
+                width: info.image.width,
+                height: info.image.height,
+                cid: cid,
+              );
+              _insertImageSize(imageSize);
+            },
+          );
+        },
+        loadingBuilder: (context, event) {
+          return Center(
+            child: CircularProgressIndicator(
+              value:
+                  event == null
+                      ? 0
+                      : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+              strokeWidth: 3,
+              constraints: BoxConstraints.tight(const Size(28, 28)),
+              backgroundColor: Colors.grey.shade300,
+              color: context.colorScheme.primary,
+              strokeCap: StrokeCap.round,
+            ),
+          );
+        },
       ),
-      scrollPhysics: const BouncingScrollPhysics(),
-      itemCount: widget.images.length,
-      pageController: widget.pageController,
-      onPageChanged: _onItemPositionsChanged,
-      builder: (context, index) {
-        final item = widget.images[index];
-
-        photoViewControllers[index] ??= PhotoViewController();
-
-        return PhotoViewGalleryPageOptions(
-          minScale: PhotoViewComputedScale.contained * 1,
-          maxScale: PhotoViewComputedScale.covered * 10,
-          controller: photoViewControllers[index],
-          imageProvider: CachedNetworkImageProvider(item.media.url),
-          filterQuality: FilterQuality.medium,
-          // onTapDown: _handleTap,
-          errorBuilder: (context, error, stackTrace, retry) {
-            return Center(
-              child: IconButton(
-                onPressed: () async {
-                  final provider = CachedNetworkImageProvider(item.media.url);
-                  provider.evict();
-                  retry();
-                },
-                icon: const Icon(Icons.refresh),
-              ),
-            );
-          },
-        );
-      },
-      loadingBuilder: (context, event) {
-        return Center(
-          child: CircularProgressIndicator(
-            value:
-                event == null
-                    ? 0
-                    : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
-            strokeWidth: 3,
-            constraints: BoxConstraints.tight(const Size(28, 28)),
-            backgroundColor: Colors.grey.shade300,
-            color: context.colorScheme.primary,
-            strokeCap: StrokeCap.round,
-          ),
-        );
-      },
     );
   }
 
@@ -222,122 +215,5 @@ class _HorizontalListState extends State<HorizontalList> {
   /// 将图片尺寸信息插入数据库
   void _insertImageSize(ImageSize imageSize) {
     ImagesHelper.insert(imageSize);
-  }
-}
-
-class HorizontalImage extends StatefulWidget {
-  const HorizontalImage({
-    super.key,
-    required this.url,
-    required this.onImageSizeChanged,
-    this.imageSize,
-  });
-
-  /// 图片url
-  final String url;
-
-  /// 图片尺寸回调
-  final Function(int, int) onImageSizeChanged;
-
-  /// 缓存的图片尺寸
-  final ImageSize? imageSize;
-
-  @override
-  State<HorizontalImage> createState() => _HorizontalImageState();
-}
-
-class _HorizontalImageState extends State<HorizontalImage> {
-  int _version = 0;
-  ImageStream? _imageStream;
-  ImageStreamListener? _listener;
-
-  /// 刷新图片，清除缓存并重新加载
-  Future<void> _refreshImage() async {
-    final provider = CachedNetworkImageProvider(widget.url);
-    await provider.evict();
-    if (mounted) {
-      setState(() => _version++);
-    }
-  }
-
-  /// 移除图片流监听器
-  void _removeListener() {
-    if (_imageStream != null && _listener != null) {
-      _imageStream!.removeListener(_listener!);
-      _imageStream = null;
-      _listener = null;
-    }
-  }
-
-  @override
-  void dispose() {
-    _removeListener();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // 计算图片高度，优先使用缓存的尺寸
-    final width = context.width;
-    final height = context.height * 0.6;
-
-    // 创建占位容器，避免重复代码
-    Widget createPlaceholder({required Widget child}) {
-      return SizedBox(
-        height: height,
-        width: width,
-        child: Center(child: child),
-      );
-    }
-
-    return CachedNetworkImage(
-      key: ValueKey('${widget.url}_$_version'),
-      imageUrl: widget.url,
-      width: double.infinity,
-      height: double.infinity,
-      fadeOutDuration: Duration.zero,
-      progressIndicatorBuilder: (context, url, downloadProgress) {
-        return createPlaceholder(
-          child: CircularProgressIndicator(
-            value: downloadProgress.progress ?? 0,
-            strokeWidth: 3,
-            constraints: BoxConstraints.tight(const Size(28, 28)),
-            backgroundColor: Colors.grey.shade300,
-            color: context.colorScheme.primary,
-            strokeCap: StrokeCap.round,
-          ),
-        );
-      },
-      errorWidget:
-          (context, url, error) => createPlaceholder(
-            child: IconButton(
-              onPressed: _refreshImage,
-              icon: const Icon(Icons.refresh),
-            ),
-          ),
-      imageBuilder: (context, imageProvider) {
-        final resolve = imageProvider.resolve(const ImageConfiguration());
-
-        // 只在图片流变化时更新监听器
-        if (resolve != _imageStream) {
-          _removeListener();
-          _imageStream = resolve;
-
-          _listener = ImageStreamListener((imageInfo, _) {
-            if (!mounted) return;
-            widget.onImageSizeChanged(
-              imageInfo.image.width,
-              imageInfo.image.height,
-            );
-            // 获取尺寸后移除监听器，避免内存泄漏
-            _removeListener();
-          });
-
-          _imageStream!.addListener(_listener!);
-        }
-
-        return Image(image: imageProvider);
-      },
-    );
   }
 }
