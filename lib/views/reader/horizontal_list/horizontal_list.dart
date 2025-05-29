@@ -40,7 +40,7 @@ class _HorizontalListState extends State<HorizontalList> {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
-  final Map<String, PhotoViewController> photoViewControllers = {};
+  final Map<int, PhotoViewController> photoViewControllers = {};
 
   /// 获取当前章节ID
   String get cid => ReaderInherited.of(context, listen: false).cid;
@@ -116,12 +116,12 @@ class _HorizontalListState extends State<HorizontalList> {
         builder: (context, index) {
           final item = widget.images[index];
 
-          photoViewControllers[item.uid] ??= PhotoViewController();
+          photoViewControllers[index] ??= PhotoViewController();
 
           return PhotoViewGalleryPageOptions(
             minScale: PhotoViewComputedScale.contained * 1,
             maxScale: PhotoViewComputedScale.covered * 4,
-            controller: photoViewControllers[item.uid],
+            controller: photoViewControllers[index],
             imageProvider: CachedNetworkImageProvider(item.media.url),
             filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace, retry) {
@@ -171,12 +171,12 @@ class _HorizontalListState extends State<HorizontalList> {
 
   /// 处理列表项位置变化
   void _onItemPositionsChanged(index) {
-    // 根据滚动方向预加载不同方向的图片
+    // 将上一页的图片状态重置
+    photoViewControllers[_visibleFirstIndex]?.reset();
+
     if (_visibleFirstIndex > index) {
-      // 向上滚动，预加载上方图片
       _preloadImages(index - 1, index - _maxPreloadCount);
     } else {
-      // 向下滚动，预加载下方图片
       _preloadImages(index + 1, index + _maxPreloadCount);
     }
 

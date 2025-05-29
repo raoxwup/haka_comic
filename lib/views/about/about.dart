@@ -79,10 +79,13 @@ class _AboutState extends State<About> {
           const SizedBox(height: 5),
           Text('Version ${SetupConf.appVersion}', textAlign: TextAlign.center),
           const SizedBox(height: 15),
-          Text(
-            'Haka Comic是一个开源免费的第三方哔咔漫画客户端',
-            textAlign: TextAlign.center,
-            style: context.textTheme.bodyMedium,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40.0),
+            child: Text(
+              'Haka Comic是一个开源免费的第三方哔咔漫画客户端',
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium,
+            ),
           ),
           const SizedBox(height: 20),
           ListTile(
