@@ -1,17 +1,33 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:path/path.dart' as p;
 
 class Downloads extends StatefulWidget {
   const Downloads({super.key});
 
   @override
   State<Downloads> createState() => _DownloadsState();
+}
+
+String downloadTaskStatusToString(DownloadTaskStatus status) {
+  return switch (status) {
+    DownloadTaskStatus.queued => "等待中",
+    DownloadTaskStatus.downloading => "下载中",
+    DownloadTaskStatus.paused => "已暂停",
+    DownloadTaskStatus.completed => "已完成",
+    DownloadTaskStatus.error => "下载失败",
+  };
 }
 
 class _DownloadsState extends State<Downloads> {
@@ -58,12 +74,74 @@ class _DownloadsState extends State<Downloads> {
     super.dispose();
   }
 
-  void clearTasks() {
-    DownloadManager.deleteTasks(_selectedTasks.map((e) => e.comic.id).toList());
-    setState(() {
-      tasks.removeWhere((t) => _selectedTasks.contains(t));
-    });
-    close();
+  void clearTasks() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('确认删除'),
+          content: const Text('是否删除选中的下载任务？'),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => context.pop(true),
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      DownloadManager.deleteTasks(
+        _selectedTasks.map((e) => e.comic.id).toList(),
+      );
+      setState(() {
+        tasks.removeWhere((t) => _selectedTasks.contains(t));
+      });
+      close();
+    }
+  }
+
+  void exportTasks() async {
+    try {
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+      if (selectedDirectory == null) {
+        Toast.show(message: "未选择导出目录");
+        return;
+      }
+
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      final downloadPath = await getDownloadDirectory();
+
+      for (var task in _selectedTasks) {
+        final sourceDir = Directory(
+          p.join(downloadPath, sanitizeFileName(task.comic.title)),
+        );
+
+        final destDir = Directory(
+          p.join(selectedDirectory, sanitizeFileName(task.comic.title)),
+        );
+
+        await copyDirectory(sourceDir, destDir);
+      }
+
+      Toast.show(message: "导出成功");
+    } catch (e) {
+      Toast.show(message: "导出失败");
+    } finally {
+      if (mounted) {
+        Loader.hide(context);
+      }
+      close();
+    }
   }
 
   void close() {
@@ -72,6 +150,10 @@ class _DownloadsState extends State<Downloads> {
       _selectedTasks = [];
     });
   }
+
+  bool get isAllCompleted => _selectedTasks.every(
+    (task) => task.status == DownloadTaskStatus.completed,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +224,6 @@ class _DownloadsState extends State<Downloads> {
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 5),
                           child: Column(
-                            spacing: 5,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -153,15 +234,10 @@ class _DownloadsState extends State<Downloads> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const Spacer(),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '${task.completed} / ${task.total}',
-                                    style: context.textTheme.bodySmall,
-                                  ),
-                                  if (_iconMap.containsKey(task.status))
+                              if (_iconMap.containsKey(task.status))
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
                                     IconButton(
                                       onPressed: () {
                                         _iconMap[task.status]!["action"](
@@ -172,8 +248,26 @@ class _DownloadsState extends State<Downloads> {
                                         _iconMap[task.status]!["icon"],
                                       ),
                                     ),
+                                  ],
+                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    downloadTaskStatusToString(task.status),
+                                    style: context.textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: context.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${task.completed} / ${task.total}',
+                                    style: context.textTheme.bodySmall,
+                                  ),
                                 ],
                               ),
+                              const SizedBox(height: 5),
                               LinearProgressIndicator(
                                 borderRadius: BorderRadius.circular(99),
                                 value:
@@ -211,7 +305,15 @@ class _DownloadsState extends State<Downloads> {
           _isSelecting
               ? [
                 FilledButton.tonalIcon(
-                  onPressed: clearTasks,
+                  onPressed:
+                      (_selectedTasks.isEmpty || !isAllCompleted)
+                          ? null
+                          : exportTasks,
+                  label: const Text('导出'),
+                  icon: const Icon(Icons.drive_file_move),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _selectedTasks.isEmpty ? null : clearTasks,
                   label: const Text('删除'),
                   icon: const Icon(Icons.delete_forever),
                 ),

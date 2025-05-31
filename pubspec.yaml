@@ -25,7 +25,7 @@ dependencies:
   sqlite_async: ^0.11.4
   provider: ^6.1.4
   dynamic_color: ^1.7.0
-  image_picker: ^1.1.2
+  # image_picker: ^1.1.2
   flutter_cache_manager: ^3.4.1
   path: ^1.9.1
   url_launcher: ^6.3.1
@@ -34,6 +34,7 @@ dependencies:
     git:
       url: https://github.com/raoxwup/photo_view.git
       ref: 3ce29c865a3a37d496ebe905f4f181b8e613375a
+  file_picker: ^10.1.9
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,8 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 void showSnackBar(String message) {
   final currentState = scaffoldMessengerKey.currentState;
@@ -170,4 +172,52 @@ String sanitizeFileName(String name, {String replacement = '_'}) {
       .replaceAll(RegExp(r'[/\\]'), replacement)
       .replaceAll(' ', '');
   return sanitized;
+}
+
+/// 根据平台返回不同的下载目录
+Future<String> getDownloadDirectory() async {
+  String path;
+  if (isIos || isMacOS) {
+    path = (await getApplicationDocumentsDirectory()).path;
+  } else {
+    final downloadPath = (await getDownloadsDirectory())?.path;
+    if (downloadPath == null) {
+      if (isAndroid) {
+        final externalPath = (await getExternalStorageDirectory())?.path;
+        if (externalPath == null) {
+          path = (await getApplicationDocumentsDirectory()).path;
+        } else {
+          path = externalPath;
+        }
+      } else {
+        path = (await getApplicationDocumentsDirectory()).path;
+      }
+    } else {
+      path = downloadPath;
+    }
+  }
+  return path;
+}
+
+/// 复制文件
+Future<void> copyDirectory(Directory source, Directory destination) async {
+  // 创建目标文件夹（包括父目录）
+  if (!await destination.exists()) {
+    await destination.create(recursive: true);
+  }
+
+  // 遍历源目录
+  await for (var entity in source.list(recursive: true)) {
+    // 计算相对路径
+    final relativePath = p.relative(entity.path, from: source.path);
+    final newPath = p.join(destination.path, relativePath);
+
+    if (entity is File) {
+      // 复制文件
+      await File(entity.path).copy(newPath);
+    } else if (entity is Directory) {
+      // 创建子目录
+      await Directory(newPath).create(recursive: true);
+    }
+  }
 }

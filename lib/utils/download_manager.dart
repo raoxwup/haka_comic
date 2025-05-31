@@ -10,7 +10,6 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 下载隔离区入口点
@@ -59,26 +58,7 @@ class _ComicDownloader {
 
   /// 初始化下载目录
   static Future<void> initializeDownloadDirectory() async {
-    String path;
-    if (isIos) {
-      path = (await getApplicationDocumentsDirectory()).path;
-    } else {
-      final downloadPath = (await getDownloadsDirectory())?.path;
-      if (downloadPath == null) {
-        if (isAndroid) {
-          final externalPath = (await getExternalStorageDirectory())?.path;
-          if (externalPath == null) {
-            path = (await getApplicationDocumentsDirectory()).path;
-          } else {
-            path = externalPath;
-          }
-        } else {
-          path = (await getApplicationDocumentsDirectory()).path;
-        }
-      } else {
-        path = downloadPath;
-      }
-    }
+    final path = await getDownloadDirectory();
     _dirPath = path;
   }
 
@@ -299,12 +279,24 @@ class _ComicDownloader {
     final index = tasks.indexWhere((t) => comicId == t.comic.id);
     if (index != -1) {
       tasks[index].status = DownloadTaskStatus.paused;
+      startNextTask();
       notify(task: tasks[index]);
     }
   }
 
   /// 恢复下载任务
   static void resume(String comicId) {
+    // 如果有，暂停当前正在下载的任务
+    final downloadingTask = tasks.firstWhereOrNull(
+      (t) => t.status == DownloadTaskStatus.downloading,
+    );
+    if (downloadingTask != null) {
+      downloadingTask.status = DownloadTaskStatus.paused;
+      _cancelTokens[downloadingTask.comic.id]?.cancel();
+      _cancelTokens[downloadingTask.comic.id] = CancelToken();
+      setCache(downloadingTask);
+    }
+
     final index = tasks.indexWhere((t) => comicId == t.comic.id);
     if (index != -1) {
       tasks[index].status = DownloadTaskStatus.downloading;

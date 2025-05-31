@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/model/user_provider.dart';
@@ -10,7 +11,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class Editor extends StatefulWidget {
@@ -58,16 +58,13 @@ class _EditorState extends State<Editor> {
   );
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
     try {
-      // 选择图片（相册）MacOS Windows Linux不支持maxWidth
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
+      final pickedFile = await FilePicker.platform.pickFiles(
+        type: FileType.image,
       );
       if (pickedFile != null) {
         // 读取文件字节
-        final bytes = await File(pickedFile.path).readAsBytes();
+        final bytes = await File(pickedFile.files.single.path!).readAsBytes();
         // 转换为 Base64
         final base64 = base64Encode(bytes);
         await _avatarUpdateHandler.run(base64);
