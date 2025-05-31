@@ -177,3 +177,15 @@ extension BuildContextExt on BuildContext {
 
   TextTheme get textTheme => Theme.of(this).textTheme;
 }
+
+extension StringExt on String {
+  String substringSafe(int start, [int? end]) {
+    if (start < 0 || (end != null && end < start)) {
+      return '';
+    }
+    if (end == null || end > length) {
+      end = length;
+    }
+    return substring(start, end);
+  }
+}

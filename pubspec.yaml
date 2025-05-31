@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.0.0-beta.4
+version: 1.0.0-beta.5
 
 environment:
   sdk: ^3.7.0
@@ -25,7 +25,6 @@ dependencies:
   sqlite_async: ^0.11.4
   provider: ^6.1.4
   dynamic_color: ^1.7.0
-  # image_picker: ^1.1.2
   flutter_cache_manager: ^3.4.1
   path: ^1.9.1
   url_launcher: ^6.3.1

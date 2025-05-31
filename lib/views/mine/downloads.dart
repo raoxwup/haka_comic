@@ -7,6 +7,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
@@ -127,7 +128,10 @@ class _DownloadsState extends State<Downloads> {
         );
 
         final destDir = Directory(
-          p.join(selectedDirectory, sanitizeFileName(task.comic.title)),
+          p.join(
+            selectedDirectory,
+            sanitizeFileName(task.comic.title).substringSafe(0, 20),
+          ),
         );
 
         await copyDirectory(sourceDir, destDir);
@@ -135,6 +139,7 @@ class _DownloadsState extends State<Downloads> {
 
       Toast.show(message: "导出成功");
     } catch (e) {
+      Log.error("export comic failed", e);
       Toast.show(message: "导出失败");
     } finally {
       if (mounted) {
