@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/widgets/tag.dart';
+import 'package:haka_comic/views/search/item.dart';
 import 'package:provider/provider.dart';
 
 class SearchHistory extends StatefulWidget {
@@ -13,6 +13,33 @@ class SearchHistory extends StatefulWidget {
 }
 
 class _SearchHistoryState extends State<SearchHistory> {
+  void clear() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('清除'),
+          content: const Text('确定要清除所有搜索历史吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => context.pop(true),
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == true) {
+      if (mounted) {
+        context.read<SearchProvider>().clear();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> history = context.watch<SearchProvider>().history;
@@ -26,13 +53,20 @@ class _SearchHistoryState extends State<SearchHistory> {
             Row(
               spacing: 5,
               children: [
-                Text('搜索历史', style: context.textTheme.titleMedium),
+                Text(
+                  '搜索历史',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () {
-                    context.read<SearchProvider>().clear();
-                  },
-                  icon: const Icon(Icons.delete_sweep),
+                  onPressed: clear,
+                  icon: Icon(
+                    Icons.delete_sweep,
+                    color: context.colorScheme.primary,
+                  ),
                 ),
               ],
             ),
@@ -42,11 +76,9 @@ class _SearchHistoryState extends State<SearchHistory> {
               children:
                   history
                       .map(
-                        (e) => Tag(
-                          tag: e,
-                          size: TagSize.medium,
-                          color: context.colorScheme.surfaceContainerHighest,
-                          onPressed: () {
+                        (e) => Item(
+                          title: e,
+                          onTap: () {
                             context.read<SearchProvider>().add(e);
                             context.push('/search_comics?keyword=$e');
                           },

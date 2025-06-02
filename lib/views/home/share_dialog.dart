@@ -21,6 +21,7 @@ class _ShareDialogState extends State<ShareDialog> {
     onSuccess: (data, _) {
       Log.info('Fetch comic id by share id success', data.toString());
       context.push('/details/$data');
+      context.pop();
     },
     onError: (e, _) {
       Log.error('Fetch comic id by share id error', e);

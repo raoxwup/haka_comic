@@ -11,6 +11,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
+import 'package:haka_comic/widgets/tag.dart';
 import 'package:provider/provider.dart';
 
 class Mine extends StatefulWidget {
@@ -185,10 +186,15 @@ class HistoryComics extends StatefulWidget {
 class _HistoryComicsState extends State<HistoryComics> {
   final HistoryHelper _helper = HistoryHelper();
   List<HistoryDoc> _comics = [];
+  int? _comicsCount;
 
   Future<void> _getHistory() async {
     final comics = await _helper.query(1);
-    setState(() => _comics = comics);
+    final count = await _helper.count();
+    setState(() {
+      _comics = comics;
+      _comicsCount = count;
+    });
   }
 
   @override
@@ -213,6 +219,7 @@ class _HistoryComicsState extends State<HistoryComics> {
       isEmpty: _comics.isEmpty,
       itemCount: _comics.length,
       onRetry: () {},
+      count: _comicsCount,
       itemBuilder: (context, index) {
         final item = _comics[index];
         return _ComicItem(url: item.thumb.url, uid: item.uid);
@@ -261,6 +268,7 @@ class _FavoritesState extends State<Favorites> {
       error: _handler.error,
       onRetry: _handler.refresh,
       itemCount: comics.length,
+      count: _handler.data?.comics.total,
       itemBuilder: (context, index) {
         final item = comics[index];
         return _ComicItem(url: item.thumb.url, uid: item.uid);
@@ -280,6 +288,7 @@ class _ComicSection extends StatelessWidget {
     required this.onRetry,
     this.isLoading = false,
     this.error,
+    this.count,
   });
 
   final String title;
@@ -291,6 +300,7 @@ class _ComicSection extends StatelessWidget {
   final VoidCallback onRetry;
   final int itemCount;
   final Widget Function(BuildContext, int) itemBuilder;
+  final int? count;
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +312,13 @@ class _ComicSection extends StatelessWidget {
           ListTile(
             leading: Icon(icon),
             title: Text(title, style: context.textTheme.titleMedium),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (count != null) Tag(tag: count.toString()),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 13),

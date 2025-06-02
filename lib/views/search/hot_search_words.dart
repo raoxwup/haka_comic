@@ -4,8 +4,8 @@ import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/views/search/item.dart';
 import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/tag.dart';
 import 'package:provider/provider.dart';
 
 class HotSearchWords extends StatefulWidget {
@@ -69,8 +69,13 @@ class _HotSearchWordsState extends State<HotSearchWords> {
             Row(
               spacing: 5,
               children: [
-                Icon(Icons.local_fire_department, color: Colors.amber[700]),
-                Text('热门搜索', style: context.textTheme.titleMedium),
+                Text(
+                  '热门搜索',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: context.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             Wrap(
@@ -79,11 +84,9 @@ class _HotSearchWordsState extends State<HotSearchWords> {
               children:
                   words
                       .map(
-                        (e) => Tag(
-                          tag: e,
-                          size: TagSize.medium,
-                          color: context.colorScheme.surfaceContainerHighest,
-                          onPressed: () {
+                        (e) => Item(
+                          title: e,
+                          onTap: () {
                             context.read<SearchProvider>().add(e);
                             context.push('/search_comics?keyword=$e');
                           },

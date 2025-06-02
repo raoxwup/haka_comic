@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -16,8 +17,7 @@ class Favorites extends StatefulWidget {
   State<Favorites> createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites>
-    with AutomaticKeepAliveClientMixin {
+class _FavoritesState extends State<Favorites> {
   final _handler = fetchFavoriteComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
@@ -28,7 +28,7 @@ class _FavoritesState extends State<Favorites>
   );
 
   int _page = 1;
-  final ComicSortType _sortType = ComicSortType.dd;
+  ComicSortType _sortType = ComicSortType.dd;
 
   @override
   void initState() {
@@ -54,9 +54,16 @@ class _FavoritesState extends State<Favorites>
     _handler.run(UserFavoritePayload(page: page, sort: _sortType));
   }
 
+  void _onSortChange(ComicSortType sortType) {
+    setState(() {
+      _page = 1;
+      _sortType = sortType;
+    });
+    _handler.run(UserFavoritePayload(page: 1, sort: sortType));
+  }
+
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final width = context.width;
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
@@ -65,7 +72,31 @@ class _FavoritesState extends State<Favorites>
       onRouteAnimationCompleted:
           () => _handler.run(UserFavoritePayload(page: _page, sort: _sortType)),
       child: Scaffold(
-        appBar: AppBar(title: const Text('收藏漫画')),
+        appBar: AppBar(
+          title: const Text('收藏漫画'),
+          actions: [
+            IconButton(
+              tooltip: '刷新',
+              onPressed: () => _onPageChange(1),
+              icon: const Icon(Icons.refresh),
+            ),
+            IconButton(
+              tooltip: '排序',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return SortDialog(
+                      sortType: _sortType,
+                      onSortChanged: _onSortChange,
+                    );
+                  },
+                );
+              },
+              icon: const Icon(Icons.sort),
+            ),
+          ],
+        ),
         body: BasePage(
           isLoading: _handler.isLoading,
           onRetry: _handler.refresh,
@@ -102,14 +133,93 @@ class _FavoritesState extends State<Favorites>
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _onPageChange(1),
-          child: const Icon(Icons.refresh),
+      ),
+    );
+  }
+}
+
+const kOptionHeight = 45.0;
+
+class SortDialog extends StatefulWidget {
+  const SortDialog({super.key, required this.sortType, this.onSortChanged});
+
+  final ComicSortType sortType;
+  final ValueChanged<ComicSortType>? onSortChanged;
+
+  @override
+  State<SortDialog> createState() => _SortDialogState();
+}
+
+class _SortDialogState extends State<SortDialog> {
+  late ComicSortType _sortType = widget.sortType;
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: const EdgeInsetsGeometry.all(20.0),
+      title: const Text('排序'),
+      children: [
+        const Divider(),
+        SizedBox(
+          height: kOptionHeight * 2,
+          child: Stack(
+            children: [
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 150),
+                top: _sortType == ComicSortType.dd ? 0 : kOptionHeight,
+                height: kOptionHeight,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    _buildSortOption(type: ComicSortType.dd, label: '新到旧'),
+                    _buildSortOption(type: ComicSortType.da, label: '旧到新'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSortOption({
+    required ComicSortType type,
+    required String label,
+  }) {
+    return InkWell(
+      onTap: () async {
+        setState(() => _sortType = type);
+        widget.onSortChanged?.call(type);
+        await Future.delayed(const Duration(milliseconds: 200));
+        if (mounted) {
+          context.pop();
+        }
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: kOptionHeight,
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style:
+              _sortType == type
+                  ? TextStyle(
+                    color: context.colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  )
+                  : null,
         ),
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
