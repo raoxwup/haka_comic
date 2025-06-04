@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
-/// 用于commit前，更新 pubspec.yaml 和 setup_config.dart 版本
+/// 用于commit前，更新 pubspec.yaml 和 setup_config.dart 版本.
 void main(List<String> arguments) async {
   print('\x1B[36m\n🐦 Flutter Version Helper\x1B[0m');
 
