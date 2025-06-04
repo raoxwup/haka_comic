@@ -35,7 +35,6 @@ void main(List<String> arguments) async {
     return;
   }
 
-  // 获取新版本号
   String? newVersion;
   while (newVersion == null) {
     stdout.write(
