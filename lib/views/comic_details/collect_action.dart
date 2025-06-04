@@ -28,7 +28,7 @@ class _CollectActionState extends State<CollectAction>
     _isFavorite = widget.isFavorite;
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
 

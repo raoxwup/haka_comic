@@ -163,167 +163,182 @@ class _DownloadsState extends State<Downloads> {
   @override
   Widget build(BuildContext context) {
     final width = context.width;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('我的下载'),
-        actions:
-            _isSelecting
-                ? [
-                  IconButton(
-                    onPressed: () => setState(() => _selectedTasks = []),
-                    icon: const Icon(Icons.deselect),
-                  ),
-                  IconButton(
-                    onPressed: () => setState(() => _selectedTasks = tasks),
-                    icon: const Icon(Icons.select_all),
-                  ),
-                  IconButton(onPressed: close, icon: const Icon(Icons.close)),
-                ]
-                : [
-                  IconButton(
-                    onPressed: () => setState(() => _isSelecting = true),
-                    icon: const Icon(Icons.checklist_rtl),
-                  ),
-                ],
-      ),
-      body: CustomScrollView(
-        slivers: [
-          if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
-          SliverGrid.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.8,
-            ),
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              return InkWell(
-                key: ValueKey(task.comic.id),
-                onTap: () {
-                  if (_isSelecting) {
-                    setState(() {
-                      if (_selectedTasks.contains(task)) {
-                        _selectedTasks.remove(task);
-                      } else {
-                        _selectedTasks.add(task);
-                      }
-                    });
-                    return;
-                  }
-                  Toast.show(message: "功能开发中...");
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      BaseImage(url: task.comic.cover, aspectRatio: 14 / 19),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 5),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                task.comic.title,
-                                style: context.textTheme.titleSmall,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const Spacer(),
-                              if (_iconMap.containsKey(task.status))
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        _iconMap[task.status]!["action"](
-                                          task.comic.id,
-                                        );
-                                      },
-                                      icon: Icon(
-                                        _iconMap[task.status]!["icon"],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          return;
+        }
+        if (_isSelecting) {
+          close();
+        } else {
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('我的下载'),
+          actions:
+              _isSelecting
+                  ? [
+                    IconButton(
+                      onPressed: () => setState(() => _selectedTasks = []),
+                      icon: const Icon(Icons.deselect),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _selectedTasks = tasks),
+                      icon: const Icon(Icons.select_all),
+                    ),
+                    IconButton(onPressed: close, icon: const Icon(Icons.close)),
+                  ]
+                  : [
+                    IconButton(
+                      onPressed: () => setState(() => _isSelecting = true),
+                      icon: const Icon(Icons.checklist_rtl),
+                    ),
+                  ],
+        ),
+        body: CustomScrollView(
+          slivers: [
+            if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
+            SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent:
+                    UiMode.m1(context)
+                        ? width
+                        : UiMode.m2(context)
+                        ? width / 2
+                        : width / 3,
+                mainAxisSpacing: 5,
+                crossAxisSpacing: 5,
+                childAspectRatio: 2.5,
+              ),
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return InkWell(
+                  key: ValueKey(task.comic.id),
+                  onTap: () {
+                    if (_isSelecting) {
+                      setState(() {
+                        if (_selectedTasks.contains(task)) {
+                          _selectedTasks.remove(task);
+                        } else {
+                          _selectedTasks.add(task);
+                        }
+                      });
+                      return;
+                    }
+                    Toast.show(message: "功能开发中...");
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 5,
+                      horizontal: 10,
+                    ),
+                    decoration:
+                        _selectedTasks.contains(task)
+                            ? BoxDecoration(
+                              color: context.colorScheme.secondaryContainer
+                                  .withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(12),
+                            )
+                            : null,
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        BaseImage(url: task.comic.cover, aspectRatio: 90 / 130),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 5),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  task.comic.title,
+                                  style: context.textTheme.titleSmall,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Spacer(),
+                                if (_iconMap.containsKey(task.status))
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          _iconMap[task.status]!["action"](
+                                            task.comic.id,
+                                          );
+                                        },
+                                        icon: Icon(
+                                          _iconMap[task.status]!["icon"],
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      downloadTaskStatusToString(task.status),
+                                      style: context.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: context.colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${task.completed} / ${task.total}',
+                                      style: context.textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
-                              Row(
-                                children: [
-                                  Text(
-                                    downloadTaskStatusToString(task.status),
-                                    style: context.textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: context.colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${task.completed} / ${task.total}',
-                                    style: context.textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 5),
-                              LinearProgressIndicator(
-                                borderRadius: BorderRadius.circular(99),
-                                value:
-                                    task.total == 0
-                                        ? null
-                                        : task.completed / task.total,
-                              ),
-                            ],
+                                const SizedBox(height: 5),
+                                LinearProgressIndicator(
+                                  borderRadius: BorderRadius.circular(99),
+                                  value:
+                                      task.total == 0
+                                          ? null
+                                          : task.completed / task.total,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      if (_isSelecting)
-                        Checkbox(
-                          value: _selectedTasks.contains(task),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedTasks.add(task);
-                              } else {
-                                _selectedTasks.remove(task);
-                              }
-                            });
-                          },
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-            itemCount: tasks.length,
-          ),
-        ],
+                );
+              },
+              itemCount: tasks.length,
+            ),
+          ],
+        ),
+        persistentFooterButtons:
+            _isSelecting
+                ? [
+                  FilledButton.tonalIcon(
+                    onPressed:
+                        (_selectedTasks.isEmpty || !isAllCompleted)
+                            ? null
+                            : exportTasks,
+                    label: const Text('导出'),
+                    icon: const Icon(Icons.drive_file_move),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: _selectedTasks.isEmpty ? null : clearTasks,
+                    label: const Text('删除'),
+                    icon: const Icon(Icons.delete_forever),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: context.colorScheme.error,
+                      foregroundColor: context.colorScheme.onError,
+                    ),
+                  ),
+                ]
+                : null,
       ),
-      persistentFooterButtons:
-          _isSelecting
-              ? [
-                FilledButton.tonalIcon(
-                  onPressed:
-                      (_selectedTasks.isEmpty || !isAllCompleted)
-                          ? null
-                          : exportTasks,
-                  label: const Text('导出'),
-                  icon: const Icon(Icons.drive_file_move),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _selectedTasks.isEmpty ? null : clearTasks,
-                  label: const Text('删除'),
-                  icon: const Icon(Icons.delete_forever),
-                ),
-              ]
-              : null,
     );
   }
 }

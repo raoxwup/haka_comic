@@ -204,10 +204,20 @@ class _ComicDetailsState extends State<ComicDetails> {
                           Expanded(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(minHeight: 40),
-                              child: ElevatedButton(
-                                onPressed: () => _startRead(_chapters.first.id),
-                                child: const Text('从头开始'),
-                              ),
+                              child:
+                                  value != null
+                                      ? FilledButton.tonalIcon(
+                                        onPressed:
+                                            () =>
+                                                _startRead(_chapters.first.id),
+                                        label: const Text('从头开始'),
+                                      )
+                                      : FilledButton(
+                                        onPressed:
+                                            () =>
+                                                _startRead(_chapters.first.id),
+                                        child: const Text('开始阅读'),
+                                      ),
                             ),
                           ),
                           if (value != null)

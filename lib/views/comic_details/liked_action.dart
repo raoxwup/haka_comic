@@ -28,7 +28,7 @@ class _LikedActionState extends State<LikedAction>
     _isLiked = widget.isLiked;
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
 
