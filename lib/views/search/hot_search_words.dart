@@ -72,7 +72,6 @@ class _HotSearchWordsState extends State<HotSearchWords> {
                 Text(
                   '热门搜索',
                   style: context.textTheme.titleMedium?.copyWith(
-                    color: context.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

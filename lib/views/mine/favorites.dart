@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -55,6 +54,7 @@ class _FavoritesState extends State<Favorites> {
   }
 
   void _onSortChange(ComicSortType sortType) {
+    if (sortType == _sortType) return;
     setState(() {
       _page = 1;
       _sortType = sortType;
@@ -80,20 +80,43 @@ class _FavoritesState extends State<Favorites> {
               onPressed: () => _onPageChange(1),
               icon: const Icon(Icons.refresh),
             ),
-            IconButton(
-              tooltip: '排序',
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return SortDialog(
-                      sortType: _sortType,
-                      onSortChanged: _onSortChange,
-                    );
+            MenuAnchor(
+              menuChildren: <Widget>[
+                ...[
+                  {'label': '新到旧', 'type': ComicSortType.dd},
+                  {'label': '旧到新', 'type': ComicSortType.da},
+                ].map(
+                  (e) => MenuItemButton(
+                    onPressed: () {
+                      _onSortChange(e['type'] as ComicSortType);
+                    },
+                    child: Row(
+                      spacing: 5,
+                      children: [
+                        Text(e['label'] as String),
+                        if (_sortType == e['type'])
+                          Icon(
+                            Icons.done,
+                            size: 16,
+                            color: context.colorScheme.primary,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              builder: (_, MenuController controller, Widget? child) {
+                return IconButton(
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
                   },
+                  icon: const Icon(Icons.sort),
                 );
               },
-              icon: const Icon(Icons.sort),
             ),
           ],
         ),
@@ -132,92 +155,6 @@ class _FavoritesState extends State<Favorites> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-const kOptionHeight = 45.0;
-
-class SortDialog extends StatefulWidget {
-  const SortDialog({super.key, required this.sortType, this.onSortChanged});
-
-  final ComicSortType sortType;
-  final ValueChanged<ComicSortType>? onSortChanged;
-
-  @override
-  State<SortDialog> createState() => _SortDialogState();
-}
-
-class _SortDialogState extends State<SortDialog> {
-  late ComicSortType _sortType = widget.sortType;
-
-  @override
-  Widget build(BuildContext context) {
-    return SimpleDialog(
-      contentPadding: const EdgeInsetsGeometry.all(20.0),
-      title: const Text('排序'),
-      children: [
-        const Divider(),
-        SizedBox(
-          height: kOptionHeight * 2,
-          child: Stack(
-            children: [
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 150),
-                top: _sortType == ComicSortType.dd ? 0 : kOptionHeight,
-                height: kOptionHeight,
-                left: 0,
-                right: 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Column(
-                  children: [
-                    _buildSortOption(type: ComicSortType.dd, label: '新到旧'),
-                    _buildSortOption(type: ComicSortType.da, label: '旧到新'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSortOption({
-    required ComicSortType type,
-    required String label,
-  }) {
-    return InkWell(
-      onTap: () async {
-        setState(() => _sortType = type);
-        widget.onSortChanged?.call(type);
-        await Future.delayed(const Duration(milliseconds: 200));
-        if (mounted) {
-          context.pop();
-        }
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: kOptionHeight,
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style:
-              _sortType == type
-                  ? TextStyle(
-                    color: context.colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  )
-                  : null,
         ),
       ),
     );

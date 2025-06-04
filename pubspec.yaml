@@ -43,7 +43,6 @@ dev_dependencies:
   json_serializable: ^6.9.4
   flutter_launcher_icons: ^0.14.3
   package_rename: ^1.9.0
-  yaml_edit: ^2.2.2
 
 flutter:
   uses-material-design: true

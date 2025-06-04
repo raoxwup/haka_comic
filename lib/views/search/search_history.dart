@@ -57,16 +57,12 @@ class _SearchHistoryState extends State<SearchHistory> {
                   '搜索历史',
                   style: context.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: context.colorScheme.primary,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   onPressed: clear,
-                  icon: Icon(
-                    Icons.delete_sweep,
-                    color: context.colorScheme.primary,
-                  ),
+                  icon: const Icon(Icons.delete_sweep),
                 ),
               ],
             ),

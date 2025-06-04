@@ -17,17 +17,10 @@ class Item extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: context.colorScheme.secondaryContainer.withValues(
-              alpha: 0.45,
-            ),
+            color: context.colorScheme.surfaceDim.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            title,
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colorScheme.primary,
-            ),
-          ),
+          child: Text(title, style: context.textTheme.bodyMedium),
         ),
       ),
     );
