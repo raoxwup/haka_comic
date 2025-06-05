@@ -107,13 +107,6 @@ class AppConf {
     _server = Server.one;
     _checkUpdate = true;
     _readMode = ReadMode.vertical;
-    SharedPreferencesUtil.prefs
-      ..remove('email')
-      ..remove('password')
-      ..remove('token')
-      ..remove('imageQuality')
-      ..remove('server')
-      ..remove('checkUpdate')
-      ..remove('readMode');
+    SharedPreferencesUtil.prefs.clear();
   }
 }

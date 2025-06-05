@@ -7,6 +7,7 @@ import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
+import 'package:haka_comic/views/settings/theme_color.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -23,7 +24,7 @@ class _SettingsState extends State<Settings> {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          const Block(title: '外观', children: [t.Theme()]),
+          const Block(title: '外观', children: [t.Theme(), ThemeColor()]),
           const SizedBox(height: 20),
           const Block(
             title: '哔咔相关',

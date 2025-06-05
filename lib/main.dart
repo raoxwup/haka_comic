@@ -10,12 +10,14 @@ import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/app_router.dart';
-import 'package:haka_comic/theme/theme.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:provider/provider.dart';
+
+/// 默认颜色
+const Color kFallbackAccentColor = Colors.deepPurple;
 
 void main(List<String> args) {
   runZonedGuarded(
@@ -73,7 +75,10 @@ class _AppState extends State<App> {
     Color? primaryColor, [
     Brightness? brightness,
   ]) {
-    final Color seedColor = primaryColor ?? kFallbackAccentColor;
+    final Color seedColor =
+        context.watch<ThemeProvider>().primaryColor ??
+        primaryColor ??
+        kFallbackAccentColor;
 
     final ColorScheme newScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
