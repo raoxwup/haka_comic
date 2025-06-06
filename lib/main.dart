@@ -72,16 +72,11 @@ class _AppState extends State<App> {
   }
 
   ColorScheme _generateColorScheme(
-    Color? primaryColor, [
+    Color primaryColor, [
     Brightness? brightness,
   ]) {
-    final Color seedColor =
-        context.watch<ThemeProvider>().primaryColor ??
-        primaryColor ??
-        kFallbackAccentColor;
-
     final ColorScheme newScheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
+      seedColor: primaryColor,
       brightness: brightness ?? Brightness.light,
     );
 
@@ -106,15 +101,20 @@ class _AppState extends State<App> {
     final themeMode = context.select<ThemeProvider, ThemeMode>(
       (data) => data.themeMode,
     );
+    final color = context.select<ThemeProvider, String>(
+      (values) => values.primaryColor,
+    );
     return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        final ColorScheme lightScheme = _generateColorScheme(
-          lightDynamic?.primary,
-        );
-        final ColorScheme darkScheme = _generateColorScheme(
-          darkDynamic?.primary,
-          Brightness.dark,
-        );
+      builder: (light, dark) {
+        final ColorScheme lightScheme, darkScheme;
+        final Color primary;
+        if (color != 'System' || light == null || dark == null) {
+          primary = ThemeProvider.stringToColor(color);
+        } else {
+          primary = light.primary;
+        }
+        lightScheme = _generateColorScheme(primary);
+        darkScheme = _generateColorScheme(primary, Brightness.dark);
         return MaterialApp.router(
           title: "HaKa Comic",
           routerConfig: appRouter,
