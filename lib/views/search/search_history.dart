@@ -60,10 +60,7 @@ class _SearchHistoryState extends State<SearchHistory> {
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: clear,
-                  icon: const Icon(Icons.delete_sweep),
-                ),
+                IconButton(onPressed: clear, icon: const Icon(Icons.clear_all)),
               ],
             ),
             Wrap(

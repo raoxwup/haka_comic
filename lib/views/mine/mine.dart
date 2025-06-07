@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -187,6 +188,7 @@ class _HistoryComicsState extends State<HistoryComics> {
   final HistoryHelper _helper = HistoryHelper();
   List<HistoryDoc> _comics = [];
   int? _comicsCount;
+  late final StreamSubscription _subscription;
 
   Future<void> _getHistory() async {
     final comics = await _helper.query(1);
@@ -202,11 +204,15 @@ class _HistoryComicsState extends State<HistoryComics> {
     super.initState();
     _getHistory();
     _helper.addListener(_getHistory);
+    _subscription = _helper.streamController.stream.listen((event) {
+      _getHistory();
+    });
   }
 
   @override
   void dispose() {
     _helper.removeListener(_getHistory);
+    _subscription.cancel();
     super.dispose();
   }
 

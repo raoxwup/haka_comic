@@ -3,7 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 
 class Loader {
+  static bool isShowing = false;
+
   static void show(BuildContext context) {
+    if (isShowing) return;
+    isShowing = true;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -24,7 +28,8 @@ class Loader {
   }
 
   static void hide(BuildContext context) {
-    if (context.canPop()) {
+    if (context.canPop() && isShowing) {
+      isShowing = false;
       context.pop();
     }
   }

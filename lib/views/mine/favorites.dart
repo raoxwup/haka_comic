@@ -115,6 +115,7 @@ class _FavoritesState extends State<Favorites> {
                     }
                   },
                   icon: const Icon(Icons.sort),
+                  tooltip: '排序',
                 );
               },
             ),

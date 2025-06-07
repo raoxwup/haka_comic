@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:haka_comic/config/setup_config.dart';
@@ -51,6 +52,8 @@ class HistoryHelper with ChangeNotifier {
 
   late SqliteDatabase _db;
   String get _dbPath => '${SetupConf.dataPath}/history.db';
+
+  final streamController = StreamController<String>.broadcast();
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: _dbPath);
@@ -112,7 +115,9 @@ class HistoryHelper with ChangeNotifier {
 
   Future<void> delete(String id) async {
     await _db.execute('DELETE FROM history WHERE cid = ?', [id]);
-    notifyListeners();
+
+    /// 单独的通知，避免在删除时触发其他监听器
+    streamController.add(id);
   }
 
   Future<void> deleteAll() async {

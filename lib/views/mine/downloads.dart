@@ -11,6 +11,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
+import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path/path.dart' as p;
 
@@ -35,7 +36,7 @@ class _DownloadsState extends State<Downloads> {
   List<ComicDownloadTask> tasks = [];
   late final StreamSubscription _subscription;
   bool _isSelecting = false;
-  List<ComicDownloadTask> _selectedTasks = [];
+  Set<String> _selectedTaskIds = {};
 
   final Map<DownloadTaskStatus, Map<String, dynamic>> _iconMap = {
     DownloadTaskStatus.paused: {
@@ -75,6 +76,12 @@ class _DownloadsState extends State<Downloads> {
     super.dispose();
   }
 
+  List<ComicDownloadTask> get _selectedTasks {
+    return tasks
+        .where((task) => _selectedTaskIds.contains(task.comic.id))
+        .toList();
+  }
+
   void clearTasks() async {
     final result = await showDialog<bool>(
       context: context,
@@ -97,11 +104,9 @@ class _DownloadsState extends State<Downloads> {
     );
 
     if (result == true) {
-      DownloadManager.deleteTasks(
-        _selectedTasks.map((e) => e.comic.id).toList(),
-      );
+      DownloadManager.deleteTasks(_selectedTaskIds.toList());
       setState(() {
-        tasks.removeWhere((t) => _selectedTasks.contains(t));
+        tasks.removeWhere((t) => _selectedTaskIds.contains(t.comic.id));
       });
       close();
     }
@@ -152,7 +157,7 @@ class _DownloadsState extends State<Downloads> {
   void close() {
     setState(() {
       _isSelecting = false;
-      _selectedTasks = [];
+      _selectedTaskIds.clear();
     });
   }
 
@@ -177,19 +182,57 @@ class _DownloadsState extends State<Downloads> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('我的下载'),
+          title:
+              _isSelecting
+                  ? AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    transitionBuilder: (child, animation) {
+                      return SlideTransitionX(
+                        position: animation,
+                        direction: AxisDirection.down,
+                        child: child,
+                      );
+                    },
+                    child: Text(
+                      '${_selectedTaskIds.length}',
+                      key: ValueKey(_selectedTaskIds.length),
+                    ),
+                  )
+                  : const Text('我的下载'),
+          leading:
+              _isSelecting
+                  ? IconButton(
+                    onPressed: () => close(),
+                    icon: const Icon(Icons.close),
+                  )
+                  : null,
           actions:
               _isSelecting
                   ? [
                     IconButton(
-                      onPressed: () => setState(() => _selectedTasks = []),
+                      onPressed: () => setState(() => _selectedTaskIds.clear()),
                       icon: const Icon(Icons.deselect),
                     ),
                     IconButton(
-                      onPressed: () => setState(() => _selectedTasks = tasks),
+                      onPressed:
+                          () => setState(
+                            () => _selectedTaskIds.addAll(
+                              tasks.map((e) => e.comic.id),
+                            ),
+                          ),
                       icon: const Icon(Icons.select_all),
                     ),
-                    IconButton(onPressed: close, icon: const Icon(Icons.close)),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          final allIds = tasks.map((e) => e.comic.id).toSet();
+                          _selectedTaskIds = _selectedTaskIds
+                              .difference(allIds)
+                              .union(allIds.difference(_selectedTaskIds));
+                        });
+                      },
+                      icon: const Icon(Icons.repeat),
+                    ),
                   ]
                   : [
                     IconButton(
@@ -220,10 +263,10 @@ class _DownloadsState extends State<Downloads> {
                   onTap: () {
                     if (_isSelecting) {
                       setState(() {
-                        if (_selectedTasks.contains(task)) {
-                          _selectedTasks.remove(task);
+                        if (_selectedTaskIds.contains(task.comic.id)) {
+                          _selectedTaskIds.remove(task.comic.id);
                         } else {
-                          _selectedTasks.add(task);
+                          _selectedTaskIds.add(task.comic.id);
                         }
                       });
                       return;
@@ -237,7 +280,7 @@ class _DownloadsState extends State<Downloads> {
                       horizontal: 10,
                     ),
                     decoration:
-                        _selectedTasks.contains(task)
+                        _selectedTaskIds.contains(task.comic.id)
                             ? BoxDecoration(
                               color: context.colorScheme.secondaryContainer
                                   .withValues(alpha: 0.65),
@@ -321,14 +364,14 @@ class _DownloadsState extends State<Downloads> {
                 ? [
                   FilledButton.tonalIcon(
                     onPressed:
-                        (_selectedTasks.isEmpty || !isAllCompleted)
+                        (_selectedTaskIds.isEmpty || !isAllCompleted)
                             ? null
                             : exportTasks,
                     label: const Text('导出'),
                     icon: const Icon(Icons.drive_file_move),
                   ),
                   FilledButton.tonalIcon(
-                    onPressed: _selectedTasks.isEmpty ? null : clearTasks,
+                    onPressed: _selectedTaskIds.isEmpty ? null : clearTasks,
                     label: const Text('删除'),
                     icon: const Icon(Icons.delete_forever),
                     style: FilledButton.styleFrom(

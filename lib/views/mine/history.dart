@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -84,7 +87,44 @@ class _HistoryState extends State<History> {
   Widget build(BuildContext context) {
     final width = context.width;
     return Scaffold(
-      appBar: AppBar(title: const Text('最近浏览')),
+      appBar: AppBar(
+        title: const Text('最近浏览'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('清除最近浏览'),
+                    content: const Text('确定要清除最近浏览记录吗？'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('取消'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          _helper.deleteAll();
+                          _page = 1;
+                          context.pop();
+                        },
+                        child: const Text('确定'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: const Icon(Icons.clear_all),
+            tooltip: '清除最近浏览',
+          ),
+          // IconButton(
+          //   onPressed: () => setState(() => _isSelecting = true),
+          //   icon: const Icon(Icons.checklist_rtl),
+          // ),
+        ],
+      ),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -101,12 +141,79 @@ class _HistoryState extends State<History> {
               childAspectRatio: 2.5,
             ),
             itemBuilder: (context, index) {
-              return ListItem(doc: _comics[index]);
+              return ListItem(
+                doc: _comics[index],
+                key: ValueKey(_comics[index].uid),
+                onTapDown: (details) => _details = details,
+                onLongPress: () {
+                  _showContextMenu(
+                    context,
+                    _details.globalPosition,
+                    _comics[index],
+                  );
+                },
+              );
             },
             itemCount: _comics.length,
           ),
         ],
       ),
     );
+  }
+
+  late TapDownDetails _details;
+
+  void _showContextMenu(BuildContext context, Offset offset, Doc item) async {
+    // 获取屏幕尺寸信息
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final screenSize = overlay.size;
+
+    // 创建相对位置矩形
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(offset.dx, offset.dy, 1, 1), // 点击位置创建1x1矩形
+      Offset.zero & screenSize, // 整个屏幕区域
+    );
+
+    // 显示菜单
+    final String? result = await showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        const PopupMenuItem(
+          value: 'copy',
+          child: ListTile(leading: Icon(Icons.copy), title: Text('复制标题')),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete, color: context.colorScheme.error),
+            title: Text(
+              '删除记录',
+              style: TextStyle(color: context.colorScheme.error),
+            ),
+          ),
+        ),
+      ],
+      elevation: 4,
+    );
+
+    switch (result) {
+      case 'copy':
+        final title = item.title;
+        await Clipboard.setData(ClipboardData(text: title));
+        Toast.show(message: '已复制');
+        break;
+      case 'delete':
+        _helper.delete(item.uid);
+        setState(() {
+          _comics.removeWhere((comic) => comic.uid == item.uid);
+          _comicsCount--;
+          if (_comics.isEmpty) {
+            _page = 1; // 重置页码
+          }
+        });
+        break;
+    }
   }
 }

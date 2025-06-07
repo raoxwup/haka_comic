@@ -7,9 +7,27 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
 class ListItem extends StatefulWidget {
-  const ListItem({super.key, required this.doc});
+  const ListItem({
+    super.key,
+    required this.doc,
+    this.isSelected = false,
+    this.onTapDown,
+    this.onSecondaryTapDown,
+    this.onLongPress,
+    this.onSecondaryTap,
+  });
 
   final Doc doc;
+
+  final bool isSelected;
+
+  final void Function(TapDownDetails)? onTapDown;
+
+  final void Function(TapDownDetails)? onSecondaryTapDown;
+
+  final void Function()? onLongPress;
+
+  final void Function()? onSecondaryTap;
 
   @override
   State<ListItem> createState() => _ListItemState();
@@ -24,8 +42,21 @@ class _ListItemState extends State<ListItem> {
       onTap: () {
         context.push('/details/${item.uid}');
       },
-      child: Padding(
+      onTapDown: widget.onTapDown,
+      onSecondaryTapDown: widget.onSecondaryTapDown,
+      onLongPress: widget.onLongPress,
+      onSecondaryTap: widget.onSecondaryTap,
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration:
+            widget.isSelected
+                ? BoxDecoration(
+                  color: context.colorScheme.secondaryContainer.withValues(
+                    alpha: 0.65,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                )
+                : null,
         child: Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
