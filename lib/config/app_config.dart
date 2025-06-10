@@ -30,6 +30,9 @@ class AppConf {
   /// 漫画阅读方向
   ReadMode _readMode = ReadMode.vertical;
 
+  /// 屏蔽
+  List<String> _blacklist = [];
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -46,6 +49,7 @@ class AppConf {
     instance._readMode = stringToReadMode(
       prefs.getString('readMode') ?? ReadMode.vertical.name,
     );
+    instance._blacklist = prefs.getStringList('blacklist') ?? [];
   }
 
   set email(String value) =>
@@ -74,6 +78,11 @@ class AppConf {
   set readMode(ReadMode value) =>
       _saveToPrefs('readMode', value.name, value, (v) => _readMode = v);
 
+  set blacklist(List<String> value) {
+    _blacklist = value;
+    SharedPreferencesUtil.prefs.setStringList('blacklist', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -81,6 +90,7 @@ class AppConf {
   Server get server => _server;
   bool get checkUpdate => _checkUpdate;
   ReadMode get readMode => _readMode;
+  List<String> get blacklist => _blacklist;
 
   void _saveToPrefs<T>(
     String key,
@@ -107,6 +117,7 @@ class AppConf {
     _server = Server.one;
     _checkUpdate = true;
     _readMode = ReadMode.vertical;
+    _blacklist = [];
     SharedPreferencesUtil.prefs.clear();
   }
 }

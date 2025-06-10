@@ -13,7 +13,7 @@ class ChangePassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.edit),
+      leading: const Icon(Icons.edit_outlined),
       title: const Text('修改密码'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {

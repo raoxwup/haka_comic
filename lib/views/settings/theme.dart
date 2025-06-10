@@ -19,7 +19,7 @@ class _ThemeState extends State<Theme> {
       (data) => data.themeMode,
     );
     return ListTile(
-      leading: const Icon(Icons.contrast),
+      leading: const Icon(Icons.contrast_outlined),
       title: const Text('主题模式'),
       trailing: Row(
         spacing: 5.0,

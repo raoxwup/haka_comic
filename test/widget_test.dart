@@ -13,13 +13,8 @@ extension StringExt on String {
 }
 
 void main() {
-  final local = Version.parse('1.0.0-beta1');
-  final remote = Version.parse('1.0.0-beta2');
-
-  final name = 'xxxxx';
-  final a = name.substringSafe(0, 18);
-
-  print(a);
+  final local = Version.parse('1.0.0-beta.7');
+  final remote = Version.parse('1.0.0-beta.8');
 
   print(local.compareTo(remote) < 0);
 }

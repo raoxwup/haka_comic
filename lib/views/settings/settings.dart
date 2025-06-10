@@ -26,9 +26,21 @@ class _SettingsState extends State<Settings> {
         children: [
           const Block(title: '外观', children: [t.Theme(), ThemeColor()]),
           const SizedBox(height: 20),
-          const Block(
+          Block(
             title: '哔咔相关',
-            children: [ChangePassword(), ChangeImageQuality(), ChangeServer()],
+            children: [
+              const ChangePassword(),
+              const ChangeImageQuality(),
+              const ChangeServer(),
+              ListTile(
+                leading: const Icon(Icons.texture_outlined),
+                title: const Text('屏蔽'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  context.push('/blacklist');
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Block(

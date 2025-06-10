@@ -79,7 +79,7 @@ class _ThemeColorState extends State<ThemeColor> {
       ],
       child: ListTile(
         title: const Text('主题颜色'),
-        leading: const Icon(Icons.color_lens),
+        leading: const Icon(Icons.color_lens_outlined),
         trailing: Row(
           spacing: 5.0,
           mainAxisSize: MainAxisSize.min,

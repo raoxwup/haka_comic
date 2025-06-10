@@ -13,7 +13,7 @@ class _LogoutState extends State<Logout> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.logout),
+      leading: const Icon(Icons.logout_outlined),
       title: const Text('退出登录'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {

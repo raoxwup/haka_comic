@@ -48,7 +48,7 @@ class _ChangeImageQualityState extends State<ChangeImageQuality> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.image),
+      leading: const Icon(Icons.image_outlined),
       title: const Text('图片质量'),
       trailing: Row(
         spacing: 5.0,

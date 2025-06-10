@@ -16,9 +16,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:provider/provider.dart';
 
-/// 默认颜色
-const Color kFallbackAccentColor = Colors.deepPurple;
-
 void main(List<String> args) {
   runZonedGuarded(
     () {

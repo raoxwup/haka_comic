@@ -24,6 +24,7 @@ import 'package:haka_comic/views/random/random.dart' show Random;
 import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
+import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 
 // 路由配置
@@ -280,6 +281,16 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
+    GoRoute(
+      path: '/blacklist',
+      pageBuilder: (context, state) {
+        return customTransitionPage(
+          context: context,
+          state: state,
+          child: const Blacklist(),
+        );
+      },
+    ),
   ],
 );
 
@@ -290,41 +301,6 @@ Page<dynamic> customTransitionPage({
 }) {
   return CupertinoPage(child: child, key: state.pageKey);
 }
-
-// Page<dynamic> customTransitionPage({
-//   required BuildContext context,
-//   required GoRouterState state,
-//   required Widget child,
-// }) {
-//   return Platform.isIOS
-//       ? CupertinoPage(child: child, key: state.pageKey)
-//       : CustomTransitionPage(
-//         key: state.pageKey,
-//         child: child,
-//         transitionDuration: const Duration(milliseconds: 300),
-//         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-//           // 主页面滑动动画
-//           final slideAnimation = Tween<Offset>(
-//             begin: const Offset(1.0, 0.0),
-//             end: Offset.zero,
-//           ).animate(
-//             CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-//           );
-
-//           // 次级页面淡出动画
-//           final fadeAnimation = Tween<double>(begin: 1.0, end: 0.5).animate(
-//             CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeIn),
-//           );
-
-//           return RepaintBoundary(
-//             child: SlideTransition(
-//               position: slideAnimation,
-//               child: FadeTransition(opacity: fadeAnimation, child: child),
-//             ),
-//           );
-//         },
-//       );
-// }
 
 void logout() {
   AppConf.instance.clearAuth();
