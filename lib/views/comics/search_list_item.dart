@@ -7,7 +7,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
-import 'package:haka_comic/widgets/with_blur.dart';
 
 class SearchListItem extends StatelessWidget {
   const SearchListItem({super.key, required this.comic});
@@ -20,6 +19,19 @@ class SearchListItem extends StatelessWidget {
     final category = item.categories.firstWhereOrNull(
       (item) => AppConf().blacklist.contains(item),
     );
+
+    if (category != null) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            color: context.colorScheme.inversePrimary.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text('已屏蔽: $category', style: context.textTheme.labelLarge),
+        ),
+      );
+    }
 
     return Stack(
       children: [
@@ -87,9 +99,9 @@ class SearchListItem extends StatelessWidget {
             right: 0,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.8),
+                borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
@@ -98,36 +110,6 @@ class SearchListItem extends StatelessWidget {
                 '完结',
                 style: context.textTheme.labelSmall?.copyWith(
                   color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-
-        if (category != null)
-          Positioned.fill(
-            child: WithBlur(
-              blur: 9,
-              child: Container(
-                color: context.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.01,
-                ),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.inversePrimary.withValues(
-                        alpha: 0.65,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '已屏蔽: $category',
-                      style: context.textTheme.labelLarge,
-                    ),
-                  ),
                 ),
               ),
             ),
