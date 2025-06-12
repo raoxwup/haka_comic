@@ -21,49 +21,47 @@ class _SearchState extends State<Search> {
   Widget build(BuildContext context) {
     final List<String> history = context.watch<SearchProvider>().history;
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => setState(() => isRouteAnimationCompleted = true),
-      child: Scaffold(
-        appBar: AppBar(
-          title: TextField(
-            controller: _searchController,
-            textAlignVertical: TextAlignVertical.center,
-            decoration: InputDecoration(
-              hintText: '搜索',
-              border: InputBorder.none,
-              suffixIcon: IconButton(
-                onPressed: () {
-                  if (_searchController.text.isEmpty) {
-                    context.pop();
-                  } else {
-                    _searchController.clear();
-                  }
-                },
-                icon: const Icon(Icons.close),
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(
+            title: TextField(
+              controller: _searchController,
+              textAlignVertical: TextAlignVertical.center,
+              decoration: InputDecoration(
+                hintText: '搜索',
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    if (_searchController.text.isEmpty) {
+                      context.pop();
+                    } else {
+                      _searchController.clear();
+                    }
+                  },
+                  icon: const Icon(Icons.close),
+                ),
               ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  context.read<SearchProvider>().add(value);
+                  context.push('/search_comics?keyword=$value');
+                }
+              },
             ),
-            onSubmitted: (value) {
-              if (value.isNotEmpty) {
-                context.read<SearchProvider>().add(value);
-                context.push('/search_comics?keyword=$value');
-              }
-            },
           ),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: history.isEmpty ? 0 : 20,
-            children: [
-              const SearchHistory(),
-              HotSearchWords(
-                isRouteAnimationCompleted: isRouteAnimationCompleted,
-              ),
-            ],
+          body: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: history.isEmpty ? 0 : 20,
+              children: [
+                const SearchHistory(),
+                HotSearchWords(isRouteAnimationCompleted: completed),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

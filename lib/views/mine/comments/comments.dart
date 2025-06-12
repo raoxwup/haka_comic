@@ -76,6 +76,8 @@ class _CommentsState extends State<Comments> {
     );
     _handler.addListener(update);
 
+    _handler.run(page);
+
     _scrollController.addListener(_onScroll);
   }
 
@@ -95,11 +97,13 @@ class _CommentsState extends State<Comments> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted: () => _handler.run(page),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('我的评论')),
-        body: _handler.error != null ? _buildError() : _buildPage(),
-      ),
+      shouldRebuildOnCompleted: false,
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('我的评论')),
+          body: _handler.error != null ? _buildError() : _buildPage(),
+        );
+      },
     );
   }
 

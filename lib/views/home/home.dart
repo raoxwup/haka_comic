@@ -14,7 +14,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
-  bool isRouteAnimationCompleted = false;
 
   Widget buildAppNavigationBar() => AppNavigationBar(
     selectedIndex: _selectedIndex,
@@ -28,36 +27,34 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => setState(() {
-            isRouteAnimationCompleted = true;
-          }),
-      child: Scaffold(
-        extendBodyBehindAppBar:
-            destinations[_selectedIndex]['extendBodyBehindAppBar'],
-        appBar:
-            UiMode.m1(context)
-                ? destinations[_selectedIndex]['buildAppBar'](context)
-                : null,
-        body: Row(
-          children: [
-            if (!UiMode.m1(context)) buildAppNavigationBar(),
-            Expanded(
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: [
-                  Categories(
-                    isRouteAnimationCompleted: isRouteAnimationCompleted,
-                  ),
-                  const Mine(),
-                ],
+      builder: (context, isRouteAnimationCompleted) {
+        return Scaffold(
+          extendBodyBehindAppBar:
+              destinations[_selectedIndex]['extendBodyBehindAppBar'],
+          appBar:
+              UiMode.m1(context)
+                  ? destinations[_selectedIndex]['buildAppBar'](context)
+                  : null,
+          body: Row(
+            children: [
+              if (!UiMode.m1(context)) buildAppNavigationBar(),
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: [
+                    Categories(
+                      isRouteAnimationCompleted: isRouteAnimationCompleted,
+                    ),
+                    const Mine(),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar:
-            UiMode.m1(context) ? buildAppNavigationBar() : null,
-      ),
+            ],
+          ),
+          bottomNavigationBar:
+              UiMode.m1(context) ? buildAppNavigationBar() : null,
+        );
+      },
     );
   }
 }

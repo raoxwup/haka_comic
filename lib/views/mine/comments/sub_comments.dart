@@ -77,6 +77,8 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
 
     handler.addListener(_update);
 
+    handler.run(SubCommentsPayload(id: widget.comment.uid, page: _page));
+
     _scrollController.addListener(_onScroll);
 
     super.initState();
@@ -98,17 +100,16 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => handler.run(
-            SubCommentsPayload(id: widget.comment.uid, page: _page),
-          ),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('子评论')),
-        body:
-            handler.error != null
-                ? _buildError()
-                : Stack(children: [_buildList(_comments), _buildBottom()]),
-      ),
+      shouldRebuildOnCompleted: false,
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('子评论')),
+          body:
+              handler.error != null
+                  ? _buildError()
+                  : Stack(children: [_buildList(_comments), _buildBottom()]),
+        );
+      },
     );
   }
 

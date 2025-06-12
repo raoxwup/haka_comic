@@ -71,6 +71,8 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
 
     handler.addListener(_update);
 
+    handler.run(SubCommentsPayload(id: widget.comment.id, page: _page));
+
     _scrollController.addListener(_onScroll);
 
     super.initState();
@@ -92,17 +94,16 @@ class _SubCommentsPageState extends State<SubCommentsPage> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => handler.run(
-            SubCommentsPayload(id: widget.comment.id, page: _page),
-          ),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('子评论')),
-        body:
-            handler.error != null
-                ? _buildError()
-                : Stack(children: [_buildList(_comments), _buildBottom()]),
-      ),
+      shouldRebuildOnCompleted: false,
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('子评论')),
+          body:
+              handler.error != null
+                  ? _buildError()
+                  : Stack(children: [_buildList(_comments), _buildBottom()]),
+        );
+      },
     );
   }
 

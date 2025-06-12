@@ -32,6 +32,7 @@ class _FavoritesState extends State<Favorites> {
   @override
   void initState() {
     _handler.addListener(_update);
+    _handler.run(UserFavoritePayload(page: _page, sort: _sortType));
     super.initState();
   }
 
@@ -69,95 +70,95 @@ class _FavoritesState extends State<Favorites> {
     final comics = _handler.data?.comics.docs ?? [];
 
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => _handler.run(UserFavoritePayload(page: _page, sort: _sortType)),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('收藏漫画'),
-          actions: [
-            IconButton(
-              tooltip: '刷新',
-              onPressed: () => _onPageChange(1),
-              icon: const Icon(Icons.refresh),
-            ),
-            MenuAnchor(
-              menuChildren: <Widget>[
-                ...[
-                  {'label': '新到旧', 'type': ComicSortType.dd},
-                  {'label': '旧到新', 'type': ComicSortType.da},
-                ].map(
-                  (e) => MenuItemButton(
-                    onPressed: () {
-                      _onSortChange(e['type'] as ComicSortType);
-                    },
-                    child: Row(
-                      spacing: 5,
-                      children: [
-                        Text(e['label'] as String),
-                        if (_sortType == e['type'])
-                          Icon(
-                            Icons.done,
-                            size: 16,
-                            color: context.colorScheme.primary,
-                          ),
-                      ],
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('收藏漫画'),
+            actions: [
+              IconButton(
+                tooltip: '刷新',
+                onPressed: () => _onPageChange(1),
+                icon: const Icon(Icons.refresh),
+              ),
+              MenuAnchor(
+                menuChildren: <Widget>[
+                  ...[
+                    {'label': '新到旧', 'type': ComicSortType.dd},
+                    {'label': '旧到新', 'type': ComicSortType.da},
+                  ].map(
+                    (e) => MenuItemButton(
+                      onPressed: () {
+                        _onSortChange(e['type'] as ComicSortType);
+                      },
+                      child: Row(
+                        spacing: 5,
+                        children: [
+                          Text(e['label'] as String),
+                          if (_sortType == e['type'])
+                            Icon(
+                              Icons.done,
+                              size: 16,
+                              color: context.colorScheme.primary,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-              builder: (_, MenuController controller, Widget? child) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.sort),
-                  tooltip: '排序',
-                );
-              },
-            ),
-          ],
-        ),
-        body: BasePage(
-          isLoading: _handler.isLoading,
-          onRetry: _handler.refresh,
-          error: _handler.error,
-          child: CustomScrollView(
-            slivers: [
-              PageSelector(
-                pages: pages,
-                onPageChange: _onPageChange,
-                currentPage: _page,
-              ),
-              SliverGrid.builder(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent:
-                      UiMode.m1(context)
-                          ? width
-                          : UiMode.m2(context)
-                          ? width / 2
-                          : width / 3,
-                  mainAxisSpacing: 5,
-                  crossAxisSpacing: 5,
-                  childAspectRatio: 2.5,
-                ),
-                itemBuilder: (context, index) {
-                  return ListItem(doc: comics[index]);
+                ],
+                builder: (_, MenuController controller, Widget? child) {
+                  return IconButton(
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    icon: const Icon(Icons.sort),
+                    tooltip: '排序',
+                  );
                 },
-                itemCount: comics.length,
-              ),
-              PageSelector(
-                pages: pages,
-                onPageChange: _onPageChange,
-                currentPage: _page,
               ),
             ],
           ),
-        ),
-      ),
+          body: BasePage(
+            isLoading: _handler.isLoading,
+            onRetry: _handler.refresh,
+            error: _handler.error,
+            child: CustomScrollView(
+              slivers: [
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: _page,
+                ),
+                SliverGrid.builder(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent:
+                        UiMode.m1(context)
+                            ? width
+                            : UiMode.m2(context)
+                            ? width / 2
+                            : width / 3,
+                    mainAxisSpacing: 5,
+                    crossAxisSpacing: 5,
+                    childAspectRatio: 2.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    return ListItem(doc: comics[index]);
+                  },
+                  itemCount: comics.length,
+                ),
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: _page,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -18,50 +18,46 @@ class Rank extends StatefulWidget {
 }
 
 class _RankState extends State<Rank> {
-  bool isRouteAnimationCompleted = false;
-
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => setState(() {
-            isRouteAnimationCompleted = true;
-          }),
-      child: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('排行榜'),
-            bottom: const TabBar(
-              tabAlignment: TabAlignment.start,
-              isScrollable: true,
-              tabs: [
-                Tab(text: '日榜'),
-                Tab(text: '周榜'),
-                Tab(text: '月榜'),
-                Tab(text: '骑士榜'),
+      builder: (context, completed) {
+        return DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('排行榜'),
+              bottom: const TabBar(
+                tabAlignment: TabAlignment.start,
+                isScrollable: true,
+                tabs: [
+                  Tab(text: '日榜'),
+                  Tab(text: '周榜'),
+                  Tab(text: '月榜'),
+                  Tab(text: '骑士榜'),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
+                ComicRank(
+                  type: ComicRankType.H24,
+                  isRouteAnimationCompleted: completed,
+                ),
+                ComicRank(
+                  type: ComicRankType.D7,
+                  isRouteAnimationCompleted: completed,
+                ),
+                ComicRank(
+                  type: ComicRankType.D30,
+                  isRouteAnimationCompleted: completed,
+                ),
+                const KnightRank(),
               ],
             ),
           ),
-          body: TabBarView(
-            children: [
-              ComicRank(
-                type: ComicRankType.H24,
-                isRouteAnimationCompleted: isRouteAnimationCompleted,
-              ),
-              ComicRank(
-                type: ComicRankType.D7,
-                isRouteAnimationCompleted: isRouteAnimationCompleted,
-              ),
-              ComicRank(
-                type: ComicRankType.D30,
-                isRouteAnimationCompleted: isRouteAnimationCompleted,
-              ),
-              const KnightRank(),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

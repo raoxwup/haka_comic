@@ -93,6 +93,7 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
+      shouldRebuildOnCompleted: false,
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(title: const Text('评论')),
@@ -281,7 +282,7 @@ class _CommentsPageState extends State<CommentsPage> {
                   constraints: BoxConstraints.tight(const Size(28, 28)),
                   strokeWidth: 3,
                 )
-                : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
+                : Text('没有更多数据了', style: context.textTheme.bodySmall),
       ),
     );
   }
