@@ -1301,3 +1301,85 @@ class RegisterPayload {
     'answer3': '6',
   };
 }
+
+@JsonSerializable()
+class NotificationsResponse {
+  final NotificationsData notifications;
+
+  NotificationsResponse({required this.notifications});
+
+  factory NotificationsResponse.fromJson(Map<String, dynamic> json) =>
+      _$NotificationsResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$NotificationsResponseToJson(this);
+}
+
+@JsonSerializable()
+class NotificationsData {
+  final List<NotificationDoc> docs;
+  final int limit;
+  final int page;
+  final int pages;
+  final int total;
+
+  NotificationsData({
+    required this.docs,
+    required this.limit,
+    required this.page,
+    required this.pages,
+    required this.total,
+  });
+
+  factory NotificationsData.fromJson(Map<String, dynamic> json) =>
+      _$NotificationsDataFromJson(json);
+  Map<String, dynamic> toJson() => _$NotificationsDataToJson(this);
+}
+
+@JsonSerializable()
+class NotificationDoc {
+  final String content;
+  final ImageDetail cover;
+
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+
+  @JsonKey(name: '_id')
+  final String uid;
+
+  final String id;
+
+  @JsonKey(name: '_redirectId')
+  final String redirectId;
+
+  final String redirectType;
+
+  @JsonKey(name: '_sender')
+  final User sender;
+
+  final bool system;
+  final String title;
+
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+
+  @JsonKey(name: '_user')
+  final String user;
+
+  NotificationDoc({
+    required this.content,
+    required this.cover,
+    required this.createdAt,
+    required this.uid,
+    required this.id,
+    required this.redirectId,
+    required this.redirectType,
+    required this.sender,
+    required this.system,
+    required this.title,
+    required this.updatedAt,
+    required this.user,
+  });
+
+  factory NotificationDoc.fromJson(Map<String, dynamic> json) =>
+      _$NotificationDocFromJson(json);
+  Map<String, dynamic> toJson() => _$NotificationDocToJson(this);
+}

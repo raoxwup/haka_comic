@@ -346,6 +346,19 @@ Future<void> register(RegisterPayload payload) async {
   await Client.post('auth/register', data: payload.toJson());
 }
 
+/// 消息通知
+Future<NotificationsResponse> fetchNotifications(int page) async {
+  final response = await Client.get(
+    'users/notifications',
+    query: {'page': page},
+  );
+  final data = BaseResponse<NotificationsResponse>.fromJson(
+    response,
+    (data) => NotificationsResponse.fromJson(data),
+  );
+  return data.data;
+}
+
 class DownloadIsolateClient {
   static final _dio = Dio(
     BaseOptions(

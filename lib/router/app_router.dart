@@ -51,38 +51,26 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       pageBuilder:
-          (context, state) => customTransitionPage(
-            context: context,
-            state: state,
-            child: const Home(),
-          ),
+          (context, state) =>
+              CupertinoPage(key: state.pageKey, child: const Home()),
     ),
     GoRoute(
       path: '/login',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Login(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Login());
       },
     ),
     GoRoute(
       path: '/register',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Register(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Register());
       },
     ),
     GoRoute(
       path: '/comics',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: Comics(
             c: state.uri.queryParameters['c'],
             t: state.uri.queryParameters['t'],
@@ -96,9 +84,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/details/:id',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: ComicDetails(id: state.pathParameters['id']!),
         );
       },
@@ -106,9 +93,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/comments/:id',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: CommentsPage(id: state.pathParameters['id']!),
         );
       },
@@ -117,9 +103,8 @@ final GoRouter appRouter = GoRouter(
       path: '/sub_comments',
       pageBuilder: (context, state) {
         final models.Comment comment = state.extra as models.Comment;
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: SubCommentsPage(comment: comment),
         );
       },
@@ -127,29 +112,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/search',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Search(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Search());
       },
     ),
     GoRoute(
       path: '/settings',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Settings(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Settings());
       },
     ),
     GoRoute(
       path: '/search_comics',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: SearchComics(keyword: state.uri.queryParameters['keyword']!),
         );
       },
@@ -161,9 +137,8 @@ final GoRouter appRouter = GoRouter(
         final List<models.Chapter> chapters =
             extra['chapters'] as List<models.Chapter>;
         final title = extra['title'] as String;
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: Reader(
             id: state.pathParameters['id']!,
             chapters: chapters,
@@ -177,61 +152,37 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/rank',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Rank(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Rank());
       },
     ),
     GoRoute(
       path: '/random',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Random(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Random());
       },
     ),
     GoRoute(
       path: '/favorites',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Favorites(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Favorites());
       },
     ),
     GoRoute(
       path: '/history',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const History(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const History());
       },
     ),
     GoRoute(
       path: '/downloads',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Downloads(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Downloads());
       },
     ),
     GoRoute(
       path: '/personal_comments',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Comments(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Comments());
       },
     ),
     GoRoute(
@@ -240,9 +191,8 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map;
         final comment = extra['comment'] as models.PersonalComment;
         final user = extra['user'] as models.User;
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: PersonalSubComment(comment: comment, user: user),
         );
       },
@@ -250,11 +200,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/personal_editor',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Editor(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Editor());
       },
     ),
     GoRoute(
@@ -264,9 +210,8 @@ final GoRouter appRouter = GoRouter(
         final DownloadComic downloadComic =
             extra['downloadComic'] as DownloadComic;
         final chapters = extra['chapters'] as List<models.Chapter>;
-        return customTransitionPage(
-          context: context,
-          state: state,
+        return CupertinoPage(
+          key: state.pageKey,
           child: Downloader(chapters: chapters, downloadComic: downloadComic),
         );
       },
@@ -274,33 +219,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/about',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const About(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const About());
       },
     ),
     GoRoute(
       path: '/blacklist',
       pageBuilder: (context, state) {
-        return customTransitionPage(
-          context: context,
-          state: state,
-          child: const Blacklist(),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Blacklist());
       },
     ),
   ],
 );
-
-Page<dynamic> customTransitionPage({
-  required BuildContext context,
-  required GoRouterState state,
-  required Widget child,
-}) {
-  return CupertinoPage(child: child, key: state.pageKey);
-}
 
 void logout() {
   AppConf.instance.clearAuth();

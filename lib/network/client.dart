@@ -4,6 +4,8 @@ import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
 
 class Client {
+  static CancelToken _cancelToken = CancelToken();
+
   static final Dio _client = Dio(
     BaseOptions(
       baseUrl: host,
@@ -45,16 +47,32 @@ class Client {
       Response response;
       switch (method) {
         case Method.get:
-          response = await _client.get(path, queryParameters: payload);
+          response = await _client.get(
+            path,
+            queryParameters: payload,
+            cancelToken: _cancelToken,
+          );
           break;
         case Method.post:
-          response = await _client.post(path, data: payload);
+          response = await _client.post(
+            path,
+            data: payload,
+            cancelToken: _cancelToken,
+          );
           break;
         case Method.put:
-          response = await _client.put(path, data: payload);
+          response = await _client.put(
+            path,
+            data: payload,
+            cancelToken: _cancelToken,
+          );
           break;
         case Method.delete:
-          response = await _client.delete(path, data: payload);
+          response = await _client.delete(
+            path,
+            data: payload,
+            cancelToken: _cancelToken,
+          );
           break;
       }
       if (response.data == null) {
@@ -67,6 +85,8 @@ class Client {
           var data = response.data;
           throw data['message'];
         case 401:
+          _cancelToken.cancel();
+          _cancelToken = CancelToken();
           logout();
           throw '登录失效';
         default:

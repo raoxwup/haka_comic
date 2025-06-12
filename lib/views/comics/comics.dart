@@ -50,6 +50,19 @@ class _ComicsState extends State<Comics> {
   @override
   void initState() {
     handler.addListener(_update);
+
+    handler.run(
+      ComicsPayload(
+        c: widget.c,
+        s: sortType,
+        page: page,
+        t: widget.t,
+        ca: widget.ca,
+        a: widget.a,
+        ct: widget.ct,
+      ),
+    );
+
     super.initState();
   }
 
@@ -85,74 +98,63 @@ class _ComicsState extends State<Comics> {
     final width = context.width;
 
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted: () {
-        handler.run(
-          ComicsPayload(
-            c: widget.c,
-            s: sortType,
-            page: page,
-            t: widget.t,
-            ca: widget.ca,
-            a: widget.a,
-            ct: widget.ct,
-          ),
-        );
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.c ??
-                widget.t ??
-                widget.a ??
-                widget.ct ??
-                widget.ca ??
-                '最近更新',
-          ),
-          actions: [
-            IconButton(
-              tooltip: '排序',
-              icon: const Icon(Icons.sort),
-              onPressed: _buildSortTypeSelector,
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              widget.c ??
+                  widget.t ??
+                  widget.a ??
+                  widget.ct ??
+                  widget.ca ??
+                  '最近更新',
             ),
-          ],
-        ),
-        body: BasePage(
-          isLoading: handler.isLoading,
-          onRetry: handler.refresh,
-          error: handler.error,
-          child: CustomScrollView(
-            slivers: [
-              PageSelector(
-                pages: pages,
-                onPageChange: _onPageChange,
-                currentPage: page,
-              ),
-              SliverGrid.builder(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent:
-                      UiMode.m1(context)
-                          ? width
-                          : UiMode.m2(context)
-                          ? width / 2
-                          : width / 3,
-                  mainAxisSpacing: 5,
-                  crossAxisSpacing: 5,
-                  childAspectRatio: 2.5,
-                ),
-                itemBuilder: (context, index) {
-                  return ListItem(doc: comics[index]);
-                },
-                itemCount: comics.length,
-              ),
-              PageSelector(
-                pages: pages,
-                onPageChange: _onPageChange,
-                currentPage: page,
+            actions: [
+              IconButton(
+                tooltip: '排序',
+                icon: const Icon(Icons.sort),
+                onPressed: _buildSortTypeSelector,
               ),
             ],
           ),
-        ),
-      ),
+          body: BasePage(
+            isLoading: handler.isLoading || !completed,
+            onRetry: handler.refresh,
+            error: handler.error,
+            child: CustomScrollView(
+              slivers: [
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: page,
+                ),
+                SliverGrid.builder(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent:
+                        UiMode.m1(context)
+                            ? width
+                            : UiMode.m2(context)
+                            ? width / 2
+                            : width / 3,
+                    mainAxisSpacing: 5,
+                    crossAxisSpacing: 5,
+                    childAspectRatio: 2.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    return ListItem(doc: comics[index]);
+                  },
+                  itemCount: comics.length,
+                ),
+                PageSelector(
+                  pages: pages,
+                  onPageChange: _onPageChange,
+                  currentPage: page,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

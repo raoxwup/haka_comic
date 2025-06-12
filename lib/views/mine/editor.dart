@@ -8,6 +8,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -23,7 +24,7 @@ class Editor extends StatefulWidget {
 class _EditorState extends State<Editor> {
   late final _avatarUpdateHandler = updateAvatar.useRequest(
     onBefore: (_) {
-      show();
+      Loader.show(context);
     },
     onSuccess: (data, _) {
       Toast.show(message: '头像更新成功');
@@ -35,13 +36,13 @@ class _EditorState extends State<Editor> {
       Log.error('Update avatar error', e);
     },
     onFinally: (_) {
-      context.pop();
+      Loader.hide(context);
     },
   );
 
   late final _sloganUpdateHandler = updateProfile.useRequest(
     onBefore: (_) {
-      show();
+      Loader.show(context);
     },
     onSuccess: (data, _) {
       Toast.show(message: '自我介绍更新成功');
@@ -53,7 +54,7 @@ class _EditorState extends State<Editor> {
       Log.error('Update slogan error', e);
     },
     onFinally: (_) {
-      context.pop();
+      Loader.hide(context);
     },
   );
 
@@ -62,6 +63,7 @@ class _EditorState extends State<Editor> {
       final pickedFile = await FilePicker.platform.pickFiles(
         type: FileType.image,
       );
+      // TODO 图片尺寸太大会上传不成功
       if (pickedFile != null) {
         // 读取文件字节
         final bytes = await File(pickedFile.files.single.path!).readAsBytes();
@@ -73,16 +75,6 @@ class _EditorState extends State<Editor> {
       Log.error("Error picking image", e);
       Toast.show(message: '选择图片失败');
     }
-  }
-
-  void show() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return const Center(child: CircularProgressIndicator());
-      },
-    );
   }
 
   void showSloganEditor() async {
@@ -135,6 +127,7 @@ class _EditorState extends State<Editor> {
   @override
   void dispose() {
     _avatarUpdateHandler.dispose();
+    _sloganUpdateHandler.dispose();
     super.dispose();
   }
 

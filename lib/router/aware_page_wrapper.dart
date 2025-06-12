@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
+typedef RouteAwarePageBuilder =
+    Widget Function(BuildContext context, bool completed);
+
 class RouteAwarePageWrapper extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onRouteAnimationCompleted;
+  final RouteAwarePageBuilder builder;
+  final bool shouldRebuildOnCompleted;
 
   const RouteAwarePageWrapper({
     super.key,
-    required this.child,
-    this.onRouteAnimationCompleted,
+    required this.builder,
+    this.shouldRebuildOnCompleted = true,
   });
 
   @override
@@ -15,12 +18,13 @@ class RouteAwarePageWrapper extends StatefulWidget {
 }
 
 class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
+  late bool _completed;
   Animation? _routeAnimation;
 
   @override
   void initState() {
     super.initState();
-    // 确保在页面构建完成后获取路由
+    _completed = false;
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupRouteListener());
   }
 
@@ -28,9 +32,9 @@ class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
     final route = ModalRoute.of(context);
     if (route != null) {
       _routeAnimation = route.animation;
-      // 确保触发回调
+      // 检查初始状态
       if (_routeAnimation?.status == AnimationStatus.completed) {
-        widget.onRouteAnimationCompleted?.call();
+        _markCompleted();
       } else {
         _routeAnimation?.addStatusListener(_handleRouteAnimationStatus);
       }
@@ -39,10 +43,16 @@ class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
 
   void _handleRouteAnimationStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      // 触发回调，通知子页面动画完成
-      widget.onRouteAnimationCompleted?.call();
-      // 移除监听器避免重复执行
+      _markCompleted();
       _routeAnimation?.removeStatusListener(_handleRouteAnimationStatus);
+    }
+  }
+
+  void _markCompleted() {
+    if (!_completed && widget.shouldRebuildOnCompleted) {
+      setState(() => _completed = true);
+    } else {
+      _completed = true;
     }
   }
 
@@ -54,6 +64,6 @@ class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return widget.builder(context, _completed);
   }
 }

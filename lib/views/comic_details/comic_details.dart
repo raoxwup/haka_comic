@@ -18,7 +18,6 @@ import 'package:haka_comic/views/comic_details/creator.dart';
 import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
-import 'package:haka_comic/widgets/tag.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -95,6 +94,9 @@ class _ComicDetailsState extends State<ComicDetails> {
       },
     )..addListener(_update);
 
+    handler.run(widget.id);
+    chaptersHandler.run(widget.id);
+
     super.initState();
   }
 
@@ -132,135 +134,138 @@ class _ComicDetailsState extends State<ComicDetails> {
     final bottom = context.bottom;
 
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted: () {
-        handler.run(widget.id);
-        chaptersHandler.run(widget.id);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: ValueListenableBuilder<bool>(
-            valueListenable: _showTitleNotifier,
-            builder: (context, value, child) {
-              return AnimatedOpacity(
-                opacity: value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: Text(data?.title ?? ''),
-              );
-            },
-          ),
-          actions: [
-            MenuAnchor(
-              builder:
-                  (context, controller, widget) => IconButton(
-                    icon: const Icon(Icons.more_horiz),
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(
+            title: ValueListenableBuilder<bool>(
+              valueListenable: _showTitleNotifier,
+              builder: (context, value, child) {
+                return AnimatedOpacity(
+                  opacity: value ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(data?.title ?? ''),
+                );
+              },
+            ),
+            actions: [
+              MenuAnchor(
+                builder:
+                    (context, controller, widget) => IconButton(
+                      icon: const Icon(Icons.more_horiz),
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                    ),
+                menuChildren: [
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.copy),
+                    child: const Text('复制标题'),
+                    onPressed: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: data?.title ?? ''),
+                      );
+                      Toast.show(message: '已复制');
                     },
                   ),
-              menuChildren: [
-                MenuItemButton(
-                  leadingIcon: const Icon(Icons.copy),
-                  child: const Text('复制标题'),
-                  onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: data?.title ?? ''),
-                    );
-                    Toast.show(message: '已复制');
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        body: BasePage(
-          isLoading: handler.isLoading || chaptersHandler.isLoading,
-          onRetry: () {
-            handler.refresh();
-            chaptersHandler.refresh();
-          },
-          error: handler.error ?? chaptersHandler.error,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
-            child: Column(
-              spacing: 15,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTitle(data),
-                _buildTags(data, '分类'),
-                _buildTags(data, '标签'),
-                _buildActions(data),
-                if (UiMode.m1(context))
-                  ValueListenableBuilder(
-                    valueListenable: _readRecordNotifier,
-                    builder: (context, value, child) {
-                      return Row(
-                        spacing: 10,
-                        children: [
-                          Expanded(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(minHeight: 40),
-                              child:
-                                  value != null
-                                      ? FilledButton.tonalIcon(
-                                        onPressed:
-                                            () =>
-                                                _startRead(_chapters.first.id),
-                                        label: const Text('从头开始'),
-                                      )
-                                      : FilledButton(
-                                        onPressed:
-                                            () =>
-                                                _startRead(_chapters.first.id),
-                                        child: const Text('开始阅读'),
-                                      ),
-                            ),
-                          ),
-                          if (value != null)
+                ],
+              ),
+            ],
+          ),
+          body: BasePage(
+            isLoading:
+                handler.isLoading || chaptersHandler.isLoading || !completed,
+            onRetry: () {
+              handler.refresh();
+              chaptersHandler.refresh();
+            },
+            error: handler.error ?? chaptersHandler.error,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
+              child: Column(
+                spacing: 15,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTitle(data),
+                  _buildTags(data, '分类'),
+                  _buildTags(data, '标签'),
+                  _buildActions(data),
+                  if (UiMode.m1(context))
+                    ValueListenableBuilder(
+                      valueListenable: _readRecordNotifier,
+                      builder: (context, value, child) {
+                        return Row(
+                          spacing: 10,
+                          children: [
                             Expanded(
                               child: ConstrainedBox(
                                 constraints: const BoxConstraints(
                                   minHeight: 40,
                                 ),
-                                child: FilledButton(
-                                  onPressed:
-                                      () => _startRead(
-                                        value.chapterId,
-                                        value.pageNo,
-                                      ),
-                                  child: const Text('继续阅读'),
-                                ),
+                                child:
+                                    value != null
+                                        ? FilledButton.tonalIcon(
+                                          onPressed:
+                                              () => _startRead(
+                                                _chapters.first.id,
+                                              ),
+                                          label: const Text('从头开始'),
+                                        )
+                                        : FilledButton(
+                                          onPressed:
+                                              () => _startRead(
+                                                _chapters.first.id,
+                                              ),
+                                          child: const Text('开始阅读'),
+                                        ),
                               ),
                             ),
-                        ],
-                      );
-                    },
+                            if (value != null)
+                              Expanded(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 40,
+                                  ),
+                                  child: FilledButton(
+                                    onPressed:
+                                        () => _startRead(
+                                          value.chapterId,
+                                          value.pageNo,
+                                        ),
+                                    child: const Text('继续阅读'),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  _buildReadRecord(),
+                  // SizedBox(height: 8),
+                  const Divider(),
+                  ComicCreator(
+                    creator: data?.creator,
+                    updatedAt: data?.updated_at,
                   ),
-                _buildReadRecord(),
-                // SizedBox(height: 8),
-                const Divider(),
-                ComicCreator(
-                  creator: data?.creator,
-                  updatedAt: data?.updated_at,
-                ),
-                const SizedBox(height: 5),
-                _buildDescription(data),
-                const SizedBox(height: 5),
-                ChaptersList(
-                  chapters: chaptersHandler.data ?? [],
-                  startRead: _startRead,
-                ),
-                const SizedBox(height: 5),
-                _buildRecommendation(data),
-              ],
+                  const SizedBox(height: 5),
+                  _buildDescription(data),
+                  const SizedBox(height: 5),
+                  ChaptersList(
+                    chapters: chaptersHandler.data ?? [],
+                    startRead: _startRead,
+                  ),
+                  const SizedBox(height: 5),
+                  _buildRecommendation(data),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -437,16 +442,44 @@ class _ComicDetailsState extends State<ComicDetails> {
         (type == '标签' ? data?.tags : data?.categories) ?? [];
     final name = type == '标签' ? 't' : 'c';
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 5,
+      runSpacing: 5,
       children: [
-        Tag(tag: '$type:', size: TagSize.medium),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: context.colorScheme.errorContainer,
+          ),
+          child: Text(
+            '$type : ',
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.colorScheme.onErrorContainer,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+        ),
         ...tags.map(
-          (e) => Tag(
-            tag: e,
-            size: TagSize.medium,
-            color: context.colorScheme.primaryContainer,
-            onPressed: () => context.push('/comics?$name=$e'),
+          (e) => InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => context.push('/comics?$name=$e'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: context.colorScheme.primaryContainer.withValues(
+                  alpha: 0.45,
+                ),
+              ),
+              child: Text(
+                e,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colorScheme.onPrimaryContainer,
+                  fontSize: 13,
+                ),
+              ),
+            ),
           ),
         ),
       ],

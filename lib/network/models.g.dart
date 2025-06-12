@@ -745,3 +745,68 @@ HotSearchWordsResponse _$HotSearchWordsResponseFromJson(
 Map<String, dynamic> _$HotSearchWordsResponseToJson(
   HotSearchWordsResponse instance,
 ) => <String, dynamic>{'keywords': instance.keywords};
+
+NotificationsResponse _$NotificationsResponseFromJson(
+  Map<String, dynamic> json,
+) => NotificationsResponse(
+  notifications: NotificationsData.fromJson(
+    json['notifications'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$NotificationsResponseToJson(
+  NotificationsResponse instance,
+) => <String, dynamic>{'notifications': instance.notifications};
+
+NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
+    NotificationsData(
+      docs:
+          (json['docs'] as List<dynamic>)
+              .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$NotificationsDataToJson(NotificationsData instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+      'total': instance.total,
+    };
+
+NotificationDoc _$NotificationDocFromJson(Map<String, dynamic> json) =>
+    NotificationDoc(
+      content: json['content'] as String,
+      cover: ImageDetail.fromJson(json['cover'] as Map<String, dynamic>),
+      createdAt: json['created_at'] as String,
+      uid: json['_id'] as String,
+      id: json['id'] as String,
+      redirectId: json['_redirectId'] as String,
+      redirectType: json['redirectType'] as String,
+      sender: User.fromJson(json['_sender'] as Map<String, dynamic>),
+      system: json['system'] as bool,
+      title: json['title'] as String,
+      updatedAt: json['updated_at'] as String,
+      user: json['_user'] as String,
+    );
+
+Map<String, dynamic> _$NotificationDocToJson(NotificationDoc instance) =>
+    <String, dynamic>{
+      'content': instance.content,
+      'cover': instance.cover,
+      'created_at': instance.createdAt,
+      '_id': instance.uid,
+      'id': instance.id,
+      '_redirectId': instance.redirectId,
+      'redirectType': instance.redirectType,
+      '_sender': instance.sender,
+      'system': instance.system,
+      'title': instance.title,
+      'updated_at': instance.updatedAt,
+      '_user': instance.user,
+    };

@@ -100,7 +100,7 @@ class _HistoryState extends State<History> {
                     content: const Text('确定要清除最近浏览记录吗？'),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => context.pop(),
                         child: const Text('取消'),
                       ),
                       TextButton(
@@ -119,10 +119,6 @@ class _HistoryState extends State<History> {
             icon: const Icon(Icons.clear_all),
             tooltip: '清除最近浏览',
           ),
-          // IconButton(
-          //   onPressed: () => setState(() => _isSelecting = true),
-          //   icon: const Icon(Icons.checklist_rtl),
-          // ),
         ],
       ),
       body: CustomScrollView(

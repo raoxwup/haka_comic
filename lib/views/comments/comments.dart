@@ -23,7 +23,19 @@ class CommentsPage extends StatefulWidget {
 }
 
 class _CommentsPageState extends State<CommentsPage> {
-  late final AsyncRequestHandler1<CommentsResponse, CommentsPayload> handler;
+  late final handler = fetchComicComments.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch comic comments success', data.toString());
+      setState(() {
+        _comments.addAll(data.comments.docs);
+        _hasMore = data.comments.pages > _page;
+      });
+    },
+    onError: (e, _) {
+      Log.error('Fetch comic comments error', e);
+    },
+  );
+
   final ScrollController _scrollController = ScrollController();
   final List<Comment> _comments = [];
   bool _hasMore = true;
@@ -56,18 +68,9 @@ class _CommentsPageState extends State<CommentsPage> {
 
   @override
   void initState() {
-    handler = fetchComicComments.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch comic comments success', data.toString());
-        setState(() {
-          _comments.addAll(data.comments.docs);
-          _hasMore = data.comments.pages > _page;
-        });
-      },
-      onError: (e, _) {
-        Log.error('Fetch comic comments error', e);
-      },
-    )..addListener(_update);
+    handler.addListener(_update);
+
+    handler.run(CommentsPayload(id: widget.id, page: _page));
 
     _scrollController.addListener(_onScroll);
 
@@ -90,15 +93,15 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   Widget build(BuildContext context) {
     return RouteAwarePageWrapper(
-      onRouteAnimationCompleted:
-          () => handler.run(CommentsPayload(id: widget.id, page: _page)),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('评论')),
-        body:
-            handler.error != null
-                ? _buildError()
-                : Stack(children: [_buildPage(), _buildBottom()]),
-      ),
+      builder: (context, completed) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('评论')),
+          body:
+              handler.error != null
+                  ? _buildError()
+                  : Stack(children: [_buildPage(), _buildBottom()]),
+        );
+      },
     );
   }
 
