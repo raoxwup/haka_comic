@@ -41,6 +41,8 @@ class _VerticalListState extends State<VerticalList> {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
+  final ScrollOffsetController scrollOffsetController =
+      ScrollOffsetController();
 
   /// 已加载图片索引 - 用于避免重复预加载
   final Set<int> _loadedImages = {};
@@ -81,12 +83,21 @@ class _VerticalListState extends State<VerticalList> {
     super.dispose();
   }
 
+  /// 翻页
+  void jumpOffset(double offset) {
+    scrollOffsetController.animateScroll(
+      offset: offset,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final physics =
         ScrollPhysicsInherited.of(context) ??
         const AlwaysScrollableScrollPhysics();
     return GestureWrapper(
+      jumpOffset: jumpOffset,
       child: ScrollablePositionedList.builder(
         initialScrollIndex: widget.initialIndex ?? 0,
         padding: EdgeInsets.zero,
@@ -94,6 +105,7 @@ class _VerticalListState extends State<VerticalList> {
         itemCount: widget.images.length,
         itemScrollController: widget.itemScrollController,
         itemPositionsListener: itemPositionsListener,
+        scrollOffsetController: scrollOffsetController,
         itemBuilder: (context, index) {
           final item = widget.images[index];
           final imageSize = _imageSizeCache[item.uid];

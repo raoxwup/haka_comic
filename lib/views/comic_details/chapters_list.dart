@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/comic_details/comic_details.dart';
 
 class ChaptersList extends StatefulWidget {
   const ChaptersList({
@@ -19,18 +19,34 @@ class ChaptersList extends StatefulWidget {
 
 class _ChaptersListState extends State<ChaptersList> {
   bool expand = false;
+  bool isLatestToOldest = true;
+
+  List<Chapter> get sortedChapters =>
+      isLatestToOldest ? widget.chapters : widget.chapters.reversed.toList();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('目录', style: context.textTheme.titleMedium),
-        widget.chapters.isEmpty
-            ? _buildCircularProgressIndicator()
-            : _buildChapterList(),
+    return TitleBox(
+      title: '目录',
+      actions: [
+        IconButton(
+          icon: Icon(
+            isLatestToOldest
+                ? Icons.vertical_align_top
+                : Icons.vertical_align_bottom,
+          ),
+          onPressed: () {
+            setState(() {
+              isLatestToOldest = !isLatestToOldest;
+            });
+          },
+        ),
       ],
+      builder: (context) {
+        return widget.chapters.isEmpty
+            ? _buildCircularProgressIndicator()
+            : _buildChapterList();
+      },
     );
   }
 
@@ -41,8 +57,7 @@ class _ChaptersListState extends State<ChaptersList> {
   );
 
   Widget _buildChapterList() {
-    final chapters =
-        expand ? widget.chapters : widget.chapters.take(40).toList();
+    final chapters = expand ? sortedChapters : sortedChapters.take(40).toList();
 
     return CustomScrollView(
       shrinkWrap: true,

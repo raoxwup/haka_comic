@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/reader_inherited.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
@@ -25,10 +26,16 @@ class ScrollPhysicsInherited extends InheritedWidget {
 }
 
 class GestureWrapper extends StatefulWidget {
-  const GestureWrapper({super.key, required this.child, this.initialPhysics});
+  const GestureWrapper({
+    super.key,
+    required this.child,
+    this.initialPhysics,
+    required this.jumpOffset,
+  });
 
   final Widget child;
   final ScrollPhysics? initialPhysics;
+  final Function(double) jumpOffset;
 
   @override
   State<GestureWrapper> createState() => _GestureWrapperState();
@@ -165,6 +172,26 @@ class _GestureWrapperState extends State<GestureWrapper>
     super.dispose();
   }
 
+  late TapDownDetails _tapDownDetails;
+
+  void _handleTap() {
+    final height = context.height;
+    double topFraction = 0.35;
+    double centerFraction = 0.3;
+
+    final topHeight = height * topFraction;
+    final centerHeight = height * centerFraction;
+
+    final dy = _tapDownDetails.localPosition.dy;
+    if (dy < topHeight) {
+      widget.jumpOffset(height * -0.5);
+    } else if (dy < (topHeight + centerHeight)) {
+      ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+    } else {
+      widget.jumpOffset(height * 0.5);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScrollPhysicsInherited(
@@ -174,12 +201,8 @@ class _GestureWrapperState extends State<GestureWrapper>
         onPointerUp: (event) => _updatePointerCount(-1),
         onPointerCancel: (event) => _updatePointerCount(-1),
         child: GestureDetector(
-          onTap:
-              () =>
-                  ReaderInherited.of(
-                    context,
-                    listen: false,
-                  ).openOrCloseToolbar(),
+          onTap: _handleTap,
+          onTapDown: (details) => _tapDownDetails = details,
           onDoubleTapDown: _handleDoubleTapDown,
           onDoubleTap: _handleDoubleTap,
           child: InteractiveViewer(

@@ -44,7 +44,16 @@ class _ComicDetailsState extends State<ComicDetails> {
   );
 
   /// 漫画章节
-  late final AsyncRequestHandler1<List<Chapter>, String> chaptersHandler;
+  late final chaptersHandler = fetchChapters.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch chapters success', data.toString());
+      // 哔咔最新的排在最前面
+      _chapters = data.reversed.toList();
+    },
+    onError: (e, _) {
+      Log.error('Fetch chapters error', e);
+    },
+  );
 
   final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
   final ScrollController _scrollController = ScrollController();
@@ -76,26 +85,16 @@ class _ComicDetailsState extends State<ComicDetails> {
   @override
   void initState() {
     handler.addListener(_update);
+    chaptersHandler.addListener(_update);
+
+    handler.run(widget.id);
+    chaptersHandler.run(widget.id);
 
     _scrollController.addListener(_handleScroll);
 
     _updateReadRecord();
 
     _helper.addListener(_updateReadRecord);
-
-    chaptersHandler = fetchChapters.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch chapters success', data.toString());
-        // 哔咔最新的排在最前面
-        _chapters = data.reversed.toList();
-      },
-      onError: (e, _) {
-        Log.error('Fetch chapters error', e);
-      },
-    )..addListener(_update);
-
-    handler.run(widget.id);
-    chaptersHandler.run(widget.id);
 
     super.initState();
   }
@@ -270,13 +269,11 @@ class _ComicDetailsState extends State<ComicDetails> {
   }
 
   Widget _buildRecommendation(Comic? data) {
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('相关推荐', style: context.textTheme.titleMedium),
-        Recommendation(id: widget.id),
-      ],
+    return TitleBox(
+      title: '相关推荐',
+      builder: (context) {
+        return Recommendation(id: widget.id);
+      },
     );
   }
 
@@ -297,29 +294,21 @@ class _ComicDetailsState extends State<ComicDetails> {
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
               ),
-              InkWell(
+              InfoRow(
                 onTap:
                     (data?.author == null || data!.author.isEmpty)
                         ? null
                         : () => context.push('/comics?a=${data.author}'),
-                child: Text(
-                  '作者: ${data?.author}',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.primary,
-                  ),
-                ),
+                data: data?.author,
+                icon: Icons.person,
               ),
-              InkWell(
+              InfoRow(
                 onTap:
                     (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
                         ? null
                         : () => context.push('/comics?ct=${data.chineseTeam}'),
-                child: Text(
-                  '汉化: ${data?.chineseTeam}',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.primary,
-                  ),
-                ),
+                data: data?.chineseTeam,
+                icon: Icons.translate,
               ),
               ComicShareId(id: widget.id),
               Row(
@@ -427,13 +416,14 @@ class _ComicDetailsState extends State<ComicDetails> {
   }
 
   Widget _buildDescription(Comic? data) {
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('简介', style: context.textTheme.titleMedium),
-        Text(data?.description ?? '暂无简介', style: context.textTheme.bodyMedium),
-      ],
+    return TitleBox(
+      title: '简介',
+      builder: (context) {
+        return Text(
+          data?.description ?? '暂无简介',
+          style: context.textTheme.bodyMedium,
+        );
+      },
     );
   }
 
@@ -522,6 +512,71 @@ class _ComicDetailsState extends State<ComicDetails> {
               ),
             );
       },
+    );
+  }
+}
+
+class TitleBox extends StatelessWidget {
+  const TitleBox({
+    super.key,
+    required this.title,
+    required this.builder,
+    this.actions = const [],
+  });
+
+  final String title;
+  final WidgetBuilder builder;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Text(title, style: context.textTheme.titleMedium),
+            const Spacer(),
+            ...actions,
+          ],
+        ),
+        Builder(builder: builder),
+      ],
+    );
+  }
+}
+
+class InfoRow extends StatelessWidget {
+  const InfoRow({
+    super.key,
+    required this.data,
+    this.onTap,
+    required this.icon,
+  });
+
+  final String? data;
+  final void Function()? onTap;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 5,
+        children: [
+          Icon(icon, size: 14, color: context.colorScheme.primary),
+          Text(
+            data ?? '',
+            style: context.textTheme.bodySmall?.copyWith(
+              color: context.colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class ComicShareId extends StatefulWidget {
@@ -50,17 +51,11 @@ class _ComicShareIdState extends State<ComicShareId> {
 
   @override
   Widget build(BuildContext context) {
-    final id = _handler.data ?? '加载中...';
-    return InkWell(
+    final String id = _handler.data?.toString() ?? '加载中...';
+    return InfoRow(
       onTap: _handler.data == null ? null : copy,
-      child: Text(
-        '本子ID: $id',
-        style: context.textTheme.bodySmall?.copyWith(
-          color: context.colorScheme.primary,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      icon: Icons.share,
+      data: id,
     );
   }
 }

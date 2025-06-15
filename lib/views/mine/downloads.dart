@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
@@ -165,6 +166,54 @@ class _DownloadsState extends State<Downloads> {
     (task) => task.status == DownloadTaskStatus.completed,
   );
 
+  late TapDownDetails _tapDownDetails;
+
+  void _showContextMenu(
+    BuildContext context,
+    Offset offset,
+    ComicDownloadTask task,
+  ) async {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final screenSize = overlay.size;
+
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(offset.dx, offset.dy, 1, 1),
+      Offset.zero & screenSize,
+    );
+
+    // 显示菜单
+    final String? result = await showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        const PopupMenuItem(
+          value: 'copy',
+          child: ListTile(leading: Icon(Icons.copy), title: Text('复制标题')),
+        ),
+        const PopupMenuItem(
+          value: 'select',
+          child: ListTile(leading: Icon(Icons.check), title: Text('选择')),
+        ),
+      ],
+      elevation: 4,
+    );
+
+    switch (result) {
+      case 'copy':
+        final title = task.comic.title;
+        await Clipboard.setData(ClipboardData(text: title));
+        Toast.show(message: '已复制');
+        break;
+      case 'select':
+        setState(() {
+          _isSelecting = true;
+          _selectedTaskIds.add(task.comic.id);
+        });
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
@@ -260,6 +309,17 @@ class _DownloadsState extends State<Downloads> {
                 final task = tasks[index];
                 return InkWell(
                   key: ValueKey(task.comic.id),
+                  onTapDown: (details) => _tapDownDetails = details,
+                  onLongPress:
+                      _isSelecting
+                          ? null
+                          : () {
+                            _showContextMenu(
+                              context,
+                              _tapDownDetails.globalPosition,
+                              task,
+                            );
+                          },
                   onTap: () {
                     if (_isSelecting) {
                       setState(() {
