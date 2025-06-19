@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -85,24 +86,15 @@ class _ClearCacheState extends State<ClearCache> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.delete_sweep_outlined),
-      title: const Text('清理缓存'),
-      trailing: Row(
-        spacing: 5.0,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _isClearing
-                ? "清理中..."
-                : _isCalculating
-                ? '计算中...'
-                : formatSize(_cacheSize),
-            style: const TextStyle(fontSize: 12),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
+    return MenuListTile(
+      icon: Icons.delete_sweep_outlined,
+      title: '清理缓存',
+      value:
+          _isClearing
+              ? "清理中..."
+              : _isCalculating
+              ? '计算中...'
+              : formatSize(_cacheSize),
       onTap: () async {
         final bool? result = await showDialog(
           context: context,

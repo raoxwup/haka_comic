@@ -3,35 +3,21 @@ import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
 import 'package:haka_comic/views/settings/theme_switch.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 import 'package:provider/provider.dart';
 
-class Theme extends StatefulWidget {
+class Theme extends StatelessWidget {
   const Theme({super.key});
 
-  @override
-  State<Theme> createState() => _ThemeState();
-}
-
-class _ThemeState extends State<Theme> {
   @override
   Widget build(BuildContext context) {
     final ThemeMode themeMode = context.select<ThemeProvider, ThemeMode>(
       (data) => data.themeMode,
     );
-    return ListTile(
-      leading: const Icon(Icons.contrast_outlined),
-      title: const Text('主题模式'),
-      trailing: Row(
-        spacing: 5.0,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            ThemeProvider.themeModeToString[themeMode] ?? 'System',
-            style: const TextStyle(fontSize: 12),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
+    return MenuListTile(
+      icon: Icons.contrast_outlined,
+      title: '主题模式',
+      value: ThemeProvider.themeModeToString[themeMode] ?? 'System',
       onTap: () {
         showModalBottomSheet(
           context: context,

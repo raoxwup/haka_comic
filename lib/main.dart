@@ -84,8 +84,7 @@ class _AppState extends State<App> {
       ThemeData(
         colorScheme: colorScheme,
         brightness: brightness,
-        // 调试模式下使用
-        fontFamily: Platform.isWindows ? 'HarmonyOS Sans SC' : null,
+        fontFamily: Platform.isWindows ? '微软雅黑' : null,
         appBarTheme: AppBarTheme(
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -95,12 +94,10 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = context.select<ThemeProvider, ThemeMode>(
-      (data) => data.themeMode,
-    );
-    final color = context.select<ThemeProvider, String>(
-      (values) => values.primaryColor,
-    );
+    final (themeMode, color) = context
+        .select<ThemeProvider, (ThemeMode, String)>(
+          (data) => (data.themeMode, data.primaryColor),
+        );
     return DynamicColorBuilder(
       builder: (light, dark) {
         final ColorScheme lightScheme, darkScheme;

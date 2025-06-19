@@ -4,6 +4,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -12,10 +13,9 @@ class ChangePassword extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.edit_outlined),
-      title: const Text('修改密码'),
-      trailing: const Icon(Icons.chevron_right),
+    return MenuListTile(
+      icon: Icons.edit_outlined,
+      title: '修改密码',
       onTap: () {
         showDialog(
           context: context,

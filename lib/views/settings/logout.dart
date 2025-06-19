@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/router/app_router.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
 class Logout extends StatefulWidget {
   const Logout({super.key});
@@ -12,10 +13,9 @@ class Logout extends StatefulWidget {
 class _LogoutState extends State<Logout> {
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.logout_outlined),
-      title: const Text('退出登录'),
-      trailing: const Icon(Icons.chevron_right),
+    return MenuListTile(
+      icon: Icons.logout_outlined,
+      title: '退出登录',
       onTap: () async {
         final bool? result = await showDialog(
           context: context,
