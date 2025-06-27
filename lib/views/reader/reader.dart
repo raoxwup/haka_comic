@@ -206,6 +206,9 @@ class _ReaderState extends State<Reader> {
   @override
   Widget build(BuildContext context) {
     final data = _handler.data ?? [];
+    final isDoublePage =
+        readMode == ReadMode.doubleLeftToRight ||
+        readMode == ReadMode.doubleRightToLeft;
 
     Widget listWidget =
         readMode == ReadMode.vertical
@@ -218,7 +221,8 @@ class _ReaderState extends State<Reader> {
             : HorizontalList(
               images: data,
               onItemVisibleChanged: onItemVisibleChanged,
-              initialIndex: initialIndex,
+              initialIndex:
+                  isDoublePage ? (initialIndex / 2).floor() : initialIndex,
               pageController: pageController,
             );
 
@@ -242,6 +246,7 @@ class _ReaderState extends State<Reader> {
                     cid: widget.id,
                     openOrCloseToolbar: openOrCloseToolbar,
                     size: size,
+                    mode: readMode,
                     child: listWidget,
                   );
                 },
@@ -314,6 +319,43 @@ class _ReaderState extends State<Reader> {
                 ),
                 onPressed: () => context.pop(),
               ),
+              actions: [
+                MenuAnchor(
+                  menuChildren:
+                      ReadMode.values.map((mode) {
+                        return MenuItemButton(
+                          onPressed: () {
+                            changeReadMode(mode);
+                            openOrCloseToolbar();
+                          },
+                          child: Row(
+                            spacing: 5,
+                            children: [
+                              Text(readModeToString(mode)),
+                              if (mode == readMode)
+                                Icon(
+                                  Icons.done,
+                                  size: 16,
+                                  color: context.colorScheme.primary,
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                  builder: (context, controller, child) {
+                    return IconButton(
+                      icon: const Icon(Icons.chrome_reader_mode_outlined),
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                    );
+                  },
+                ),
+              ],
               title: Text(widget.title),
               backgroundColor: context.colorScheme.surface.withValues(
                 alpha: 0.92,
@@ -448,26 +490,6 @@ class _ReaderState extends State<Reader> {
                           label: const Text('章节'),
                           icon: const Icon(Icons.menu),
                         ),
-                        TextButton.icon(
-                          onPressed: () {
-                            changeReadMode(
-                              readMode == ReadMode.leftToRight
-                                  ? ReadMode.vertical
-                                  : ReadMode.leftToRight,
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: context.colorScheme.onSurface,
-                          ),
-                          label: Text(
-                            readMode == ReadMode.leftToRight ? '竖向' : '横向',
-                          ),
-                          icon: Icon(
-                            readMode == ReadMode.leftToRight
-                                ? Icons.swap_vert
-                                : Icons.swap_horiz,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -485,14 +507,36 @@ enum ReadMode {
   /// 条漫模式
   vertical,
 
-  /// 横向从左到右
+  /// 单页横向从左到右
   leftToRight,
+
+  /// 单页横向从右到左
+  rightToLeft,
+
+  /// 双页横向从左到右
+  doubleLeftToRight,
+
+  /// 双页横向从右到左
+  doubleRightToLeft,
 }
 
 ReadMode stringToReadMode(String mode) {
   return switch (mode) {
     'vertical' => ReadMode.vertical,
     'leftToRight' => ReadMode.leftToRight,
+    'rightToLeft' => ReadMode.rightToLeft,
+    'doubleLeftToRight' => ReadMode.doubleLeftToRight,
+    'doubleRightToLeft' => ReadMode.doubleRightToLeft,
     _ => ReadMode.vertical,
+  };
+}
+
+String readModeToString(ReadMode mode) {
+  return switch (mode) {
+    ReadMode.vertical => '连续从上到下',
+    ReadMode.leftToRight => '单页从左到右',
+    ReadMode.rightToLeft => '单页从右到左',
+    ReadMode.doubleLeftToRight => '双页从左到右',
+    ReadMode.doubleRightToLeft => '双页从右到左',
   };
 }

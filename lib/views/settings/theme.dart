@@ -14,7 +14,7 @@ class Theme extends StatelessWidget {
     final ThemeMode themeMode = context.select<ThemeProvider, ThemeMode>(
       (data) => data.themeMode,
     );
-    return MenuListTile(
+    return MenuListTile.withAction(
       icon: Icons.contrast_outlined,
       title: '主题模式',
       value: ThemeProvider.themeModeToString[themeMode] ?? 'System',

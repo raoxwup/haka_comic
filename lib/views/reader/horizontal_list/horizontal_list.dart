@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -45,6 +47,16 @@ class _HorizontalListState extends State<HorizontalList> {
   /// 获取当前章节ID
   String get cid => ReaderInherited.of(context, listen: false).cid;
 
+  /// 是否需要翻转
+  bool get isReverse =>
+      ReaderInherited.of(context).mode == ReadMode.rightToLeft ||
+      ReaderInherited.of(context).mode == ReadMode.doubleRightToLeft;
+
+  /// 是否双页模式
+  bool get isDoublePage =>
+      ReaderInherited.of(context).mode == ReadMode.doubleLeftToRight ||
+      ReaderInherited.of(context).mode == ReadMode.doubleRightToLeft;
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -83,19 +95,47 @@ class _HorizontalListState extends State<HorizontalList> {
     final centerWidth = width * centerFraction;
 
     final dx = _tapDetails!.localPosition.dx;
+
+    void previousPage() => widget.pageController.previousPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.linear,
+    );
+
+    void nextPage() => widget.pageController.nextPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.linear,
+    );
+
     if (dx < leftWidth) {
-      widget.pageController.previousPage(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.linear,
-      );
+      isReverse ? nextPage() : previousPage();
     } else if (dx < (leftWidth + centerWidth)) {
       ReaderInherited.of(context, listen: false).openOrCloseToolbar();
     } else {
-      widget.pageController.nextPage(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.linear,
-      );
+      isReverse ? previousPage() : nextPage();
     }
+  }
+
+  int get totalPages {
+    return isDoublePage
+        ? (widget.images.length / 2).ceil()
+        : widget.images.length;
+  }
+
+  List<T> takeChunks<T>(List<T> list, int n, int i) {
+    if (n <= 0) {
+      throw ArgumentError('n must be greater than 0');
+    }
+
+    final chunks = <List<T>>[];
+    int index = 0;
+
+    while (index < list.length) {
+      final end = (index + n) < list.length ? index + n : list.length;
+      chunks.add(list.sublist(index, end));
+      index = end;
+    }
+
+    return chunks[i];
   }
 
   @override
@@ -110,41 +150,56 @@ class _HorizontalListState extends State<HorizontalList> {
           color: context.colorScheme.surfaceContainerLowest,
         ),
         scrollPhysics: const BouncingScrollPhysics(),
-        itemCount: widget.images.length,
+        itemCount: totalPages,
         pageController: widget.pageController,
         onPageChanged: _onItemPositionsChanged,
+        reverse: isReverse,
         builder: (context, index) {
-          final item = widget.images[index];
-
           photoViewControllers[index] ??= PhotoViewController();
 
-          return PhotoViewGalleryPageOptions(
-            minScale: PhotoViewComputedScale.contained * 1,
-            maxScale: PhotoViewComputedScale.covered * 4,
+          final images = takeChunks(widget.images, isDoublePage ? 2 : 1, index);
+
+          if (!isDoublePage || images.length == 1) {
+            final item = images[0];
+            return PhotoViewGalleryPageOptions(
+              minScale: PhotoViewComputedScale.contained * 1,
+              maxScale: PhotoViewComputedScale.covered * 4,
+              controller: photoViewControllers[index],
+              imageProvider: CachedNetworkImageProvider(item.media.url),
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (context, error, stackTrace, retry) {
+                return Center(
+                  child: IconButton(
+                    onPressed: () async {
+                      final provider = CachedNetworkImageProvider(
+                        item.media.url,
+                      );
+                      provider.evict();
+                      retry();
+                    },
+                    icon: const Icon(Icons.refresh),
+                  ),
+                );
+              },
+              onImageFrame: (info, synchronousCall) {
+                final imageSize = ImageSize(
+                  imageId: item.uid,
+                  width: info.image.width,
+                  height: info.image.height,
+                  cid: cid,
+                );
+                _insertImageSize(imageSize);
+              },
+            );
+          }
+
+          final size = ReaderInherited.of(context).size;
+          return PhotoViewGalleryPageOptions.customChild(
+            childSize: size * 2,
             controller: photoViewControllers[index],
-            imageProvider: CachedNetworkImageProvider(item.media.url),
-            filterQuality: FilterQuality.medium,
-            errorBuilder: (context, error, stackTrace, retry) {
-              return Center(
-                child: IconButton(
-                  onPressed: () async {
-                    final provider = CachedNetworkImageProvider(item.media.url);
-                    provider.evict();
-                    retry();
-                  },
-                  icon: const Icon(Icons.refresh),
-                ),
-              );
-            },
-            onImageFrame: (info, synchronousCall) {
-              final imageSize = ImageSize(
-                imageId: item.uid,
-                width: info.image.width,
-                height: info.image.height,
-                cid: cid,
-              );
-              _insertImageSize(imageSize);
-            },
+            minScale: PhotoViewComputedScale.contained * 1.0,
+            maxScale: PhotoViewComputedScale.covered * 4.0,
+            child: buildPageImages(images),
           );
         },
         loadingBuilder: (context, event) {
@@ -166,6 +221,32 @@ class _HorizontalListState extends State<HorizontalList> {
     );
   }
 
+  Widget buildPageImages(List<ChapterImage> images) {
+    return Row(
+      children:
+          images.map((item) {
+            return Expanded(
+              child: CachedNetworkImage(
+                imageUrl: item.media.url,
+                fit: BoxFit.contain,
+                fadeOutDuration: Duration.zero,
+                progressIndicatorBuilder:
+                    (context, url, downloadProgress) => Center(
+                      child: CircularProgressIndicator(
+                        value: downloadProgress.progress ?? 0,
+                        strokeWidth: 3,
+                        constraints: BoxConstraints.tight(const Size(28, 28)),
+                        backgroundColor: Colors.grey.shade300,
+                        color: context.colorScheme.primary,
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
   // 最大预加载数量限制
   static const int _maxPreloadCount = 4;
 
@@ -174,16 +255,24 @@ class _HorizontalListState extends State<HorizontalList> {
     // 将上一页的图片状态重置
     photoViewControllers[_visibleFirstIndex]?.reset();
 
-    if (_visibleFirstIndex > index) {
-      _preloadImages(index - 1, index - _maxPreloadCount);
+    final i =
+        isDoublePage
+            ? math.min(((index + 1) * 2 - 1), widget.images.length - 1)
+            : index;
+
+    if (_visibleFirstIndex > i) {
+      final start = isDoublePage ? i - 1 - 1 : i - 1;
+      final end =
+          isDoublePage ? i - 1 - _maxPreloadCount : i - _maxPreloadCount;
+      _preloadImages(start, end);
     } else {
-      _preloadImages(index + 1, index + _maxPreloadCount);
+      _preloadImages(i + 1, i + _maxPreloadCount);
     }
 
-    _visibleFirstIndex = index;
+    _visibleFirstIndex = i;
 
     // 通知父组件当前可见的最后一个图片索引
-    widget.onItemVisibleChanged(index);
+    widget.onItemVisibleChanged(i);
   }
 
   Timer? _preloadDebounceTimer;

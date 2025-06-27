@@ -13,7 +13,7 @@ class ChangePassword extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MenuListTile(
+    return MenuListTile.withAction(
       icon: Icons.edit_outlined,
       title: '修改密码',
       onTap: () {

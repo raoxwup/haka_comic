@@ -13,7 +13,7 @@ class Logout extends StatefulWidget {
 class _LogoutState extends State<Logout> {
   @override
   Widget build(BuildContext context) {
-    return MenuListTile(
+    return MenuListTile.withAction(
       icon: Icons.logout_outlined,
       title: '退出登录',
       onTap: () async {

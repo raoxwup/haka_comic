@@ -15,7 +15,7 @@ class _ChangeServerState extends State<ChangeServer> {
 
   @override
   Widget build(BuildContext context) {
-    return MenuListTile(
+    return MenuListTile.withValue(
       icon: Icons.swap_horiz_outlined,
       title: '切换分流',
       value: getServerDisplayName(_server),

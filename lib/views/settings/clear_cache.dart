@@ -86,7 +86,7 @@ class _ClearCacheState extends State<ClearCache> {
 
   @override
   Widget build(BuildContext context) {
-    return MenuListTile(
+    return MenuListTile.withAction(
       icon: Icons.delete_sweep_outlined,
       title: '清理缓存',
       value:

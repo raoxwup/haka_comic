@@ -24,7 +24,7 @@ class ThemeColor extends StatelessWidget {
       (values) => values.primaryColor,
     );
 
-    return MenuListTile(
+    return MenuListTile.withValue(
       title: '主题颜色',
       value: color,
       icon: Icons.color_lens_outlined,

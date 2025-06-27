@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/extension.dart';
 
 class MenuListTile<T> extends StatelessWidget {
-  const MenuListTile({
+  const MenuListTile.withValue({
     super.key,
-    this.value,
     required this.icon,
     required this.title,
-    this.items = const [],
+    required this.value,
+    required this.items,
     this.onSelected,
-    this.onTap,
-  });
+  }) : onTap = null;
+
+  const MenuListTile.withAction({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.value,
+  }) : items = null,
+       onSelected = null;
 
   final String title;
   final String? value;
   final IconData icon;
-  final List<PopupMenuEntry<T>> items;
+  final List<PopupMenuEntry<T>>? items;
   final ValueChanged<T>? onSelected;
   final VoidCallback? onTap;
 
@@ -62,7 +70,7 @@ class MenuListTile<T> extends StatelessWidget {
       context: context,
       position: position,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      items: items,
+      items: items!,
     );
 
     if (value != null) {

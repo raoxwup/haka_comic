@@ -15,7 +15,7 @@ class _ChangeImageQualityState extends State<ChangeImageQuality> {
 
   @override
   Widget build(BuildContext context) {
-    return MenuListTile(
+    return MenuListTile.withValue(
       icon: Icons.image_outlined,
       title: '图片质量',
       value: getImageQualityDisplayName(_imageQuality),

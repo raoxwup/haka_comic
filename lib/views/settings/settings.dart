@@ -5,6 +5,7 @@ import 'package:haka_comic/views/settings/change_password.dart';
 import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/logout.dart';
+import 'package:haka_comic/views/settings/read_mode.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
 import 'package:haka_comic/views/settings/theme_color.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
@@ -33,7 +34,7 @@ class _SettingsState extends State<Settings> {
               const ChangePassword(),
               const ChangeImageQuality(),
               const ChangeServer(),
-              MenuListTile(
+              MenuListTile.withAction(
                 icon: Icons.texture_outlined,
                 title: '屏蔽',
                 onTap: () {
@@ -43,11 +44,13 @@ class _SettingsState extends State<Settings> {
             ],
           ),
           const SizedBox(height: 20),
+          const Block(title: '阅读', children: [ReadModeChanger()]),
+          const SizedBox(height: 20),
           Block(
             title: '通用',
             children: [
               const ClearCache(),
-              MenuListTile(
+              MenuListTile.withAction(
                 icon: Icons.info_outline,
                 title: '关于',
                 onTap: () {
