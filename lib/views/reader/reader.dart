@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/views/reader/horizontal_list/horizontal_list.dart';
+import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/reader_inherited.dart';
-import 'package:haka_comic/views/reader/vertical_list/vertical_list.dart';
+import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
@@ -501,42 +502,4 @@ class _ReaderState extends State<Reader> {
       },
     );
   }
-}
-
-enum ReadMode {
-  /// 条漫模式
-  vertical,
-
-  /// 单页横向从左到右
-  leftToRight,
-
-  /// 单页横向从右到左
-  rightToLeft,
-
-  /// 双页横向从左到右
-  doubleLeftToRight,
-
-  /// 双页横向从右到左
-  doubleRightToLeft,
-}
-
-ReadMode stringToReadMode(String mode) {
-  return switch (mode) {
-    'vertical' => ReadMode.vertical,
-    'leftToRight' => ReadMode.leftToRight,
-    'rightToLeft' => ReadMode.rightToLeft,
-    'doubleLeftToRight' => ReadMode.doubleLeftToRight,
-    'doubleRightToLeft' => ReadMode.doubleRightToLeft,
-    _ => ReadMode.vertical,
-  };
-}
-
-String readModeToString(ReadMode mode) {
-  return switch (mode) {
-    ReadMode.vertical => '连续从上到下',
-    ReadMode.leftToRight => '单页从左到右',
-    ReadMode.rightToLeft => '单页从右到左',
-    ReadMode.doubleLeftToRight => '双页从左到右',
-    ReadMode.doubleRightToLeft => '双页从右到左',
-  };
 }

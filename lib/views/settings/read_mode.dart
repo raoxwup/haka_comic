@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/views/reader/reader.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
 class ReadModeChanger extends StatefulWidget {

@@ -1,6 +1,6 @@
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
-import 'package:haka_comic/views/reader/reader.dart';
 
 class AppConf {
   static final AppConf instance = AppConf._internal();

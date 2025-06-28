@@ -1,11 +1,11 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/reader/reader.dart';
+import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -35,10 +35,7 @@ class HorizontalList extends StatefulWidget {
   State<HorizontalList> createState() => _HorizontalListState();
 }
 
-class _HorizontalListState extends State<HorizontalList> {
-  /// 已加载图片索引 - 用于避免重复预加载
-  final Set<int> _loadedImages = {};
-
+class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
@@ -69,8 +66,6 @@ class _HorizontalListState extends State<HorizontalList> {
 
   @override
   void dispose() {
-    _preloadDebounceTimer?.cancel();
-
     for (var controller in photoViewControllers.values) {
       controller.dispose();
     }
@@ -188,7 +183,7 @@ class _HorizontalListState extends State<HorizontalList> {
                   height: info.image.height,
                   cid: cid,
                 );
-                _insertImageSize(imageSize);
+                insertImageSize(imageSize);
               },
             );
           }
@@ -247,9 +242,6 @@ class _HorizontalListState extends State<HorizontalList> {
     );
   }
 
-  // 最大预加载数量限制
-  static const int _maxPreloadCount = 4;
-
   /// 处理列表项位置变化
   void _onItemPositionsChanged(index) {
     // 将上一页的图片状态重置
@@ -262,47 +254,15 @@ class _HorizontalListState extends State<HorizontalList> {
 
     if (_visibleFirstIndex > i) {
       final start = isDoublePage ? i - 1 - 1 : i - 1;
-      final end =
-          isDoublePage ? i - 1 - _maxPreloadCount : i - _maxPreloadCount;
-      _preloadImages(start, end);
+      final end = isDoublePage ? i - 1 - maxPreloadCount : i - maxPreloadCount;
+      preloadImages(start, end, widget.images);
     } else {
-      _preloadImages(i + 1, i + _maxPreloadCount);
+      preloadImages(i + 1, i + maxPreloadCount, widget.images);
     }
 
     _visibleFirstIndex = i;
 
     // 通知父组件当前可见的最后一个图片索引
     widget.onItemVisibleChanged(i);
-  }
-
-  Timer? _preloadDebounceTimer;
-
-  void _preloadImages(int startIndex, int endIndex) {
-    // 取消之前的预加载计时器
-    _preloadDebounceTimer?.cancel();
-
-    // 设置新的防抖计时器，50ms内只处理最后一次预加载请求
-    _preloadDebounceTimer = Timer(const Duration(milliseconds: 50), () {
-      // 确保方向正确
-      final start = startIndex < endIndex ? startIndex : endIndex;
-      final end = startIndex < endIndex ? endIndex : startIndex;
-
-      for (int i = start; i <= end; i++) {
-        // 检查索引是否有效
-        if (i < 0 || i >= widget.images.length) continue;
-        // 避免重复加载
-        if (_loadedImages.contains(i)) continue;
-
-        final imageUrl = widget.images[i].media.url;
-        final imageProvider = CachedNetworkImageProvider(imageUrl);
-        precacheImage(imageProvider, context);
-        _loadedImages.add(i);
-      }
-    });
-  }
-
-  /// 将图片尺寸信息插入数据库
-  void _insertImageSize(ImageSize imageSize) {
-    ImagesHelper.insert(imageSize);
   }
 }

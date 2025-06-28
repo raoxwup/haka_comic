@@ -37,8 +37,10 @@ class UserProvider with ChangeNotifier {
   AsyncRequestHandler0<UserProfileResponse> get userProfileHandler =>
       _userProfileHandler;
 
-  void handlerDispose() {
+  @override
+  void dispose() {
     _userProfileHandler.dispose();
     _punchInHandler.dispose();
+    super.dispose();
   }
 }
