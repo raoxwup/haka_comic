@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -14,7 +15,7 @@ class Random extends StatefulWidget {
   State<Random> createState() => _RandomState();
 }
 
-class _RandomState extends State<Random> {
+class _RandomState extends State<Random> with AutoRegisterHandlerMixin {
   final _handler = fetchRandomComics.useRequest(
     onSuccess: (data, _) {
       Log.info('fetch random comics success', data.toString());
@@ -24,21 +25,13 @@ class _RandomState extends State<Random> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
     super.initState();
-    _handler.addListener(_update);
     _handler.run();
-  }
-
-  @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
   }
 
   @override

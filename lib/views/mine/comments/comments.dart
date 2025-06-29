@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -21,8 +22,19 @@ class Comments extends StatefulWidget {
   State<Comments> createState() => _CommentsState();
 }
 
-class _CommentsState extends State<Comments> {
-  late final AsyncRequestHandler1<PersonalCommentsResponse, int> _handler;
+class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
+  late final _handler = fetchPersonalComments.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch personal comments success', data.toString());
+      setState(() {
+        _comments.addAll(data.comments.docs);
+        hasMore = data.comments.pages > page;
+      });
+    },
+    onError: (e, _) {
+      Log.error('Fetch personal comments error', e);
+    },
+  );
 
   final List<PersonalComment> _comments = [];
   final ScrollController _scrollController = ScrollController();
@@ -40,8 +52,6 @@ class _CommentsState extends State<Comments> {
       _loadMore(page + 1).whenComplete(() => isLoading = false);
     }
   }
-
-  void update() => setState(() {});
 
   Future<void> _loadMore(int page) async {
     setState(() {
@@ -62,19 +72,6 @@ class _CommentsState extends State<Comments> {
   @override
   void initState() {
     super.initState();
-    _handler = fetchPersonalComments.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch personal comments success', data.toString());
-        setState(() {
-          _comments.addAll(data.comments.docs);
-          hasMore = data.comments.pages > page;
-        });
-      },
-      onError: (e, _) {
-        Log.error('Fetch personal comments error', e);
-      },
-    );
-    _handler.addListener(update);
 
     _handler.run(page);
 
@@ -83,10 +80,6 @@ class _CommentsState extends State<Comments> {
 
   @override
   void dispose() {
-    _handler
-      ..removeListener(update)
-      ..dispose();
-
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -116,7 +109,7 @@ class _CommentsState extends State<Comments> {
   }
 
   Widget _buildList() {
-    final user = context.select<UserProvider, User?>((value) => value.user);
+    final user = context.watch<UserProvider>().user;
     return ListView.separated(
       controller: _scrollController,
       itemBuilder: (_, index) {
@@ -261,4 +254,7 @@ class _CommentsState extends State<Comments> {
       onRetry: _onRetry,
     );
   }
+
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -78,7 +79,7 @@ class ComicRank extends StatefulWidget {
 }
 
 class _ComicRankState extends State<ComicRank>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, AutoRegisterHandlerMixin {
   final _handler = fetchComicRank.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic rank success', data.toString());
@@ -88,22 +89,13 @@ class _ComicRankState extends State<ComicRank>
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
-    _handler
-      ..addListener(_update)
-      ..run(ComicRankPayload(type: widget.type));
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
+    _handler.run(ComicRankPayload(type: widget.type));
   }
 
   @override
@@ -151,7 +143,7 @@ class KnightRank extends StatefulWidget {
   State<KnightRank> createState() => _KnightRankState();
 }
 
-class _KnightRankState extends State<KnightRank> {
+class _KnightRankState extends State<KnightRank> with AutoRegisterHandlerMixin {
   final _handler = fetchKnightRank.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch knight rank success', data.toString());
@@ -161,22 +153,13 @@ class _KnightRankState extends State<KnightRank> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
     super.initState();
-    _handler
-      ..addListener(_update)
-      ..run();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _handler
-      ..removeListener(_update)
-      ..dispose();
+    _handler.run();
   }
 
   @override

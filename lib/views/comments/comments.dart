@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -22,7 +23,8 @@ class CommentsPage extends StatefulWidget {
   State<CommentsPage> createState() => _CommentsPageState();
 }
 
-class _CommentsPageState extends State<CommentsPage> {
+class _CommentsPageState extends State<CommentsPage>
+    with AutoRegisterHandlerMixin {
   late final handler = fetchComicComments.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic comments success', data.toString());
@@ -43,7 +45,8 @@ class _CommentsPageState extends State<CommentsPage> {
 
   final double bottomBoxHeight = 40;
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler];
 
   void _onScroll() {
     if (_scrollController.position.pixels ==
@@ -68,21 +71,14 @@ class _CommentsPageState extends State<CommentsPage> {
 
   @override
   void initState() {
-    handler.addListener(_update);
-
+    super.initState();
     handler.run(CommentsPayload(id: widget.id, page: _page));
 
     _scrollController.addListener(_onScroll);
-
-    super.initState();
   }
 
   @override
   void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();

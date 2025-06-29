@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -21,10 +20,23 @@ class _CollectActionState extends State<CollectAction>
   late bool _isFavorite;
   late AnimationController _controller;
   late Animation<double> _animation;
-  late final AsyncRequestHandler1<ActionResponse, String> handler;
+  late final handler = favoriteComic.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Favorite comic success', data.action);
+    },
+    onError: (e, _) {
+      Log.error('Favorite comic error', e);
+      Toast.show(message: '收藏失败');
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+    },
+  );
 
   @override
   void initState() {
+    super.initState();
+
     _isFavorite = widget.isFavorite;
 
     _controller = AnimationController(
@@ -36,21 +48,6 @@ class _CollectActionState extends State<CollectAction>
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 1),
       TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 1),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    handler = favoriteComic.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Favorite comic success', data.action);
-      },
-      onError: (e, _) {
-        Log.error('Favorite comic error', e);
-        Toast.show(message: '收藏失败');
-        setState(() {
-          _isFavorite = !_isFavorite;
-        });
-      },
-    );
-
-    super.initState();
   }
 
   @override

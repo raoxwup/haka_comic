@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -28,7 +29,7 @@ const extraMenus = [
   {"title": "随机本子", "path": "/random", "icon": "assets/images/random.jpg"},
 ];
 
-class _CategoriesState extends State<Categories> {
+class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
   final handler = fetchCategories.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch categories success', data.toString());
@@ -39,22 +40,13 @@ class _CategoriesState extends State<Categories> {
   );
 
   @override
-  void initState() {
-    handler
-      ..addListener(_update)
-      ..run();
-    super.initState();
-  }
+  List<AsyncRequestHandler> registerHandler() => [handler];
 
   @override
-  void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    handler.run();
   }
-
-  void _update() => setState(() {});
 
   @override
   Widget build(BuildContext context) {

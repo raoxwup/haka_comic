@@ -29,8 +29,8 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
 
   @override
   void initState() {
-    _sortType = widget.sortType;
     super.initState();
+    _sortType = widget.sortType;
   }
 
   void handleChange(ComicSortType type) {

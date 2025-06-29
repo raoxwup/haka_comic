@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -23,48 +23,35 @@ class ThumbUp extends StatefulWidget {
   State<ThumbUp> createState() => _ThumbUpState();
 }
 
-class _ThumbUpState extends State<ThumbUp> {
-  late final AsyncRequestHandler1<ActionResponse, String> _handler;
+class _ThumbUpState extends State<ThumbUp> with AutoRegisterHandlerMixin {
+  late final _handler = likeComment.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Like comment success', data.action);
+      setState(() {
+        _isLiked = !_isLiked;
+        _likesCount += _isLiked ? 1 : -1;
+      });
+    },
+    onError: (e, _) {
+      Log.error('Like comment error', e);
+      Toast.show(message: '点赞失败');
+    },
+  );
 
   bool _isLiked = false;
 
   int _likesCount = 0;
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
+    super.initState();
     _isLiked = widget.isLiked;
     _likesCount = widget.likesCount;
 
-    _handler = likeComment.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Like comment success', data.action);
-        setState(() {
-          _isLiked = !_isLiked;
-          _likesCount += _isLiked ? 1 : -1;
-        });
-      },
-      onError: (e, _) {
-        Log.error('Like comment error', e);
-        Toast.show(message: '点赞失败');
-      },
-    );
-
-    _handler.addListener(_update);
-
     _handler.isLoading = false;
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-
-    super.dispose();
   }
 
   @override

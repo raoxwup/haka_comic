@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -31,7 +32,8 @@ class ComicDetails extends StatefulWidget {
   State<ComicDetails> createState() => _ComicDetailsState();
 }
 
-class _ComicDetailsState extends State<ComicDetails> {
+class _ComicDetailsState extends State<ComicDetails>
+    with AutoRegisterHandlerMixin {
   /// 漫画详情
   final handler = fetchComicDetails.useRequest(
     onSuccess: (data, _) {
@@ -55,6 +57,9 @@ class _ComicDetailsState extends State<ComicDetails> {
     },
   );
 
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler, chaptersHandler];
+
   final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
   final ScrollController _scrollController = ScrollController();
   final double _scrollThreshold = 80;
@@ -66,8 +71,6 @@ class _ComicDetailsState extends State<ComicDetails> {
   );
 
   List<Chapter> _chapters = [];
-
-  void _update() => setState(() {});
 
   void _handleScroll() {
     final currentScroll = _scrollController.offset;
@@ -84,8 +87,7 @@ class _ComicDetailsState extends State<ComicDetails> {
 
   @override
   void initState() {
-    handler.addListener(_update);
-    chaptersHandler.addListener(_update);
+    super.initState();
 
     handler.run(widget.id);
     chaptersHandler.run(widget.id);
@@ -95,20 +97,10 @@ class _ComicDetailsState extends State<ComicDetails> {
     _updateReadRecord();
 
     _helper.addListener(_updateReadRecord);
-
-    super.initState();
   }
 
   @override
   void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-
-    chaptersHandler
-      ..removeListener(_update)
-      ..dispose();
-
     _scrollController
       ..removeListener(_handleScroll)
       ..dispose();

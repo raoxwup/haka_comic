@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -22,7 +23,8 @@ class SearchComics extends StatefulWidget {
   State<SearchComics> createState() => _SearchComicsState();
 }
 
-class _SearchComicsState extends State<SearchComics> {
+class _SearchComicsState extends State<SearchComics>
+    with AutoRegisterHandlerMixin {
   final _searchController = TextEditingController();
 
   final _handler = searchComics.useRequest(
@@ -37,27 +39,18 @@ class _SearchComicsState extends State<SearchComics> {
   int _page = 1;
   ComicSortType _sortType = ComicSortType.dd;
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
-    _searchController.text = widget.keyword;
+    super.initState();
 
-    _handler.addListener(_update);
+    _searchController.text = widget.keyword;
 
     _handler.run(
       SearchPayload(keyword: widget.keyword, page: _page, sort: _sortType),
     );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
   }
 
   void _onPageChange(int page) {

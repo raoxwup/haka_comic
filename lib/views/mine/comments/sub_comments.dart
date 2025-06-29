@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -27,9 +28,20 @@ class PersonalSubComment extends StatefulWidget {
   State<PersonalSubComment> createState() => _PersonalSubCommentState();
 }
 
-class _PersonalSubCommentState extends State<PersonalSubComment> {
-  late final AsyncRequestHandler1<SubCommentsResponse, SubCommentsPayload>
-  handler;
+class _PersonalSubCommentState extends State<PersonalSubComment>
+    with AutoRegisterHandlerMixin {
+  late final handler = fetchSubComments.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch comic comments success', data.toString());
+      setState(() {
+        _comments.addAll(data.comments.docs);
+        _hasMore = data.comments.pages > _page;
+      });
+    },
+    onError: (e, _) {
+      Log.error('Fetch comic comments error', e);
+    },
+  );
   final ScrollController _scrollController = ScrollController();
   final List<SubComment> _comments = [];
   bool _hasMore = true;
@@ -37,7 +49,8 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
 
   final double bottomBoxHeight = 40;
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler];
 
   void _onScroll() {
     if (_scrollController.position.pixels ==
@@ -62,34 +75,14 @@ class _PersonalSubCommentState extends State<PersonalSubComment> {
 
   @override
   void initState() {
-    handler = fetchSubComments.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch comic comments success', data.toString());
-        setState(() {
-          _comments.addAll(data.comments.docs);
-          _hasMore = data.comments.pages > _page;
-        });
-      },
-      onError: (e, _) {
-        Log.error('Fetch comic comments error', e);
-      },
-    );
-
-    handler.addListener(_update);
-
+    super.initState();
     handler.run(SubCommentsPayload(id: widget.comment.uid, page: _page));
 
     _scrollController.addListener(_onScroll);
-
-    super.initState();
   }
 
   @override
   void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -15,7 +16,7 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register> {
+class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
   final _nicknameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -73,14 +74,13 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
     super.initState();
-    _handler
-      ..addListener(_update)
-      ..isLoading = false;
+    _handler.isLoading = false;
   }
 
   @override

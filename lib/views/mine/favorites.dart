@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -16,7 +17,7 @@ class Favorites extends StatefulWidget {
   State<Favorites> createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites> {
+class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
   final _handler = fetchFavoriteComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
@@ -31,21 +32,12 @@ class _FavoritesState extends State<Favorites> {
 
   @override
   void initState() {
-    _handler.addListener(_update);
-    _handler.run(UserFavoritePayload(page: _page, sort: _sortType));
     super.initState();
+    _handler.run(UserFavoritePayload(page: _page, sort: _sortType));
   }
 
   @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-
-    super.dispose();
-  }
-
-  void _update() => setState(() {});
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   void _onPageChange(int page) {
     setState(() {

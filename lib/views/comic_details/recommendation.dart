@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -15,69 +16,48 @@ class Recommendation extends StatefulWidget {
   State<Recommendation> createState() => _RecommendationState();
 }
 
-class _RecommendationState extends State<Recommendation> {
+class _RecommendationState extends State<Recommendation>
+    with AutoRegisterHandlerMixin {
   final List<ExtraRecommendComic> _comics = [];
+  late final handler = fetchComicRecommendation.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch recommendation success', data.toString());
+      _comics.addAll(
+        data.comics
+            .map(
+              (e) => ExtraRecommendComic(
+                id: e.id,
+                title: e.title,
+                pic: e.thumb.url,
+              ),
+            )
+            .toList(),
+      );
+    },
+    onError: (e, _) {
+      Log.error('Fetch recommendation error', e);
+    },
+  );
+  late final extraHandler = fetchExtraRecommendComics.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch extra recommendation success', data.toString());
+      _comics.addAll(data);
+    },
+    onError: (e, _) {
+      Log.error('Fetch extra recommendation error', e);
+    },
+  );
 
-  late final AsyncRequestHandler1<RecommendComics, String> handler;
-  late final AsyncRequestHandler1<List<ExtraRecommendComic>, String>
-  extraHandler;
-
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler, extraHandler];
 
   @override
   void initState() {
-    handler = fetchComicRecommendation.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch recommendation success', data.toString());
-        _comics.addAll(
-          data.comics
-              .map(
-                (e) => ExtraRecommendComic(
-                  id: e.id,
-                  title: e.title,
-                  pic: e.thumb.url,
-                ),
-              )
-              .toList(),
-        );
-      },
-      onError: (e, _) {
-        Log.error('Fetch recommendation error', e);
-      },
-    );
-
-    extraHandler = fetchExtraRecommendComics.useRequest(
-      onSuccess: (data, _) {
-        Log.info('Fetch extra recommendation success', data.toString());
-        _comics.addAll(data);
-      },
-      onError: (e, _) {
-        Log.error('Fetch extra recommendation error', e);
-      },
-    );
-
-    handler
-      ..addListener(_update)
-      ..run(widget.id);
-
-    extraHandler
-      ..addListener(_update)
-      ..run(widget.id);
-
     super.initState();
-  }
 
-  @override
-  void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
+    handler.run(widget.id);
 
-    extraHandler
-      ..removeListener(_update)
-      ..dispose();
-
-    super.dispose();
+    extraHandler.run(widget.id);
   }
 
   @override

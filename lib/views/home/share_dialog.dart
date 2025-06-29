@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -14,7 +15,8 @@ class ShareDialog extends StatefulWidget {
   State<ShareDialog> createState() => _ShareDialogState();
 }
 
-class _ShareDialogState extends State<ShareDialog> {
+class _ShareDialogState extends State<ShareDialog>
+    with AutoRegisterHandlerMixin {
   final _controller = TextEditingController();
 
   late final _handler = fetchComicIdByShareId.useRequest(
@@ -29,7 +31,8 @@ class _ShareDialogState extends State<ShareDialog> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   Future<void> _getClipboardData() async {
     try {
@@ -45,15 +48,12 @@ class _ShareDialogState extends State<ShareDialog> {
   @override
   void initState() {
     super.initState();
-    _handler
-      ..addListener(_update)
-      ..isLoading = false;
+    _handler.isLoading = false;
     _getClipboardData();
   }
 
   @override
   void dispose() {
-    _handler.dispose();
     _controller.dispose();
     super.dispose();
   }

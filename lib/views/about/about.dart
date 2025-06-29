@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -15,7 +16,7 @@ class About extends StatefulWidget {
   State<About> createState() => _AboutState();
 }
 
-class _AboutState extends State<About> {
+class _AboutState extends State<About> with AutoRegisterHandlerMixin {
   String version = '';
   bool _checkUpdate = AppConf().checkUpdate;
   late final _handler = checkIsUpdated.useRequest(
@@ -32,22 +33,13 @@ class _AboutState extends State<About> {
     },
   );
 
-  void update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   initState() {
     super.initState();
-    _handler
-      ..addListener(update)
-      ..isLoading = false;
-  }
-
-  @override
-  dispose() {
-    _handler
-      ..removeListener(update)
-      ..dispose();
-    super.dispose();
+    _handler.isLoading = false;
   }
 
   Future<void> _launchURL(String url) async {

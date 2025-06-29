@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -17,7 +18,8 @@ class HotSearchWords extends StatefulWidget {
   State<HotSearchWords> createState() => _HotSearchWordsState();
 }
 
-class _HotSearchWordsState extends State<HotSearchWords> {
+class _HotSearchWordsState extends State<HotSearchWords>
+    with AutoRegisterHandlerMixin {
   final _handler = fetchHotSearchWords.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch hot search words success', data.toString());
@@ -27,22 +29,13 @@ class _HotSearchWordsState extends State<HotSearchWords> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
     super.initState();
-    _handler
-      ..addListener(_update)
-      ..run();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _handler
-      ..removeListener(_update)
-      ..dispose();
+    _handler.run();
   }
 
   @override

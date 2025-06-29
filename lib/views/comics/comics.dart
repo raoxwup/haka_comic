@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -32,7 +33,7 @@ class Comics extends StatefulWidget {
   State<Comics> createState() => _ComicsState();
 }
 
-class _ComicsState extends State<Comics> {
+class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
   ComicSortType sortType = ComicSortType.dd;
   int page = 1;
 
@@ -45,12 +46,12 @@ class _ComicsState extends State<Comics> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler];
 
   @override
   void initState() {
-    handler.addListener(_update);
-
+    super.initState();
     handler.run(
       ComicsPayload(
         c: widget.c,
@@ -62,16 +63,6 @@ class _ComicsState extends State<Comics> {
         ct: widget.ct,
       ),
     );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
   }
 
   void _onPageChange(int page) {

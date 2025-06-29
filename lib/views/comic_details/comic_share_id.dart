@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -16,7 +17,8 @@ class ComicShareId extends StatefulWidget {
   State<ComicShareId> createState() => _ComicShareIdState();
 }
 
-class _ComicShareIdState extends State<ComicShareId> {
+class _ComicShareIdState extends State<ComicShareId>
+    with AutoRegisterHandlerMixin {
   final _handler = fetchComicShareId.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic share id success', data.toString());
@@ -26,22 +28,13 @@ class _ComicShareIdState extends State<ComicShareId> {
     },
   );
 
-  void _update() => setState(() {});
+  @override
+  List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
-    _handler
-      ..addListener(_update)
-      ..run(widget.id);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-    super.dispose();
+    _handler.run(widget.id);
   }
 
   void copy() async {
