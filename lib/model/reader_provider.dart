@@ -49,16 +49,16 @@ typedef ReaderHandler =
 
 class ReaderProvider with ChangeNotifier {
   /// 章节图片获取
-  // late final handler = fetchChapterImages.useRequest(
-  //   onBefore: (_) => notifyListeners(),
-  //   onSuccess: (data, _) {
-  //     Log.info('Fetch chapter images success', data.toString());
-  //   },
-  //   onError: (e, _) {
-  //     Log.error('Fetch chapter images error', e);
-  //   },
-  //   onFinally: (_) => notifyListeners(),
-  // );
+  late final handler = fetchChapterImages.useRequest(
+    onBefore: (_) => Future.microtask(() => notifyListeners()),
+    onSuccess: (data, _) {
+      Log.info('Fetch chapter images success', data.toString());
+    },
+    onError: (e, _) {
+      Log.error('Fetch chapter images error', e);
+    },
+    onFinally: (_) => Future.microtask(() => notifyListeners()),
+  );
 
   /// 漫画id
   late String cid;
@@ -99,7 +99,7 @@ class ReaderProvider with ChangeNotifier {
     _currentChapter = chapter;
     _currentImageIndex = 0;
     notifyListeners();
-    // handler.run(FetchChapterImagesPayload(id: cid, order: chapter.order));
+    handler.run(FetchChapterImagesPayload(id: cid, order: chapter.order));
   }
 
   /// 下一章
@@ -158,17 +158,9 @@ class ReaderProvider with ChangeNotifier {
     );
   }
 
-  /// 阅读器Size
-  late Size size;
-  Size get readerSize => size;
-  set readerSize(Size newSize) {
-    size = newSize;
-    notifyListeners();
-  }
-
   @override
   void dispose() {
-    // handler.dispose();
+    handler.dispose();
     super.dispose();
   }
 
@@ -189,5 +181,10 @@ class ReaderProvider with ChangeNotifier {
     this.chapters = chapters;
     _currentChapter = currentChapter ?? chapters.first;
     _currentImageIndex = currentImageIndex ?? 0;
+  }
+
+  void reset() {
+    _readMode = AppConf().readMode;
+    _showToolbar = false;
   }
 }

@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/model/reader_provider.dart';
-import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
-import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
@@ -23,6 +20,9 @@ extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
   ReaderProvider get watchReader => watch<ReaderProvider>();
 }
+
+typedef ReaderHandler =
+    AsyncRequestHandler1<List<ChapterImage>, FetchChapterImagesPayload>;
 
 class Reader extends StatefulWidget {
   const Reader({super.key});
@@ -66,14 +66,12 @@ class _ReaderState extends State<Reader> {
   @override
   void initState() {
     super.initState();
-
-    // context.read<ReaderProvider>().handler.run(
-    //   FetchChapterImagesPayload(
-    //     id: context.reader.cid,
-    //     order: context.reader.currentChapter.order,
-    //   ),
-    // );
-
+    context.reader.handler.run(
+      FetchChapterImagesPayload(
+        id: context.reader.cid,
+        order: context.reader.currentChapter.order,
+      ),
+    );
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
@@ -84,6 +82,12 @@ class _ReaderState extends State<Reader> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    context.reader.reset();
+    super.deactivate();
   }
 
   @override
@@ -102,131 +106,115 @@ class _ReaderState extends State<Reader> {
       ),
     );
 
-    final isDoublePage =
-        readMode == ReadMode.doubleLeftToRight ||
-        readMode == ReadMode.doubleRightToLeft;
+    final handler = context.watchReader.handler;
+    final data = handler.data ?? [];
+    Widget listWidget =
+        readMode == ReadMode.vertical
+            ? VerticalList(
+              images: data,
+              onItemVisibleChanged: onItemVisibleChanged,
+              initialIndex: currentImageIndex,
+              itemScrollController: itemScrollController,
+            )
+            : HorizontalList(
+              images: data,
+              onItemVisibleChanged: onItemVisibleChanged,
+              initialIndex: currentImageIndex,
+              pageController: pageController,
+            );
 
-    return ChangeNotifierProvider.value(
-      value: fetchChapterImages.useRequest(
-        onSuccess: (data, _) {
-          Log.info('Fetch chapter images success', data.toString());
-        },
-        onError: (e, _) {
-          Log.error('Fetch chapter images error', e);
-        },
-      )..run(
-        FetchChapterImagesPayload(
-          id: context.reader.cid,
-          order: context.reader.currentChapter.order,
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: context.colorScheme.surfaceContainerLowest,
-        body: Builder(
-          builder: (context) {
-            final (data, loading, error, refresh) = context.select<
-              ReaderHandler,
-              (List<ChapterImage>, bool, Object?, VoidCallback)
-            >(
-              (value) => (
-                value.data ?? [],
-                value.isLoading,
-                value.error,
-                value.refresh,
-              ),
-            );
-            Widget listWidget =
-                readMode == ReadMode.vertical
-                    ? VerticalList(
-                      images: data,
-                      onItemVisibleChanged: onItemVisibleChanged,
-                      initialIndex: currentImageIndex,
-                      itemScrollController: itemScrollController,
-                    )
-                    : HorizontalList(
-                      images: data,
-                      onItemVisibleChanged: onItemVisibleChanged,
-                      initialIndex:
-                          isDoublePage
-                              ? (currentImageIndex / 2).floor()
-                              : currentImageIndex,
-                      pageController: pageController,
-                    );
-            return Stack(
-              children: [
-                // 主阅读区域
-                Positioned.fill(
-                  child: BasePage(
-                    isLoading: loading,
-                    onRetry: refresh,
-                    error: error,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final size = Size(
-                          constraints.maxWidth,
-                          constraints.maxHeight,
-                        );
-                        return ReaderInherited(
-                          cid: context.reader.cid,
-                          openOrCloseToolbar: context.reader.openOrCloseToolbar,
-                          size: size,
-                          mode: readMode,
-                          child: listWidget,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                // 章节页码
-                const ChapterPageNoTag(),
-                // 下一章按钮 - 仅在非最后一章时显示
-                if (!isLastChapter) _buildNextActionButton(data),
-                // 顶部工具栏
-                _buildAppBar(),
-                // 底部控制栏
-                _buildBottom(data),
-              ],
-            );
-          },
-        ),
-        drawer: Drawer(
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.fromLTRB(0, context.top + 10, 0, 10),
-                child: Text(
-                  '章节列表',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.titleLarge,
-                ),
-              ),
-              Expanded(
-                child: ScrollablePositionedList.builder(
-                  initialScrollIndex: currentChapterIndex,
-                  itemBuilder: (context, index) {
-                    final chapter = context.reader.chapters[index];
-                    return ListTile(
-                      enabled: index != currentChapterIndex,
-                      title: Text(chapter.title),
-                      onTap: () {
-                        context.pop();
-                        context.reader.openOrCloseToolbar();
-                        context.reader.go(chapter);
-                      },
-                    );
-                  },
-                  itemCount: context.reader.chapters.length,
-                ),
-              ),
-            ],
+    return Scaffold(
+      backgroundColor: context.colorScheme.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          // 主阅读区域
+          Positioned.fill(
+            child: BasePage(
+              isLoading: handler.isLoading,
+              onRetry: handler.refresh,
+              error: handler.error,
+              child: listWidget,
+            ),
           ),
+          const ChapterPageNoTag(),
+
+          if (!isLastChapter) const ReaderNextChapter(),
+
+          const ReaderAppBar(),
+
+          ReaderBottom(jumpToPage: jumpToPage),
+        ],
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.fromLTRB(0, context.top + 10, 0, 10),
+              child: Text(
+                '章节列表',
+                textAlign: TextAlign.center,
+                style: context.textTheme.titleLarge,
+              ),
+            ),
+            Expanded(
+              child: ScrollablePositionedList.builder(
+                initialScrollIndex: currentChapterIndex,
+                itemBuilder: (context, index) {
+                  final chapter = context.reader.chapters[index];
+                  return ListTile(
+                    enabled: index != currentChapterIndex,
+                    title: Text(chapter.title),
+                    onTap: () {
+                      context.pop();
+                      context.reader.openOrCloseToolbar();
+                      context.reader.go(chapter);
+                    },
+                  );
+                },
+                itemCount: context.reader.chapters.length,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  /// 构建顶部应用栏
-  Widget _buildAppBar() {
+/// 页码
+class ChapterPageNoTag extends StatelessWidget {
+  const ChapterPageNoTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final (currentChapter, currentImageIndex) = context
+        .select<ReaderProvider, (Chapter, int)>(
+          (value) => (value.currentChapter, value.currentImageIndex),
+        );
+    final handler = context.watchReader.handler;
+    final data = handler.data ?? [];
+    final total = data.isEmpty ? 1 : data.length;
+    return Positioned(
+      left: context.left + 12,
+      bottom: context.bottom + 12,
+      width: context.width / 2,
+      child: Row(
+        spacing: 5,
+        children: [
+          Flexible(child: ShadowText(text: currentChapter.title)),
+          ShadowText(text: '${currentImageIndex + 1} / $total'),
+        ],
+      ),
+    );
+  }
+}
+
+/// 顶部工具栏
+class ReaderAppBar extends StatelessWidget {
+  const ReaderAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     final top = context.top;
     final showToolbar = context.select<ReaderProvider, bool>(
       (value) => value.showToolbar,
@@ -288,51 +276,32 @@ class _ReaderState extends State<Reader> {
       ),
     );
   }
+}
 
-  /// 构建下一章浮动按钮
-  /// 仅在接近章节末尾时显示
-  Widget _buildNextActionButton(List<ChapterImage> data) {
-    final (handler, currentImageIndex) = context
-        .select<ReaderProvider, (ReaderHandler, int)>(
-          (value) => (value.handler, value.currentImageIndex),
-        );
-    final isShow =
-        !handler.isLoading &&
-        data.isNotEmpty &&
-        currentImageIndex >= data.length - 2;
-    return Positioned(
-      right: context.right + 16,
-      bottom: context.bottom + 16,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 200),
-        opacity: isShow ? 1.0 : 0.0,
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 200),
-          scale: isShow ? 1.0 : 0.0,
-          child: IgnorePointer(
-            ignoring: !isShow,
-            child: FloatingActionButton(
-              onPressed: context.reader.goNext,
-              child: const Icon(Icons.skip_next),
-            ),
-          ),
-        ),
-      ),
+/// 底部工具栏
+class ReaderBottom extends StatelessWidget {
+  const ReaderBottom({super.key, required this.jumpToPage});
+
+  final void Function(int) jumpToPage;
+
+  @override
+  Widget build(BuildContext context) {
+    final (
+      isFirst,
+      isLast,
+      showToolbar,
+    ) = context.select<ReaderProvider, (bool, bool, bool)>(
+      (value) => (value.isFirstChapter, value.isLastChapter, value.showToolbar),
     );
-  }
-
-  /// 构建底部控制栏
-  Widget _buildBottom(List<ChapterImage> data) {
-    final (isFirst, isLast, showToolbar, currentImageIndex) = context
-        .select<ReaderProvider, (bool, bool, bool, int)>(
-          (value) => (
-            value.isFirstChapter,
-            value.isLastChapter,
-            value.showToolbar,
-            value.currentImageIndex,
-          ),
-        );
     final bottom = context.bottom;
+
+    void onPressed(String action) {
+      context.reader.openOrCloseToolbar();
+      action == 'previous'
+          ? context.reader.goPrevious()
+          : context.reader.goNext();
+    }
+
     return AnimatedPositioned(
       bottom: showToolbar ? 0 : -(bottom + kBottomBarHeight),
       left: 0,
@@ -351,27 +320,12 @@ class _ReaderState extends State<Reader> {
                 children: [
                   IconButton.filledTonal(
                     icon: const Icon(Icons.skip_previous),
-                    onPressed: isFirst ? null : context.reader.goPrevious,
+                    onPressed: isFirst ? null : () => onPressed('previous'),
                   ),
-                  Expanded(
-                    child:
-                        data.length > 1
-                            ? Slider(
-                              value: currentImageIndex.toDouble(),
-                              min: 0,
-                              max: (data.length - 1).toDouble(),
-                              divisions: data.length - 1,
-                              label: (currentImageIndex + 1).toString(),
-                              onChanged: (double value) {
-                                final intValue = value.toInt();
-                                jumpToPage(intValue);
-                              },
-                            )
-                            : const SizedBox.shrink(),
-                  ),
+                  Expanded(child: PageSlider(onChanged: jumpToPage)),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.skip_next),
-                    onPressed: isLast ? null : context.reader.goNext,
+                    onPressed: isLast ? null : () => onPressed('next'),
                   ),
                 ],
               ),
@@ -399,31 +353,67 @@ class _ReaderState extends State<Reader> {
   }
 }
 
-/// 页码
-class ChapterPageNoTag extends StatelessWidget {
-  const ChapterPageNoTag({super.key});
+/// Slider
+class PageSlider extends StatelessWidget {
+  final ValueChanged<int> onChanged;
+
+  const PageSlider({required this.onChanged, super.key});
 
   @override
   Widget build(BuildContext context) {
-    final (
-      currentChapter,
-      currentImageIndex,
-      handler,
-    ) = context.select<ReaderProvider, (Chapter, int, ReaderHandler)>(
-      (value) => (value.currentChapter, value.currentImageIndex, value.handler),
-    );
+    final (currentImageIndex, handler) = context
+        .select<ReaderProvider, (int, ReaderHandler)>(
+          (value) => (value.currentImageIndex, value.handler),
+        );
     final data = handler.data ?? [];
-    final total = data.isEmpty ? 1 : data.length;
+    final total = data.length;
+
+    if (total <= 1) return const SizedBox.shrink();
+
+    return Slider(
+      value: currentImageIndex.toDouble(),
+      min: 0,
+      max: (total - 1).toDouble(),
+      divisions: total - 1,
+      label: '${currentImageIndex + 1}',
+      onChanged: (value) => onChanged(value.toInt()),
+    );
+  }
+}
+
+/// 构建下一章浮动按钮
+/// 仅在接近章节末尾时显示
+class ReaderNextChapter extends StatelessWidget {
+  const ReaderNextChapter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final currentImageIndex = context.select<ReaderProvider, int>(
+      (value) => value.currentImageIndex,
+    );
+    final handler = context.watchReader.handler;
+    final data = handler.data ?? [];
+    final isShow =
+        !handler.isLoading &&
+        data.isNotEmpty &&
+        currentImageIndex >= data.length - 2;
     return Positioned(
-      left: context.left + 12,
-      bottom: context.bottom + 12,
-      width: context.width / 2,
-      child: Row(
-        spacing: 5,
-        children: [
-          Flexible(child: ShadowText(text: currentChapter.title)),
-          ShadowText(text: '${currentImageIndex + 1} / $total'),
-        ],
+      right: context.right + 16,
+      bottom: context.bottom + 16,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isShow ? 1.0 : 0.0,
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 200),
+          scale: isShow ? 1.0 : 0.0,
+          child: IgnorePointer(
+            ignoring: !isShow,
+            child: FloatingActionButton(
+              onPressed: context.reader.goNext,
+              child: const Icon(Icons.skip_next),
+            ),
+          ),
+        ),
       ),
     );
   }

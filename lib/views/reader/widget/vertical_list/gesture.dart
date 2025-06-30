@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/reader/reader_inherited.dart';
+import 'package:provider/provider.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
   final ScrollPhysics physics;
@@ -186,7 +187,7 @@ class _GestureWrapperState extends State<GestureWrapper>
     if (dy < topHeight) {
       widget.jumpOffset(height * -0.5);
     } else if (dy < (topHeight + centerHeight)) {
-      ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+      context.read<ReaderProvider>().openOrCloseToolbar();
     } else {
       widget.jumpOffset(height * 0.5);
     }

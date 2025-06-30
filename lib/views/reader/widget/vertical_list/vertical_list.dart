@@ -1,16 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/mixin/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
-import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
-extension _ReaderContext on BuildContext {
-  ReaderInherited get reader => ReaderInherited.of(this, listen: false);
-}
 
 /// 条漫模式
 class VerticalList extends StatefulWidget {
@@ -48,7 +45,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   int _visibleFirstIndex = 0;
 
   /// 获取当前漫画ID
-  String get cid => context.reader.cid;
+  String get cid => context.read<ReaderProvider>().cid;
 
   /// 图片尺寸缓存 - 避免重复查询数据库
   final Map<String, ImageSize> _imageSizeCache = {};

@@ -6,9 +6,9 @@ import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/mixin/comic_list_mixin.dart';
-import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:provider/provider.dart';
 
 /// 条漫模式
 class HorizontalList extends StatefulWidget {
@@ -42,17 +42,13 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   final Map<int, PhotoViewController> photoViewControllers = {};
 
   /// 获取当前章节ID
-  String get cid => ReaderInherited.of(context, listen: false).cid;
+  String get cid => context.read<ReaderProvider>().cid;
 
   /// 是否需要翻转
-  bool get isReverse =>
-      ReaderInherited.of(context).mode == ReadMode.rightToLeft ||
-      ReaderInherited.of(context).mode == ReadMode.doubleRightToLeft;
+  bool get isReverse => context.read<ReaderProvider>().isReverse;
 
   /// 是否双页模式
-  bool get isDoublePage =>
-      ReaderInherited.of(context).mode == ReadMode.doubleLeftToRight ||
-      ReaderInherited.of(context).mode == ReadMode.doubleRightToLeft;
+  bool get isDoublePage => context.read<ReaderProvider>().isDoublePage;
 
   @override
   void initState() {
@@ -104,7 +100,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     if (dx < leftWidth) {
       isReverse ? nextPage() : previousPage();
     } else if (dx < (leftWidth + centerWidth)) {
-      ReaderInherited.of(context, listen: false).openOrCloseToolbar();
+      context.read<ReaderProvider>().openOrCloseToolbar();
     } else {
       isReverse ? previousPage() : nextPage();
     }
@@ -140,76 +136,85 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
         _tapDetails = details;
       },
       onTap: _handleTap,
-      child: PhotoViewGallery.builder(
-        backgroundDecoration: BoxDecoration(
-          color: context.colorScheme.surfaceContainerLowest,
-        ),
-        scrollPhysics: const BouncingScrollPhysics(),
-        itemCount: totalPages,
-        pageController: widget.pageController,
-        onPageChanged: _onItemPositionsChanged,
-        reverse: isReverse,
-        builder: (context, index) {
-          photoViewControllers[index] ??= PhotoViewController();
-
-          final images = takeChunks(widget.images, isDoublePage ? 2 : 1, index);
-
-          if (!isDoublePage || images.length == 1) {
-            final item = images[0];
-            return PhotoViewGalleryPageOptions(
-              minScale: PhotoViewComputedScale.contained * 1,
-              maxScale: PhotoViewComputedScale.covered * 4,
-              controller: photoViewControllers[index],
-              imageProvider: CachedNetworkImageProvider(item.media.url),
-              filterQuality: FilterQuality.medium,
-              errorBuilder: (context, error, stackTrace, retry) {
-                return Center(
-                  child: IconButton(
-                    onPressed: () async {
-                      final provider = CachedNetworkImageProvider(
-                        item.media.url,
-                      );
-                      provider.evict();
-                      retry();
-                    },
-                    icon: const Icon(Icons.refresh),
-                  ),
-                );
-              },
-              onImageFrame: (info, synchronousCall) {
-                final imageSize = ImageSize(
-                  imageId: item.uid,
-                  width: info.image.width,
-                  height: info.image.height,
-                  cid: cid,
-                );
-                insertImageSize(imageSize);
-              },
-            );
-          }
-
-          final size = ReaderInherited.of(context).size;
-          return PhotoViewGalleryPageOptions.customChild(
-            childSize: size * 2,
-            controller: photoViewControllers[index],
-            minScale: PhotoViewComputedScale.contained * 1.0,
-            maxScale: PhotoViewComputedScale.covered * 4.0,
-            child: buildPageImages(images),
-          );
-        },
-        loadingBuilder: (context, event) {
-          return Center(
-            child: CircularProgressIndicator(
-              value:
-                  event == null
-                      ? 0
-                      : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
-              strokeWidth: 3,
-              constraints: BoxConstraints.tight(const Size(28, 28)),
-              backgroundColor: Colors.grey.shade300,
-              color: context.colorScheme.primary,
-              strokeCap: StrokeCap.round,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return PhotoViewGallery.builder(
+            backgroundDecoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerLowest,
             ),
+            scrollPhysics: const BouncingScrollPhysics(),
+            itemCount: totalPages,
+            pageController: widget.pageController,
+            onPageChanged: _onItemPositionsChanged,
+            reverse: isReverse,
+            builder: (context, index) {
+              photoViewControllers[index] ??= PhotoViewController();
+
+              final images = takeChunks(
+                widget.images,
+                isDoublePage ? 2 : 1,
+                index,
+              );
+
+              if (!isDoublePage || images.length == 1) {
+                final item = images[0];
+                return PhotoViewGalleryPageOptions(
+                  minScale: PhotoViewComputedScale.contained * 1,
+                  maxScale: PhotoViewComputedScale.covered * 4,
+                  controller: photoViewControllers[index],
+                  imageProvider: CachedNetworkImageProvider(item.media.url),
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (context, error, stackTrace, retry) {
+                    return Center(
+                      child: IconButton(
+                        onPressed: () async {
+                          final provider = CachedNetworkImageProvider(
+                            item.media.url,
+                          );
+                          provider.evict();
+                          retry();
+                        },
+                        icon: const Icon(Icons.refresh),
+                      ),
+                    );
+                  },
+                  onImageFrame: (info, synchronousCall) {
+                    final imageSize = ImageSize(
+                      imageId: item.uid,
+                      width: info.image.width,
+                      height: info.image.height,
+                      cid: cid,
+                    );
+                    insertImageSize(imageSize);
+                  },
+                );
+              }
+
+              final size = Size(constraints.maxWidth, constraints.maxHeight);
+              return PhotoViewGalleryPageOptions.customChild(
+                childSize: size * 2,
+                controller: photoViewControllers[index],
+                minScale: PhotoViewComputedScale.contained * 1.0,
+                maxScale: PhotoViewComputedScale.covered * 4.0,
+                child: buildPageImages(images),
+              );
+            },
+            loadingBuilder: (context, event) {
+              return Center(
+                child: CircularProgressIndicator(
+                  value:
+                      event == null
+                          ? 0
+                          : event.cumulativeBytesLoaded /
+                              event.expectedTotalBytes!,
+                  strokeWidth: 3,
+                  constraints: BoxConstraints.tight(const Size(28, 28)),
+                  backgroundColor: Colors.grey.shade300,
+                  color: context.colorScheme.primary,
+                  strokeCap: StrokeCap.round,
+                ),
+              );
+            },
           );
         },
       ),
