@@ -131,22 +131,9 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/reader/:id/:chapterId/:pageNo',
+      path: '/reader',
       pageBuilder: (context, state) {
-        final extra = state.extra as Map;
-        final List<models.Chapter> chapters =
-            extra['chapters'] as List<models.Chapter>;
-        final title = extra['title'] as String;
-        return CupertinoPage(
-          key: state.pageKey,
-          child: Reader(
-            id: state.pathParameters['id']!,
-            chapters: chapters,
-            chapterId: state.pathParameters['chapterId']!,
-            pageNo: int.tryParse(state.pathParameters['pageNo']!) ?? 0,
-            title: title,
-          ),
-        );
+        return CupertinoPage(key: state.pageKey, child: const Reader());
       },
     ),
     GoRoute(

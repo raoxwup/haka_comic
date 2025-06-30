@@ -5,7 +5,7 @@ import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/reader/comic_list_mixin.dart';
+import 'package:haka_comic/mixin/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader_inherited.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';

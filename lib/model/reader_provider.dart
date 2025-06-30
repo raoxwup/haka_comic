@@ -44,17 +44,21 @@ String readModeToString(ReadMode mode) {
   };
 }
 
+typedef ReaderHandler =
+    AsyncRequestHandler1<List<ChapterImage>, FetchChapterImagesPayload>;
+
 class ReaderProvider with ChangeNotifier {
   /// 章节图片获取
-  late final handler = fetchChapterImages.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch chapter images success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch chapter images error', e);
-    },
-    onFinally: (_) => notifyListeners(),
-  );
+  // late final handler = fetchChapterImages.useRequest(
+  //   onBefore: (_) => notifyListeners(),
+  //   onSuccess: (data, _) {
+  //     Log.info('Fetch chapter images success', data.toString());
+  //   },
+  //   onError: (e, _) {
+  //     Log.error('Fetch chapter images error', e);
+  //   },
+  //   onFinally: (_) => notifyListeners(),
+  // );
 
   /// 漫画id
   late String cid;
@@ -73,6 +77,9 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 当前章节的索引
+  int get currentChapterIndex => chapters.indexOf(currentChapter);
+
   /// 是否为第一章
   bool get isFirstChapter => currentChapter.uid == chapters.first.uid;
 
@@ -87,15 +94,12 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// 初始化应该加载到第几张图片
-  int get initialIndex => _currentImageIndex;
-
   /// 跳转到指定章节
   void go(Chapter chapter) {
     _currentChapter = chapter;
     _currentImageIndex = 0;
     notifyListeners();
-    handler.run(FetchChapterImagesPayload(id: cid, order: chapter.order));
+    // handler.run(FetchChapterImagesPayload(id: cid, order: chapter.order));
   }
 
   /// 下一章
@@ -164,22 +168,26 @@ class ReaderProvider with ChangeNotifier {
 
   @override
   void dispose() {
-    handler.dispose();
+    // handler.dispose();
     super.dispose();
   }
 
-  /// 初始化一些变量
+  /// [id] 漫画id
+  /// [title] 漫画标题
+  /// [chapters] 漫画所有章节
+  /// [currentChapter] 从第几章开始
+  /// [currentImageIndex] 从第几张图片开始
   void initialize({
     required String id,
     required String title,
     required List<Chapter> chapters,
-    required Chapter currentChapter,
-    required int currentImageIndex,
+    Chapter? currentChapter,
+    int? currentImageIndex,
   }) {
     cid = id;
     this.title = title;
     this.chapters = chapters;
-    _currentChapter = currentChapter;
-    _currentImageIndex = currentImageIndex;
+    _currentChapter = currentChapter ?? chapters.first;
+    _currentImageIndex = currentImageIndex ?? 0;
   }
 }

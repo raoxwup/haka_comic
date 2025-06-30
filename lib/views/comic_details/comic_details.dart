@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -22,6 +23,7 @@ import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:provider/provider.dart';
 
 class ComicDetails extends StatefulWidget {
   const ComicDetails({super.key, required this.id});
@@ -111,12 +113,20 @@ class _ComicDetailsState extends State<ComicDetails>
   }
 
   /// 进入阅读
-  void _startRead(String chapterId, [int pageNo = 0]) {
+  void _startRead({String? chapterId, int? pageNo}) {
     final data = handler.data?.comic;
-    context.push(
-      '/reader/${widget.id}/$chapterId/$pageNo',
-      extra: {'chapters': _chapters, 'title': data?.title},
+    final chapter = _chapters.firstWhere(
+      (element) => element.id == chapterId,
+      orElse: () => _chapters.first,
     );
+    context.read<ReaderProvider>().initialize(
+      id: widget.id,
+      title: data!.title,
+      chapters: _chapters,
+      currentChapter: chapter,
+      currentImageIndex: pageNo,
+    );
+    context.push('/reader');
   }
 
   @override
@@ -200,17 +210,11 @@ class _ComicDetailsState extends State<ComicDetails>
                                 child:
                                     value != null
                                         ? FilledButton.tonalIcon(
-                                          onPressed:
-                                              () => _startRead(
-                                                _chapters.first.id,
-                                              ),
+                                          onPressed: () => _startRead(),
                                           label: const Text('从头开始'),
                                         )
                                         : FilledButton(
-                                          onPressed:
-                                              () => _startRead(
-                                                _chapters.first.id,
-                                              ),
+                                          onPressed: () => _startRead(),
                                           child: const Text('开始阅读'),
                                         ),
                               ),
@@ -224,8 +228,8 @@ class _ComicDetailsState extends State<ComicDetails>
                                   child: FilledButton(
                                     onPressed:
                                         () => _startRead(
-                                          value.chapterId,
-                                          value.pageNo,
+                                          chapterId: value.chapterId,
+                                          pageNo: value.pageNo,
                                         ),
                                     child: const Text('继续阅读'),
                                   ),
@@ -357,14 +361,18 @@ class _ComicDetailsState extends State<ComicDetails>
                   avatar: const Icon(Icons.menu_book),
                   shape: const StadiumBorder(),
                   label: const Text('从头开始'),
-                  onPressed: () => _startRead(_chapters.first.id),
+                  onPressed: () => _startRead(),
                 ),
               if (UiMode.notM1(context) && value != null)
                 ActionChip(
                   avatar: const Icon(Icons.bookmark),
                   shape: const StadiumBorder(),
                   label: const Text('继续阅读'),
-                  onPressed: () => _startRead(value.chapterId, value.pageNo),
+                  onPressed:
+                      () => _startRead(
+                        chapterId: value.chapterId,
+                        pageNo: value.pageNo,
+                      ),
                 ),
               LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
               CollectAction(

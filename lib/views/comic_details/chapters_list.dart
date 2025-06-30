@@ -11,7 +11,7 @@ class ChaptersList extends StatefulWidget {
 
   final List<Chapter> chapters;
 
-  final Function(String, [int]) startRead;
+  final Function({String? chapterId, int? pageNo}) startRead;
 
   @override
   State<ChaptersList> createState() => _ChaptersListState();
@@ -77,7 +77,7 @@ class _ChaptersListState extends State<ChaptersList> {
               elevation: 0,
               clipBehavior: Clip.hardEdge,
               child: InkWell(
-                onTap: () => widget.startRead(chapter.id),
+                onTap: () => widget.startRead(chapterId: chapter.id),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Center(
