@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/extension.dart';
 
@@ -48,16 +49,50 @@ typedef ReaderHandler =
     AsyncRequestHandler1<List<ChapterImage>, FetchChapterImagesPayload>;
 
 class ReaderProvider with ChangeNotifier {
+  bool _loading = false;
+  List<ChapterImage> _images = [];
+  Object? _error;
+
+  bool get loading => _loading;
+  List<ChapterImage> get images => _images;
+  Object? get error => _error;
+  VoidCallback get refresh => handler.refresh;
+
+  set loading(bool loading) {
+    _loading = loading;
+    notifyListeners();
+  }
+
+  set images(List<ChapterImage> images) {
+    _images = images;
+    notifyListeners();
+  }
+
+  set error(Object? error) {
+    _error = error;
+    notifyListeners();
+  }
+
   /// 章节图片获取
   late final handler = fetchChapterImages.useRequest(
-    onBefore: (_) => Future.microtask(() => notifyListeners()),
+    onBefore: (_) {
+      _loading = true;
+      _error = null;
+      _images = [];
+      Future.microtask(() => notifyListeners());
+    },
     onSuccess: (data, _) {
       Log.info('Fetch chapter images success', data.toString());
+      _images = data;
     },
     onError: (e, _) {
       Log.error('Fetch chapter images error', e);
+      _error = e;
     },
-    onFinally: (_) => Future.microtask(() => notifyListeners()),
+    onFinally: (_) {
+      _loading = false;
+      Future.microtask(() => notifyListeners());
+    },
   );
 
   /// 漫画id
@@ -121,6 +156,9 @@ class ReaderProvider with ChangeNotifier {
     final previousChapter = chapters[currentIndex - 1];
     go(previousChapter);
   }
+
+  /// 多页阅读模式图片
+  List<List<ChapterImage>> get multiPageImages => splitList(_images, 2);
 
   /// 阅读模式
   ReadMode _readMode = AppConf().readMode;

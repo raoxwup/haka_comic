@@ -221,3 +221,15 @@ Future<void> copyDirectory(Directory source, Directory destination) async {
     }
   }
 }
+
+/// 分割列表
+List<List<E>> splitList<E>(List<E> list, int N) {
+  final result = <List<E>>[];
+  for (var i = 0; i < list.length; i += N) {
+    // 计算当前组的结束位置（不超过列表长度）
+    final end = (i + N) < list.length ? i + N : list.length;
+    // 截取子列表并添加到结果
+    result.add(list.sublist(i, end));
+  }
+  return result;
+}

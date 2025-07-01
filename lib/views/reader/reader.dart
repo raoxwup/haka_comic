@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,9 +23,6 @@ extension BuildContextReader on BuildContext {
   ReaderProvider get watchReader => watch<ReaderProvider>();
 }
 
-typedef ReaderHandler =
-    AsyncRequestHandler1<List<ChapterImage>, FetchChapterImagesPayload>;
-
 class Reader extends StatefulWidget {
   const Reader({super.key});
 
@@ -42,12 +41,16 @@ class _ReaderState extends State<Reader> {
   /// 页面可见性变化回调
   /// 更新当前页码并保存阅读记录
   void onItemVisibleChanged(int index) {
-    context.read<ReaderProvider>().currentImageIndex = index;
+    final i =
+        context.reader.isDoublePage
+            ? min(index * 2, context.reader.images.length)
+            : index;
+    context.reader.currentImageIndex = i;
     _helper.insert(
       ComicReadRecord(
         cid: context.reader.cid,
         chapterId: context.reader.currentChapter.id,
-        pageNo: index,
+        pageNo: i,
         chapterTitle: context.reader.currentChapter.title,
       ),
     );
@@ -66,6 +69,7 @@ class _ReaderState extends State<Reader> {
   @override
   void initState() {
     super.initState();
+
     context.reader.handler.run(
       FetchChapterImagesPayload(
         id: context.reader.cid,
@@ -97,30 +101,36 @@ class _ReaderState extends State<Reader> {
       currentImageIndex,
       isLastChapter,
       currentChapterIndex,
-    ) = context.select<ReaderProvider, (ReadMode, int, bool, int)>(
+      refresh,
+      loading,
+      error,
+      isDoublePage,
+    ) = context.select<
+      ReaderProvider,
+      (ReadMode, int, bool, int, VoidCallback, bool, Object?, bool)
+    >(
       (value) => (
         value.readMode,
         value.currentImageIndex,
         value.isLastChapter,
         value.currentChapterIndex,
+        value.refresh,
+        value.loading,
+        value.error,
+        value.isDoublePage,
       ),
     );
 
-    final handler = context.watchReader.handler;
-    final data = handler.data ?? [];
     Widget listWidget =
         readMode == ReadMode.vertical
             ? VerticalList(
-              images: data,
               onItemVisibleChanged: onItemVisibleChanged,
-              initialIndex: currentImageIndex,
               itemScrollController: itemScrollController,
             )
             : HorizontalList(
-              images: data,
               onItemVisibleChanged: onItemVisibleChanged,
-              initialIndex: currentImageIndex,
               pageController: pageController,
+              isDoublePage: isDoublePage,
             );
 
     return Scaffold(
@@ -130,9 +140,9 @@ class _ReaderState extends State<Reader> {
           // 主阅读区域
           Positioned.fill(
             child: BasePage(
-              isLoading: handler.isLoading,
-              onRetry: handler.refresh,
-              error: handler.error,
+              isLoading: loading,
+              onRetry: refresh,
+              error: error,
               child: listWidget,
             ),
           ),
@@ -187,13 +197,30 @@ class ChapterPageNoTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (currentChapter, currentImageIndex) = context
-        .select<ReaderProvider, (Chapter, int)>(
-          (value) => (value.currentChapter, value.currentImageIndex),
-        );
-    final handler = context.watchReader.handler;
-    final data = handler.data ?? [];
-    final total = data.isEmpty ? 1 : data.length;
+    final (
+      currentChapter,
+      currentImageIndex,
+      images,
+      isDoublePage,
+      multiPageImages,
+    ) = context.select<
+      ReaderProvider,
+      (Chapter, int, List<ChapterImage>, bool, List<List<ChapterImage>>)
+    >(
+      (value) => (
+        value.currentChapter,
+        value.currentImageIndex,
+        value.images,
+        value.isDoublePage,
+        value.multiPageImages,
+      ),
+    );
+    var total = images.isEmpty ? 1 : images.length;
+    total = isDoublePage ? multiPageImages.length : total;
+    final pageNo =
+        isDoublePage
+            ? (currentImageIndex / 2).ceil() + 1
+            : currentImageIndex + 1;
     return Positioned(
       left: context.left + 12,
       bottom: context.bottom + 12,
@@ -202,7 +229,7 @@ class ChapterPageNoTag extends StatelessWidget {
         spacing: 5,
         children: [
           Flexible(child: ShadowText(text: currentChapter.title)),
-          ShadowText(text: '${currentImageIndex + 1} / $total'),
+          ShadowText(text: '$pageNo / $total'),
         ],
       ),
     );
@@ -216,9 +243,10 @@ class ReaderAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = context.top;
-    final showToolbar = context.select<ReaderProvider, bool>(
-      (value) => value.showToolbar,
-    );
+    final (showToolbar, readMode) = context
+        .select<ReaderProvider, (bool, ReadMode)>(
+          (value) => (value.showToolbar, value.readMode),
+        );
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 250),
       top: showToolbar ? 0 : -(kToolbarHeight + top),
@@ -246,7 +274,7 @@ class ReaderAppBar extends StatelessWidget {
                         spacing: 5,
                         children: [
                           Text(readModeToString(mode)),
-                          if (mode == context.watchReader.readMode)
+                          if (mode == readMode)
                             Icon(
                               Icons.done,
                               size: 16,
@@ -361,21 +389,32 @@ class PageSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (currentImageIndex, handler) = context
-        .select<ReaderProvider, (int, ReaderHandler)>(
-          (value) => (value.currentImageIndex, value.handler),
+    final (currentImageIndex, images, isDoublePage, multiPageImages) = context
+        .select<
+          ReaderProvider,
+          (int, List<ChapterImage>, bool, List<List<ChapterImage>>)
+        >(
+          (value) => (
+            value.currentImageIndex,
+            value.images,
+            value.isDoublePage,
+            value.multiPageImages,
+          ),
         );
-    final data = handler.data ?? [];
-    final total = data.length;
+
+    final total = isDoublePage ? multiPageImages.length : images.length;
 
     if (total <= 1) return const SizedBox.shrink();
 
+    final value =
+        isDoublePage ? (currentImageIndex / 2).ceil() : currentImageIndex;
+
     return Slider(
-      value: currentImageIndex.toDouble(),
+      value: value.toDouble(),
       min: 0,
       max: (total - 1).toDouble(),
       divisions: total - 1,
-      label: '${currentImageIndex + 1}',
+      label: '${value + 1}',
       onChanged: (value) => onChanged(value.toInt()),
     );
   }
@@ -388,15 +427,13 @@ class ReaderNextChapter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentImageIndex = context.select<ReaderProvider, int>(
-      (value) => value.currentImageIndex,
-    );
-    final handler = context.watchReader.handler;
-    final data = handler.data ?? [];
+    final (currentImageIndex, images, loading) = context
+        .select<ReaderProvider, (int, List<ChapterImage>, bool)>(
+          (value) => (value.currentImageIndex, value.images, value.loading),
+        );
+
     final isShow =
-        !handler.isLoading &&
-        data.isNotEmpty &&
-        currentImageIndex >= data.length - 2;
+        !loading && images.isNotEmpty && currentImageIndex >= images.length - 2;
     return Positioned(
       right: context.right + 16,
       bottom: context.bottom + 16,

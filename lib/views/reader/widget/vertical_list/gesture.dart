@@ -143,6 +143,8 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   @override
   void initState() {
+    super.initState();
+
     _listPhysics =
         widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
 
@@ -156,8 +158,6 @@ class _GestureWrapperState extends State<GestureWrapper>
     )..addListener(() {
       _transformationController.value = _animation.value;
     });
-
-    super.initState();
   }
 
   @override
