@@ -1,13 +1,15 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+// import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/reader_provider.dart';
+// import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+// import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -30,7 +32,17 @@ class Reader extends StatefulWidget {
   State<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> {
+class _ReaderState extends State<Reader> /* with AutoRegisterHandlerMixin */ {
+  /// 章节图片获取
+  // late final _handler = fetchChapterImages.useRequest(
+  //   onSuccess: (data, _) {
+  //     Log.info('Fetch chapter images success', data.toString());
+  //   },
+  //   onError: (e, _) {
+  //     Log.error('Fetch chapter images error', e);
+  //   },
+  // );
+
   /// 滚动控制器 - 用于精确控制列表滚动位置
   final ItemScrollController itemScrollController = ItemScrollController();
   final PageController pageController = PageController();
@@ -67,8 +79,17 @@ class _ReaderState extends State<Reader> {
   }
 
   @override
+  // List<AsyncRequestHandler> registerHandler() => [_handler];
+  @override
   void initState() {
     super.initState();
+
+    // _handler.run(
+    //   FetchChapterImagesPayload(
+    //     id: context.reader.cid,
+    //     order: context.reader.currentChapter.order,
+    //   ),
+    // );
 
     context.reader.handler.run(
       FetchChapterImagesPayload(
@@ -193,7 +214,9 @@ class _ReaderState extends State<Reader> {
 
 /// 页码
 class ChapterPageNoTag extends StatelessWidget {
-  const ChapterPageNoTag({super.key});
+  const ChapterPageNoTag({super.key /* required this.totalPage */});
+
+  // final int totalPage;
 
   @override
   Widget build(BuildContext context) {

@@ -228,19 +228,25 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   Widget buildPageImages(List<ChapterImage> images) {
     return Row(
       children:
-          images.map((item) {
+          images.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
             return Expanded(
-              child: ComicImage.noUseCache(
-                url: item.media.url,
-                onImageSizeChanged: (width, height) {
-                  final size = ImageSize(
-                    width: width,
-                    height: height,
-                    imageId: item.uid,
-                    cid: cid,
-                  );
-                  insertImageSize(size);
-                },
+              child: Align(
+                alignment:
+                    index == 0 ? Alignment.centerRight : Alignment.centerLeft,
+                child: ComicImage.noUseCache(
+                  url: item.media.url,
+                  onImageSizeChanged: (width, height) {
+                    final size = ImageSize(
+                      width: width,
+                      height: height,
+                      imageId: item.uid,
+                      cid: cid,
+                    );
+                    insertImageSize(size);
+                  },
+                ),
               ),
             );
           }).toList(),
