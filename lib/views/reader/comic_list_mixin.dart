@@ -26,7 +26,6 @@ mixin ComicListMixin<T extends StatefulWidget> on State<T> {
 
   /// 预加载图片
   void preloadImages(int startIndex, int endIndex) {
-    print('startIndex: $startIndex, endIndex: $endIndex');
     // 取消之前的预加载计时器
     _preloadDebounceTimer?.cancel();
 
