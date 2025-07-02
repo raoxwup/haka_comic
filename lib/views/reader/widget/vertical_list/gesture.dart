@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:provider/provider.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
   final ScrollPhysics physics;
@@ -32,11 +30,13 @@ class GestureWrapper extends StatefulWidget {
     required this.child,
     this.initialPhysics,
     required this.jumpOffset,
+    required this.openOrCloseToolbar,
   });
 
   final Widget child;
   final ScrollPhysics? initialPhysics;
   final Function(double) jumpOffset;
+  final VoidCallback openOrCloseToolbar;
 
   @override
   State<GestureWrapper> createState() => _GestureWrapperState();
@@ -187,7 +187,7 @@ class _GestureWrapperState extends State<GestureWrapper>
     if (dy < topHeight) {
       widget.jumpOffset(height * -0.5);
     } else if (dy < (topHeight + centerHeight)) {
-      context.read<ReaderProvider>().openOrCloseToolbar();
+      widget.openOrCloseToolbar();
     } else {
       widget.jumpOffset(height * 0.5);
     }

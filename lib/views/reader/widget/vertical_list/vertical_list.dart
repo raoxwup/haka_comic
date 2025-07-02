@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -16,6 +14,8 @@ class VerticalList extends StatefulWidget {
     super.key,
     required this.onItemVisibleChanged,
     required this.itemScrollController,
+    required this.openOrCloseToolbar,
+    required this.images,
   });
 
   /// 图片可见回调
@@ -23,6 +23,12 @@ class VerticalList extends StatefulWidget {
 
   /// 列表页码控制
   final ItemScrollController itemScrollController;
+
+  /// 打开/关闭工具栏
+  final VoidCallback openOrCloseToolbar;
+
+  /// 需要渲染的图片
+  final List<ChapterImage> images;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -82,22 +88,19 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         ScrollPhysicsInherited.of(context) ??
         const AlwaysScrollableScrollPhysics();
 
-    final images = context.select<ReaderProvider, List<ChapterImage>>(
-      (value) => value.images,
-    );
-
     return GestureWrapper(
+      openOrCloseToolbar: widget.openOrCloseToolbar,
       jumpOffset: jumpOffset,
       child: ScrollablePositionedList.builder(
-        initialScrollIndex: context.reader.currentImageIndex,
+        initialScrollIndex: context.reader.pageNo,
         padding: EdgeInsets.zero,
         physics: physics,
-        itemCount: images.length,
+        itemCount: widget.images.length,
         itemScrollController: widget.itemScrollController,
         itemPositionsListener: itemPositionsListener,
         scrollOffsetController: scrollOffsetController,
         itemBuilder: (context, index) {
-          final item = images[index];
+          final item = widget.images[index];
           final imageSize = _imageSizeCache[item.uid];
           return ComicImage(
             url: item.media.url,
@@ -127,7 +130,8 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         positions
             .where(
               (position) =>
-                  position.itemTrailingEdge > 0 && position.itemLeadingEdge < 1,
+                  position.itemTrailingEdge <= 1 &&
+                  position.itemTrailingEdge > 0,
             )
             .map((position) => position.index)
             .toList();
@@ -141,10 +145,14 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     // 根据滚动方向预加载不同方向的图片
     if (_visibleFirstIndex > lastIndex) {
       // 向上滚动，预加载上方图片
-      preloadImages(firstIndex - 1, firstIndex - maxPreloadCount);
+      preloadImages(
+        firstIndex - 1,
+        firstIndex - maxPreloadCount,
+        widget.images,
+      );
     } else {
       // 向下滚动，预加载下方图片
-      preloadImages(lastIndex + 1, lastIndex + maxPreloadCount);
+      preloadImages(lastIndex + 1, lastIndex + maxPreloadCount, widget.images);
     }
 
     _visibleFirstIndex = firstIndex;
