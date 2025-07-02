@@ -124,7 +124,7 @@ class _ComicDetailsState extends State<ComicDetails>
       title: data!.title,
       chapters: _chapters,
       currentChapter: chapter,
-      currentImageIndex: pageNo,
+      pageNo: pageNo,
     );
     context.push('/reader');
   }

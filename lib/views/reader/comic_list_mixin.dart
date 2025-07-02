@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/views/reader/reader.dart';
 
 mixin ComicListMixin<T extends StatefulWidget> on State<T> {
   @override
@@ -21,11 +20,8 @@ mixin ComicListMixin<T extends StatefulWidget> on State<T> {
   /// 防抖计时器，50ms内只处理最后一次预加载请求
   Timer? _preloadDebounceTimer;
 
-  /// 图片列表
-  List<ChapterImage> get images => context.reader.images;
-
   /// 预加载图片
-  void preloadImages(int startIndex, int endIndex) {
+  void preloadImages(int startIndex, int endIndex, List<ChapterImage> images) {
     // 取消之前的预加载计时器
     _preloadDebounceTimer?.cancel();
 
