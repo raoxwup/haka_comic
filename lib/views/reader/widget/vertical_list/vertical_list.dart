@@ -95,11 +95,21 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         initialScrollIndex: context.reader.pageNo,
         padding: EdgeInsets.zero,
         physics: physics,
-        itemCount: widget.images.length,
+        itemCount: widget.images.length + 1,
         itemScrollController: widget.itemScrollController,
         itemPositionsListener: itemPositionsListener,
         scrollOffsetController: scrollOffsetController,
         itemBuilder: (context, index) {
+          if (index == widget.images.length) {
+            return const Padding(
+              padding: EdgeInsetsGeometry.symmetric(vertical: 16.0),
+              child: Text(
+                '本章完',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              ),
+            );
+          }
           final item = widget.images[index];
           final imageSize = _imageSizeCache[item.uid];
           return ComicImage(
@@ -129,9 +139,8 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final visibleIndices =
         positions
             .where(
-              (position) =>
-                  position.itemTrailingEdge <= 1 &&
-                  position.itemTrailingEdge > 0,
+              (pos) =>
+                  pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
             )
             .map((position) => position.index)
             .toList();
@@ -157,7 +166,6 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
     _visibleFirstIndex = firstIndex;
 
-    // 通知父组件当前可见的最后一个图片索引
-    widget.onItemVisibleChanged(lastIndex);
+    widget.onItemVisibleChanged(lastIndex.clamp(0, widget.images.length - 1));
   }
 }

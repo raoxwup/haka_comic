@@ -218,8 +218,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   }
 
   Widget buildPageImages(List<ChapterImage> images) {
+    final correctImages = isReverse ? images.reversed.toList() : images;
     final children =
-        images.asMap().entries.map((entry) {
+        correctImages.asMap().entries.map((entry) {
           final index = entry.key;
           final item = entry.value;
           return Expanded(
@@ -241,7 +242,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
             ),
           );
         }).toList();
-    return Row(children: isReverse ? children.reversed.toList() : children);
+    return Row(children: children);
   }
 
   void _onPageChanged(index) {
