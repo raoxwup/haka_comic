@@ -127,6 +127,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   /// 更新当前页码并保存阅读记录，[index]始终保持为单页页码方便计算
   void onPageNoChanged(int index) {
     final reader = context.reader;
+    if (index == reader.pageNo) return;
     reader.pageNo = index;
     _helper.insert(
       ComicReadRecord(
