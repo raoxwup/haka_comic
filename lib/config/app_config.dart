@@ -33,6 +33,9 @@ class AppConf {
   /// 屏蔽
   List<String> _blacklist = [];
 
+  /// 显示的分类
+  List<String> _visibleCategories = [];
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -50,6 +53,8 @@ class AppConf {
       prefs.getString('readMode') ?? ReadMode.vertical.name,
     );
     instance._blacklist = prefs.getStringList('blacklist') ?? [];
+    instance._visibleCategories =
+        prefs.getStringList('visibleCategories') ?? [];
   }
 
   set email(String value) =>
@@ -83,6 +88,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setStringList('blacklist', value);
   }
 
+  set visibleCategories(List<String> value) {
+    _visibleCategories = value;
+    SharedPreferencesUtil.prefs.setStringList('visibleCategories', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -91,6 +101,7 @@ class AppConf {
   bool get checkUpdate => _checkUpdate;
   ReadMode get readMode => _readMode;
   List<String> get blacklist => _blacklist;
+  List<String> get visibleCategories => _visibleCategories;
 
   void _saveToPrefs<T>(
     String key,
@@ -118,6 +129,7 @@ class AppConf {
     _checkUpdate = true;
     _readMode = ReadMode.vertical;
     _blacklist = [];
+    _visibleCategories = [];
     SharedPreferencesUtil.prefs.clear();
   }
 }

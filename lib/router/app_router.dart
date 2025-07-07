@@ -25,6 +25,7 @@ import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
+import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 
 // 路由配置
@@ -213,6 +214,15 @@ final GoRouter appRouter = GoRouter(
       path: '/blacklist',
       pageBuilder: (context, state) {
         return CupertinoPage(key: state.pageKey, child: const Blacklist());
+      },
+    ),
+    GoRoute(
+      path: '/visible_categories',
+      pageBuilder: (context, state) {
+        return CupertinoPage(
+          key: state.pageKey,
+          child: const VisibleCategories(),
+        );
       },
     ),
   ],
