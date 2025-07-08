@@ -27,6 +27,7 @@ import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
+import 'package:haka_comic/views/settings/webdav.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -223,6 +224,12 @@ final GoRouter appRouter = GoRouter(
           key: state.pageKey,
           child: const VisibleCategories(),
         );
+      },
+    ),
+    GoRoute(
+      path: '/webdav',
+      pageBuilder: (context, state) {
+        return CupertinoPage(key: state.pageKey, child: const WebDAV());
       },
     ),
   ],

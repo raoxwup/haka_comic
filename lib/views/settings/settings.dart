@@ -54,6 +54,19 @@ class _SettingsState extends State<Settings> {
           const Block(title: '阅读', children: [ReadModeChanger()]),
           const SizedBox(height: 20),
           Block(
+            title: '备份',
+            children: [
+              MenuListTile.withAction(
+                icon: Icons.info_outline,
+                title: 'WebDAV',
+                onTap: () {
+                  context.push('/webdav');
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Block(
             title: '通用',
             children: [
               const ClearCache(),

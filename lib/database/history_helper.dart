@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import 'package:path/path.dart' as p;
 
 final migrations =
     SqliteMigrations()..add(
@@ -158,5 +161,28 @@ class HistoryHelper with ChangeNotifier {
   Future<int> count() async {
     final result = await _db.get('SELECT COUNT(*) FROM history');
     return result['COUNT(*)'] as int;
+  }
+
+  Future<File> backup() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = p.join(tempDir.path, 'history.db');
+    await _db.execute('VACUUM INTO ?', [path]);
+    return File(path);
+  }
+
+  Future<void> restore(File file) async {
+    // 关闭当前数据库
+    await _db.close();
+    // 删除旧文件
+    final files = [File(_dbPath), File('$_dbPath-wal'), File('$_dbPath-shm')];
+    for (var file in files) {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+    // 复制新文件
+    await file.copy(_dbPath);
+    // 重新打开数据库
+    await initialize();
   }
 }
