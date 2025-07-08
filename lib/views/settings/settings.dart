@@ -41,6 +41,13 @@ class _SettingsState extends State<Settings> {
                   context.push('/blacklist');
                 },
               ),
+              MenuListTile.withAction(
+                icon: Icons.topic_outlined,
+                title: '显示的分类',
+                onTap: () {
+                  context.push('/visible_categories');
+                },
+              ),
             ],
           ),
           const SizedBox(height: 20),

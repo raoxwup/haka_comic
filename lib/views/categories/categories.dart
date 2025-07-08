@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -59,8 +60,16 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
   }
 
   Widget _buildCategoryList() {
-    final categories = handler.data?.categories ?? [];
-
+    final visibleExtraMenus = List.of(extraMenus);
+    final visibleCategories = List.of(handler.data?.categories ?? []);
+    if (AppConf().visibleCategories.isNotEmpty) {
+      visibleExtraMenus.removeWhere(
+        (item) => !AppConf().visibleCategories.contains(item['title']),
+      );
+      visibleCategories.removeWhere(
+        (item) => !AppConf().visibleCategories.contains(item.title),
+      );
+    }
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent:
@@ -74,10 +83,12 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
         childAspectRatio: 1 / 1.3,
       ),
       padding: const EdgeInsets.all(8.0),
-      itemCount: extraMenus.length + categories.length,
+      itemCount: visibleExtraMenus.length + visibleCategories.length,
       itemBuilder: (context, index) {
-        if (index < extraMenus.length) return _buildMenuItem(extraMenus[index]);
-        final item = categories[index - extraMenus.length];
+        if (index < visibleExtraMenus.length) {
+          return _buildMenuItem(visibleExtraMenus[index]);
+        }
+        final item = visibleCategories[index - visibleExtraMenus.length];
         return _buildItem(item);
       },
     );
