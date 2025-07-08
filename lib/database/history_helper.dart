@@ -166,6 +166,10 @@ class HistoryHelper with ChangeNotifier {
   Future<File> backup() async {
     final tempDir = await getTemporaryDirectory();
     final path = p.join(tempDir.path, 'history.db');
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
     await _db.execute('VACUUM INTO ?', [path]);
     return File(path);
   }

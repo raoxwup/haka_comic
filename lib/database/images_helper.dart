@@ -84,7 +84,6 @@ class ImagesHelper {
 
   static Future<File> backup() async {
     final tempDir = await getTemporaryDirectory();
-    print(tempDir.path);
     final path = p.join(tempDir.path, 'images.db');
     final file = File(path);
     if (await file.exists()) {
@@ -105,8 +104,10 @@ class ImagesHelper {
         await file.delete();
       }
     }
+
     // 复制新文件
     await file.copy(dbPath);
+
     // 重新打开数据库
     await initialize();
   }
