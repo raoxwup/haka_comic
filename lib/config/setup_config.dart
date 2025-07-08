@@ -14,7 +14,7 @@ class SetupConf {
   }
 
   static Future<void> initPath() async {
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     dataPath = dir.path;
   }
 }

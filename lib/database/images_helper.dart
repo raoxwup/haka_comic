@@ -63,9 +63,16 @@ class ImagesHelper {
   }
 
   static Future<void> trim() async {
-    await _db.execute(
-      'DELETE FROM images WHERE id IN (SELECT id FROM images ORDER BY id ASC LIMIT 3000)',
-    );
+    await _db.execute('''
+        DELETE FROM images
+        WHERE id IN (
+          SELECT id FROM images
+          ORDER BY id ASC
+          LIMIT (
+            SELECT MAX(COUNT(*) - 5000, 0) FROM images
+          )
+        );
+      ''');
   }
 
   static Future<void> clear() async {

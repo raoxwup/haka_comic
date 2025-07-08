@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
@@ -55,6 +56,10 @@ class _AppState extends State<App> {
   initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    // 清理图片宽高缓存
+    ImagesHelper.trim();
+
     if (AppConf().checkUpdate) {
       checkUpdate();
     }

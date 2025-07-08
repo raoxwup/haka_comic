@@ -61,7 +61,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
 
   Widget _buildCategoryList() {
     final visibleExtraMenus = List.of(extraMenus);
-    final visibleCategories = List.of(handler.data?.categories ?? []);
+    final visibleCategories = List<Category>.of(handler.data?.categories ?? []);
     if (AppConf().visibleCategories.isNotEmpty) {
       visibleExtraMenus.removeWhere(
         (item) => !AppConf().visibleCategories.contains(item['title']),
@@ -96,6 +96,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
 
   Widget _buildMenuItem(Map<String, String> item) {
     return InkWell(
+      key: ValueKey(item['title']),
       onTap: () {
         context.push(item['path']!);
       },
@@ -121,6 +122,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
 
   Widget _buildItem(Category item) {
     return InkWell(
+      key: ValueKey(item.title),
       onTap: () {
         if (item.isWeb ?? false) return;
         context.push('/comics?c=${item.title}');
