@@ -57,7 +57,7 @@ class _SettingsState extends State<Settings> {
             title: '备份',
             children: [
               MenuListTile.withAction(
-                icon: Icons.info_outline,
+                icon: Icons.backup_outlined,
                 title: 'WebDAV',
                 onTap: () {
                   context.push('/webdav');

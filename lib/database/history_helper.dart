@@ -188,5 +188,7 @@ class HistoryHelper with ChangeNotifier {
     await file.copy(_dbPath);
     // 重新打开数据库
     await initialize();
+
+    notifyListeners();
   }
 }
