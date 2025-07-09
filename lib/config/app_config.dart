@@ -36,6 +36,15 @@ class AppConf {
   /// 显示的分类
   List<String> _visibleCategories = [];
 
+  /// webdav URL
+  String _webdavUrl = '';
+
+  /// webdav 用户名
+  String _webdavUser = '';
+
+  /// webdav 密码
+  String _webdavPassword = '';
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -55,6 +64,9 @@ class AppConf {
     instance._blacklist = prefs.getStringList('blacklist') ?? [];
     instance._visibleCategories =
         prefs.getStringList('visibleCategories') ?? [];
+    instance._webdavUrl = prefs.getString('webdavUrl') ?? '';
+    instance._webdavUser = prefs.getString('webdavUser') ?? '';
+    instance._webdavPassword = prefs.getString('webdavPassword') ?? '';
   }
 
   set email(String value) =>
@@ -93,6 +105,13 @@ class AppConf {
     SharedPreferencesUtil.prefs.setStringList('visibleCategories', value);
   }
 
+  set webdavUrl(String value) =>
+      _saveToPrefs('webdavUrl', value, value, (v) => _webdavUrl = v);
+  set webdavUser(String value) =>
+      _saveToPrefs('webdavUser', value, value, (v) => _webdavUser = v);
+  set webdavPassword(String value) =>
+      _saveToPrefs('webdavPassword', value, value, (v) => _webdavPassword = v);
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -102,6 +121,9 @@ class AppConf {
   ReadMode get readMode => _readMode;
   List<String> get blacklist => _blacklist;
   List<String> get visibleCategories => _visibleCategories;
+  String get webdavUrl => _webdavUrl;
+  String get webdavUser => _webdavUser;
+  String get webdavPassword => _webdavPassword;
 
   void _saveToPrefs<T>(
     String key,
@@ -130,6 +152,9 @@ class AppConf {
     _readMode = ReadMode.vertical;
     _blacklist = [];
     _visibleCategories = [];
+    _webdavUser = '';
+    _webdavPassword = '';
+    _webdavUrl = '';
     SharedPreferencesUtil.prefs.clear();
   }
 }

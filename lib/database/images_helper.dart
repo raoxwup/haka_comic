@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final migrations =
@@ -63,17 +66,50 @@ class ImagesHelper {
   }
 
   static Future<void> trim() async {
-    await _db.execute(
-      'DELETE FROM images WHERE id IN (SELECT id FROM images ORDER BY id ASC LIMIT 3000)',
-    );
+    await _db.execute('''
+        DELETE FROM images
+        WHERE id IN (
+          SELECT id FROM images
+          ORDER BY id ASC
+          LIMIT (
+            SELECT MAX(COUNT(*) - 5000, 0) FROM images
+          )
+        );
+      ''');
   }
 
   static Future<void> clear() async {
     await _db.execute('DELETE FROM images');
   }
 
-  static Future<void> close() async {
+  static Future<File> backup() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = p.join(tempDir.path, 'images.db');
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    await _db.execute('VACUUM INTO ?', [path]);
+    return File(path);
+  }
+
+  static Future<void> restore(File file) async {
+    // 关闭当前数据库
     await _db.close();
+
+    // 删除旧文件
+    final files = [File(dbPath), File('$dbPath-wal'), File('$dbPath-shm')];
+    for (var file in files) {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+
+    // 复制新文件
+    await file.copy(dbPath);
+
+    // 重新打开数据库
+    await initialize();
   }
 }
 

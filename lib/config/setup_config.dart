@@ -7,14 +7,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SetupConf {
   static late String dataPath;
-  static String appVersion = "1.0.0-beta.11";
+  static String appVersion = "1.0.0-beta.12";
 
   static Future<void> initialize() async {
     await Future.wait([initPath()]);
   }
 
   static Future<void> initPath() async {
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     dataPath = dir.path;
   }
 }
