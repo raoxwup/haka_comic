@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
 import 'package:haka_comic/views/settings/change_server.dart';
@@ -50,6 +51,8 @@ class _SettingsState extends State<Settings> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          const Block(title: '浏览', children: [BrowseMode()]),
           const SizedBox(height: 20),
           const Block(title: '阅读', children: [ReadModeChanger()]),
           const SizedBox(height: 20),
