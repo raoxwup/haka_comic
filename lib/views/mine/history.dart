@@ -49,9 +49,11 @@ class _HistoryState extends State<History> {
   }
 
   Future<void> _update() async {
+    _scrollController.jumpTo(0.0);
     final comics = await _helper.query(1);
     setState(() {
       _comics = comics;
+      _page = 1;
     });
   }
 
