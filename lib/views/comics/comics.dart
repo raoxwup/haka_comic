@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
-import 'package:haka_comic/views/comics/simple_list_item.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
-import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
 class Comics extends StatefulWidget {
@@ -85,39 +81,10 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
     );
   }
 
-  // 简洁模式？
-  bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
-
   @override
   Widget build(BuildContext context) {
     final List<Doc> comics = handler.data?.comics.docs ?? [];
     final int pages = handler.data?.comics.pages ?? 1;
-
-    final width = context.width;
-    final gridDelegate =
-        isSimpleMode
-            ? SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? 130
-                      : UiMode.m2(context)
-                      ? 135
-                      : 140,
-              mainAxisSpacing: 2,
-              crossAxisSpacing: 3,
-              childAspectRatio: 1 / 1.66,
-            )
-            : SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
-            );
 
     return RouteAwarePageWrapper(
       builder: (context, completed) {
@@ -143,30 +110,15 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
             isLoading: handler.isLoading || !completed,
             onRetry: handler.refresh,
             error: handler.error,
-            child: CustomScrollView(
-              slivers: [
-                PageSelector(
+            child: CommonTMIList(
+              comics: comics,
+              pageSelectorBuilder: (context) {
+                return PageSelector(
                   pages: pages,
                   onPageChange: _onPageChange,
                   currentPage: page,
-                ),
-                SliverGrid.builder(
-                  gridDelegate: gridDelegate,
-                  itemBuilder: (context, index) {
-                    final item = comics[index];
-                    final key = ValueKey(item.uid);
-                    return isSimpleMode
-                        ? SimpleListItem(doc: item, key: key)
-                        : ListItem(doc: item, key: key);
-                  },
-                  itemCount: comics.length,
-                ),
-                PageSelector(
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                  currentPage: page,
-                ),
-              ],
+                );
+              },
             ),
           ),
         );

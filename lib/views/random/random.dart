@@ -4,8 +4,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
 class Random extends StatefulWidget {
@@ -36,7 +35,6 @@ class _RandomState extends State<Random> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
-    final width = context.width;
     final comics = _handler.data?.comics ?? [];
     return RouteAwarePageWrapper(
       builder: (context, completed) {
@@ -46,27 +44,7 @@ class _RandomState extends State<Random> with AutoRegisterHandlerMixin {
             isLoading: _handler.isLoading,
             onRetry: _handler.refresh,
             error: _handler.error,
-            child: CustomScrollView(
-              slivers: [
-                SliverGrid.builder(
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent:
-                        UiMode.m1(context)
-                            ? width
-                            : UiMode.m2(context)
-                            ? width / 2
-                            : width / 3,
-                    mainAxisSpacing: 5,
-                    crossAxisSpacing: 5,
-                    childAspectRatio: 2.5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ListItem(doc: comics[index]);
-                  },
-                  itemCount: comics.length,
-                ),
-              ],
-            ),
+            child: CommonTMIList(comics: comics),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _handler.isLoading ? null : () => _handler.refresh(),

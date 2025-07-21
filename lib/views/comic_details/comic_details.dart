@@ -569,10 +569,14 @@ class InfoRow extends StatelessWidget {
         spacing: 5,
         children: [
           Icon(icon, size: 14, color: context.colorScheme.primary),
-          Text(
-            data ?? '',
-            style: context.textTheme.bodySmall?.copyWith(
-              color: context.colorScheme.primary,
+          Expanded(
+            child: Text(
+              data ?? '',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.colorScheme.primary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

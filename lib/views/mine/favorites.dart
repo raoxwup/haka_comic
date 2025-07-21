@@ -5,8 +5,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
@@ -57,7 +56,6 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
-    final width = context.width;
     final pages = _handler.data?.comics.pages ?? 1;
     final comics = _handler.data?.comics.docs ?? [];
 
@@ -117,36 +115,15 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
             isLoading: _handler.isLoading,
             onRetry: _handler.refresh,
             error: _handler.error,
-            child: CustomScrollView(
-              slivers: [
-                PageSelector(
+            child: CommonTMIList(
+              comics: comics,
+              pageSelectorBuilder: (context) {
+                return PageSelector(
+                  currentPage: _page,
                   pages: pages,
                   onPageChange: _onPageChange,
-                  currentPage: _page,
-                ),
-                SliverGrid.builder(
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent:
-                        UiMode.m1(context)
-                            ? width
-                            : UiMode.m2(context)
-                            ? width / 2
-                            : width / 3,
-                    mainAxisSpacing: 5,
-                    crossAxisSpacing: 5,
-                    childAspectRatio: 2.5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ListItem(doc: comics[index]);
-                  },
-                  itemCount: comics.length,
-                ),
-                PageSelector(
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                  currentPage: _page,
-                ),
-              ],
+                );
+              },
             ),
           ),
         );

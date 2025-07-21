@@ -27,7 +27,7 @@ class ListItem extends StatelessWidget {
 
   final void Function(TapDownDetails)? onSecondaryTapDown;
 
-  final void Function()? onLongPress;
+  final void Function(Doc)? onLongPress;
 
   final void Function()? onSecondaryTap;
 
@@ -61,7 +61,7 @@ class ListItem extends StatelessWidget {
             },
             onTapDown: onTapDown,
             onSecondaryTapDown: onSecondaryTapDown,
-            onLongPress: onLongPress,
+            onLongPress: () => onLongPress?.call(item),
             onSecondaryTap: onSecondaryTap,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),

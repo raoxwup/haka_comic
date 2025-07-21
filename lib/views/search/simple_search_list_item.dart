@@ -6,32 +6,14 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
-class SimpleListItem extends StatelessWidget {
-  const SimpleListItem({
-    super.key,
-    required this.doc,
-    this.isSelected = false,
-    this.onTapDown,
-    this.onSecondaryTapDown,
-    this.onLongPress,
-    this.onSecondaryTap,
-  });
+class SimpleSearchListItem extends StatelessWidget {
+  const SimpleSearchListItem({super.key, required this.comic});
 
-  final Doc doc;
-
-  final bool isSelected;
-
-  final void Function(TapDownDetails)? onTapDown;
-
-  final void Function(TapDownDetails)? onSecondaryTapDown;
-
-  final void Function(Doc)? onLongPress;
-
-  final void Function()? onSecondaryTap;
+  final SearchComic comic;
 
   @override
   Widget build(BuildContext context) {
-    final item = doc;
+    final item = comic;
     final category = item.categories.firstWhereOrNull(
       (item) => AppConf().blacklist.contains(item),
     );
@@ -86,27 +68,15 @@ class SimpleListItem extends StatelessWidget {
           child: InkWell(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             onTap: () {
-              context.push('/details/${item.uid}');
+              context.push('/details/${item.id}');
             },
-            onTapDown: onTapDown,
-            onSecondaryTapDown: onSecondaryTapDown,
-            onLongPress: () => onLongPress?.call(item),
-            onSecondaryTap: onSecondaryTap,
-            child: Container(
+            child: Padding(
               padding: const EdgeInsets.all(2),
-              decoration:
-                  isSelected
-                      ? BoxDecoration(
-                        color: context.colorScheme.secondaryContainer
-                            .withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(12),
-                      )
-                      : null,
               child: SingleChildScrollView(
                 child: Column(
                   spacing: 3,
                   children: [
-                    BaseImage(url: doc.thumb.url, aspectRatio: 1 / 1.4),
+                    BaseImage(url: item.thumb.url, aspectRatio: 1 / 1.4),
                     Text(
                       item.title,
                       style: context.textTheme.titleSmall,
