@@ -49,6 +49,9 @@ class AppConf {
   /// 漫画显示模式
   ComicBlockMode _comicBlockMode = ComicBlockMode.detailed;
 
+  /// 分页
+  bool _pagination = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -74,6 +77,7 @@ class AppConf {
     instance._comicBlockMode = stringToComicBlockMode(
       prefs.getString('comicBlockMode') ?? '详细',
     );
+    instance._pagination = prefs.getBool('pagination') ?? true;
   }
 
   set email(String value) {
@@ -144,6 +148,11 @@ class AppConf {
     );
   }
 
+  set pagination(bool value) {
+    _pagination = value;
+    SharedPreferencesUtil.prefs.setBool('pagination', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -157,6 +166,7 @@ class AppConf {
   String get webdavUser => _webdavUser;
   String get webdavPassword => _webdavPassword;
   ComicBlockMode get comicBlockMode => _comicBlockMode;
+  bool get pagination => _pagination;
 
   /// 清除token
   void clearAuth() {
@@ -179,6 +189,7 @@ class AppConf {
     _webdavPassword = '';
     _webdavUrl = '';
     _comicBlockMode = ComicBlockMode.detailed;
+    _pagination = true;
     SharedPreferencesUtil.prefs.clear();
   }
 }

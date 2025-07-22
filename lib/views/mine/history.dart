@@ -73,9 +73,12 @@ class _HistoryState extends State<History> {
 
   void _onScroll() {
     final position = _scrollController.position;
-    // 添加保护条件，确保列表可滚动
     if (position.maxScrollExtent <= 0) return;
-    if (position.pixels >= position.maxScrollExtent * 0.9) {
+
+    const threshold = 200.0;
+    final distanceToBottom = position.maxScrollExtent - position.pixels;
+
+    if (distanceToBottom < threshold) {
       if (hasMore && !_isLoading) {
         _isLoading = true;
         _page = _page + 1;

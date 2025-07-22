@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -32,13 +33,22 @@ class Comics extends StatefulWidget {
   State<Comics> createState() => _ComicsState();
 }
 
-class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
+class _ComicsState extends State<Comics>
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
   ComicSortType sortType = ComicSortType.dd;
   int page = 1;
+  List<Doc> _comics = [];
 
-  final handler = fetchComics.useRequest(
+  late final handler = fetchComics.useRequest(
     onSuccess: (data, _) {
       Log.info("Fetch comics success", data.toString());
+      setState(() {
+        if (!pagination) {
+          _comics.addAll(data.comics.docs);
+        } else {
+          _comics = data.comics.docs;
+        }
+      });
     },
     onError: (e, _) {
       Log.error('Fetch comics failed', e);
@@ -47,6 +57,13 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
 
   @override
   List<AsyncRequestHandler> registerHandler() => [handler];
+
+  @override
+  Future<void> loadMore() async {
+    final pages = handler.data?.comics.pages ?? 1;
+    if (page >= pages) return;
+    await _onPageChange(page + 1);
+  }
 
   @override
   void initState() {
@@ -64,11 +81,11 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
     );
   }
 
-  void _onPageChange(int page) {
+  Future<void> _onPageChange(int page) async {
     setState(() {
       this.page = page;
     });
-    handler.run(
+    await handler.run(
       ComicsPayload(
         c: widget.c,
         s: sortType,
@@ -83,7 +100,6 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
-    final List<Doc> comics = handler.data?.comics.docs ?? [];
     final int pages = handler.data?.comics.pages ?? 1;
 
     return RouteAwarePageWrapper(
@@ -106,30 +122,66 @@ class _ComicsState extends State<Comics> with AutoRegisterHandlerMixin {
               ),
             ],
           ),
-          body: BasePage(
-            isLoading: handler.isLoading || !completed,
-            onRetry: handler.refresh,
-            error: handler.error,
-            child: CommonTMIList(
-              comics: comics,
-              pageSelectorBuilder: (context) {
-                return PageSelector(
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                  currentPage: page,
-                );
-              },
-            ),
-          ),
+          body:
+              pagination
+                  ? BasePage(
+                    isLoading: handler.isLoading || !completed,
+                    onRetry: handler.refresh,
+                    error: handler.error,
+                    child: CommonTMIList(
+                      controller: scrollController,
+                      comics: _comics,
+                      pageSelectorBuilder: (context) {
+                        return PageSelector(
+                          pages: pages,
+                          onPageChange: _onPageChange,
+                          currentPage: page,
+                        );
+                      },
+                    ),
+                  )
+                  : BasePage(
+                    isLoading: false,
+                    onRetry: handler.refresh,
+                    error: handler.error,
+                    child: CommonTMIList(
+                      controller: scrollController,
+                      comics: _comics,
+                      footerBuilder: (context) {
+                        final loading = handler.isLoading;
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child:
+                                  loading
+                                      ? CircularProgressIndicator(
+                                        constraints: BoxConstraints.tight(
+                                          const Size(28, 28),
+                                        ),
+                                        strokeWidth: 3,
+                                      )
+                                      : Text(
+                                        '没有更多数据了',
+                                        style: context.textTheme.bodySmall,
+                                      ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
         );
       },
     );
   }
 
   void _onSortTypeChange(ComicSortType type) {
+    if (type == sortType) return;
     setState(() {
       sortType = type;
       page = 1;
+      _comics = [];
     });
     handler.run(
       ComicsPayload(

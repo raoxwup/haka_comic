@@ -6,6 +6,7 @@ import 'package:haka_comic/views/settings/change_password.dart';
 import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/logout.dart';
+import 'package:haka_comic/views/settings/pager.dart';
 import 'package:haka_comic/views/settings/read_mode.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
 import 'package:haka_comic/views/settings/theme_color.dart';
@@ -52,7 +53,7 @@ class _SettingsState extends State<Settings> {
             ],
           ),
           const SizedBox(height: 20),
-          const Block(title: '浏览', children: [BrowseMode()]),
+          const Block(title: '浏览', children: [BrowseMode(), Pager()]),
           const SizedBox(height: 20),
           const Block(title: '阅读', children: [ReadModeChanger()]),
           const SizedBox(height: 20),

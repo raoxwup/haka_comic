@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -13,6 +14,7 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/tag.dart';
+import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 class Mine extends StatefulWidget {
@@ -22,21 +24,48 @@ class Mine extends StatefulWidget {
   State<Mine> createState() => _MineState();
 }
 
-class _MineState extends State<Mine> {
+class _MineState extends State<Mine> with AutoRegisterHandlerMixin {
+  late final _userProfileHandler = fetchUserProfile.useRequest(
+    onSuccess: (data, _) {
+      Log.info('Fetch user profile success', data.toString());
+      context.read<UserProvider>().user = data.user;
+      if (!data.user.isPunched) {
+        _punchInHandler.run();
+      }
+    },
+    onError: (e, _) => Log.error('Fetch user profile error', e),
+  );
+
+  late final _punchInHandler = punchIn.useRequest(
+    onSuccess: (_, __) {
+      Log.info('Punch in success', '');
+      Toast.show(message: '打卡成功');
+    },
+    onError: (e, _) => Log.error('Punch in error', e),
+  );
+
+  @override
+  List<AsyncRequestHandler> registerHandler() => [
+    _userProfileHandler,
+    _punchInHandler,
+  ];
+
   @override
   void initState() {
     super.initState();
-    context.read<UserProvider>().userProfileHandler.run();
+
+    context.read<UserProvider>().refresh = () => _userProfileHandler.run();
+
+    _userProfileHandler.run();
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = context.select<UserProvider, User?>((value) => value.user);
-    final userProfileHandler = context.read<UserProvider>().userProfileHandler;
+    final user = _userProfileHandler.data?.user;
     return BasePage(
-      isLoading: userProfileHandler.isLoading,
-      onRetry: userProfileHandler.refresh,
-      error: userProfileHandler.error,
+      isLoading: _userProfileHandler.isLoading,
+      onRetry: _userProfileHandler.refresh,
+      error: _userProfileHandler.error,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [

@@ -11,6 +11,7 @@ class TMIList extends StatelessWidget {
     this.itemCount,
     required this.itemBuilder,
     this.pageSelectorBuilder,
+    this.footerBuilder,
   });
 
   /// 滑动控制器
@@ -21,6 +22,8 @@ class TMIList extends StatelessWidget {
   final NullableIndexedWidgetBuilder itemBuilder;
 
   final Widget Function(BuildContext)? pageSelectorBuilder;
+
+  final Widget Function(BuildContext)? footerBuilder;
 
   /// 简洁模式？
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
@@ -63,6 +66,7 @@ class TMIList extends StatelessWidget {
           itemCount: itemCount,
         ),
         if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
+        if (footerBuilder != null) footerBuilder!(context),
       ],
     );
   }

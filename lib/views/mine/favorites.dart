@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -16,16 +17,25 @@ class Favorites extends StatefulWidget {
   State<Favorites> createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
-  final _handler = fetchFavoriteComics.useRequest(
+class _FavoritesState extends State<Favorites>
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
+  late final _handler = fetchFavoriteComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
+      setState(() {
+        if (!pagination) {
+          _comics.addAll(data.comics.docs);
+        } else {
+          _comics = data.comics.docs;
+        }
+      });
     },
     onError: (e, _) {
       Log.error('Fetch favorite comics error', e);
     },
   );
 
+  List<Doc> _comics = [];
   int _page = 1;
   ComicSortType _sortType = ComicSortType.dd;
 
@@ -38,11 +48,18 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
   @override
   List<AsyncRequestHandler> registerHandler() => [_handler];
 
-  void _onPageChange(int page) {
+  @override
+  Future<void> loadMore() async {
+    final pages = _handler.data?.comics.pages ?? 1;
+    if (_page >= pages) return;
+    await _onPageChange(_page + 1);
+  }
+
+  Future<void> _onPageChange(int page) async {
     setState(() {
       _page = page;
     });
-    _handler.run(UserFavoritePayload(page: page, sort: _sortType));
+    await _handler.run(UserFavoritePayload(page: page, sort: _sortType));
   }
 
   void _onSortChange(ComicSortType sortType) {
@@ -50,6 +67,7 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
     setState(() {
       _page = 1;
       _sortType = sortType;
+      _comics = [];
     });
     _handler.run(UserFavoritePayload(page: 1, sort: sortType));
   }
@@ -57,7 +75,6 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
   @override
   Widget build(BuildContext context) {
     final pages = _handler.data?.comics.pages ?? 1;
-    final comics = _handler.data?.comics.docs ?? [];
 
     return RouteAwarePageWrapper(
       builder: (context, completed) {
@@ -111,21 +128,54 @@ class _FavoritesState extends State<Favorites> with AutoRegisterHandlerMixin {
               ),
             ],
           ),
-          body: BasePage(
-            isLoading: _handler.isLoading,
-            onRetry: _handler.refresh,
-            error: _handler.error,
-            child: CommonTMIList(
-              comics: comics,
-              pageSelectorBuilder: (context) {
-                return PageSelector(
-                  currentPage: _page,
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                );
-              },
-            ),
-          ),
+          body:
+              pagination
+                  ? BasePage(
+                    isLoading: _handler.isLoading,
+                    onRetry: _handler.refresh,
+                    error: _handler.error,
+                    child: CommonTMIList(
+                      comics: _comics,
+                      pageSelectorBuilder: (context) {
+                        return PageSelector(
+                          currentPage: _page,
+                          pages: pages,
+                          onPageChange: _onPageChange,
+                        );
+                      },
+                    ),
+                  )
+                  : BasePage(
+                    isLoading: false,
+                    onRetry: _handler.refresh,
+                    error: _handler.error,
+                    child: CommonTMIList(
+                      comics: _comics,
+                      controller: scrollController,
+                      footerBuilder: (context) {
+                        final loading = _handler.isLoading;
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child:
+                                  loading
+                                      ? CircularProgressIndicator(
+                                        constraints: BoxConstraints.tight(
+                                          const Size(28, 28),
+                                        ),
+                                        strokeWidth: 3,
+                                      )
+                                      : Text(
+                                        '没有更多数据了',
+                                        style: context.textTheme.bodySmall,
+                                      ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
         );
       },
     );

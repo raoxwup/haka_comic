@@ -17,6 +17,7 @@ class CommonTMIList extends StatelessWidget {
     this.onSecondaryTap,
     this.pageSelectorBuilder,
     this.controller,
+    this.footerBuilder,
   });
 
   final List<Doc> comics;
@@ -33,6 +34,8 @@ class CommonTMIList extends StatelessWidget {
 
   final Widget Function(BuildContext)? pageSelectorBuilder;
 
+  final Widget Function(BuildContext)? footerBuilder;
+
   final ScrollController? controller;
 
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
@@ -43,6 +46,7 @@ class CommonTMIList extends StatelessWidget {
       controller: controller,
       itemCount: comics.length,
       pageSelectorBuilder: pageSelectorBuilder,
+      footerBuilder: footerBuilder,
       itemBuilder: (context, index) {
         final item = comics[index];
         final key = ValueKey(item.uid);

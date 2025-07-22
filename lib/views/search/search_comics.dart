@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -27,23 +28,38 @@ class SearchComics extends StatefulWidget {
 }
 
 class _SearchComicsState extends State<SearchComics>
-    with AutoRegisterHandlerMixin {
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
   final _searchController = TextEditingController();
 
-  final _handler = searchComics.useRequest(
+  late final _handler = searchComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Search comics success', data.toString());
+      setState(() {
+        if (!pagination) {
+          _comics.addAll(data.comics.docs);
+        } else {
+          _comics = data.comics.docs;
+        }
+      });
     },
     onError: (e, _) {
       Log.error('Search comics error', e);
     },
   );
 
+  List<SearchComic> _comics = [];
   int _page = 1;
   ComicSortType _sortType = ComicSortType.dd;
 
   @override
   List<AsyncRequestHandler> registerHandler() => [_handler];
+
+  @override
+  Future<void> loadMore() async {
+    final pages = _handler.data?.comics.pages ?? 1;
+    if (_page >= pages) return;
+    await _onPageChange(_page + 1);
+  }
 
   @override
   void initState() {
@@ -56,11 +72,11 @@ class _SearchComicsState extends State<SearchComics>
     );
   }
 
-  void _onPageChange(int page) {
+  Future<void> _onPageChange(int page) async {
     setState(() {
       _page = page;
     });
-    _handler.run(
+    await _handler.run(
       SearchPayload(
         keyword: _searchController.text,
         page: _page,
@@ -73,8 +89,7 @@ class _SearchComicsState extends State<SearchComics>
 
   @override
   Widget build(BuildContext context) {
-    final pages = _handler.data?.comics.pages ?? 0;
-    final comics = _handler.data?.comics.docs ?? [];
+    final pages = _handler.data?.comics.pages ?? 1;
 
     return RouteAwarePageWrapper(
       builder: (context, completed) {
@@ -112,27 +127,72 @@ class _SearchComicsState extends State<SearchComics>
               ),
             ],
           ),
-          body: BasePage(
-            isLoading: _handler.isLoading || !completed,
-            error: _handler.error,
-            onRetry: _handler.refresh,
-            child: TMIList(
-              pageSelectorBuilder: (context) {
-                return PageSelector(
-                  currentPage: _page,
-                  pages: pages,
-                  onPageChange: _onPageChange,
-                );
-              },
-              itemBuilder: (context, index) {
-                final key = ValueKey(comics[index].id);
-                return isSimpleMode
-                    ? SimpleSearchListItem(comic: comics[index], key: key)
-                    : SearchListItem(comic: comics[index], key: key);
-              },
-              itemCount: comics.length,
-            ),
-          ),
+          body:
+              pagination
+                  ? BasePage(
+                    isLoading: _handler.isLoading || !completed,
+                    error: _handler.error,
+                    onRetry: _handler.refresh,
+                    child: TMIList(
+                      pageSelectorBuilder: (context) {
+                        return PageSelector(
+                          currentPage: _page,
+                          pages: pages,
+                          onPageChange: _onPageChange,
+                        );
+                      },
+                      itemBuilder: (context, index) {
+                        final key = ValueKey(_comics[index].id);
+                        return isSimpleMode
+                            ? SimpleSearchListItem(
+                              comic: _comics[index],
+                              key: key,
+                            )
+                            : SearchListItem(comic: _comics[index], key: key);
+                      },
+                      itemCount: _comics.length,
+                    ),
+                  )
+                  : BasePage(
+                    isLoading: false,
+                    error: _handler.error,
+                    onRetry: _handler.refresh,
+                    child: TMIList(
+                      controller: scrollController,
+                      itemCount: _comics.length,
+                      itemBuilder: (context, index) {
+                        final key = ValueKey(_comics[index].id);
+                        return isSimpleMode
+                            ? SimpleSearchListItem(
+                              comic: _comics[index],
+                              key: key,
+                            )
+                            : SearchListItem(comic: _comics[index], key: key);
+                      },
+                      footerBuilder: (context) {
+                        final loading = _handler.isLoading;
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child:
+                                  loading
+                                      ? CircularProgressIndicator(
+                                        constraints: BoxConstraints.tight(
+                                          const Size(28, 28),
+                                        ),
+                                        strokeWidth: 3,
+                                      )
+                                      : Text(
+                                        '没有更多数据了',
+                                        style: context.textTheme.bodySmall,
+                                      ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
         );
       },
     );
@@ -150,9 +210,11 @@ class _SearchComicsState extends State<SearchComics>
   }
 
   void _onSortTypeChange(ComicSortType type) {
+    if (type == _sortType) return;
     setState(() {
       _sortType = type;
       _page = 1;
+      _comics = [];
     });
     _handler.run(
       SearchPayload(keyword: _searchController.text, page: 1, sort: type),
