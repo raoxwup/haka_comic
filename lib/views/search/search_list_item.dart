@@ -8,6 +8,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
+/// 特别用于搜索展示的item
 class SearchListItem extends StatelessWidget {
   const SearchListItem({super.key, required this.comic});
 

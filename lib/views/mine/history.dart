@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
-import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class History extends StatefulWidget {
@@ -50,9 +49,11 @@ class _HistoryState extends State<History> {
   }
 
   Future<void> _update() async {
+    _scrollController.jumpTo(0.0);
     final comics = await _helper.query(1);
     setState(() {
       _comics = comics;
+      _page = 1;
     });
   }
 
@@ -72,9 +73,12 @@ class _HistoryState extends State<History> {
 
   void _onScroll() {
     final position = _scrollController.position;
-    // 添加保护条件，确保列表可滚动
     if (position.maxScrollExtent <= 0) return;
-    if (position.pixels >= position.maxScrollExtent * 0.9) {
+
+    const threshold = 200.0;
+    final distanceToBottom = position.maxScrollExtent - position.pixels;
+
+    if (distanceToBottom < threshold) {
       if (hasMore && !_isLoading) {
         _isLoading = true;
         _page = _page + 1;
@@ -85,7 +89,6 @@ class _HistoryState extends State<History> {
 
   @override
   Widget build(BuildContext context) {
-    final width = context.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('最近浏览'),
@@ -121,38 +124,13 @@ class _HistoryState extends State<History> {
           ),
         ],
       ),
-      body: CustomScrollView(
+      body: CommonTMIList(
         controller: _scrollController,
-        slivers: [
-          SliverGrid.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
-            ),
-            itemBuilder: (context, index) {
-              return ListItem(
-                doc: _comics[index],
-                key: ValueKey(_comics[index].uid),
-                onTapDown: (details) => _details = details,
-                onLongPress: () {
-                  _showContextMenu(
-                    context,
-                    _details.globalPosition,
-                    _comics[index],
-                  );
-                },
-              );
-            },
-            itemCount: _comics.length,
-          ),
-        ],
+        comics: _comics,
+        onTapDown: (details) => _details = details,
+        onLongPress: (item) {
+          _showContextMenu(context, _details.globalPosition, item);
+        },
       ),
     );
   }

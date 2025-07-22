@@ -29,7 +29,7 @@ class _EditorState extends State<Editor> {
     onSuccess: (data, _) {
       Toast.show(message: '头像更新成功');
       Log.info('Update avatar success', 'avatar');
-      context.read<UserProvider>().userProfileHandler.run();
+      context.read<UserProvider>().refresh();
     },
     onError: (e, _) {
       Toast.show(message: '头像更新失败');
@@ -47,7 +47,7 @@ class _EditorState extends State<Editor> {
     onSuccess: (data, _) {
       Toast.show(message: '自我介绍更新成功');
       Log.info('Update slogan success', 'slogan');
-      context.read<UserProvider>().userProfileHandler.run();
+      context.read<UserProvider>().refresh();
     },
     onError: (e, _) {
       Toast.show(message: '自我介绍更新失败');

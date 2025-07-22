@@ -6,8 +6,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 
@@ -102,33 +101,12 @@ class _ComicRankState extends State<ComicRank>
   Widget build(BuildContext context) {
     super.build(context);
     final comics = _handler.data?.comics ?? [];
-    final width = context.width;
 
     return BasePage(
       isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
       onRetry: _handler.refresh,
       error: _handler.error,
-      child: CustomScrollView(
-        slivers: [
-          SliverGrid.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
-            ),
-            itemBuilder: (context, index) {
-              return ListItem(doc: comics[index]);
-            },
-            itemCount: comics.length,
-          ),
-        ],
-      ),
+      child: CommonTMIList(comics: comics),
     );
   }
 

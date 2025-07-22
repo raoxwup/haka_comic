@@ -1,6 +1,7 @@
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/views/settings/browse_mode.dart';
 
 class AppConf {
   static final AppConf instance = AppConf._internal();
@@ -45,6 +46,12 @@ class AppConf {
   /// webdav 密码
   String _webdavPassword = '';
 
+  /// 漫画显示模式
+  ComicBlockMode _comicBlockMode = ComicBlockMode.detailed;
+
+  /// 分页
+  bool _pagination = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -67,33 +74,46 @@ class AppConf {
     instance._webdavUrl = prefs.getString('webdavUrl') ?? '';
     instance._webdavUser = prefs.getString('webdavUser') ?? '';
     instance._webdavPassword = prefs.getString('webdavPassword') ?? '';
+    instance._comicBlockMode = stringToComicBlockMode(
+      prefs.getString('comicBlockMode') ?? '详细',
+    );
+    instance._pagination = prefs.getBool('pagination') ?? true;
   }
 
-  set email(String value) =>
-      _saveToPrefs('email', value, value, (v) => _email = v);
-  set password(String value) =>
-      _saveToPrefs('password', value, value, (v) => _password = v);
-  set token(String value) =>
-      _saveToPrefs('token', value, value, (v) => _token = v);
-  set imageQuality(ImageQuality value) => _saveToPrefs(
-    'imageQuality',
-    value.name,
-    value,
-    (v) => _imageQuality = value,
-  );
-  set server(Server value) => _saveToPrefs(
-    'server',
-    getServerName(value),
-    value,
-    (v) => _server = value,
-  );
+  set email(String value) {
+    _email = value;
+    SharedPreferencesUtil.prefs.setString('email', value);
+  }
+
+  set password(String value) {
+    _password = value;
+    SharedPreferencesUtil.prefs.setString('password', value);
+  }
+
+  set token(String value) {
+    _token = value;
+    SharedPreferencesUtil.prefs.setString('token', value);
+  }
+
+  set imageQuality(ImageQuality value) {
+    _imageQuality = value;
+    SharedPreferencesUtil.prefs.setString('imageQuality', value.name);
+  }
+
+  set server(Server value) {
+    _server = value;
+    SharedPreferencesUtil.prefs.setString('server', getServerName(value));
+  }
+
   set checkUpdate(bool value) {
     _checkUpdate = value;
     SharedPreferencesUtil.prefs.setBool('checkUpdate', value);
   }
 
-  set readMode(ReadMode value) =>
-      _saveToPrefs('readMode', value.name, value, (v) => _readMode = v);
+  set readMode(ReadMode value) {
+    _readMode = value;
+    SharedPreferencesUtil.prefs.setString('readMode', value.name);
+  }
 
   set blacklist(List<String> value) {
     _blacklist = value;
@@ -105,12 +125,33 @@ class AppConf {
     SharedPreferencesUtil.prefs.setStringList('visibleCategories', value);
   }
 
-  set webdavUrl(String value) =>
-      _saveToPrefs('webdavUrl', value, value, (v) => _webdavUrl = v);
-  set webdavUser(String value) =>
-      _saveToPrefs('webdavUser', value, value, (v) => _webdavUser = v);
-  set webdavPassword(String value) =>
-      _saveToPrefs('webdavPassword', value, value, (v) => _webdavPassword = v);
+  set webdavUrl(String value) {
+    _webdavUrl = value;
+    SharedPreferencesUtil.prefs.setString('webdavUrl', value);
+  }
+
+  set webdavUser(String value) {
+    _webdavUser = value;
+    SharedPreferencesUtil.prefs.setString('webdavUser', value);
+  }
+
+  set webdavPassword(String value) {
+    _webdavPassword = value;
+    SharedPreferencesUtil.prefs.setString('webdavPassword', value);
+  }
+
+  set comicBlockMode(ComicBlockMode value) {
+    _comicBlockMode = value;
+    SharedPreferencesUtil.prefs.setString(
+      'comicBlockMode',
+      comicBlockModeToString(value),
+    );
+  }
+
+  set pagination(bool value) {
+    _pagination = value;
+    SharedPreferencesUtil.prefs.setBool('pagination', value);
+  }
 
   String get email => _email;
   String get password => _password;
@@ -124,16 +165,8 @@ class AppConf {
   String get webdavUrl => _webdavUrl;
   String get webdavUser => _webdavUser;
   String get webdavPassword => _webdavPassword;
-
-  void _saveToPrefs<T>(
-    String key,
-    String value,
-    T updateValue,
-    Function(T) updateField,
-  ) {
-    updateField(updateValue);
-    SharedPreferencesUtil.prefs.setString(key, value);
-  }
+  ComicBlockMode get comicBlockMode => _comicBlockMode;
+  bool get pagination => _pagination;
 
   /// 清除token
   void clearAuth() {
@@ -155,6 +188,8 @@ class AppConf {
     _webdavUser = '';
     _webdavPassword = '';
     _webdavUrl = '';
+    _comicBlockMode = ComicBlockMode.detailed;
+    _pagination = true;
     SharedPreferencesUtil.prefs.clear();
   }
 }
