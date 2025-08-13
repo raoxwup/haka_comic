@@ -44,8 +44,8 @@ jobs:
           $appName = ($appNameParts | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) }) -join " "
 
           # 查找生成的 exe 文件名
-          # $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
-          $exeName = "haka_comic.exe"
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
 
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "appName=$appName" >> $env:GITHUB_OUTPUT
@@ -57,26 +57,37 @@ jobs:
           $version = "${{ steps.get_info.outputs.version }}"
           $appName = "${{ steps.get_info.outputs.appName }}"
           $exeName = "${{ steps.get_info.outputs.exeName }}"
-          $outputFile = "$appName-Setup-v$version"
 
-          echo "[Setup]" > installer.iss
-          echo "AppName=$appName" >> installer.iss
-          echo "AppVersion=$version" >> installer.iss
-          echo "DefaultDirName={autopf}\$appName" >> installer.iss
-          echo "DefaultGroupName=$appName" >> installer.iss
-          echo "OutputBaseFilename=$outputFile" >> installer.iss
-          echo "Compression=lzma" >> installer.iss
-          echo "SolidCompression=yes" >> installer.iss
-          echo "" >> installer.iss
-          echo "[Files]" >> installer.iss
-          echo "Source: \"build\\windows\\x64\\runner\\Release\\*\"; DestDir: \"{app}\"; Flags: recursesubdirs" >> installer.iss
-          echo "" >> installer.iss
-          echo "[Icons]" >> installer.iss
-          echo "Name: \"{group}\$appName\"; Filename: \"{app}\\$exeName\"" >> installer.iss
-          echo "Name: \"{userdesktop}\$appName\"; Filename: \"{app}\\$exeName\"" >> installer.iss
-          echo "" >> installer.iss
-          echo "[Run]" >> installer.iss
-          echo "Filename: \"{app}\\$exeName\"; Flags: nowait postinstall skipifsilent" >> installer.iss
+          # 转义双引号，防止写入出错
+          $appNameEscaped = $appName -replace '"','\"'
+          $exeNameEscaped = $exeName -replace '"','\"'
+
+          # 构造输出文件名
+          $outputFile = "$appNameEscaped-Setup-v$version"
+
+          $content = @"
+          [Setup]
+          AppName=$appNameEscaped
+          AppVersion=$version
+          DefaultDirName={{autopf}}\$appNameEscaped
+          DefaultGroupName=$appNameEscaped
+          OutputBaseFilename=$outputFile
+          Compression=lzma
+          SolidCompression=yes
+
+          [Files]
+          Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
+
+          [Icons]
+          Name: "{{group}}\\$appNameEscaped"; Filename: "{{app}}\\$exeNameEscaped"
+          Name: "{{userdesktop}}\\$appNameEscaped"; Filename: "{{app}}\\$exeNameEscaped"
+
+          [Run]
+          Filename: "{{app}}\\$exeNameEscaped"; Flags: nowait postinstall skipifsilent
+          "@
+
+          # 输出到文件
+          $content | Out-File -FilePath installer.iss -Encoding ascii
 
       - name: Build Installer
         shell: pwsh
