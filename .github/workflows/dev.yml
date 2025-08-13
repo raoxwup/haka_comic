@@ -45,7 +45,7 @@ jobs:
 
           # 查找生成的 exe 文件名
           $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
-          $exeName = $exePath.Name
+          $exeName = haka_comic.exe
 
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "appName=$appName" >> $env:GITHUB_OUTPUT
