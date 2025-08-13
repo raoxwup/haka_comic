@@ -79,7 +79,9 @@ jobs:
           echo "Filename: \"{app}\\$exeName\"; Flags: nowait postinstall skipifsilent" >> installer.iss
 
       - name: Build Installer
-        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
 
       - name: Upload Windows Installer
         uses: actions/upload-artifact@v4
