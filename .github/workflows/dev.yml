@@ -65,7 +65,6 @@ jobs:
           # 构造输出文件名
           $outputFile = "$appNameEscaped-Setup-v$version"
           $DefaultDir = "{autopf}/$appNameEscaped"
-          $iconPath = "assets/icons/pc/windows_icon.ico"
 
           $content = @"
           [Setup]
@@ -78,11 +77,12 @@ jobs:
           SolidCompression=yes
 
           [Files]
+          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"$iconPath`"; WorkingDir: `"{app}`"
-          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"$iconPath`"; WorkingDir: `"{app}`"
+          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
 
           [Run]
           Filename: `"{app}\$exeNameEscaped`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
