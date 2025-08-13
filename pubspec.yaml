@@ -35,6 +35,7 @@ dependencies:
       ref: 3ce29c865a3a37d496ebe905f4f181b8e613375a
   file_picker: ^10.1.9
   webdav_client: ^1.2.2
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:

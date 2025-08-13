@@ -120,3 +120,84 @@ jobs:
           from: ${{ secrets.EMAIL_FROM }}
           body: iOS build completed. IPA attached.
           attachments: build/ios/iphoneos/no-codesign-ios.ipa
+
+  windows-build:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version-file: pubspec.yaml
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Read app info from pubspec.yaml and exe
+        id: get_info
+        shell: pwsh
+        run: |
+          # 读取版本号
+          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
+          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
+
+          # 读取应用名
+          $nameLine = Select-String -Path "pubspec.yaml" -Pattern "^name:\s*(.+)$"
+          $rawName = $nameLine.Matches[0].Groups[1].Value.Trim()
+          # 转换成首字母大写的友好名称
+          $appName = ($rawName -replace "_", " ") -split " " | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) } -join " "
+
+          # 查找生成的 exe 文件名
+          $exePath = Get-ChildItem -Path "build/windows/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
+
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "appName=$appName" >> $env:GITHUB_OUTPUT
+          echo "exeName=$exeName" >> $env:GITHUB_OUTPUT
+
+      - name: Create Inno Setup Script
+        shell: pwsh
+        run: |
+          $version = "${{ steps.get_info.outputs.version }}"
+          $appName = "${{ steps.get_info.outputs.appName }}"
+          $exeName = "${{ steps.get_info.outputs.exeName }}"
+          $outputFile = "$appName-Setup-v$version"
+
+          echo "[Setup]" > installer.iss
+          echo "AppName=$appName" >> installer.iss
+          echo "AppVersion=$version" >> installer.iss
+          echo "DefaultDirName={autopf}\$appName" >> installer.iss
+          echo "DefaultGroupName=$appName" >> installer.iss
+          echo "OutputBaseFilename=$outputFile" >> installer.iss
+          echo "Compression=lzma" >> installer.iss
+          echo "SolidCompression=yes" >> installer.iss
+          echo "" >> installer.iss
+          echo "[Files]" >> installer.iss
+          echo "Source: \"build\\windows\\runner\\Release\\*\"; DestDir: \"{app}\"; Flags: recursesubdirs" >> installer.iss
+          echo "" >> installer.iss
+          echo "[Icons]" >> installer.iss
+          echo "Name: \"{group}\$appName\"; Filename: \"{app}\\$exeName\"" >> installer.iss
+          echo "Name: \"{userdesktop}\$appName\"; Filename: \"{app}\\$exeName\"" >> installer.iss
+          echo "" >> installer.iss
+          echo "[Run]" >> installer.iss
+          echo "Filename: \"{app}\\$exeName\"; Flags: nowait postinstall skipifsilent" >> installer.iss
+
+      - name: Build Installer
+        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
+
+      - name: Upload Windows Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: "*.exe"
+          retention-days: 5

@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 
 void main(List<String> args) {
   runZonedGuarded(
-    () {
+    () async {
       WidgetsFlutterBinding.ensureInitialized();
       StartupPrepare.prepare()
           .then(
