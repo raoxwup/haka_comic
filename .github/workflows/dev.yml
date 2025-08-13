@@ -64,12 +64,14 @@ jobs:
 
           # 构造输出文件名
           $outputFile = "$appNameEscaped-Setup-v$version"
+          $DefaultDir = "{autopf}\$appNameEscaped"
+          $iconPath = "assets\icons\pc\windows_icon.ico"
 
           $content = @"
           [Setup]
           AppName=$appNameEscaped
           AppVersion=$version
-          DefaultDirName={{autopf}}\$appNameEscaped
+          DefaultDirName=$DefaultDir
           DefaultGroupName=$appNameEscaped
           OutputBaseFilename=$outputFile
           Compression=lzma
@@ -79,11 +81,11 @@ jobs:
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: "{{group}}\\$appNameEscaped"; Filename: "{{app}}\\$exeNameEscaped"
-          Name: "{{userdesktop}}\\$appNameEscaped"; Filename: "{{app}}\\$exeNameEscaped"
+          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"$iconPath`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"$iconPath`"; WorkingDir: `"{app}`"
 
           [Run]
-          Filename: "{{app}}\\$exeNameEscaped"; Flags: nowait postinstall skipifsilent
+          Filename: `"{app}\$exeNameEscaped`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
           "@
 
           # 输出到文件
