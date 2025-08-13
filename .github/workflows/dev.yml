@@ -64,8 +64,8 @@ jobs:
 
           # 构造输出文件名
           $outputFile = "$appNameEscaped-Setup-v$version"
-          $DefaultDir = "{autopf}\$appNameEscaped"
-          $iconPath = "assets\icons\pc\windows_icon.ico"
+          $DefaultDir = "{autopf}/$appNameEscaped"
+          $iconPath = "assets/icons/pc/windows_icon.ico"
 
           $content = @"
           [Setup]
