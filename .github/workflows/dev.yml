@@ -44,7 +44,7 @@ jobs:
           $appName = ($appNameParts | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) }) -join " "
 
           # 查找生成的 exe 文件名
-          $exePath = Get-ChildItem -Path "build/windows/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
           $exeName = $exePath.Name
 
           echo "version=$version" >> $env:GITHUB_OUTPUT
@@ -69,7 +69,7 @@ jobs:
           echo "SolidCompression=yes" >> installer.iss
           echo "" >> installer.iss
           echo "[Files]" >> installer.iss
-          echo "Source: \"build\\windows\\runner\\Release\\*\"; DestDir: \"{app}\"; Flags: recursesubdirs" >> installer.iss
+          echo "Source: \"build\\windows\\x64\\runner\\Release\\*\"; DestDir: \"{app}\"; Flags: recursesubdirs" >> installer.iss
           echo "" >> installer.iss
           echo "[Icons]" >> installer.iss
           echo "Name: \"{group}\$appName\"; Filename: \"{app}\\$exeName\"" >> installer.iss
