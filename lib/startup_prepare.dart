@@ -26,7 +26,7 @@ Future<void> startDesktop() async {
   if (isDesktop) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(900, 600),
+      size: Size(900, 620),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,

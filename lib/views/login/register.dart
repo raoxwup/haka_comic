@@ -139,31 +139,23 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
             controller: _confirmPasswordController,
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Text('性别：', style: context.textTheme.titleMedium),
-              const SizedBox(width: 8),
-              Radio(
-                value: 'm',
-                groupValue: _genderValue,
-                onChanged: onGenderChange,
-              ),
-              const Text('男'),
-              const SizedBox(width: 8),
-              Radio(
-                value: 'f',
-                groupValue: _genderValue,
-                onChanged: onGenderChange,
-              ),
-              const Text('女'),
-              const SizedBox(width: 8),
-              Radio(
-                value: 'bot',
-                groupValue: _genderValue,
-                onChanged: onGenderChange,
-              ),
-              const Text('机器人'),
-            ],
+          RadioGroup(
+            groupValue: _genderValue,
+            onChanged: onGenderChange,
+            child: Row(
+              children: [
+                Text('性别：', style: context.textTheme.titleMedium),
+                const SizedBox(width: 8),
+                const Radio(value: 'm'),
+                const Text('男'),
+                const SizedBox(width: 8),
+                const Radio(value: 'f'),
+                const Text('女'),
+                const SizedBox(width: 8),
+                const Radio(value: 'bot'),
+                const Text('机器人'),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           Button.filled(

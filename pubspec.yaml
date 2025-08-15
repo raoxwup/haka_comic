@@ -6,7 +6,7 @@ version: 1.0.0-beta.13
 
 environment:
   sdk: ^3.7.0
-  flutter: 3.32.8
+  flutter: 3.35.1
 
 dependencies:
   flutter:
