@@ -9,3 +9,8 @@ package_rename_config:
     app_name: "HaKa Comic"
     bundle_name: "HaKaComic"
     package_name: "com.github.raoxwup.hakacomic"
+
+  macos:
+    app_name: "HaKa Comic"
+    product_name: "com.github.raoxwup.hakacomic"
+    copyright_notice: "Copyright (C) 2025 com.github.raoxwup. All rights reserved."
