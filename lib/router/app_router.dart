@@ -8,6 +8,7 @@ import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comic_details/downloader.dart';
 import 'package:haka_comic/views/comics/comics.dart';
+import 'package:haka_comic/views/notifications/notifications.dart';
 import 'package:haka_comic/views/search/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
@@ -230,6 +231,12 @@ final GoRouter appRouter = GoRouter(
       path: '/webdav',
       pageBuilder: (context, state) {
         return CupertinoPage(key: state.pageKey, child: const WebDAV());
+      },
+    ),
+    GoRoute(
+      path: '/notifications',
+      pageBuilder: (context, state) {
+        return CupertinoPage(key: state.pageKey, child: const Notifications());
       },
     ),
   ],

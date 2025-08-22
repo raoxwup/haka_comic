@@ -26,6 +26,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
   late final _handler = fetchPersonalComments.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch personal comments success', data.toString());
+      if (!mounted) return;
       setState(() {
         _comments.addAll(data.comments.docs);
         hasMore = data.comments.pages > page;

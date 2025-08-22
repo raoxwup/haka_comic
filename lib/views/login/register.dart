@@ -102,68 +102,73 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('注册')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            decoration: const InputDecoration(
-              labelText: '昵称',
-              border: OutlineInputBorder(),
-            ),
-            controller: _nicknameController,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: '昵称',
+                  border: OutlineInputBorder(),
+                ),
+                controller: _nicknameController,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: '用户名',
+                  border: OutlineInputBorder(),
+                ),
+                controller: _usernameController,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: '密码',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+                controller: _passwordController,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: '确认密码',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+                controller: _confirmPasswordController,
+              ),
+              const SizedBox(height: 20),
+              RadioGroup(
+                groupValue: _genderValue,
+                onChanged: onGenderChange,
+                child: Row(
+                  children: [
+                    Text('性别：', style: context.textTheme.titleMedium),
+                    const SizedBox(width: 8),
+                    const Radio(value: 'm'),
+                    const Text('男'),
+                    const SizedBox(width: 8),
+                    const Radio(value: 'f'),
+                    const Text('女'),
+                    const SizedBox(width: 8),
+                    const Radio(value: 'bot'),
+                    const Text('机器人'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Button.filled(
+                onPressed: submit,
+                isLoading: _handler.isLoading,
+                child: const Text('注册'),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          TextField(
-            decoration: const InputDecoration(
-              labelText: '用户名',
-              border: OutlineInputBorder(),
-            ),
-            controller: _usernameController,
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            decoration: const InputDecoration(
-              labelText: '密码',
-              border: OutlineInputBorder(),
-            ),
-            obscureText: true,
-            controller: _passwordController,
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            decoration: const InputDecoration(
-              labelText: '确认密码',
-              border: OutlineInputBorder(),
-            ),
-            obscureText: true,
-            controller: _confirmPasswordController,
-          ),
-          const SizedBox(height: 20),
-          RadioGroup(
-            groupValue: _genderValue,
-            onChanged: onGenderChange,
-            child: Row(
-              children: [
-                Text('性别：', style: context.textTheme.titleMedium),
-                const SizedBox(width: 8),
-                const Radio(value: 'm'),
-                const Text('男'),
-                const SizedBox(width: 8),
-                const Radio(value: 'f'),
-                const Text('女'),
-                const SizedBox(width: 8),
-                const Radio(value: 'bot'),
-                const Text('机器人'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Button.filled(
-            onPressed: submit,
-            isLoading: _handler.isLoading,
-            child: const Text('注册'),
-          ),
-        ],
+        ),
       ),
     );
   }
