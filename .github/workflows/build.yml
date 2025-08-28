@@ -120,3 +120,101 @@ jobs:
           from: ${{ secrets.EMAIL_FROM }}
           body: iOS build completed. IPA attached.
           attachments: build/ios/iphoneos/no-codesign-ios.ipa
+
+  windows-build:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version-file: pubspec.yaml
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Read app info from pubspec.yaml and exe
+        id: get_info
+        shell: pwsh
+        run: |
+          # 读取版本号
+          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
+          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
+
+          # 读取原始项目名
+          $nameLine = Select-String -Path "pubspec.yaml" -Pattern "^name:\s*(.+)$"
+          $rawName = $nameLine.Matches[0].Groups[1].Value.Trim()
+
+          # 转成首字母大写并空格化
+          $appNameParts = ($rawName -replace "_", " ") -split " "
+          $appName = ($appNameParts | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) }) -join " "
+
+          # 查找生成的 exe 文件名
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
+
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "appName=$appName" >> $env:GITHUB_OUTPUT
+          echo "exeName=$exeName" >> $env:GITHUB_OUTPUT
+
+      - name: Create Inno Setup Script
+        shell: pwsh
+        run: |
+          $version = "${{ steps.get_info.outputs.version }}"
+          $appName = "${{ steps.get_info.outputs.appName }}"
+          $exeName = "${{ steps.get_info.outputs.exeName }}"
+
+          # 转义双引号，防止写入出错
+          $appNameEscaped = $appName -replace '"','\"'
+          $exeNameEscaped = $exeName -replace '"','\"'
+
+          # 构造输出文件名
+          $outputFile = "$appNameEscaped-Setup-v$version"
+          $DefaultDir = "{autopf}/$appNameEscaped"
+
+          $content = @"
+          [Setup]
+          AppName=$appNameEscaped
+          AppVersion=$version
+          DefaultDirName=$DefaultDir
+          DefaultGroupName=$appNameEscaped
+          OutputBaseFilename=$outputFile
+          Compression=lzma
+          SolidCompression=yes
+
+          [Files]
+          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
+
+          [Icons]
+          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+
+          [Run]
+          Filename: `"{app}\$exeNameEscaped`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
+          "@
+
+          # 输出到文件
+          $content | Out-File -FilePath installer.iss -Encoding ascii
+
+      - name: Build Installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
+
+      - name: Upload Windows Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: Output/*.exe
+          retention-days: 5

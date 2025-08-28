@@ -48,24 +48,24 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
       title: const Text('排序方式'),
       contentPadding: const EdgeInsets.all(20),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children:
-              sorts
-                  .map(
-                    (e) => ListTile(
-                      title: Text(e['label']),
-                      leading: Radio<ComicSortType>(
-                        value: e['value'],
-                        groupValue: _sortType,
-                        onChanged: (ComicSortType? value) {
-                          handleChange(value!);
-                        },
+        child: RadioGroup<ComicSortType>(
+          groupValue: _sortType,
+          onChanged: (ComicSortType? value) {
+            handleChange(value!);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children:
+                sorts
+                    .map(
+                      (e) => ListTile(
+                        title: Text(e['label']),
+                        leading: Radio<ComicSortType>(value: e['value']),
+                        onTap: () => handleChange(e['value']),
                       ),
-                      onTap: () => handleChange(e['value']),
-                    ),
-                  )
-                  .toList(),
+                    )
+                    .toList(),
+          ),
         ),
       ),
       actions: <Widget>[

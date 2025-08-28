@@ -81,7 +81,7 @@ class _LoginState extends State<Login> {
           child: Column(
             spacing: 20,
             children: [
-              const SizedBox(height: 70),
+              SizedBox(height: isDesktop ? 30 : 70),
               Image.asset('assets/images/login.png', width: 160),
               _buildLoginForm(),
             ],

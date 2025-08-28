@@ -782,7 +782,10 @@ Map<String, dynamic> _$NotificationsDataToJson(NotificationsData instance) =>
 NotificationDoc _$NotificationDocFromJson(Map<String, dynamic> json) =>
     NotificationDoc(
       content: json['content'] as String,
-      cover: ImageDetail.fromJson(json['cover'] as Map<String, dynamic>),
+      cover:
+          json['cover'] == null
+              ? null
+              : ImageDetail.fromJson(json['cover'] as Map<String, dynamic>),
       createdAt: json['created_at'] as String,
       uid: json['_id'] as String,
       id: json['id'] as String,

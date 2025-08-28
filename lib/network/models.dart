@@ -1337,7 +1337,7 @@ class NotificationsData {
 @JsonSerializable()
 class NotificationDoc {
   final String content;
-  final ImageDetail cover;
+  final ImageDetail? cover;
 
   @JsonKey(name: 'created_at')
   final String createdAt;

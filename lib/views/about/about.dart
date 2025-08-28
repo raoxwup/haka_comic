@@ -74,7 +74,7 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(
-              'Haka Comic是一个开源免费的第三方哔咔漫画客户端',
+              'HaKa Comic是一个开源免费的第三方哔咔漫画客户端',
               textAlign: TextAlign.center,
               style: context.textTheme.bodyMedium,
             ),

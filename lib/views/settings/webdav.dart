@@ -175,32 +175,24 @@ class _WebDAVState extends State<WebDAV> {
                 controller: _passwordController,
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('操作'),
-                  Radio(
-                    value: _actionType,
-                    groupValue: ActionType.upload,
-                    onChanged: (value) {
-                      setState(() {
-                        _actionType = ActionType.upload;
-                      });
-                    },
-                  ),
-                  const Text('上传'),
-                  const SizedBox(width: 12),
-                  Radio(
-                    value: _actionType,
-                    groupValue: ActionType.download,
-                    onChanged: (value) {
-                      setState(() {
-                        _actionType = ActionType.download;
-                      });
-                    },
-                  ),
-                  const Text('下载'),
-                ],
+              RadioGroup(
+                groupValue: _actionType,
+                onChanged: (value) {
+                  setState(() {
+                    _actionType = value!;
+                  });
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('操作'),
+                    Radio(value: ActionType.upload),
+                    Text('上传'),
+                    SizedBox(width: 12),
+                    Radio(value: ActionType.download),
+                    Text('下载'),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               Button.filled(
