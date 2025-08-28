@@ -2,7 +2,7 @@ name: Cross-Platform Build
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
 
 jobs:
   android-build:
@@ -81,15 +81,17 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "15.4"
 
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           flutter-version-file: pubspec.yaml
           architecture: x64
-
-      - run: sudo xcode-select --switch /Applications/Xcode_16.0.app
 
       - run: flutter pub get
 
