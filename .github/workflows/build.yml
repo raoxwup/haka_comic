@@ -2,7 +2,7 @@ name: Cross-Platform Build
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 jobs:
   android-build:
