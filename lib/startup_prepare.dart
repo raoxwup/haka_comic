@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
@@ -23,7 +24,7 @@ class StartupPrepare {
 }
 
 Future<void> startDesktop() async {
-  if (isDesktop) {
+  if (isDesktop && kReleaseMode) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
       size: Size(900, 620),

@@ -78,17 +78,21 @@ class _NotificationsState extends State<Notifications>
         error: _handler.error,
         child: ListView.builder(
           controller: _scrollController,
-          padding: const EdgeInsets.only(bottom: 20.0),
           itemBuilder: (context, index) {
             if (index == _notifications.length) {
-              return Center(
-                child:
-                    _handler.isLoading
-                        ? CircularProgressIndicator(
-                          constraints: BoxConstraints.tight(const Size(28, 28)),
-                          strokeWidth: 3,
-                        )
-                        : Text('没有更多数据了', style: context.textTheme.bodySmall),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child:
+                      _handler.isLoading
+                          ? CircularProgressIndicator(
+                            constraints: BoxConstraints.tight(
+                              const Size(28, 28),
+                            ),
+                            strokeWidth: 3,
+                          )
+                          : Text('没有更多数据了', style: context.textTheme.bodySmall),
+                ),
               );
             }
             final item = _notifications[index];
