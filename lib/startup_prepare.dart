@@ -7,6 +7,7 @@ import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
+import 'package:rhttp/rhttp.dart';
 import 'package:window_manager/window_manager.dart';
 
 class StartupPrepare {
@@ -19,6 +20,7 @@ class StartupPrepare {
       ReadRecordHelper().initialize(),
       DownloadManager.initialize(),
       startDesktop(),
+      Rhttp.init(),
     ]);
   }
 }

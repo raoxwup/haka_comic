@@ -1383,3 +1383,25 @@ class NotificationDoc {
       _$NotificationDocFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationDocToJson(this);
 }
+
+@JsonSerializable()
+class InitResponse {
+  final String status;
+
+  final List<String> addresses;
+
+  final String waka;
+
+  final String adKeyword;
+
+  InitResponse({
+    required this.status,
+    required this.addresses,
+    required this.waka,
+    required this.adKeyword,
+  });
+
+  factory InitResponse.fromJson(Map<String, dynamic> json) =>
+      _$InitResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$InitResponseToJson(this);
+}

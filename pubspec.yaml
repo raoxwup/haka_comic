@@ -36,6 +36,7 @@ dependencies:
   file_picker: ^10.1.9
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
+  rhttp: ^0.13.0
 
 dev_dependencies:
   flutter_test:

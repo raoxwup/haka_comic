@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:rhttp/rhttp.dart' as rhttp;
 
 class Client {
   static CancelToken _cancelToken = CancelToken();
@@ -137,5 +138,33 @@ class Client {
     String? baseUrl,
   }) {
     return _request(Method.delete, path, payload: data, baseUrl: baseUrl);
+  }
+}
+
+class RClient {
+  static final _rhttpClient = rhttp.RhttpClient.createSync(
+    settings: const rhttp.ClientSettings(
+      baseUrl: host,
+      timeoutSettings: rhttp.TimeoutSettings(
+        timeout: Duration(seconds: 10),
+        connectTimeout: Duration(seconds: 5),
+      ),
+      dnsSettings: rhttp.DnsSettings.static(
+        overrides: {
+          'picaapi.picacomic.com': ['104.19.53.76'],
+        },
+      ),
+    ),
+  );
+
+  static Future<dynamic> get(String url) async {
+    final headers = getHeaders(url, Method.get);
+    final response = await _rhttpClient.get(
+      url,
+      headers: rhttp.HttpHeaders.list(
+        headers.entries.map((entry) => (entry.key, entry.value)).toList(),
+      ),
+    );
+    return response.bodyToJson();
   }
 }

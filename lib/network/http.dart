@@ -8,6 +8,18 @@ import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/version.dart';
 import 'package:yaml/yaml.dart';
 
+/// init接口
+Future<void> init() async {
+  final dio = Dio(BaseOptions(responseType: ResponseType.json));
+  final response = await dio.get('http://68.183.234.72/init');
+  final initResponse = InitResponse.fromJson(response.data);
+  if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
+    final baseUrl = 'https://${initResponse.addresses.first}/';
+    // Client.setBaseUrl(baseUrl);
+    print('init baseUrl: $baseUrl');
+  }
+}
+
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
   final response = await Client.post("auth/sign-in", data: payload.toJson());
