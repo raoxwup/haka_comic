@@ -5,6 +5,7 @@ import 'package:haka_comic/network/cache.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
+import 'package:haka_comic/network/http_client.dart' as http_client;
 import 'package:haka_comic/utils/version.dart';
 import 'package:yaml/yaml.dart';
 
@@ -14,15 +15,18 @@ Future<void> init() async {
   final response = await dio.get('http://68.183.234.72/init');
   final initResponse = InitResponse.fromJson(response.data);
   if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
-    final baseUrl = 'https://${initResponse.addresses.first}/';
-    // Client.setBaseUrl(baseUrl);
-    print('init baseUrl: $baseUrl');
+    await http_client.Client.initialize(initResponse.addresses.first);
+  } else {
+    await http_client.Client.initialize();
   }
 }
 
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
-  final response = await Client.post("auth/sign-in", data: payload.toJson());
+  final response = await http_client.Client.post(
+    "auth/sign-in",
+    data: payload.toJson(),
+  );
   final data = BaseResponse<LoginResponse>.fromJson(
     response,
     (data) => LoginResponse.fromJson(data),
@@ -32,7 +36,7 @@ Future<LoginResponse> login(LoginPayload payload) async {
 
 /// 分类
 Future<CategoriesResponse> fetchCategories() async {
-  final response = await Client.get("categories");
+  final response = await http_client.Client.get("categories");
   response['data']['categories'] =
       (response['data']['categories'] as List<dynamic>)
           .where((category) => category['isWeb'] != true)
@@ -46,7 +50,10 @@ Future<CategoriesResponse> fetchCategories() async {
 
 /// 根据条件获取漫画列表
 Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
-  final response = await Client.get('comics', query: payload.toJson());
+  final response = await http_client.Client.get(
+    'comics',
+    query: payload.toJson(),
+  );
   final data = BaseResponse<ComicsResponse>.fromJson(
     response,
     (data) => ComicsResponse.fromJson(data),

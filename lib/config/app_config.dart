@@ -23,7 +23,7 @@ class AppConf {
   ImageQuality _imageQuality = ImageQuality.original;
 
   /// 分流
-  Server _server = Server.one;
+  Server _server = Server.two;
 
   /// 启动时是否检查更新
   bool _checkUpdate = true;
