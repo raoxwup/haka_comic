@@ -2,31 +2,31 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/cache.dart';
-import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
-import 'package:haka_comic/network/http_client.dart' as http_client;
+import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/utils/version.dart';
 import 'package:yaml/yaml.dart';
 
 /// init接口
-Future<void> init() async {
-  final dio = Dio(BaseOptions(responseType: ResponseType.json));
-  final response = await dio.get('http://68.183.234.72/init');
-  final initResponse = InitResponse.fromJson(response.data);
-  if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
-    await http_client.Client.initialize(initResponse.addresses.first);
-  } else {
-    await http_client.Client.initialize();
-  }
-}
+// Future<void> init() async {
+//   try {
+//     final response = await Rhttp.get('http://68.183.234.72/init');
+//     final initResponse = InitResponse.fromJson(response.bodyToJson);
+//     if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
+//       await Client.initialize(initResponse.addresses.first);
+//     } else {
+//       await Client.initialize();
+//     }
+//   } catch (_) {
+//     await Client.initialize();
+//     rethrow;
+//   }
+// }
 
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
-  final response = await http_client.Client.post(
-    "auth/sign-in",
-    data: payload.toJson(),
-  );
+  final response = await Client.post("auth/sign-in", data: payload.toJson());
   final data = BaseResponse<LoginResponse>.fromJson(
     response,
     (data) => LoginResponse.fromJson(data),
@@ -36,7 +36,7 @@ Future<LoginResponse> login(LoginPayload payload) async {
 
 /// 分类
 Future<CategoriesResponse> fetchCategories() async {
-  final response = await http_client.Client.get("categories");
+  final response = await Client.get("categories");
   response['data']['categories'] =
       (response['data']['categories'] as List<dynamic>)
           .where((category) => category['isWeb'] != true)
@@ -50,10 +50,7 @@ Future<CategoriesResponse> fetchCategories() async {
 
 /// 根据条件获取漫画列表
 Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
-  final response = await http_client.Client.get(
-    'comics',
-    query: payload.toJson(),
-  );
+  final response = await Client.get('comics', query: payload.toJson());
   final data = BaseResponse<ComicsResponse>.fromJson(
     response,
     (data) => ComicsResponse.fromJson(data),
@@ -200,13 +197,11 @@ Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
 
 /// 获取额外推荐 这里跟其它请求不一样的host 格式也不一致
 Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/recommend/get',
     queryParameters: {'c': id},
   );
-  final json = jsonDecode(response.data ?? '[]') as List<dynamic>;
+  final json = jsonDecode(response.data) as List<dynamic>;
   final data = json.map((data) => ExtraRecommendComic.fromJson(data)).toList();
   return data;
 }
@@ -245,25 +240,21 @@ Future<List<ChapterImage>> fetchChapterImages(
 
 /// 获取漫画分享ID
 Future<int> fetchComicShareId(String id) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/share/set',
     queryParameters: {'c': id},
   );
-  final json = jsonDecode(response.data ?? '{}');
+  final json = jsonDecode(response.data);
   return json['shareId'] as int;
 }
 
 /// 根据分享ID获取漫画信息
 Future<String> fetchComicIdByShareId(String shareId) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/share/get',
     queryParameters: {'shareId': shareId},
   );
-  final json = jsonDecode(response.data ?? '{}');
+  final json = jsonDecode(response.data);
   return json['cid'] as String;
 }
 

@@ -23,7 +23,7 @@ class AppConf {
   ImageQuality _imageQuality = ImageQuality.original;
 
   /// 分流
-  Server _server = Server.two;
+  Server _server = Server.one;
 
   /// 启动时是否检查更新
   bool _checkUpdate = true;
@@ -52,6 +52,9 @@ class AppConf {
   /// 分页
   bool _pagination = true;
 
+  /// Api
+  Api _api = Api.web;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -78,6 +81,7 @@ class AppConf {
       prefs.getString('comicBlockMode') ?? '详细',
     );
     instance._pagination = prefs.getBool('pagination') ?? true;
+    instance._api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
   }
 
   set email(String value) {
@@ -153,6 +157,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setBool('pagination', value);
   }
 
+  set api(Api value) {
+    _api = value;
+    SharedPreferencesUtil.prefs.setString('api', value.value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -167,6 +176,7 @@ class AppConf {
   String get webdavPassword => _webdavPassword;
   ComicBlockMode get comicBlockMode => _comicBlockMode;
   bool get pagination => _pagination;
+  Api get api => _api;
 
   /// 清除token
   void clearAuth() {
@@ -190,6 +200,7 @@ class AppConf {
     _webdavUrl = '';
     _comicBlockMode = ComicBlockMode.detailed;
     _pagination = true;
+    _api = Api.web;
     SharedPreferencesUtil.prefs.clear();
   }
 }

@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:haka_comic/config/app_config.dart';
 
 const host = 'https://picaapi.picacomic.com/';
+const webHost = 'https://api.go2778.com/';
 const apiKey = 'C69BAF41DA5ABD1FFEDC6D2FEA56B';
 const secretKey =
     "~d}\$Q7\$eIni=V)9\\RK/P.RM4;9[7|@/CA}b~OW!3?EV`:<>M7pddUBL5n|0/*Cn";
@@ -56,6 +57,23 @@ Server getServer(String name) {
     '3' => Server.three,
     _ => Server.one,
   };
+}
+
+enum Api {
+  app('app', 'APP'),
+  web('web', 'WEB（可直连）');
+
+  final String value;
+  final String name;
+
+  const Api(this.value, this.name);
+
+  static Api fromValue(String value) {
+    return Api.values.firstWhere(
+      (api) => api.value == value,
+      orElse: () => web,
+    );
+  }
 }
 
 Map<String, String> defaultHeaders = {

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
-import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/pager.dart';
@@ -35,7 +34,14 @@ class _SettingsState extends State<Settings> {
             children: [
               const ChangePassword(),
               const ChangeImageQuality(),
-              const ChangeServer(),
+              // const ChangeServer(),
+              MenuListTile.withAction(
+                icon: Icons.network_check_outlined,
+                title: '网络',
+                onTap: () {
+                  context.push('/network');
+                },
+              ),
               MenuListTile.withAction(
                 icon: Icons.texture_outlined,
                 title: '屏蔽',

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
@@ -52,16 +51,7 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> with AutoRegisterHandlerMixin {
-  final _handler = init.useRequest(
-    onError: (e, _) {
-      Log.error('init', e);
-    },
-  );
-
-  @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
+class _AppState extends State<App> {
   @override
   initState() {
     super.initState();
@@ -73,9 +63,6 @@ class _AppState extends State<App> with AutoRegisterHandlerMixin {
     if (AppConf().checkUpdate) {
       checkUpdate();
     }
-
-    // 获取ip
-    _handler.run();
   }
 
   void checkUpdate() async {
@@ -138,9 +125,7 @@ class _AppState extends State<App> with AutoRegisterHandlerMixin {
           debugShowCheckedModeBanner: false,
           scaffoldMessengerKey: scaffoldMessengerKey,
           builder: (context, child) {
-            return _SystemUiProvider(
-              _handler.isLoading ? const InitLoader() : child!,
-            );
+            return _SystemUiProvider(child!);
           },
         );
       },
@@ -173,23 +158,6 @@ class _SystemUiProvider extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: systemUiStyle,
       child: child,
-    );
-  }
-}
-
-class InitLoader extends StatelessWidget {
-  const InitLoader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: [CircularProgressIndicator(), Text('获取ip中...')],
-        ),
-      ),
     );
   }
 }

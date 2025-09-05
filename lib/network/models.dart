@@ -1,3 +1,5 @@
+import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/network/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
@@ -59,10 +61,19 @@ class ImageDetail {
 
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
 
-  String get url =>
+  // 直连
+  String get directUrl =>
       fileServer.contains('static')
           ? '$fileServer$path'
           : '$fileServer/static/$path';
+
+  // web代理
+  String get proxyUrl =>
+      fileServer.contains('static')
+          ? '$fileServer$path'
+          : 'https://s3.go2778.com/static/$path';
+
+  String get url => AppConf().api == Api.app ? directUrl : proxyUrl;
 }
 
 @JsonSerializable()
