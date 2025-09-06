@@ -80,13 +80,6 @@ final List<dynamic> actions = [
       context.push('/settings');
     },
   },
-  // {
-  //   "icon": Icons.more_horiz,
-  //   "label": '更多',
-  //   "onPressed": (BuildContext context) {
-  //     context.push('/settings');
-  //   },
-  // },
 ];
 
 class AppNavigationBar extends StatefulWidget {

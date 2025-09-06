@@ -15,7 +15,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
 
-  Widget buildAppNavigationBar() => AppNavigationBar(
+  Widget _buildAppNavigationBar() => AppNavigationBar(
     selectedIndex: _selectedIndex,
     onDestinationSelected: (int index) {
       setState(() {
@@ -37,7 +37,7 @@ class _HomeState extends State<Home> {
                   : null,
           body: Row(
             children: [
-              if (!UiMode.m1(context)) buildAppNavigationBar(),
+              if (!UiMode.m1(context)) _buildAppNavigationBar(),
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
@@ -52,7 +52,7 @@ class _HomeState extends State<Home> {
             ],
           ),
           bottomNavigationBar:
-              UiMode.m1(context) ? buildAppNavigationBar() : null,
+              UiMode.m1(context) ? _buildAppNavigationBar() : null,
         );
       },
     );

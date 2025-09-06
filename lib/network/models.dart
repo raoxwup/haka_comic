@@ -1,3 +1,5 @@
+import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/network/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
@@ -59,10 +61,23 @@ class ImageDetail {
 
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
 
-  String get url =>
+  // 直连
+  String get directUrl =>
       fileServer.contains('static')
           ? '$fileServer$path'
           : '$fileServer/static/$path';
+
+  // web代理
+  String get proxyUrl =>
+      fileServer.contains('static')
+          ? '$fileServer$path'
+          : 'https://s3.go2778.com/static/$path';
+
+  String get url => AppConf().api == Api.app ? directUrl : proxyUrl;
+
+  String getIsolateDownloadUrl(Api api) {
+    return api == Api.app ? directUrl : proxyUrl;
+  }
 }
 
 @JsonSerializable()
@@ -1382,4 +1397,26 @@ class NotificationDoc {
   factory NotificationDoc.fromJson(Map<String, dynamic> json) =>
       _$NotificationDocFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationDocToJson(this);
+}
+
+@JsonSerializable()
+class InitResponse {
+  final String status;
+
+  final List<String> addresses;
+
+  final String waka;
+
+  final String adKeyword;
+
+  InitResponse({
+    required this.status,
+    required this.addresses,
+    required this.waka,
+    required this.adKeyword,
+  });
+
+  factory InitResponse.fromJson(Map<String, dynamic> json) =>
+      _$InitResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$InitResponseToJson(this);
 }

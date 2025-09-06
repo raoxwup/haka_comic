@@ -813,3 +813,19 @@ Map<String, dynamic> _$NotificationDocToJson(NotificationDoc instance) =>
       'updated_at': instance.updatedAt,
       '_user': instance.user,
     };
+
+InitResponse _$InitResponseFromJson(Map<String, dynamic> json) => InitResponse(
+  status: json['status'] as String,
+  addresses:
+      (json['addresses'] as List<dynamic>).map((e) => e as String).toList(),
+  waka: json['waka'] as String,
+  adKeyword: json['adKeyword'] as String,
+);
+
+Map<String, dynamic> _$InitResponseToJson(InitResponse instance) =>
+    <String, dynamic>{
+      'status': instance.status,
+      'addresses': instance.addresses,
+      'waka': instance.waka,
+      'adKeyword': instance.adKeyword,
+    };

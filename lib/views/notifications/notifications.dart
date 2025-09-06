@@ -39,10 +39,14 @@ class _NotificationsState extends State<Notifications>
   void _onScroll() {
     final position = _scrollController.position;
     if (position.maxScrollExtent <= 0) return;
-    if (position.pixels >= position.maxScrollExtent * 0.9 &&
-        _hasMore &&
-        !_handler.isLoading) {
-      _handler.run(++_page);
+
+    const threshold = 200.0;
+    final distanceToBottom = position.maxScrollExtent - position.pixels;
+
+    if (distanceToBottom < threshold) {
+      if (_hasMore && !_handler.isLoading) {
+        _handler.run(++_page);
+      }
     }
   }
 

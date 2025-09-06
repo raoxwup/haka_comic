@@ -2,11 +2,27 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/cache.dart';
-import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
+import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/utils/version.dart';
 import 'package:yaml/yaml.dart';
+
+/// init接口
+// Future<void> init() async {
+//   try {
+//     final response = await Rhttp.get('http://68.183.234.72/init');
+//     final initResponse = InitResponse.fromJson(response.bodyToJson);
+//     if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
+//       await Client.initialize(initResponse.addresses.first);
+//     } else {
+//       await Client.initialize();
+//     }
+//   } catch (_) {
+//     await Client.initialize();
+//     rethrow;
+//   }
+// }
 
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
@@ -181,13 +197,11 @@ Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
 
 /// 获取额外推荐 这里跟其它请求不一样的host 格式也不一致
 Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/recommend/get',
     queryParameters: {'c': id},
   );
-  final json = jsonDecode(response.data ?? '[]') as List<dynamic>;
+  final json = jsonDecode(response.data) as List<dynamic>;
   final data = json.map((data) => ExtraRecommendComic.fromJson(data)).toList();
   return data;
 }
@@ -226,25 +240,21 @@ Future<List<ChapterImage>> fetchChapterImages(
 
 /// 获取漫画分享ID
 Future<int> fetchComicShareId(String id) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/share/set',
     queryParameters: {'c': id},
   );
-  final json = jsonDecode(response.data ?? '{}');
+  final json = jsonDecode(response.data);
   return json['shareId'] as int;
 }
 
 /// 根据分享ID获取漫画信息
 Future<String> fetchComicIdByShareId(String shareId) async {
-  final response = await Dio(
-    BaseOptions(responseType: ResponseType.json),
-  ).get<String>(
+  final response = await Dio().get(
     'https://recommend.go2778.com/pic/share/get',
     queryParameters: {'shareId': shareId},
   );
-  final json = jsonDecode(response.data ?? '{}');
+  final json = jsonDecode(response.data);
   return json['cid'] as String;
 }
 
@@ -362,7 +372,6 @@ Future<NotificationsResponse> fetchNotifications(int page) async {
 class DownloadIsolateClient {
   static final _dio = Dio(
     BaseOptions(
-      baseUrl: host,
       responseType: ResponseType.json,
       connectTimeout: const Duration(seconds: 10),
       validateStatus: (status) {
@@ -373,7 +382,8 @@ class DownloadIsolateClient {
 
   static Future<Response> get(
     String url,
-    String token, {
+    String token,
+    String baseUrl, {
     Map<String, dynamic>? queryParameters,
   }) async {
     final timestamp = getTimestamp();
@@ -383,6 +393,7 @@ class DownloadIsolateClient {
       nonce,
       Method.get,
     );
+    _dio.options.baseUrl = baseUrl;
     _dio.options.headers = {
       ...defaultHeaders,
       "time": timestamp,
@@ -403,6 +414,7 @@ class DownloadIsolateClient {
 Future<List<ChapterImage>> fetchChapterImagesIsolate(
   FetchChapterImagesPayload payload,
   String token,
+  String baseUrl,
 ) async {
   List<ChapterImage> images = [];
   int page = 1;
@@ -410,6 +422,7 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
   final response = await DownloadIsolateClient.get(
     url,
     token,
+    baseUrl,
     queryParameters: {'page': page},
   );
 
@@ -425,6 +438,7 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
     (index) => DownloadIsolateClient.get(
       url,
       token,
+      baseUrl,
       queryParameters: {'page': index + 2},
     ),
   );

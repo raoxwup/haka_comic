@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -6,9 +7,11 @@ import 'package:haka_comic/utils/common.dart';
 class Client {
   static CancelToken _cancelToken = CancelToken();
 
+  static void setBaseUrl(String url) => _client.options.baseUrl = url;
+
   static final Dio _client = Dio(
     BaseOptions(
-      baseUrl: host,
+      baseUrl: AppConf().api.host,
       responseType: ResponseType.json,
       connectTimeout: const Duration(seconds: 10),
       validateStatus: (status) {

@@ -3,9 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
-import 'package:haka_comic/views/settings/change_server.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
+import 'package:haka_comic/views/settings/comic_block_scale.dart';
 import 'package:haka_comic/views/settings/logout.dart';
+import 'package:haka_comic/views/settings/network.dart';
 import 'package:haka_comic/views/settings/pager.dart';
 import 'package:haka_comic/views/settings/read_mode.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
@@ -35,7 +36,8 @@ class _SettingsState extends State<Settings> {
             children: [
               const ChangePassword(),
               const ChangeImageQuality(),
-              const ChangeServer(),
+              // const ChangeServer(),
+              const Network(),
               MenuListTile.withAction(
                 icon: Icons.texture_outlined,
                 title: '屏蔽',
@@ -53,7 +55,10 @@ class _SettingsState extends State<Settings> {
             ],
           ),
           const SizedBox(height: 20),
-          const Block(title: '浏览', children: [BrowseMode(), Pager()]),
+          const Block(
+            title: '浏览',
+            children: [BrowseMode(), Pager(), ComicBlockScale()],
+          ),
           const SizedBox(height: 20),
           const Block(title: '阅读', children: [ReadModeChanger()]),
           const SizedBox(height: 20),

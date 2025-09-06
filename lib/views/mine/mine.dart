@@ -135,8 +135,12 @@ class ProFile extends StatelessWidget {
                     return LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [Colors.transparent, context.colorScheme.surface],
-                      stops: [0.0, 0.5],
+                      colors: [
+                        Colors.transparent,
+                        context.colorScheme.surface,
+                        context.colorScheme.surface.withValues(alpha: 0.3),
+                      ],
+                      stops: [0.02, 0.5, 0.8],
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
