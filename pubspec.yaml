@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.0.0-beta.14
+version: 1.0.0-beta.15
 
 environment:
   sdk: ^3.7.0
@@ -36,7 +36,7 @@ dependencies:
   file_picker: ^10.1.9
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
-  rhttp: ^0.13.0
+  # rhttp: ^0.13.0
 
 dev_dependencies:
   flutter_test:

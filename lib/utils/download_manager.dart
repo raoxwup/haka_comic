@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:path/path.dart' as p;
@@ -119,6 +120,9 @@ class _ComicDownloader {
     }
 
     const batchSize = 3;
+    final api = Api.fromValue(
+      (await SharedPreferences.getInstance()).getString('api') ?? Api.web.value,
+    );
 
     for (int start = 0; start < remaining.length; start += batchSize) {
       final end = (start + batchSize).clamp(0, remaining.length);
@@ -138,9 +142,11 @@ class _ComicDownloader {
         );
 
         futures.add(
-          _downloadImage(image.url, path, _cancelTokens[task.comic.id]).then((
-            _,
-          ) {
+          _downloadImage(
+            image.getIsolateDownloadUrl(api),
+            path,
+            _cancelTokens[task.comic.id],
+          ).then((_) {
             task.completed++;
             if (task.completed >= task.total) {
               task.status = DownloadTaskStatus.completed;
@@ -177,11 +183,12 @@ class _ComicDownloader {
   static Future<List<ChapterImage>> _fetchChapterImagesIsolate(
     FetchChapterImagesPayload payload,
     String token,
+    String host,
   ) async {
     const maxRetries = 3;
     for (var i = 0; i < maxRetries; i++) {
       try {
-        final response = await fetchChapterImagesIsolate(payload, token);
+        final response = await fetchChapterImagesIsolate(payload, token, host);
         return response;
       } catch (e) {
         if (i == maxRetries - 1) rethrow;
@@ -202,6 +209,7 @@ class _ComicDownloader {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
+    final api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
 
     if (token == null) {
       throw Exception('Token is null');
@@ -210,6 +218,7 @@ class _ComicDownloader {
     final response = await _fetchChapterImagesIsolate(
       FetchChapterImagesPayload(id: id, order: chapter.order),
       token,
+      api.host,
     );
     chapter.images.addAll(response.map((e) => e.media));
   }

@@ -28,6 +28,8 @@ class TMIList extends StatelessWidget {
   /// 简洁模式？
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
 
+  double get scale => AppConf().scale;
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
@@ -35,11 +37,12 @@ class TMIList extends StatelessWidget {
         isSimpleMode
             ? SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent:
-                  UiMode.m1(context)
+                  (UiMode.m1(context)
                       ? 130
                       : UiMode.m2(context)
                       ? 135
-                      : 140,
+                      : 140) *
+                  scale,
               mainAxisSpacing: 2,
               crossAxisSpacing: 3,
               childAspectRatio: 1 / 1.66,

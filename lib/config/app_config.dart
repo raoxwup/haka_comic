@@ -55,6 +55,9 @@ class AppConf {
   /// Api
   Api _api = Api.web;
 
+  /// 漫画块大小
+  double _scale = 1.0;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -82,6 +85,7 @@ class AppConf {
     );
     instance._pagination = prefs.getBool('pagination') ?? true;
     instance._api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
+    instance._scale = prefs.getDouble('scale') ?? 1.0;
   }
 
   set email(String value) {
@@ -162,6 +166,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setString('api', value.value);
   }
 
+  set scale(double value) {
+    _scale = value;
+    SharedPreferencesUtil.prefs.setDouble('scale', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -177,6 +186,7 @@ class AppConf {
   ComicBlockMode get comicBlockMode => _comicBlockMode;
   bool get pagination => _pagination;
   Api get api => _api;
+  double get scale => _scale;
 
   /// 清除token
   void clearAuth() {
@@ -201,6 +211,7 @@ class AppConf {
     _comicBlockMode = ComicBlockMode.detailed;
     _pagination = true;
     _api = Api.web;
+    _scale = 1.0;
     SharedPreferencesUtil.prefs.clear();
   }
 }

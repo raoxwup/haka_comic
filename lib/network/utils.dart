@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:haka_comic/config/app_config.dart';
 
-const host = 'https://picaapi.picacomic.com/';
-const webHost = 'https://api.go2778.com/';
 const apiKey = 'C69BAF41DA5ABD1FFEDC6D2FEA56B';
 const secretKey =
     "~d}\$Q7\$eIni=V)9\\RK/P.RM4;9[7|@/CA}b~OW!3?EV`:<>M7pddUBL5n|0/*Cn";
@@ -60,13 +58,14 @@ Server getServer(String name) {
 }
 
 enum Api {
-  app('app', 'APP'),
-  web('web', 'WEB（可直连）');
+  app('app', 'APP', 'https://picaapi.picacomic.com/'),
+  web('web', 'WEB', 'https://api.go2778.com/');
 
   final String value;
   final String name;
+  final String host;
 
-  const Api(this.value, this.name);
+  const Api(this.value, this.name, this.host);
 
   static Api fromValue(String value) {
     return Api.values.firstWhere(
@@ -86,6 +85,7 @@ Map<String, String> defaultHeaders = {
   "app-uuid": "defaultUuid",
   "app-version": "2.2.1.3.3.4",
   "nonce": nonce,
+  "app-channel": '1',
 };
 
 enum Method { get, post, delete, put }
@@ -124,7 +124,6 @@ Map<String, String> getHeaders(String url, Method method) {
     "time": timestamp,
     "signature": signature,
     "authorization": conf.token,
-    "app-channel": getServerName(conf.server),
     "image-quality": conf.imageQuality.name,
   };
 }

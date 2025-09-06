@@ -11,7 +11,7 @@ class Client {
 
   static final Dio _client = Dio(
     BaseOptions(
-      baseUrl: AppConf().api == Api.web ? webHost : host,
+      baseUrl: AppConf().api.host,
       responseType: ResponseType.json,
       connectTimeout: const Duration(seconds: 10),
       validateStatus: (status) {

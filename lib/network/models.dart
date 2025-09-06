@@ -74,6 +74,10 @@ class ImageDetail {
           : 'https://s3.go2778.com/static/$path';
 
   String get url => AppConf().api == Api.app ? directUrl : proxyUrl;
+
+  String getIsolateDownloadUrl(Api api) {
+    return api == Api.app ? directUrl : proxyUrl;
+  }
 }
 
 @JsonSerializable()

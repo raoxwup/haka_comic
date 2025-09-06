@@ -3,6 +3,8 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
+import 'package:haka_comic/widgets/toast.dart';
 
 class Network extends StatefulWidget {
   const Network({super.key});
@@ -16,35 +18,35 @@ class _NetworkState extends State<Network> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('网络设置')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          Text('API选择', style: context.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          RadioGroup(
-            onChanged: (value) {
-              setState(() => _api = Api.fromValue(value!));
-              AppConf().api = _api;
-              Client.setBaseUrl(_api == Api.app ? host : webHost);
-            },
-            groupValue: _api.value,
-            child: Column(
-              children:
-                  Api.values
-                      .map(
-                        (e) => ListTile(
-                          title: Text(e.name),
-                          leading: Radio<String>(value: e.value),
-                          onTap: () => setState(() => _api = e),
-                        ),
-                      )
-                      .toList(),
-            ),
-          ),
-        ],
-      ),
+    return MenuListTile.withValue(
+      icon: Icons.network_check_outlined,
+      title: 'API切换',
+      value: _api.value,
+      items:
+          Api.values.map((api) {
+            return PopupMenuItem(
+              value: api.value,
+              child: ListTile(
+                leading: Icon(
+                  _api.value == api.value
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  color: context.colorScheme.primary,
+                ),
+                title: Text(api.name),
+              ),
+            );
+          }).toList(),
+      onSelected: (value) {
+        if (value == _api.value) return;
+        setState(() {
+          final api = Api.fromValue(value);
+          _api = api;
+          AppConf().api = api;
+          Client.setBaseUrl(api.host);
+        });
+        Toast.show(message: '建议重启应用以确保切换生效');
+      },
     );
   }
 }

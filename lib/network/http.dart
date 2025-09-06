@@ -372,7 +372,6 @@ Future<NotificationsResponse> fetchNotifications(int page) async {
 class DownloadIsolateClient {
   static final _dio = Dio(
     BaseOptions(
-      baseUrl: host,
       responseType: ResponseType.json,
       connectTimeout: const Duration(seconds: 10),
       validateStatus: (status) {
@@ -383,7 +382,8 @@ class DownloadIsolateClient {
 
   static Future<Response> get(
     String url,
-    String token, {
+    String token,
+    String baseUrl, {
     Map<String, dynamic>? queryParameters,
   }) async {
     final timestamp = getTimestamp();
@@ -393,6 +393,7 @@ class DownloadIsolateClient {
       nonce,
       Method.get,
     );
+    _dio.options.baseUrl = baseUrl;
     _dio.options.headers = {
       ...defaultHeaders,
       "time": timestamp,
@@ -413,6 +414,7 @@ class DownloadIsolateClient {
 Future<List<ChapterImage>> fetchChapterImagesIsolate(
   FetchChapterImagesPayload payload,
   String token,
+  String baseUrl,
 ) async {
   List<ChapterImage> images = [];
   int page = 1;
@@ -420,6 +422,7 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
   final response = await DownloadIsolateClient.get(
     url,
     token,
+    baseUrl,
     queryParameters: {'page': page},
   );
 
@@ -435,6 +438,7 @@ Future<List<ChapterImage>> fetchChapterImagesIsolate(
     (index) => DownloadIsolateClient.get(
       url,
       token,
+      baseUrl,
       queryParameters: {'page': index + 2},
     ),
   );
