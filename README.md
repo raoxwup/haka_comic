@@ -24,7 +24,7 @@
 | <img src="./screenshots/分类.png" width="200">    | <img src="./screenshots/漫画列表.png" width="200">    | <img src="./screenshots/漫画详情.png" width="200">    | <img src="./screenshots/阅读.png" width="200">    |
 | <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
 
-## **截图可能过时，以实际项目界面为主**
+**截图可能过时，以实际项目界面为主**
 
 ## ⚠️ 免责声明
 
