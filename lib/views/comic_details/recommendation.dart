@@ -108,7 +108,7 @@ class _RecommendationState extends State<Recommendation>
                       width: 100,
                       child: Column(
                         children: [
-                          BaseImage(url: item.pic, width: 100, height: 130),
+                          BaseImage(url: item.url, width: 100, height: 130),
                           Text(
                             item.title,
                             maxLines: 2,

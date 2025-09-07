@@ -4,7 +4,7 @@
 
 ## 📖 项目简介
 
-第三方哗咔漫画跨平台客户端。**练习项目**，目标是支持 Android、IOS、Mac 和 Windows 四个平台，目前仍在持续完善中（PC 端还未完全适配，所以暂不发布 PC 端的 release 包）。欢迎给个 star⭐️ 支持一下。IOS 的 ipa 安装需要自签，有很多工具支持，具体需要自行搜索一下。
+第三方哗咔漫画跨平台客户端。**练习项目**，支持 Android、IOS、Mac 和 Windows 四个平台，目前仍在持续完善中。欢迎给个 star⭐️ 支持一下。IOS 的 ipa 安装需要自签，有很多工具支持，具体需要自行搜索一下。
 
 ---
 
@@ -24,7 +24,7 @@
 | <img src="./screenshots/分类.png" width="200">    | <img src="./screenshots/漫画列表.png" width="200">    | <img src="./screenshots/漫画详情.png" width="200">    | <img src="./screenshots/阅读.png" width="200">    |
 | <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
 
----
+## **截图可能过时，以实际项目界面为主**
 
 ## ⚠️ 免责声明
 

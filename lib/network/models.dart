@@ -68,10 +68,7 @@ class ImageDetail {
           : '$fileServer/static/$path';
 
   // web代理
-  String get proxyUrl =>
-      fileServer.contains('static')
-          ? '$fileServer$path'
-          : 'https://s3.go2778.com/static/$path';
+  String get proxyUrl => directUrl.replaceFirst('picacomic', 'go2778');
 
   String get url => AppConf().api == Api.app ? directUrl : proxyUrl;
 
@@ -911,6 +908,9 @@ class ExtraRecommendComic {
       );
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title, 'pic': pic};
+
+  String get url =>
+      AppConf().api == Api.app ? pic : pic.replaceFirst('picacomic', 'go2778');
 }
 
 class FetchChapterImagesPayload {
