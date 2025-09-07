@@ -1,0 +1,41 @@
+name: Macos Dev Build
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+    macos-build:
+      name: MacOS Build
+      runs-on: macos-15
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Setup Flutter
+          uses: subosito/flutter-action@v2
+          with:
+            channel: "stable"
+            flutter-version-file: pubspec.yaml
+
+        - name: Install dependencies
+          run: flutter pub get
+
+        - name: Build macOS Release
+          run: flutter build macos --release
+
+        - name: Package .app into zip
+          run: |
+            cd build/macos/Build/Products/Release/
+            appName=$(ls -d *.app | head -n 1)
+            zip -r "${appName%.app}.zip" "$appName"
+
+        - name: Upload macOS App
+          uses: actions/upload-artifact@v4
+          with:
+            name: macos-app
+            path: build/macos/Build/Products/Release/*.zip
+            retention-days: 5
+
+  
