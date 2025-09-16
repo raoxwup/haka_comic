@@ -636,8 +636,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3ce29c865a3a37d496ebe905f4f181b8e613375a"
-      resolved-ref: "3ce29c865a3a37d496ebe905f4f181b8e613375a"
+      ref: "5aa96132ed6a06b44796e9b184a1d92e89757f37"
+      resolved-ref: "5aa96132ed6a06b44796e9b184a1d92e89757f37"
       url: "https://github.com/raoxwup/photo_view.git"
     source: git
     version: "0.15.0"
