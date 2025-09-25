@@ -8,22 +8,6 @@ import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/utils/version.dart';
 import 'package:yaml/yaml.dart';
 
-/// init接口
-// Future<void> init() async {
-//   try {
-//     final response = await Rhttp.get('http://68.183.234.72/init');
-//     final initResponse = InitResponse.fromJson(response.bodyToJson);
-//     if (initResponse.status == 'ok' && initResponse.addresses.isNotEmpty) {
-//       await Client.initialize(initResponse.addresses.first);
-//     } else {
-//       await Client.initialize();
-//     }
-//   } catch (_) {
-//     await Client.initialize();
-//     rethrow;
-//   }
-// }
-
 /// 登录
 Future<LoginResponse> login(LoginPayload payload) async {
   final response = await Client.post("auth/sign-in", data: payload.toJson());
