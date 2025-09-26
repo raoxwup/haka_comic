@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
@@ -34,7 +35,8 @@ class Client {
                 t == DioExceptionType.connectionTimeout ||
                 t == DioExceptionType.sendTimeout ||
                 t == DioExceptionType.receiveTimeout ||
-                t == DioExceptionType.connectionError;
+                t == DioExceptionType.connectionError ||
+                err.error is HandshakeException;
           }
 
           final extra = err.requestOptions.extra;
