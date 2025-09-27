@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -78,7 +79,10 @@ class ComicRank extends StatefulWidget {
 }
 
 class _ComicRankState extends State<ComicRank>
-    with AutomaticKeepAliveClientMixin, AutoRegisterHandlerMixin {
+    with
+        AutomaticKeepAliveClientMixin,
+        AutoRegisterHandlerMixin,
+        BlockedWordsMixin {
   final _handler = fetchComicRank.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic rank success', data.toString());
@@ -106,7 +110,11 @@ class _ComicRankState extends State<ComicRank>
       isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
       onRetry: _handler.refresh,
       error: _handler.error,
-      child: CommonTMIList(comics: comics),
+      child: CommonTMIList(
+        comics: comics,
+        blockedTags: blockedTags,
+        blockedWords: blockedWords,
+      ),
     );
   }
 

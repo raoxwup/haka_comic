@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -34,7 +35,7 @@ class Comics extends StatefulWidget {
 }
 
 class _ComicsState extends State<Comics>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
   ComicSortType sortType = ComicSortType.dd;
   int page = 1;
   List<Doc> _comics = [];
@@ -68,6 +69,7 @@ class _ComicsState extends State<Comics>
   @override
   void initState() {
     super.initState();
+
     handler.run(
       ComicsPayload(
         c: widget.c,
@@ -131,6 +133,8 @@ class _ComicsState extends State<Comics>
                     child: CommonTMIList(
                       controller: scrollController,
                       comics: _comics,
+                      blockedTags: blockedTags,
+                      blockedWords: blockedWords,
                       pageSelectorBuilder: (context) {
                         return PageSelector(
                           pages: pages,
@@ -147,6 +151,8 @@ class _ComicsState extends State<Comics>
                     child: CommonTMIList(
                       controller: scrollController,
                       comics: _comics,
+                      blockedTags: blockedTags,
+                      blockedWords: blockedWords,
                       footerBuilder: (context) {
                         final loading = handler.isLoading;
                         return SliverToBoxAdapter(

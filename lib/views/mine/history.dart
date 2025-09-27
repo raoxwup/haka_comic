@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
@@ -14,7 +15,7 @@ class History extends StatefulWidget {
   State<History> createState() => _HistoryState();
 }
 
-class _HistoryState extends State<History> {
+class _HistoryState extends State<History> with BlockedWordsMixin {
   final HistoryHelper _helper = HistoryHelper();
   final ScrollController _scrollController = ScrollController();
 
@@ -28,13 +29,13 @@ class _HistoryState extends State<History> {
 
   @override
   void initState() {
+    super.initState();
+
     _getComics(_page);
     _getComicsCount();
     _helper.addListener(_update);
 
     _scrollController.addListener(_onScroll);
-
-    super.initState();
   }
 
   @override
@@ -127,6 +128,8 @@ class _HistoryState extends State<History> {
       body: CommonTMIList(
         controller: _scrollController,
         comics: _comics,
+        blockedTags: blockedTags,
+        blockedWords: blockedWords,
         onTapDown: (details) => _details = details,
         onLongPress: (item) {
           _showContextMenu(context, _details.globalPosition, item);

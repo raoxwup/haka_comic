@@ -53,6 +53,14 @@ class TagBlockHelper with ChangeNotifier {
     return result.map((row) => row['tag'] as String).toList();
   }
 
+  Future<bool> contains(String tag) async {
+    final result = await _db.getOptional(
+      'SELECT 1 FROM tag_block WHERE tag = ?',
+      [tag],
+    );
+    return result != null;
+  }
+
   Future<void> clear() async {
     await _db.execute('DELETE FROM tag_block');
     notifyListeners();

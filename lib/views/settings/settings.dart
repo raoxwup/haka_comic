@@ -36,21 +36,26 @@ class _SettingsState extends State<Settings> {
             children: [
               const ChangePassword(),
               const ChangeImageQuality(),
-              // const ChangeServer(),
               const Network(),
               MenuListTile.withAction(
                 icon: Icons.texture_outlined,
                 title: '屏蔽',
-                onTap: () {
-                  context.push('/blacklist');
-                },
+                onTap: () => context.push('/blacklist'),
               ),
               MenuListTile.withAction(
                 icon: Icons.topic_outlined,
                 title: '显示的分类',
-                onTap: () {
-                  context.push('/visible_categories');
-                },
+                onTap: () => context.push('/visible_categories'),
+              ),
+              MenuListTile.withAction(
+                icon: Icons.label_off_outlined,
+                title: 'Tag屏蔽',
+                onTap: () => context.push('/tag_block'),
+              ),
+              MenuListTile.withAction(
+                icon: Icons.spellcheck_outlined,
+                title: '标题关键词屏蔽',
+                onTap: () => context.push('/word_block'),
               ),
             ],
           ),

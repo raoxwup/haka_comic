@@ -9,9 +9,10 @@ import 'package:sqlite_async/sqlite_async.dart';
 import 'package:path/path.dart' as p;
 
 final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        await tx.execute('''
+    SqliteMigrations()
+      ..add(
+        SqliteMigration(1, (tx) async {
+          await tx.execute('''
           CREATE TABLE IF NOT EXISTS history (
             id INTEGER PRIMARY KEY,
             cid TEXT UNIQUE NOT NULL,
@@ -32,7 +33,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+          await tx.execute('''
           CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
           AFTER UPDATE ON history 
           BEGIN
@@ -40,11 +41,18 @@ final migrations =
           END;
         ''');
 
-        await tx.execute('''
+          await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
         ''');
-      }),
-    );
+        }),
+      )
+      ..add(
+        SqliteMigration(2, (tx) async {
+          await tx.execute('''
+          ALTER TABLE history ADD COLUMN tags TEXT DEFAULT '[]';
+        ''');
+        }),
+      );
 
 class HistoryHelper with ChangeNotifier {
   HistoryHelper._create();
@@ -80,8 +88,9 @@ class HistoryHelper with ChangeNotifier {
           file_server,
           path,
           original_name,
-          likes_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          likes_count,
+          tags
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(cid) DO UPDATE SET
           title = excluded.title,
           author = excluded.author,
@@ -94,7 +103,8 @@ class HistoryHelper with ChangeNotifier {
           file_server = excluded.file_server,
           path = excluded.path,
           original_name = excluded.original_name,
-          likes_count = excluded.likes_count
+          likes_count = excluded.likes_count,
+          tags = excluded.tags
         ''',
         [
           comic.id,
@@ -110,6 +120,7 @@ class HistoryHelper with ChangeNotifier {
           comic.thumb.path,
           comic.thumb.originalName,
           comic.likesCount,
+          jsonEncode(comic.tags),
         ],
       );
     });
@@ -154,6 +165,7 @@ class HistoryHelper with ChangeNotifier {
         "_id": row["cid"],
         "updatedAt": row["updated_at"],
         "createdAt": row["created_at"],
+        "tags": jsonDecode(row["tags"]),
       });
     }).toList();
   }

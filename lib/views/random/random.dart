@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -14,7 +15,8 @@ class Random extends StatefulWidget {
   State<Random> createState() => _RandomState();
 }
 
-class _RandomState extends State<Random> with AutoRegisterHandlerMixin {
+class _RandomState extends State<Random>
+    with AutoRegisterHandlerMixin, BlockedWordsMixin {
   final _handler = fetchRandomComics.useRequest(
     onSuccess: (data, _) {
       Log.info('fetch random comics success', data.toString());
@@ -44,7 +46,11 @@ class _RandomState extends State<Random> with AutoRegisterHandlerMixin {
             isLoading: _handler.isLoading,
             onRetry: _handler.refresh,
             error: _handler.error,
-            child: CommonTMIList(comics: comics),
+            child: CommonTMIList(
+              comics: comics,
+              blockedTags: blockedTags,
+              blockedWords: blockedWords,
+            ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _handler.isLoading ? null : () => _handler.refresh(),

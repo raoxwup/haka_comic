@@ -205,6 +205,9 @@ class Doc {
   @JsonKey(defaultValue: 0)
   final int likesCount;
 
+  @JsonKey(defaultValue: [])
+  final List<String> tags;
+
   Doc({
     required this.author,
     required this.categories,
@@ -218,6 +221,7 @@ class Doc {
     this.totalLikes,
     required this.totalViews,
     required this.uid,
+    required this.tags,
   });
 
   factory Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
@@ -1011,6 +1015,7 @@ class HistoryDoc extends Doc {
     required super.thumb,
     required super.likesCount,
     required super.uid,
+    required super.tags,
     required this.updatedAt,
     required this.createdAt,
   });
