@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
@@ -5,20 +6,56 @@ import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
 
 class Client {
+  static const _maxRetries = 3;
+
   static CancelToken _cancelToken = CancelToken();
 
   static void setBaseUrl(String url) => _client.options.baseUrl = url;
 
   static final Dio _client = Dio(
-    BaseOptions(
-      baseUrl: AppConf().api.host,
-      responseType: ResponseType.json,
-      connectTimeout: const Duration(seconds: 10),
-      validateStatus: (status) {
-        return status == 200 || status == 400 || status == 401;
-      },
-    ),
-  );
+      BaseOptions(
+        baseUrl: AppConf().api.host,
+        responseType: ResponseType.json,
+        connectTimeout: const Duration(seconds: 10),
+        validateStatus: (status) {
+          return status == 200 || status == 400 || status == 401;
+        },
+      ),
+    )
+    ..interceptors.add(
+      InterceptorsWrapper(
+        onError: (DioException err, ErrorInterceptorHandler handler) async {
+          bool shouldRetry = false;
+          if (err.response != null) {
+            final sc = err.response!.statusCode;
+            if (sc != null && sc >= 500 && sc < 600) shouldRetry = true;
+          } else {
+            final t = err.type;
+            shouldRetry =
+                t == DioExceptionType.connectionTimeout ||
+                t == DioExceptionType.sendTimeout ||
+                t == DioExceptionType.receiveTimeout ||
+                t == DioExceptionType.connectionError ||
+                err.error is HandshakeException;
+          }
+
+          final extra = err.requestOptions.extra;
+          int retryCount = extra['retryCount'] ?? 0;
+          if (shouldRetry && retryCount < _maxRetries - 1) {
+            await Future.delayed(const Duration(seconds: 1));
+            final reqOpt = err.requestOptions;
+            reqOpt.extra['retryCount'] = retryCount + 1;
+            try {
+              final ret = await _client.fetch(reqOpt);
+              return handler.resolve(ret);
+            } catch (_) {
+              return handler.reject(err);
+            }
+          }
+          return handler.reject(err);
+        },
+      ),
+    );
 
   static Future<Map<String, dynamic>> _request(
     Method method,

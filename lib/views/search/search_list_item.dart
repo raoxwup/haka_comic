@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
 /// 特别用于搜索展示的item
 class SearchListItem extends StatelessWidget {
-  const SearchListItem({super.key, required this.comic});
+  const SearchListItem({
+    super.key,
+    required this.comic,
+    required this.blockedWords,
+  });
 
   final SearchComic comic;
+
+  final String? blockedWords;
 
   @override
   Widget build(BuildContext context) {
     final item = comic;
-    final category = item.categories.firstWhereOrNull(
-      (item) => AppConf().blacklist.contains(item),
-    );
-
-    if (category != null) {
+    if (blockedWords != null) {
       return Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -29,7 +29,10 @@ class SearchListItem extends StatelessWidget {
             color: context.colorScheme.inversePrimary.withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text('已屏蔽: $category', style: context.textTheme.labelLarge),
+          child: Text(
+            '已屏蔽: $blockedWords',
+            style: context.textTheme.labelLarge,
+          ),
         ),
       );
     }

@@ -26,9 +26,11 @@ import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
+import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
+import 'package:haka_comic/views/settings/word_block.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -237,6 +239,18 @@ final GoRouter appRouter = GoRouter(
       path: '/notifications',
       pageBuilder: (context, state) {
         return CupertinoPage(key: state.pageKey, child: const Notifications());
+      },
+    ),
+    GoRoute(
+      path: '/tag_block',
+      pageBuilder: (context, state) {
+        return CupertinoPage(key: state.pageKey, child: const TagBlock());
+      },
+    ),
+    GoRoute(
+      path: '/word_block',
+      pageBuilder: (context, state) {
+        return CupertinoPage(key: state.pageKey, child: const WordBlock());
       },
     ),
   ],

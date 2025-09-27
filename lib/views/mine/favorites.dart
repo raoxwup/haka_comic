@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -18,7 +19,7 @@ class Favorites extends StatefulWidget {
 }
 
 class _FavoritesState extends State<Favorites>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
   late final _handler = fetchFavoriteComics.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
@@ -42,6 +43,7 @@ class _FavoritesState extends State<Favorites>
   @override
   void initState() {
     super.initState();
+
     _handler.run(UserFavoritePayload(page: _page, sort: _sortType));
   }
 
@@ -136,6 +138,8 @@ class _FavoritesState extends State<Favorites>
                     error: _handler.error,
                     child: CommonTMIList(
                       comics: _comics,
+                      blockedTags: blockedTags,
+                      blockedWords: blockedWords,
                       pageSelectorBuilder: (context) {
                         return PageSelector(
                           currentPage: _page,
@@ -152,6 +156,8 @@ class _FavoritesState extends State<Favorites>
                     child: CommonTMIList(
                       comics: _comics,
                       controller: scrollController,
+                      blockedTags: blockedTags,
+                      blockedWords: blockedWords,
                       footerBuilder: (context) {
                         final loading = _handler.isLoading;
                         return SliverToBoxAdapter(

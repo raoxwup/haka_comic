@@ -63,7 +63,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
         isDoublePage ? toCorrectMultiPageNo(reader.pageNo, 2) : reader.pageNo;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.pageController.jumpToPage(initialIndex);
-      // _onItemPositionsChanged(initialIndex);
+      _onPageChanged(initialIndex);
     });
   }
 
@@ -199,9 +199,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               return Center(
                 child: CircularProgressIndicator(
                   value:
-                      event == null
+                      event?.expectedTotalBytes == null
                           ? 0
-                          : event.cumulativeBytesLoaded /
+                          : event!.cumulativeBytesLoaded /
                               event.expectedTotalBytes!,
                   strokeWidth: 3,
                   constraints: BoxConstraints.tight(const Size(28, 28)),

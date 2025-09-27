@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
@@ -427,6 +428,38 @@ class _ComicDetailsState extends State<ComicDetails>
     );
   }
 
+  Future<void> _onTagLongPress(String tag) async {
+    final helper = TagBlockHelper();
+    final contains = await helper.contains(tag);
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(contains ? '取消屏蔽' : '屏蔽'),
+            content: Text(
+              contains ? '「$tag」已被屏蔽，确定要取消对它的屏蔽吗？' : '确定要屏蔽「$tag」吗？',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  context.pop();
+                  contains ? helper.delete(tag) : helper.insert(tag);
+                  Toast.show(message: contains ? '已取消屏蔽「$tag」' : '已屏蔽「$tag」');
+                },
+                child: const Text('确定'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   Widget _buildTags(Comic? data, String type) {
     final List<String> tags =
         (type == '标签' ? data?.tags : data?.categories) ?? [];
@@ -454,6 +487,7 @@ class _ComicDetailsState extends State<ComicDetails>
           (e) => InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: () => context.push('/comics?$name=$e'),
+            onLongPress: type == '标签' ? () => _onTagLongPress(e) : null,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(

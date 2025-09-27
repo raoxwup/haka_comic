@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
 class SimpleListItem extends StatelessWidget {
@@ -15,6 +13,7 @@ class SimpleListItem extends StatelessWidget {
     this.onSecondaryTapDown,
     this.onLongPress,
     this.onSecondaryTap,
+    required this.blockedWords,
   });
 
   final Doc doc;
@@ -29,15 +28,14 @@ class SimpleListItem extends StatelessWidget {
 
   final void Function()? onSecondaryTap;
 
+  final String? blockedWords;
+
   @override
   Widget build(BuildContext context) {
     final item = doc;
-    final category = item.categories.firstWhereOrNull(
-      (item) => AppConf().blacklist.contains(item),
-    );
 
-    if (category != null) {
-      final words = category.split('');
+    if (blockedWords != null) {
+      final words = blockedWords!.split('');
       final displayWords =
           words.length > 4 ? [...words.sublist(0, 4), '...'] : words;
       return Padding(

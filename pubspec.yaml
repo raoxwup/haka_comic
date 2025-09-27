@@ -12,19 +12,19 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  go_router: ^15.1.0
+  go_router: ^16.2.4
   shared_preferences: ^2.5.2
   dio: ^5.8.0+1
   crypto: ^3.0.6
   json_annotation: ^4.9.0
   cached_network_image: ^3.4.1
   scrollable_positioned_list: ^0.3.8
-  sqlite3: ^2.7.5
-  sqlite3_flutter_libs: ^0.5.32
+  sqlite3: ^2.9.0
+  sqlite3_flutter_libs: ^0.5.39
   path_provider: ^2.1.5
-  sqlite_async: ^0.11.4
+  sqlite_async: ^0.12.1
   provider: ^6.1.4
-  dynamic_color: ^1.7.0
+  dynamic_color: ^1.8.1
   flutter_cache_manager: ^3.4.1
   path: ^1.9.1
   url_launcher: ^6.3.1
@@ -32,10 +32,13 @@ dependencies:
   photo_view:
     git:
       url: https://github.com/raoxwup/photo_view.git
-      ref: 3ce29c865a3a37d496ebe905f4f181b8e613375a
-  file_picker: ^10.1.9
+      ref: 5aa96132ed6a06b44796e9b184a1d92e89757f37
+  # photo_view:
+  #   path: D:/Projects/practice/flutter/photo_view
+  file_picker: ^10.3.3
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
+  vector_math: ^2.2.0
   # rhttp: ^0.13.0
 
 dev_dependencies:
@@ -50,7 +53,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icons/splash/splash-icon-dark.png
     - assets/icons/splash/splash-icon-light.png
@@ -64,34 +66,3 @@ flutter:
     - assets/images/random.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
-  # fonts:
-  #   - family: LXGWWenKaiLite
-  #     fonts:
-  #       - asset: assets/fonts/LXGWWenKaiLite-Regular.ttf
-  #       - asset: assets/fonts/LXGWWenKaiLite-Medium.ttf

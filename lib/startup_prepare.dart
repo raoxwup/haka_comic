@@ -5,6 +5,8 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/database/tag_block_helper.dart';
+import 'package:haka_comic/database/word_block_helper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -18,6 +20,8 @@ class StartupPrepare {
       ImagesHelper.initialize(),
       ReadRecordHelper().initialize(),
       DownloadManager.initialize(),
+      TagBlockHelper().initialize(),
+      WordBlockHelper().initialize(),
       startDesktop(),
     ]);
   }

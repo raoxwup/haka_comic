@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/pagination_handler.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
@@ -28,7 +29,7 @@ class SearchComics extends StatefulWidget {
 }
 
 class _SearchComicsState extends State<SearchComics>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin {
+    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
   final _searchController = TextEditingController();
 
   late final _handler = searchComics.useRequest(
@@ -89,8 +90,6 @@ class _SearchComicsState extends State<SearchComics>
 
   @override
   Widget build(BuildContext context) {
-    final pages = _handler.data?.comics.pages ?? 1;
-
     return RouteAwarePageWrapper(
       builder: (context, completed) {
         return Scaffold(
@@ -127,75 +126,74 @@ class _SearchComicsState extends State<SearchComics>
               ),
             ],
           ),
-          body:
-              pagination
-                  ? BasePage(
-                    isLoading: _handler.isLoading || !completed,
-                    error: _handler.error,
-                    onRetry: _handler.refresh,
-                    child: TMIList(
-                      pageSelectorBuilder: (context) {
-                        return PageSelector(
-                          currentPage: _page,
-                          pages: pages,
-                          onPageChange: _onPageChange,
-                        );
-                      },
-                      itemBuilder: (context, index) {
-                        final key = ValueKey(_comics[index].id);
-                        return isSimpleMode
-                            ? SimpleSearchListItem(
-                              comic: _comics[index],
-                              key: key,
-                            )
-                            : SearchListItem(comic: _comics[index], key: key);
-                      },
-                      itemCount: _comics.length,
-                    ),
-                  )
-                  : BasePage(
-                    isLoading: false,
-                    error: _handler.error,
-                    onRetry: _handler.refresh,
-                    child: TMIList(
-                      controller: scrollController,
-                      itemCount: _comics.length,
-                      itemBuilder: (context, index) {
-                        final key = ValueKey(_comics[index].id);
-                        return isSimpleMode
-                            ? SimpleSearchListItem(
-                              comic: _comics[index],
-                              key: key,
-                            )
-                            : SearchListItem(comic: _comics[index], key: key);
-                      },
-                      footerBuilder: (context) {
-                        final loading = _handler.isLoading;
-                        return SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child:
-                                  loading
-                                      ? CircularProgressIndicator(
-                                        constraints: BoxConstraints.tight(
-                                          const Size(28, 28),
-                                        ),
-                                        strokeWidth: 3,
-                                      )
-                                      : Text(
-                                        '没有更多数据了',
-                                        style: context.textTheme.bodySmall,
-                                      ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+          body: BasePage(
+            isLoading: pagination ? (_handler.isLoading || !completed) : false,
+            error: _handler.error,
+            onRetry: _handler.refresh,
+            child: _buildList(pagination),
+          ),
         );
       },
     );
+  }
+
+  Widget _buildList(bool pagination) {
+    final pages = _handler.data?.comics.pages ?? 1;
+    return TMIList(
+      controller: pagination ? null : scrollController,
+      itemCount: _comics.length,
+      itemBuilder: _buildItem,
+      pageSelectorBuilder:
+          pagination
+              ? (context) => PageSelector(
+                currentPage: _page,
+                pages: pages,
+                onPageChange: _onPageChange,
+              )
+              : null,
+      footerBuilder:
+          pagination
+              ? null
+              : (context) {
+                final loading = _handler.isLoading;
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child:
+                          loading
+                              ? CircularProgressIndicator(
+                                constraints: BoxConstraints.tight(
+                                  const Size(28, 28),
+                                ),
+                                strokeWidth: 3,
+                              )
+                              : Text(
+                                '没有更多数据了',
+                                style: context.textTheme.bodySmall,
+                              ),
+                    ),
+                  ),
+                );
+              },
+    );
+  }
+
+  Widget _buildItem(BuildContext context, int index) {
+    final item = _comics[index];
+    final key = ValueKey(item.id);
+
+    // 屏蔽逻辑
+    final tag = item.tags.firstWhereOrNull((t) => blockedTags.contains(t));
+    final category = item.categories.firstWhereOrNull(
+      (c) => AppConf().blacklist.contains(c),
+    );
+    final word = blockedWords.firstWhereOrNull((w) => item.title.contains(w));
+    final blocked = category ?? tag ?? word;
+
+    return isSimpleMode
+        ? SimpleSearchListItem(comic: item, key: key, blockedWords: blocked)
+        : SearchListItem(comic: item, key: key, blockedWords: blocked);
   }
 
   void _buildSortTypeSelector() {

@@ -70,6 +70,8 @@ Doc _$DocFromJson(Map<String, dynamic> json) => Doc(
   totalLikes: (json['totalLikes'] as num?)?.toInt(),
   totalViews: (json['totalViews'] as num?)?.toInt() ?? 0,
   uid: json['_id'] as String,
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
 );
 
 Map<String, dynamic> _$DocToJson(Doc instance) => <String, dynamic>{
@@ -85,6 +87,7 @@ Map<String, dynamic> _$DocToJson(Doc instance) => <String, dynamic>{
   'thumb': instance.thumb,
   'id': instance.id,
   'likesCount': instance.likesCount,
+  'tags': instance.tags,
 };
 
 Comics _$ComicsFromJson(Map<String, dynamic> json) => Comics(
@@ -549,6 +552,8 @@ HistoryDoc _$HistoryDocFromJson(Map<String, dynamic> json) => HistoryDoc(
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
   likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
   uid: json['_id'] as String,
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   updatedAt: json['updatedAt'] as String,
   createdAt: json['createdAt'] as String,
 );
@@ -567,6 +572,7 @@ Map<String, dynamic> _$HistoryDocToJson(HistoryDoc instance) =>
       'thumb': instance.thumb,
       'id': instance.id,
       'likesCount': instance.likesCount,
+      'tags': instance.tags,
       'updatedAt': instance.updatedAt,
       'createdAt': instance.createdAt,
     };

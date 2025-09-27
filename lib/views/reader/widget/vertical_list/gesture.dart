@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
   final ScrollPhysics physics;
@@ -93,11 +94,14 @@ class _GestureWrapperState extends State<GestureWrapper>
     } else {
       endMatrix =
           Matrix4.identity()
-            ..translate(
-              -_doubleTapPosition.dx * 2.0,
-              -_doubleTapPosition.dy * 2.0,
+            ..translateByVector3(
+              Vector3(
+                -_doubleTapPosition.dx * 2.0,
+                -_doubleTapPosition.dy * 2.0,
+                0.0,
+              ),
             )
-            ..scale(3.0);
+            ..scaleByVector3(Vector3(3.0, 3.0, 1.0));
     }
     _animation = Matrix4Tween(
       begin: _transformationController.value,
