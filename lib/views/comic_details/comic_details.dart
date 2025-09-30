@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -151,17 +152,16 @@ class _ComicDetailsState extends State<ComicDetails>
             ),
             actions: [
               MenuAnchor(
-                builder:
-                    (context, controller, widget) => IconButton(
-                      icon: const Icon(Icons.more_horiz),
-                      onPressed: () {
-                        if (controller.isOpen) {
-                          controller.close();
-                        } else {
-                          controller.open();
-                        }
-                      },
-                    ),
+                builder: (context, controller, widget) => IconButton(
+                  icon: const Icon(Icons.more_horiz),
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                ),
                 menuChildren: [
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.copy),
@@ -208,16 +208,15 @@ class _ComicDetailsState extends State<ComicDetails>
                                 constraints: const BoxConstraints(
                                   minHeight: 40,
                                 ),
-                                child:
-                                    value != null
-                                        ? FilledButton.tonalIcon(
-                                          onPressed: () => _startRead(),
-                                          label: const Text('从头开始'),
-                                        )
-                                        : FilledButton(
-                                          onPressed: () => _startRead(),
-                                          child: const Text('开始阅读'),
-                                        ),
+                                child: value != null
+                                    ? FilledButton.tonalIcon(
+                                        onPressed: () => _startRead(),
+                                        label: const Text('从头开始'),
+                                      )
+                                    : FilledButton(
+                                        onPressed: () => _startRead(),
+                                        child: const Text('开始阅读'),
+                                      ),
                               ),
                             ),
                             if (value != null)
@@ -227,11 +226,10 @@ class _ComicDetailsState extends State<ComicDetails>
                                     minHeight: 40,
                                   ),
                                   child: FilledButton(
-                                    onPressed:
-                                        () => _startRead(
-                                          chapterId: value.chapterId,
-                                          pageNo: value.pageNo,
-                                        ),
+                                    onPressed: () => _startRead(
+                                      chapterId: value.chapterId,
+                                      pageNo: value.pageNo,
+                                    ),
                                     child: const Text('继续阅读'),
                                   ),
                                 ),
@@ -292,18 +290,16 @@ class _ComicDetailsState extends State<ComicDetails>
                 overflow: TextOverflow.ellipsis,
               ),
               InfoRow(
-                onTap:
-                    (data?.author == null || data!.author.isEmpty)
-                        ? null
-                        : () => context.push('/comics?a=${data.author}'),
+                onTap: (data?.author == null || data!.author.isEmpty)
+                    ? null
+                    : () => context.push('/comics?a=${data.author}'),
                 data: data?.author,
                 icon: Icons.person,
               ),
               InfoRow(
-                onTap:
-                    (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
-                        ? null
-                        : () => context.push('/comics?ct=${data.chineseTeam}'),
+                onTap: (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
+                    ? null
+                    : () => context.push('/comics?ct=${data.chineseTeam}'),
                 data: data?.chineseTeam,
                 icon: Icons.translate,
               ),
@@ -369,11 +365,10 @@ class _ComicDetailsState extends State<ComicDetails>
                   avatar: const Icon(Icons.bookmark),
                   shape: const StadiumBorder(),
                   label: const Text('继续阅读'),
-                  onPressed:
-                      () => _startRead(
-                        chapterId: value.chapterId,
-                        pageNo: value.pageNo,
-                      ),
+                  onPressed: () => _startRead(
+                    chapterId: value.chapterId,
+                    pageNo: value.pageNo,
+                  ),
                 ),
               LikedAction(isLiked: data?.isLiked ?? false, id: widget.id),
               CollectAction(
@@ -384,12 +379,11 @@ class _ComicDetailsState extends State<ComicDetails>
                 avatar: const Icon(Icons.comment),
                 shape: const StadiumBorder(),
                 label: Text('${data?.commentsCount}'),
-                onPressed:
-                    data?.allowComment ?? true
-                        ? () {
-                          context.push('/comments/${widget.id}');
-                        }
-                        : null,
+                onPressed: data?.allowComment ?? true
+                    ? () {
+                        context.push('/comments/${widget.id}');
+                      }
+                    : null,
               ),
               ActionChip(
                 avatar: const Icon(Icons.download),
@@ -449,6 +443,7 @@ class _ComicDetailsState extends State<ComicDetails>
                 onPressed: () {
                   context.pop();
                   contains ? helper.delete(tag) : helper.insert(tag);
+                  BlockedStream.notify();
                   Toast.show(message: contains ? '已取消屏蔽「$tag」' : '已屏蔽「$tag」');
                 },
                 child: const Text('确定'),
@@ -517,34 +512,37 @@ class _ComicDetailsState extends State<ComicDetails>
         return value == null
             ? const SizedBox.shrink()
             : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(10)),
-                color: context.colorScheme.surfaceContainerHighest,
-              ),
-              child: Row(
-                spacing: 10,
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.bookmark,
-                    color: context.colorScheme.primary,
-                    size: 18,
-                  ),
-                  Expanded(
-                    child: Text(
-                      '上次阅读到${value.chapterTitle} P${value.pageNo + 1}',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colorScheme.primary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  color: context.colorScheme.surfaceContainerHighest,
+                ),
+                child: Row(
+                  spacing: 10,
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.bookmark,
+                      color: context.colorScheme.primary,
+                      size: 18,
                     ),
-                  ),
-                ],
-              ),
-            );
+                    Expanded(
+                      child: Text(
+                        '上次阅读到${value.chapterTitle} P${value.pageNo + 1}',
+                        style: context.textTheme.bodyMedium?.copyWith(
+                          color: context.colorScheme.primary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              );
       },
     );
   }

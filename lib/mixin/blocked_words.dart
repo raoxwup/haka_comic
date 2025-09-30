@@ -1,6 +1,15 @@
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/database/word_block_helper.dart';
+
+class BlockedStream {
+  static final _controller = StreamController<void>.broadcast();
+
+  static Stream<void> get stream => _controller.stream;
+
+  static void notify() => _controller.add(null);
+}
 
 mixin BlockedWordsMixin<T extends StatefulWidget> on State<T> {
   final _tagBlockHelper = TagBlockHelper();
