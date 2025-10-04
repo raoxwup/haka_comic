@@ -440,9 +440,11 @@ class _ComicDetailsState extends State<ComicDetails>
                 child: const Text('取消'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   context.pop();
-                  contains ? helper.delete(tag) : helper.insert(tag);
+                  contains
+                      ? await helper.delete(tag)
+                      : await helper.insert(tag);
                   BlockedStream.notify();
                   Toast.show(message: contains ? '已取消屏蔽「$tag」' : '已屏蔽「$tag」');
                 },

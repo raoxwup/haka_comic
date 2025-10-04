@@ -15,7 +15,6 @@ class ListItem extends StatelessWidget {
     this.onSecondaryTapDown,
     this.onLongPress,
     this.onSecondaryTap,
-    required this.blockedWords,
   });
 
   final Doc doc;
@@ -30,27 +29,9 @@ class ListItem extends StatelessWidget {
 
   final void Function()? onSecondaryTap;
 
-  final String? blockedWords;
-
   @override
   Widget build(BuildContext context) {
     final item = doc;
-
-    if (blockedWords != null) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            color: context.colorScheme.inversePrimary.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '已屏蔽: $blockedWords',
-            style: context.textTheme.labelLarge,
-          ),
-        ),
-      );
-    }
 
     return Stack(
       children: [
@@ -66,14 +47,14 @@ class ListItem extends StatelessWidget {
             onSecondaryTap: onSecondaryTap,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              decoration:
-                  isSelected
-                      ? BoxDecoration(
-                        color: context.colorScheme.secondaryContainer
-                            .withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(12),
-                      )
-                      : null,
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: context.colorScheme.secondaryContainer.withValues(
+                        alpha: 0.65,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    )
+                  : null,
               child: Row(
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -8,34 +8,13 @@ import 'package:haka_comic/widgets/tag.dart';
 
 /// 特别用于搜索展示的item
 class SearchListItem extends StatelessWidget {
-  const SearchListItem({
-    super.key,
-    required this.comic,
-    required this.blockedWords,
-  });
+  const SearchListItem({super.key, required this.comic});
 
   final SearchComic comic;
-
-  final String? blockedWords;
 
   @override
   Widget build(BuildContext context) {
     final item = comic;
-    if (blockedWords != null) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            color: context.colorScheme.inversePrimary.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '已屏蔽: $blockedWords',
-            style: context.textTheme.labelLarge,
-          ),
-        ),
-      );
-    }
 
     return Stack(
       children: [
@@ -43,7 +22,7 @@ class SearchListItem extends StatelessWidget {
           child: InkWell(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             onTap: () {
-              context.push('/details/${item.id}');
+              context.push('/details/${item.uid}');
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),

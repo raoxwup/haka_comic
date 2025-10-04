@@ -28,6 +28,9 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
   bool get hasMore => _comics.length < _comicsCount;
 
   @override
+  List<ComicBase> get comics => _comics;
+
+  @override
   void initState() {
     super.initState();
 
@@ -55,6 +58,7 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
     setState(() {
       _comics = comics;
       _page = 1;
+      filterComics();
     });
   }
 
@@ -62,6 +66,7 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
     final comics = await _helper.query(page);
     setState(() {
       _comics.addAll(comics);
+      filterComics();
     });
   }
 
@@ -127,9 +132,7 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
       ),
       body: CommonTMIList(
         controller: _scrollController,
-        comics: _comics,
-        blockedTags: blockedTags,
-        blockedWords: blockedWords,
+        comics: filteredComics.cast<Doc>(),
         onTapDown: (details) => _details = details,
         onLongPress: (item) {
           _showContextMenu(context, _details.globalPosition, item);
@@ -148,8 +151,8 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
 
     // 创建相对位置矩形
     final position = RelativeRect.fromRect(
-      Rect.fromLTWH(offset.dx, offset.dy, 1, 1), // 点击位置创建1x1矩形
-      Offset.zero & screenSize, // 整个屏幕区域
+      Rect.fromLTWH(offset.dx, offset.dy, 1, 1),
+      Offset.zero & screenSize,
     );
 
     // 显示菜单
@@ -186,7 +189,8 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
         setState(() {
           _comics.removeWhere((comic) => comic.uid == item.uid);
           _comicsCount--;
-          if (_comics.isEmpty) {
+          filterComics();
+          if (filteredComics.isEmpty) {
             _page = 1; // 重置页码
           }
         });

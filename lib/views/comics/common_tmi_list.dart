@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comics/list_item.dart';
 import 'package:haka_comic/views/comics/simple_list_item.dart';
 import 'package:haka_comic/views/comics/tmi_list.dart';
@@ -11,8 +10,6 @@ class CommonTMIList extends StatelessWidget {
   const CommonTMIList({
     super.key,
     required this.comics,
-    required this.blockedTags,
-    required this.blockedWords,
     this.isSelected = false,
     this.onTapDown,
     this.onSecondaryTapDown,
@@ -41,10 +38,6 @@ class CommonTMIList extends StatelessWidget {
 
   final ScrollController? controller;
 
-  final List<String> blockedTags;
-
-  final List<String> blockedWords;
-
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
 
   @override
@@ -57,39 +50,25 @@ class CommonTMIList extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = comics[index];
         final key = ValueKey(item.uid);
-        // 屏蔽的tag
-        final tag = item.tags.firstWhereOrNull(
-          (item) => blockedTags.contains(item),
-        );
-        // 屏蔽的分类
-        final category = item.categories.firstWhereOrNull(
-          (item) => AppConf().blacklist.contains(item),
-        );
-        // 屏蔽的标题关键词
-        final word = blockedWords.firstWhereOrNull(
-          (word) => item.title.contains(word),
-        );
         return isSimpleMode
             ? SimpleListItem(
-              doc: item,
-              key: key,
-              isSelected: isSelected,
-              onTapDown: onTapDown,
-              onSecondaryTapDown: onSecondaryTapDown,
-              onLongPress: onLongPress,
-              onSecondaryTap: onSecondaryTap,
-              blockedWords: category ?? tag ?? word,
-            )
+                doc: item,
+                key: key,
+                isSelected: isSelected,
+                onTapDown: onTapDown,
+                onSecondaryTapDown: onSecondaryTapDown,
+                onLongPress: onLongPress,
+                onSecondaryTap: onSecondaryTap,
+              )
             : ListItem(
-              doc: item,
-              key: key,
-              isSelected: isSelected,
-              onTapDown: onTapDown,
-              onSecondaryTapDown: onSecondaryTapDown,
-              onLongPress: onLongPress,
-              onSecondaryTap: onSecondaryTap,
-              blockedWords: category ?? tag ?? word,
-            );
+                doc: item,
+                key: key,
+                isSelected: isSelected,
+                onTapDown: onTapDown,
+                onSecondaryTapDown: onSecondaryTapDown,
+                onLongPress: onLongPress,
+                onSecondaryTap: onSecondaryTap,
+              );
       },
     );
   }

@@ -47,10 +47,9 @@ Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
 
 CategoriesResponse _$CategoriesResponseFromJson(Map<String, dynamic> json) =>
     CategoriesResponse(
-      categories:
-          (json['categories'] as List<dynamic>)
-              .map((e) => Category.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      categories: (json['categories'] as List<dynamic>)
+          .map((e) => Category.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$CategoriesResponseToJson(CategoriesResponse instance) =>
@@ -58,8 +57,9 @@ Map<String, dynamic> _$CategoriesResponseToJson(CategoriesResponse instance) =>
 
 Doc _$DocFromJson(Map<String, dynamic> json) => Doc(
   author: json['author'] as String? ?? '',
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
   id: json['id'] as String?,
@@ -91,10 +91,9 @@ Map<String, dynamic> _$DocToJson(Doc instance) => <String, dynamic>{
 };
 
 Comics _$ComicsFromJson(Map<String, dynamic> json) => Comics(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   limit: (json['limit'] as num).toInt(),
   page: (json['page'] as num).toInt(),
   pages: (json['pages'] as num).toInt(),
@@ -119,12 +118,12 @@ Map<String, dynamic> _$ComicsResponseToJson(ComicsResponse instance) =>
 
 Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   id: json['_id'] as String,
-  avatar:
-      json['avatar'] == null
-          ? null
-          : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  avatar: json['avatar'] == null
+      ? null
+      : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  characters: (json['characters'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   exp: (json['exp'] as num?)?.toInt() ?? 0,
   gender: json['gender'] as String,
   level: (json['level'] as num).toInt(),
@@ -149,8 +148,9 @@ Map<String, dynamic> _$CreatorToJson(Creator instance) => <String, dynamic>{
 
 Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
   author: json['author'] as String,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   chineseTeam: json['chineseTeam'] as String? ?? '',
   created_at: json['created_at'] as String,
   description: json['description'] as String? ?? '',
@@ -229,10 +229,9 @@ Map<String, dynamic> _$ChapterToJson(Chapter instance) => <String, dynamic>{
 };
 
 Chapters _$ChaptersFromJson(Map<String, dynamic> json) => Chapters(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Chapter.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: (json['page'] as num).toInt(),
@@ -264,10 +263,9 @@ RecommendComic _$RecommendComicFromJson(Map<String, dynamic> json) =>
       pagesCount: (json['pagesCount'] as num?)?.toInt() ?? 0,
       epsCount: (json['epsCount'] as num?)?.toInt() ?? 0,
       finished: json['finished'] as bool,
-      categories:
-          (json['categories'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      categories: (json['categories'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
     );
 
@@ -286,10 +284,9 @@ Map<String, dynamic> _$RecommendComicToJson(RecommendComic instance) =>
 
 RecommendComics _$RecommendComicsFromJson(Map<String, dynamic> json) =>
     RecommendComics(
-      comics:
-          (json['comics'] as List<dynamic>)
-              .map((e) => RecommendComic.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      comics: (json['comics'] as List<dynamic>)
+          .map((e) => RecommendComic.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$RecommendComicsToJson(RecommendComics instance) =>
@@ -332,10 +329,9 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
 };
 
 Comments _$CommentsFromJson(Map<String, dynamic> json) => Comments(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Comment.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Comment.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num?)?.toInt() ?? 20,
   page: Comments._pageFormat(json['page']),
@@ -392,10 +388,9 @@ Map<String, dynamic> _$SubCommentToJson(SubComment instance) =>
     };
 
 SubComments _$SubCommentsFromJson(Map<String, dynamic> json) => SubComments(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => SubComment.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => SubComment.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: json['page'] as String,
@@ -429,16 +424,16 @@ SearchComic _$SearchComicFromJson(Map<String, dynamic> json) => SearchComic(
   created_at: json['created_at'] as String,
   finished: json['finished'] as bool,
   totalViews: (json['totalViews'] as num?)?.toInt(),
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   totalLikes: SearchComic._totalLikesFromJson(json['totalLikes']),
   title: json['title'] as String,
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
-  id: json['_id'] as String,
-  likesCount:
-      json['likesCount'] == null
-          ? 0
-          : SearchComic._likesCountFromJson(json['likesCount']),
+  uid: json['_id'] as String,
+  likesCount: json['likesCount'] == null
+      ? 0
+      : SearchComic._likesCountFromJson(json['likesCount']),
 );
 
 Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
@@ -455,15 +450,14 @@ Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
       'totalLikes': instance.totalLikes,
       'title': instance.title,
       'tags': instance.tags,
-      '_id': instance.id,
+      '_id': instance.uid,
       'likesCount': instance.likesCount,
     };
 
 SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) => SearchComics(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: (json['page'] as num).toInt(),
@@ -502,10 +496,9 @@ Map<String, dynamic> _$ChapterImageToJson(ChapterImage instance) =>
 
 ChaptersImages _$ChaptersImagesFromJson(Map<String, dynamic> json) =>
     ChaptersImages(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => ChapterImage.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => ChapterImage.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: (json['total'] as num).toInt(),
       limit: (json['limit'] as num).toInt(),
       page: (json['page'] as num).toInt(),
@@ -547,8 +540,9 @@ HistoryDoc _$HistoryDocFromJson(Map<String, dynamic> json) => HistoryDoc(
   pagesCount: (json['pagesCount'] as num).toInt(),
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   thumb: ImageDetail.fromJson(json['thumb'] as Map<String, dynamic>),
   likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
   uid: json['_id'] as String,
@@ -603,10 +597,9 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
           .toList() ??
       [],
   created_at: json['created_at'] as String? ?? '',
-  avatar:
-      json['avatar'] == null
-          ? null
-          : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
+  avatar: json['avatar'] == null
+      ? null
+      : ImageDetail.fromJson(json['avatar'] as Map<String, dynamic>),
   isPunched: json['isPunched'] as bool? ?? false,
   character: json['character'] as String? ?? '',
   comicsUploaded: (json['comicsUploaded'] as num?)?.toInt() ?? 0,
@@ -633,10 +626,9 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
 
 ComicRankResponse _$ComicRankResponseFromJson(Map<String, dynamic> json) =>
     ComicRankResponse(
-      comics:
-          (json['comics'] as List<dynamic>)
-              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      comics: (json['comics'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$ComicRankResponseToJson(ComicRankResponse instance) =>
@@ -644,10 +636,9 @@ Map<String, dynamic> _$ComicRankResponseToJson(ComicRankResponse instance) =>
 
 KnightRankResponse _$KnightRankResponseFromJson(Map<String, dynamic> json) =>
     KnightRankResponse(
-      users:
-          (json['users'] as List<dynamic>)
-              .map((e) => User.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      users: (json['users'] as List<dynamic>)
+          .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$KnightRankResponseToJson(KnightRankResponse instance) =>
@@ -656,10 +647,9 @@ Map<String, dynamic> _$KnightRankResponseToJson(KnightRankResponse instance) =>
 RandomComicsResponse _$RandomComicsResponseFromJson(
   Map<String, dynamic> json,
 ) => RandomComicsResponse(
-  comics:
-      (json['comics'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  comics: (json['comics'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$RandomComicsResponseToJson(
@@ -678,14 +668,12 @@ PersonalComment _$PersonalCommentFromJson(Map<String, dynamic> json) =>
     PersonalComment(
       uid: json['_id'] as String,
       content: json['content'] as String,
-      comic:
-          json['_comic'] == null
-              ? null
-              : Source.fromJson(json['_comic'] as Map<String, dynamic>),
-      game:
-          json['_game'] == null
-              ? null
-              : Source.fromJson(json['_game'] as Map<String, dynamic>),
+      comic: json['_comic'] == null
+          ? null
+          : Source.fromJson(json['_comic'] as Map<String, dynamic>),
+      game: json['_game'] == null
+          ? null
+          : Source.fromJson(json['_game'] as Map<String, dynamic>),
       totalComments: (json['totalComments'] as num?)?.toInt(),
       hide: json['hide'] as bool? ?? false,
       created_at: json['created_at'] as String,
@@ -712,10 +700,9 @@ Map<String, dynamic> _$PersonalCommentToJson(PersonalComment instance) =>
 
 PersonalComments _$PersonalCommentsFromJson(Map<String, dynamic> json) =>
     PersonalComments(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => PersonalComment.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => PersonalComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
       pages: (json['pages'] as num).toInt(),
       total: (json['total'] as num).toInt(),
       limit: (json['limit'] as num).toInt(),
@@ -744,8 +731,9 @@ Map<String, dynamic> _$PersonalCommentsResponseToJson(
 HotSearchWordsResponse _$HotSearchWordsResponseFromJson(
   Map<String, dynamic> json,
 ) => HotSearchWordsResponse(
-  keywords:
-      (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
+  keywords: (json['keywords'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$HotSearchWordsResponseToJson(
@@ -766,10 +754,9 @@ Map<String, dynamic> _$NotificationsResponseToJson(
 
 NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
     NotificationsData(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
+          .toList(),
       limit: (json['limit'] as num).toInt(),
       page: (json['page'] as num).toInt(),
       pages: (json['pages'] as num).toInt(),
@@ -788,10 +775,9 @@ Map<String, dynamic> _$NotificationsDataToJson(NotificationsData instance) =>
 NotificationDoc _$NotificationDocFromJson(Map<String, dynamic> json) =>
     NotificationDoc(
       content: json['content'] as String,
-      cover:
-          json['cover'] == null
-              ? null
-              : ImageDetail.fromJson(json['cover'] as Map<String, dynamic>),
+      cover: json['cover'] == null
+          ? null
+          : ImageDetail.fromJson(json['cover'] as Map<String, dynamic>),
       createdAt: json['created_at'] as String,
       uid: json['_id'] as String,
       id: json['id'] as String,
@@ -822,8 +808,9 @@ Map<String, dynamic> _$NotificationDocToJson(NotificationDoc instance) =>
 
 InitResponse _$InitResponseFromJson(Map<String, dynamic> json) => InitResponse(
   status: json['status'] as String,
-  addresses:
-      (json['addresses'] as List<dynamic>).map((e) => e as String).toList(),
+  addresses: (json['addresses'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   waka: json['waka'] as String,
   adKeyword: json['adKeyword'] as String,
 );

@@ -62,10 +62,9 @@ class ImageDetail {
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
 
   // 直连
-  String get directUrl =>
-      fileServer.contains('static')
-          ? '$fileServer$path'
-          : '$fileServer/static/$path';
+  String get directUrl => fileServer.contains('static')
+      ? '$fileServer$path'
+      : '$fileServer/static/$path';
 
   // web代理
   String get proxyUrl => directUrl.replaceFirst('picacomic', 'go2778');
@@ -176,35 +175,45 @@ class ComicsPayload {
 }
 
 @JsonSerializable()
-class Doc {
+class Doc extends ComicBase {
+  @override
   @JsonKey(name: '_id')
   final String uid;
 
+  @override
   final String title;
 
+  @override
   @JsonKey(defaultValue: '')
   final String author;
 
+  @override
   @JsonKey(defaultValue: 0)
   final int totalViews;
 
+  @override
   final int? totalLikes;
 
   final int pagesCount;
 
   final int epsCount;
 
+  @override
   final bool finished;
 
+  @override
   final List<String> categories;
 
+  @override
   final ImageDetail thumb;
 
   final String? id;
 
+  @override
   @JsonKey(defaultValue: 0)
   final int likesCount;
 
+  @override
   @JsonKey(defaultValue: [])
   final List<String> tags;
 
@@ -774,11 +783,13 @@ class SearchPayload {
 }
 
 @JsonSerializable()
-class SearchComic {
+class SearchComic extends ComicBase {
   final String updated_at;
 
+  @override
   final ImageDetail thumb;
 
+  @override
   @JsonKey(defaultValue: '??')
   final String author;
 
@@ -788,23 +799,31 @@ class SearchComic {
 
   final String created_at;
 
+  @override
   final bool finished;
 
+  @override
   final int? totalViews;
 
+  @override
   final List<String> categories;
 
+  @override
   @JsonKey(fromJson: _totalLikesFromJson)
   final int? totalLikes;
 
+  @override
   final String title;
 
+  @override
   final List<String> tags;
 
+  @override
   @JsonKey(name: '_id')
-  final String id;
+  final String uid;
 
   // 这个字段还有返回String的 ......
+  @override
   @JsonKey(defaultValue: 0, fromJson: _likesCountFromJson)
   final int likesCount;
 
@@ -833,7 +852,7 @@ class SearchComic {
     required this.totalLikes,
     required this.title,
     required this.tags,
-    required this.id,
+    required this.uid,
     required this.likesCount,
   });
 
@@ -1424,4 +1443,17 @@ class InitResponse {
   factory InitResponse.fromJson(Map<String, dynamic> json) =>
       _$InitResponseFromJson(json);
   Map<String, dynamic> toJson() => _$InitResponseToJson(this);
+}
+
+abstract class ComicBase {
+  String get uid;
+  String get title;
+  String get author;
+  List<String> get categories;
+  List<String> get tags;
+  ImageDetail get thumb;
+  bool get finished;
+  int? get totalViews;
+  int? get totalLikes;
+  int get likesCount;
 }

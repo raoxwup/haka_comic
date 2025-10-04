@@ -29,6 +29,7 @@ class _FavoritesState extends State<Favorites>
         } else {
           _comics = data.comics.docs;
         }
+        filterComics();
       });
     },
     onError: (e, _) {
@@ -51,6 +52,9 @@ class _FavoritesState extends State<Favorites>
   List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
+  List<ComicBase> get comics => _comics;
+
+  @override
   Future<void> loadMore() async {
     final pages = _handler.data?.comics.pages ?? 1;
     if (_page >= pages) return;
@@ -70,6 +74,7 @@ class _FavoritesState extends State<Favorites>
       _page = 1;
       _sortType = sortType;
       _comics = [];
+      filterComics();
     });
     _handler.run(UserFavoritePayload(page: 1, sort: sortType));
   }
@@ -130,58 +135,52 @@ class _FavoritesState extends State<Favorites>
               ),
             ],
           ),
-          body:
-              pagination
-                  ? BasePage(
-                    isLoading: _handler.isLoading,
-                    onRetry: _handler.refresh,
-                    error: _handler.error,
-                    child: CommonTMIList(
-                      comics: _comics,
-                      blockedTags: blockedTags,
-                      blockedWords: blockedWords,
-                      pageSelectorBuilder: (context) {
-                        return PageSelector(
-                          currentPage: _page,
-                          pages: pages,
-                          onPageChange: _onPageChange,
-                        );
-                      },
-                    ),
-                  )
-                  : BasePage(
-                    isLoading: false,
-                    onRetry: _handler.refresh,
-                    error: _handler.error,
-                    child: CommonTMIList(
-                      comics: _comics,
-                      controller: scrollController,
-                      blockedTags: blockedTags,
-                      blockedWords: blockedWords,
-                      footerBuilder: (context) {
-                        final loading = _handler.isLoading;
-                        return SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child:
-                                  loading
-                                      ? CircularProgressIndicator(
-                                        constraints: BoxConstraints.tight(
-                                          const Size(28, 28),
-                                        ),
-                                        strokeWidth: 3,
-                                      )
-                                      : Text(
-                                        '没有更多数据了',
-                                        style: context.textTheme.bodySmall,
-                                      ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+          body: pagination
+              ? BasePage(
+                  isLoading: _handler.isLoading,
+                  onRetry: _handler.refresh,
+                  error: _handler.error,
+                  child: CommonTMIList(
+                    comics: filteredComics.cast<Doc>(),
+                    pageSelectorBuilder: (context) {
+                      return PageSelector(
+                        currentPage: _page,
+                        pages: pages,
+                        onPageChange: _onPageChange,
+                      );
+                    },
                   ),
+                )
+              : BasePage(
+                  isLoading: false,
+                  onRetry: _handler.refresh,
+                  error: _handler.error,
+                  child: CommonTMIList(
+                    comics: filteredComics.cast<Doc>(),
+                    controller: scrollController,
+                    footerBuilder: (context) {
+                      final loading = _handler.isLoading;
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: loading
+                                ? CircularProgressIndicator(
+                                    constraints: BoxConstraints.tight(
+                                      const Size(28, 28),
+                                    ),
+                                    strokeWidth: 3,
+                                  )
+                                : Text(
+                                    '没有更多数据了',
+                                    style: context.textTheme.bodySmall,
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
         );
       },
     );

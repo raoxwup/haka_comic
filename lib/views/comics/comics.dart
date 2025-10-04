@@ -49,6 +49,7 @@ class _ComicsState extends State<Comics>
         } else {
           _comics = data.comics.docs;
         }
+        filterComics();
       });
     },
     onError: (e, _) {
@@ -58,6 +59,9 @@ class _ComicsState extends State<Comics>
 
   @override
   List<AsyncRequestHandler> registerHandler() => [handler];
+
+  @override
+  List<ComicBase> get comics => _comics;
 
   @override
   Future<void> loadMore() async {
@@ -129,10 +133,8 @@ class _ComicsState extends State<Comics>
             onRetry: handler.refresh,
             error: handler.error,
             child: CommonTMIList(
-              controller: scrollController,
-              comics: _comics,
-              blockedTags: blockedTags,
-              blockedWords: blockedWords,
+              controller: pagination ? null : scrollController,
+              comics: filteredComics.cast<Doc>(),
               pageSelectorBuilder: pagination
                   ? (context) {
                       return PageSelector(
@@ -178,6 +180,7 @@ class _ComicsState extends State<Comics>
       sortType = type;
       page = 1;
       _comics = [];
+      filterComics();
     });
     handler.run(
       ComicsPayload(
