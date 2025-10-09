@@ -34,6 +34,34 @@ class _TagBlockState extends State<TagBlock> {
     super.dispose();
   }
 
+  Future<void> _unblockTag(String tag) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('取消屏蔽'),
+          content: Text('确定要取消对「$tag」的屏蔽吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.pop(true);
+              },
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirm == true) {
+      await helper.delete(tag);
+      Toast.show(message: '已取消屏蔽「$tag」');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +80,7 @@ class _TagBlockState extends State<TagBlock> {
                 await helper.delete(tag);
               },
             ),
+            onLongPress: () => _unblockTag(tag),
           );
         },
       ),

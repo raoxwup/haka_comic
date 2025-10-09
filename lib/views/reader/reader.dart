@@ -19,6 +19,7 @@ import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart'
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:volume_key_board/volume_key_board.dart';
 
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
@@ -149,6 +150,61 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     }
   }
 
+  /// 上一页
+  void _previousPage() {
+    if (_readMode == ReadMode.vertical) {
+      if (context.reader.pageNo == 0) {
+        if (!context.reader.isFirstChapter) goPrevious();
+        return;
+      }
+      _itemScrollController.scrollTo(
+        index: context.reader.pageNo - 1,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      final page = isDoublePage
+          ? toCorrectMultiPageNo(context.reader.pageNo, 2)
+          : context.reader.pageNo;
+      if (page == 0) {
+        if (!context.reader.isFirstChapter) goPrevious();
+        return;
+      }
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  /// 下一页
+  void _nextPage() {
+    final total = isDoublePage ? _multiPageImages.length : _images.length;
+    if (_readMode == ReadMode.vertical) {
+      if (context.reader.pageNo >= total - 1) {
+        if (!context.reader.isLastChapter) goNext();
+        return;
+      }
+      _itemScrollController.scrollTo(
+        index: context.reader.pageNo + 1,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      final page = isDoublePage
+          ? toCorrectMultiPageNo(context.reader.pageNo, 2)
+          : context.reader.pageNo;
+      if (page >= total - 1) {
+        if (!context.reader.isLastChapter) goNext();
+        return;
+      }
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -162,6 +218,15 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
 
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+
+    // 添加音量键监听
+    VolumeKeyBoard.instance.addListener((event) {
+      if (event == VolumeKey.up) {
+        _previousPage();
+      } else if (event == VolumeKey.down) {
+        _nextPage();
+      }
+    });
   }
 
   @override
@@ -169,6 +234,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
+    VolumeKeyBoard.instance.removeListener();
     super.dispose();
   }
 
