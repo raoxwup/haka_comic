@@ -2,8 +2,16 @@ name: Cross-Platform Build
 
 on:
   push:
-    branches: [main]
-
+    branches: 
+      - main
+      - develop       
+      - feature/** # 覆盖 branches/feature/login 等
+      - feat/** # 核心修改：现在覆盖 branches/feat/login 等，满足您的需求。
+  
+  pull_request:
+    # 监听向 main 或 develop 提交的 PR
+    branches: [main, develop]
+    
 jobs:
   android-build:
     name: Android Build
@@ -26,6 +34,7 @@ jobs:
           flutter-version-file: pubspec.yaml
 
       - name: Create key.properties
+        # 注意：这些 Secrets (STORE_PASSWORD, ANDROID_KEYSTORE 等) 必须在您的 GitHub 仓库设置中配置。
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
@@ -95,6 +104,7 @@ jobs:
 
       - name: Build unsigned IPA
         run: |
+          # 注意：此构建是 --no-codesign，这意味着它不能直接用于 App Store 或真机调试。
           flutter build ios --release --no-codesign
           mkdir -p build/ios/iphoneos/Payload
           mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
@@ -251,3 +261,4 @@ jobs:
             name: macos-app
             path: build/macos/Build/Products/Release/*.zip
             retention-days: 5
+
