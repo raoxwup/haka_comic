@@ -2,8 +2,16 @@ name: Cross-Platform Build
 
 on:
   push:
+    # 核心修改：放宽了触发条件。
+    # 现在不仅在推送到 main 时运行，在推送到任何 feature/xxx 分支时也会运行。
+    branches: 
+      - main
+      - feature/**
+  
+  # 推荐添加 Pull Request 触发，以在合并前进行审查和构建。
+  pull_request:
     branches: [main]
-
+    
 jobs:
   android-build:
     name: Android Build
@@ -251,3 +259,4 @@ jobs:
             name: macos-app
             path: build/macos/Build/Products/Release/*.zip
             retention-days: 5
+
