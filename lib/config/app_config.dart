@@ -22,9 +22,6 @@ class AppConf {
   /// 图片质量
   ImageQuality _imageQuality = ImageQuality.original;
 
-  /// 分流
-  Server _server = Server.one;
-
   /// 启动时是否检查更新
   bool _checkUpdate = true;
 
@@ -66,10 +63,9 @@ class AppConf {
     instance._email = prefs.getString('email') ?? '';
     instance._password = prefs.getString('password') ?? '';
     instance._token = prefs.getString('token') ?? '';
-    instance._imageQuality = getImageQuality(
-      prefs.getString('imageQuality') ?? 'original',
+    instance._imageQuality = ImageQuality.fromName(
+      prefs.getString('imageQuality'),
     );
-    instance._server = getServer(prefs.getString('server') ?? '1');
     instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
     instance._readMode = stringToReadMode(
       prefs.getString('readMode') ?? ReadMode.vertical.name,
@@ -106,11 +102,6 @@ class AppConf {
   set imageQuality(ImageQuality value) {
     _imageQuality = value;
     SharedPreferencesUtil.prefs.setString('imageQuality', value.name);
-  }
-
-  set server(Server value) {
-    _server = value;
-    SharedPreferencesUtil.prefs.setString('server', getServerName(value));
   }
 
   set checkUpdate(bool value) {
@@ -175,7 +166,6 @@ class AppConf {
   String get password => _password;
   String get token => _token;
   ImageQuality get imageQuality => _imageQuality;
-  Server get server => _server;
   bool get checkUpdate => _checkUpdate;
   ReadMode get readMode => _readMode;
   List<String> get blacklist => _blacklist;
@@ -200,7 +190,6 @@ class AppConf {
     _password = '';
     _token = '';
     _imageQuality = ImageQuality.original;
-    _server = Server.one;
     _checkUpdate = true;
     _readMode = ReadMode.vertical;
     _blacklist = [];

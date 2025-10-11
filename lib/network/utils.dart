@@ -8,54 +8,42 @@ const secretKey =
 const nonce = "4ce7a7aa759b40f794d189a88b84aba8";
 
 /// 图片质量
-enum ImageQuality { low, medium, high, original }
+enum ImageQuality {
+  low('低'),
+  medium('中'),
+  high('高'),
+  original('原画');
 
-String getImageQualityDisplayName(ImageQuality quality) {
-  return switch (quality) {
-    ImageQuality.low => '低',
-    ImageQuality.medium => '中',
-    ImageQuality.high => '高',
-    ImageQuality.original => '原画',
-  };
+  final String displayName;
+
+  const ImageQuality(this.displayName);
+
+  static ImageQuality fromName(String? name) {
+    return ImageQuality.values.firstWhere(
+      (quality) => quality.name == name,
+      orElse: () => original,
+    );
+  }
 }
 
-ImageQuality getImageQuality(String name) {
-  return switch (name) {
-    'low' => ImageQuality.low,
-    'medium' => ImageQuality.medium,
-    'high' => ImageQuality.high,
-    'original' => ImageQuality.original,
-    _ => ImageQuality.original,
-  };
-}
+// String getImageQualityDisplayName(ImageQuality quality) {
+//   return switch (quality) {
+//     ImageQuality.low => '低',
+//     ImageQuality.medium => '中',
+//     ImageQuality.high => '高',
+//     ImageQuality.original => '原画',
+//   };
+// }
 
-///选择分流
-enum Server { one, two, three }
-
-String getServerDisplayName(Server server) {
-  return switch (server) {
-    Server.one => '分流一',
-    Server.two => '分流二',
-    Server.three => '分流三',
-  };
-}
-
-String getServerName(Server server) {
-  return switch (server) {
-    Server.one => '1',
-    Server.two => '2',
-    Server.three => '3',
-  };
-}
-
-Server getServer(String name) {
-  return switch (name) {
-    '1' => Server.one,
-    '2' => Server.two,
-    '3' => Server.three,
-    _ => Server.one,
-  };
-}
+// ImageQuality getImageQuality(String name) {
+//   return switch (name) {
+//     'low' => ImageQuality.low,
+//     'medium' => ImageQuality.medium,
+//     'high' => ImageQuality.high,
+//     'original' => ImageQuality.original,
+//     _ => ImageQuality.original,
+//   };
+// }
 
 enum Api {
   app('app', 'APP', 'https://picaapi.picacomic.com/'),
@@ -88,24 +76,19 @@ Map<String, String> defaultHeaders = {
   "app-channel": '1',
 };
 
-enum Method { get, post, delete, put }
+enum Method {
+  get('GET'),
+  post('POST'),
+  delete('DELETE'),
+  put('PUT');
 
-String getMethod(Method method) {
-  switch (method) {
-    case Method.get:
-      return 'GET';
-    case Method.post:
-      return 'POST';
-    case Method.delete:
-      return 'DELETE';
-    case Method.put:
-      return 'PUT';
-  }
+  final String value;
+
+  const Method(this.value);
 }
 
 String getSignature(String url, String timestamp, String nonce, Method method) {
-  final key =
-      (url + timestamp + nonce + getMethod(method) + apiKey).toLowerCase();
+  final key = (url + timestamp + nonce + method.value + apiKey).toLowerCase();
   var hmac = Hmac(sha256, utf8.encode(secretKey));
   var digest = hmac.convert(utf8.encode(key));
   return digest.toString();
