@@ -39,7 +39,7 @@ dependencies:
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
   vector_math: ^2.2.0
-  # rhttp: ^0.13.0
+  volume_button_override: ^0.0.1
 
 dev_dependencies:
   flutter_test:

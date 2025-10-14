@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:volume_button_override/volume_button_override.dart';
 
 /// 条漫模式
 class VerticalList extends StatefulWidget {
@@ -58,6 +60,9 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     }
   }
 
+  /// 音量键控制器
+  final controller = VolumeButtonController();
+
   @override
   void initState() {
     super.initState();
@@ -65,11 +70,32 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
 
     _initImageSizeCache();
+
+    final volumeUpAction = ButtonAction(
+      id: ButtonActionId.volumeUp,
+      onAction: () {
+        jumpOffset(context.height * -0.5);
+      },
+    );
+
+    final volumeDownAction = ButtonAction(
+      id: ButtonActionId.volumeDown,
+      onAction: () {
+        jumpOffset(context.height * 0.5);
+      },
+    );
+
+    controller.startListening(
+      volumeUpAction: volumeUpAction,
+      volumeDownAction: volumeDownAction,
+    );
   }
 
   @override
   void dispose() {
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
+
+    controller.stopListening();
 
     super.dispose();
   }
@@ -78,7 +104,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   void jumpOffset(double offset) {
     scrollOffsetController.animateScroll(
       offset: offset,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
     );
   }
 
@@ -136,14 +162,12 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    final visibleIndices =
-        positions
-            .where(
-              (pos) =>
-                  pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
-            )
-            .map((position) => position.index)
-            .toList();
+    final visibleIndices = positions
+        .where(
+          (pos) => pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
+        )
+        .map((position) => position.index)
+        .toList();
 
     if (visibleIndices.isEmpty) return;
 

@@ -59,8 +59,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   void jumpToPage() {
     final reader = context.reader;
-    final initialIndex =
-        isDoublePage ? toCorrectMultiPageNo(reader.pageNo, 2) : reader.pageNo;
+    final initialIndex = isDoublePage
+        ? toCorrectMultiPageNo(reader.pageNo, 2)
+        : reader.pageNo;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.pageController.jumpToPage(initialIndex);
       _onPageChanged(initialIndex);
@@ -109,12 +110,12 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final dx = _tapDetails!.localPosition.dx;
 
     void previousPage() => widget.pageController.previousPage(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 200),
       curve: Curves.linear,
     );
 
     void nextPage() => widget.pageController.nextPage(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 200),
       curve: Curves.linear,
     );
 
@@ -141,10 +142,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               color: context.colorScheme.surfaceContainerLowest,
             ),
             scrollPhysics: const BouncingScrollPhysics(),
-            itemCount:
-                isDoublePage
-                    ? widget.multiPageImages.length
-                    : widget.images.length,
+            itemCount: isDoublePage
+                ? widget.multiPageImages.length
+                : widget.images.length,
             pageController: widget.pageController,
             onPageChanged: _onPageChanged,
             reverse: isReverse,
@@ -198,11 +198,10 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
             loadingBuilder: (context, event) {
               return Center(
                 child: CircularProgressIndicator(
-                  value:
-                      event?.expectedTotalBytes == null
-                          ? 0
-                          : event!.cumulativeBytesLoaded /
-                              event.expectedTotalBytes!,
+                  value: event?.expectedTotalBytes == null
+                      ? 0
+                      : event!.cumulativeBytesLoaded /
+                            event.expectedTotalBytes!,
                   strokeWidth: 3,
                   constraints: BoxConstraints.tight(const Size(28, 28)),
                   backgroundColor: Colors.grey.shade300,
@@ -219,29 +218,27 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   Widget buildPageImages(List<ChapterImage> images) {
     final correctImages = isReverse ? images.reversed.toList() : images;
-    final children =
-        correctImages.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          return Expanded(
-            child: Align(
-              alignment:
-                  index == 0 ? Alignment.centerRight : Alignment.centerLeft,
-              child: ComicImage.noUseCache(
-                url: item.media.url,
-                onImageSizeChanged: (width, height) {
-                  final size = ImageSize(
-                    width: width,
-                    height: height,
-                    imageId: item.uid,
-                    cid: cid,
-                  );
-                  insertImageSize(size);
-                },
-              ),
-            ),
-          );
-        }).toList();
+    final children = correctImages.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      return Expanded(
+        child: Align(
+          alignment: index == 0 ? Alignment.centerRight : Alignment.centerLeft,
+          child: ComicImage.noUseCache(
+            url: item.media.url,
+            onImageSizeChanged: (width, height) {
+              final size = ImageSize(
+                width: width,
+                height: height,
+                imageId: item.uid,
+                cid: cid,
+              );
+              insertImageSize(size);
+            },
+          ),
+        ),
+      );
+    }).toList();
     return Row(children: children);
   }
 
