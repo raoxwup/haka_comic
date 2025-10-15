@@ -67,20 +67,18 @@ class AppConf {
       prefs.getString('imageQuality'),
     );
     instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
-    instance._readMode = stringToReadMode(
-      prefs.getString('readMode') ?? ReadMode.vertical.name,
-    );
+    instance._readMode = ReadMode.fromName(prefs.getString('readMode'));
     instance._blacklist = prefs.getStringList('blacklist') ?? [];
     instance._visibleCategories =
         prefs.getStringList('visibleCategories') ?? [];
     instance._webdavUrl = prefs.getString('webdavUrl') ?? '';
     instance._webdavUser = prefs.getString('webdavUser') ?? '';
     instance._webdavPassword = prefs.getString('webdavPassword') ?? '';
-    instance._comicBlockMode = stringToComicBlockMode(
-      prefs.getString('comicBlockMode') ?? '详细',
+    instance._comicBlockMode = ComicBlockMode.fromDisplayName(
+      prefs.getString('comicBlockMode'),
     );
     instance._pagination = prefs.getBool('pagination') ?? true;
-    instance._api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
+    instance._api = Api.fromName(prefs.getString('api'));
     instance._scale = prefs.getDouble('scale') ?? 1.0;
   }
 
@@ -141,10 +139,7 @@ class AppConf {
 
   set comicBlockMode(ComicBlockMode value) {
     _comicBlockMode = value;
-    SharedPreferencesUtil.prefs.setString(
-      'comicBlockMode',
-      comicBlockModeToString(value),
-    );
+    SharedPreferencesUtil.prefs.setString('comicBlockMode', value.displayName);
   }
 
   set pagination(bool value) {
@@ -154,7 +149,7 @@ class AppConf {
 
   set api(Api value) {
     _api = value;
-    SharedPreferencesUtil.prefs.setString('api', value.value);
+    SharedPreferencesUtil.prefs.setString('api', value.name);
   }
 
   set scale(double value) {

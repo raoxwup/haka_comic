@@ -26,40 +26,16 @@ enum ImageQuality {
   }
 }
 
-// String getImageQualityDisplayName(ImageQuality quality) {
-//   return switch (quality) {
-//     ImageQuality.low => '低',
-//     ImageQuality.medium => '中',
-//     ImageQuality.high => '高',
-//     ImageQuality.original => '原画',
-//   };
-// }
-
-// ImageQuality getImageQuality(String name) {
-//   return switch (name) {
-//     'low' => ImageQuality.low,
-//     'medium' => ImageQuality.medium,
-//     'high' => ImageQuality.high,
-//     'original' => ImageQuality.original,
-//     _ => ImageQuality.original,
-//   };
-// }
-
 enum Api {
-  app('app', 'APP', 'https://picaapi.picacomic.com/'),
-  web('web', 'WEB', 'https://api.go2778.com/');
+  app('https://picaapi.picacomic.com/'),
+  web('https://api.go2778.com/');
 
-  final String value;
-  final String name;
   final String host;
 
-  const Api(this.value, this.name, this.host);
+  const Api(this.host);
 
-  static Api fromValue(String value) {
-    return Api.values.firstWhere(
-      (api) => api.value == value,
-      orElse: () => web,
-    );
+  static Api fromName(String? name) {
+    return Api.values.firstWhere((api) => api.name == name, orElse: () => web);
   }
 }
 

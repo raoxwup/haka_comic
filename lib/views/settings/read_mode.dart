@@ -18,22 +18,21 @@ class _ReadModeChangerState extends State<ReadModeChanger> {
     return MenuListTile.withValue(
       icon: Icons.chrome_reader_mode_outlined,
       title: '阅读模式',
-      value: readModeToString(_readMode),
-      items:
-          ReadMode.values.map((mode) {
-            return PopupMenuItem(
-              value: mode,
-              child: ListTile(
-                leading: Icon(
-                  _readMode == mode
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: Theme.of(context).primaryColor,
-                ),
-                title: Text(readModeToString(mode)),
-              ),
-            );
-          }).toList(),
+      value: _readMode.displayName,
+      items: ReadMode.values.map((mode) {
+        return PopupMenuItem(
+          value: mode,
+          child: ListTile(
+            leading: Icon(
+              _readMode == mode
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: Text(mode.displayName),
+          ),
+        );
+      }).toList(),
       onSelected: (value) {
         setState(() {
           _readMode = value;

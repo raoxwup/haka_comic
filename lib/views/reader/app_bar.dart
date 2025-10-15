@@ -40,24 +40,23 @@ class ReaderAppBar extends StatelessWidget {
           ),
           actions: [
             MenuAnchor(
-              menuChildren:
-                  ReadMode.values.map((mode) {
-                    return MenuItemButton(
-                      onPressed: () => onReadModeChanged(mode),
-                      child: Row(
-                        spacing: 5,
-                        children: [
-                          Text(readModeToString(mode)),
-                          if (mode == readMode)
-                            Icon(
-                              Icons.done,
-                              size: 16,
-                              color: context.colorScheme.primary,
-                            ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+              menuChildren: ReadMode.values.map((mode) {
+                return MenuItemButton(
+                  onPressed: () => onReadModeChanged(mode),
+                  child: Row(
+                    spacing: 5,
+                    children: [
+                      Text(mode.displayName),
+                      if (mode == readMode)
+                        Icon(
+                          Icons.done,
+                          size: 16,
+                          color: context.colorScheme.primary,
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
               builder: (context, controller, child) {
                 return IconButton(
                   icon: const Icon(Icons.chrome_reader_mode_outlined),
