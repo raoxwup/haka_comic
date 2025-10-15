@@ -9,6 +9,7 @@ import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/network.dart';
 import 'package:haka_comic/views/settings/pager.dart';
 import 'package:haka_comic/views/settings/read_mode.dart';
+import 'package:haka_comic/views/settings/slip_factor.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
 import 'package:haka_comic/views/settings/theme_color.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
@@ -65,7 +66,7 @@ class _SettingsState extends State<Settings> {
             children: [BrowseMode(), Pager(), ComicBlockScale()],
           ),
           const SizedBox(height: 20),
-          const Block(title: '阅读', children: [ReadModeChanger()]),
+          const Block(title: '阅读', children: [ReadModeChanger(), SlipFactor()]),
           const SizedBox(height: 20),
           Block(
             title: '备份',

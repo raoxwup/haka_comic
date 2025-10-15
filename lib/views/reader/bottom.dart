@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 
@@ -15,6 +16,7 @@ class ReaderBottom extends StatelessWidget {
     required this.action,
     required this.total,
     required this.pageNo,
+    required this.isVerticalMode,
   });
 
   final ValueChanged<int> onPageNoChanged;
@@ -28,6 +30,8 @@ class ReaderBottom extends StatelessWidget {
 
   /// 当前页
   final int pageNo;
+
+  final bool isVerticalMode;
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +84,49 @@ class ReaderBottom extends StatelessWidget {
                         foregroundColor: context.colorScheme.onSurface,
                       ),
                       label: const Text('章节'),
-                      icon: const Icon(Icons.menu),
+                      icon: const Icon(Icons.menu_outlined),
                     ),
+                    if (isVerticalMode)
+                      TextButton.icon(
+                        onPressed: () {
+                          final slipFactor = ValueNotifier(
+                            AppConf().slipFactor,
+                          );
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return SimpleDialog(
+                                contentPadding: const EdgeInsets.all(20),
+                                title: const Text('滑动距离'),
+                                children: [
+                                  const Text('用于调整阅读时翻页的滑动距离。'),
+                                  ValueListenableBuilder<double>(
+                                    valueListenable: slipFactor,
+                                    builder: (context, value, child) {
+                                      return Slider(
+                                        value: value * 10,
+                                        min: 3,
+                                        max: 10,
+                                        divisions: 7,
+                                        label: '$value * 屏高',
+                                        onChanged: (double value) {
+                                          slipFactor.value = value / 10;
+                                          AppConf().slipFactor = value / 10;
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: context.colorScheme.onSurface,
+                        ),
+                        label: const Text('滑动距离'),
+                        icon: const Icon(Icons.straighten_outlined),
+                      ),
                   ],
                 ),
               ),

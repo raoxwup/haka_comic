@@ -30,15 +30,15 @@ class _ComicBlockScaleState extends State<ComicBlockScale> {
           const SizedBox(height: 8),
           Slider(
             padding: const EdgeInsets.symmetric(horizontal: 0.0),
-            value: _scale,
-            max: 2.0,
-            min: 0.5,
+            value: _scale * 10,
+            max: 20,
+            min: 5,
             divisions: 15,
-            label: _scale.toString(),
+            label: '$_scale',
             onChanged: (double value) {
               setState(() {
-                _scale = value;
-                AppConf().scale = value;
+                _scale = value / 10;
+                AppConf().scale = value / 10;
               });
             },
           ),

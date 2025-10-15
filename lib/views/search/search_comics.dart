@@ -17,7 +17,6 @@ import 'package:haka_comic/views/search/simple_search_list_item.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/empty.dart';
 import 'package:provider/provider.dart';
 
 class SearchComics extends StatefulWidget {
@@ -144,43 +143,38 @@ class _SearchComicsState extends State<SearchComics>
 
   Widget _buildList(bool pagination) {
     final pages = _handler.data?.comics.pages ?? 1;
-    return filteredComics.isEmpty
-        ? const Empty()
-        : TMIList(
-            controller: pagination ? null : scrollController,
-            itemCount: filteredComics.length,
-            itemBuilder: _buildItem,
-            pageSelectorBuilder: pagination
-                ? (context) => PageSelector(
-                    currentPage: _page,
-                    pages: pages,
-                    onPageChange: _onPageChange,
-                  )
-                : null,
-            footerBuilder: pagination
-                ? null
-                : (context) {
-                    final loading = _handler.isLoading;
-                    return SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: loading
-                              ? CircularProgressIndicator(
-                                  constraints: BoxConstraints.tight(
-                                    const Size(28, 28),
-                                  ),
-                                  strokeWidth: 3,
-                                )
-                              : Text(
-                                  '没有更多数据了',
-                                  style: context.textTheme.bodySmall,
-                                ),
-                        ),
-                      ),
-                    );
-                  },
-          );
+    return TMIList(
+      controller: pagination ? null : scrollController,
+      itemCount: filteredComics.length,
+      itemBuilder: _buildItem,
+      pageSelectorBuilder: pagination
+          ? (context) => PageSelector(
+              currentPage: _page,
+              pages: pages,
+              onPageChange: _onPageChange,
+            )
+          : null,
+      footerBuilder: pagination
+          ? null
+          : (context) {
+              final loading = _handler.isLoading;
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: loading
+                        ? CircularProgressIndicator(
+                            constraints: BoxConstraints.tight(
+                              const Size(28, 28),
+                            ),
+                            strokeWidth: 3,
+                          )
+                        : Text('没有更多数据了', style: context.textTheme.bodySmall),
+                  ),
+                ),
+              );
+            },
+    );
   }
 
   Widget _buildItem(BuildContext context, int index) {

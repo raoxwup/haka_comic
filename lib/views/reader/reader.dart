@@ -190,27 +190,27 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
       ),
     );
 
-    Widget listWidget =
-        _readMode == ReadMode.vertical
-            ? VerticalList(
-              onItemVisibleChanged: onPageNoChanged,
-              itemScrollController: _itemScrollController,
-              openOrCloseToolbar: openOrCloseToolbar,
-              images: _images,
-            )
-            : HorizontalList(
-              onItemVisibleChanged: onPageNoChanged,
-              pageController: _pageController,
-              isDoublePage: isDoublePage,
-              openOrCloseToolbar: openOrCloseToolbar,
-              images: _images,
-              multiPageImages: _multiPageImages,
-              isReverse: isReverse,
-            );
+    Widget listWidget = _readMode == ReadMode.vertical
+        ? VerticalList(
+            onItemVisibleChanged: onPageNoChanged,
+            itemScrollController: _itemScrollController,
+            openOrCloseToolbar: openOrCloseToolbar,
+            images: _images,
+          )
+        : HorizontalList(
+            onItemVisibleChanged: onPageNoChanged,
+            pageController: _pageController,
+            isDoublePage: isDoublePage,
+            openOrCloseToolbar: openOrCloseToolbar,
+            images: _images,
+            multiPageImages: _multiPageImages,
+            isReverse: isReverse,
+          );
 
     final total = isDoublePage ? _multiPageImages.length : _images.length;
-    final correctPageNo =
-        isDoublePage ? toCorrectMultiPageNo(pageNo, 2) : context.reader.pageNo;
+    final correctPageNo = isDoublePage
+        ? toCorrectMultiPageNo(pageNo, 2)
+        : context.reader.pageNo;
 
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
@@ -254,6 +254,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             showToolbar: _showToolbar,
             total: total,
             pageNo: correctPageNo,
+            isVerticalMode: _readMode == ReadMode.vertical,
             action: (type) {
               return switch (type) {
                 ReaderBottomActionType.previous =>

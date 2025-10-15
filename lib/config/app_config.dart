@@ -55,6 +55,9 @@ class AppConf {
   /// 漫画块大小
   double _scale = 1.0;
 
+  /// 条漫模式下翻页滑动距离 [n] * 屏幕高度
+  double _slipFactor = 0.5;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -80,6 +83,7 @@ class AppConf {
     instance._pagination = prefs.getBool('pagination') ?? true;
     instance._api = Api.fromName(prefs.getString('api'));
     instance._scale = prefs.getDouble('scale') ?? 1.0;
+    instance._slipFactor = prefs.getDouble('slipFactor') ?? 0.5;
   }
 
   set email(String value) {
@@ -157,6 +161,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('scale', value);
   }
 
+  set slipFactor(double value) {
+    _slipFactor = value;
+    SharedPreferencesUtil.prefs.setDouble('slipFactor', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -172,6 +181,7 @@ class AppConf {
   bool get pagination => _pagination;
   Api get api => _api;
   double get scale => _scale;
+  double get slipFactor => _slipFactor;
 
   /// 清除token
   void clearAuth() {
@@ -196,6 +206,7 @@ class AppConf {
     _pagination = true;
     _api = Api.web;
     _scale = 1.0;
+    _slipFactor = 0.5;
     SharedPreferencesUtil.prefs.clear();
   }
 }
