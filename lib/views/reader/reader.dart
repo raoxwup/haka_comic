@@ -19,6 +19,7 @@ import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart'
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:volume_button_override/volume_button_override.dart';
 
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
@@ -53,8 +54,9 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   List<List<ChapterImage>> get _multiPageImages => splitList(_images, 2);
 
   /// 滚动控制器 - 用于精确控制列表滚动位置
-  final ItemScrollController _itemScrollController = ItemScrollController();
-  final PageController _pageController = PageController();
+  final _scrollOffsetController = ScrollOffsetController();
+  final _itemScrollController = ItemScrollController();
+  final _pageController = PageController();
 
   /// 阅读模式
   ReadMode _readMode = AppConf().readMode;
@@ -149,6 +151,45 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     }
   }
 
+  /// 音量键控制器
+  final volumeController = VolumeButtonController();
+
+  /// 音量+事件
+  late final volumeUpAction = ButtonAction(
+    id: ButtonActionId.volumeUp,
+    onAction: () {
+      if (_readMode == ReadMode.vertical) {
+        _scrollOffsetController.animateScroll(
+          offset: context.height * AppConf().slipFactor * -1,
+          duration: const Duration(milliseconds: 200),
+        );
+      } else {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      }
+    },
+  );
+
+  /// 音量-事件
+  late final volumeDownAction = ButtonAction(
+    id: ButtonActionId.volumeDown,
+    onAction: () {
+      if (_readMode == ReadMode.vertical) {
+        _scrollOffsetController.animateScroll(
+          offset: context.height * AppConf().slipFactor,
+          duration: const Duration(milliseconds: 200),
+        );
+      } else {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      }
+    },
+  );
+
   @override
   void initState() {
     super.initState();
@@ -162,6 +203,13 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
 
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+
+    if (AppConf().enableVolume) {
+      volumeController.startListening(
+        volumeUpAction: volumeUpAction,
+        volumeDownAction: volumeDownAction,
+      );
+    }
   }
 
   @override
@@ -169,6 +217,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
+    volumeController.stopListening();
     super.dispose();
   }
 
@@ -195,6 +244,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             onItemVisibleChanged: onPageNoChanged,
             itemScrollController: _itemScrollController,
             openOrCloseToolbar: openOrCloseToolbar,
+            scrollOffsetController: _scrollOffsetController,
             images: _images,
           )
         : HorizontalList(

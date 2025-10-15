@@ -93,6 +93,16 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   TapDownDetails? _tapDetails;
 
+  void previousPage() => widget.pageController.previousPage(
+    duration: const Duration(milliseconds: 200),
+    curve: Curves.linear,
+  );
+
+  void nextPage() => widget.pageController.nextPage(
+    duration: const Duration(milliseconds: 200),
+    curve: Curves.linear,
+  );
+
   void _handleTap() {
     if (_tapDetails == null) return;
     final width = context.width;
@@ -108,16 +118,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final centerWidth = width * centerFraction;
 
     final dx = _tapDetails!.localPosition.dx;
-
-    void previousPage() => widget.pageController.previousPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
-
-    void nextPage() => widget.pageController.nextPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
 
     if (dx < leftWidth) {
       isReverse ? nextPage() : previousPage();

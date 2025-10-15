@@ -2,13 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:volume_button_override/volume_button_override.dart';
 
 /// 条漫模式
 class VerticalList extends StatefulWidget {
@@ -18,6 +16,7 @@ class VerticalList extends StatefulWidget {
     required this.itemScrollController,
     required this.openOrCloseToolbar,
     required this.images,
+    required this.scrollOffsetController,
   });
 
   /// 图片可见回调
@@ -32,6 +31,9 @@ class VerticalList extends StatefulWidget {
   /// 需要渲染的图片
   final List<ChapterImage> images;
 
+  /// 列表偏移
+  final ScrollOffsetController scrollOffsetController;
+
   @override
   State<VerticalList> createState() => _VerticalListState();
 }
@@ -40,8 +42,6 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
-  final ScrollOffsetController scrollOffsetController =
-      ScrollOffsetController();
 
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
@@ -60,9 +60,6 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     }
   }
 
-  /// 音量键控制器
-  final controller = VolumeButtonController();
-
   @override
   void initState() {
     super.initState();
@@ -70,39 +67,18 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     itemPositionsListener.itemPositions.addListener(_onItemPositionsChanged);
 
     _initImageSizeCache();
-
-    final volumeUpAction = ButtonAction(
-      id: ButtonActionId.volumeUp,
-      onAction: () {
-        jumpOffset(context.height * -0.5);
-      },
-    );
-
-    final volumeDownAction = ButtonAction(
-      id: ButtonActionId.volumeDown,
-      onAction: () {
-        jumpOffset(context.height * 0.5);
-      },
-    );
-
-    controller.startListening(
-      volumeUpAction: volumeUpAction,
-      volumeDownAction: volumeDownAction,
-    );
   }
 
   @override
   void dispose() {
     itemPositionsListener.itemPositions.removeListener(_onItemPositionsChanged);
 
-    controller.stopListening();
-
     super.dispose();
   }
 
   /// 翻页
   void jumpOffset(double offset) {
-    scrollOffsetController.animateScroll(
+    widget.scrollOffsetController.animateScroll(
       offset: offset,
       duration: const Duration(milliseconds: 200),
     );
@@ -124,7 +100,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         itemCount: widget.images.length + 1,
         itemScrollController: widget.itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        scrollOffsetController: scrollOffsetController,
+        scrollOffsetController: widget.scrollOffsetController,
         itemBuilder: (context, index) {
           if (index == widget.images.length) {
             return const Padding(

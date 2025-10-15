@@ -58,6 +58,9 @@ class AppConf {
   /// 条漫模式下翻页滑动距离 [n] * 屏幕高度
   double _slipFactor = 0.5;
 
+  /// 是否启用音量键翻页
+  bool _enableVolume = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -84,6 +87,7 @@ class AppConf {
     instance._api = Api.fromName(prefs.getString('api'));
     instance._scale = prefs.getDouble('scale') ?? 1.0;
     instance._slipFactor = prefs.getDouble('slipFactor') ?? 0.5;
+    instance._enableVolume = prefs.getBool('enableVolume') ?? true;
   }
 
   set email(String value) {
@@ -166,6 +170,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('slipFactor', value);
   }
 
+  set enableVolume(bool value) {
+    _enableVolume = value;
+    SharedPreferencesUtil.prefs.setBool('enableVolume', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -182,6 +191,7 @@ class AppConf {
   Api get api => _api;
   double get scale => _scale;
   double get slipFactor => _slipFactor;
+  bool get enableVolume => _enableVolume;
 
   /// 清除token
   void clearAuth() {
@@ -207,6 +217,7 @@ class AppConf {
     _api = Api.web;
     _scale = 1.0;
     _slipFactor = 0.5;
+    _enableVolume = true;
     SharedPreferencesUtil.prefs.clear();
   }
 }

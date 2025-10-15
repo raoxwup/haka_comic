@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/comic_block_scale.dart';
+import 'package:haka_comic/views/settings/enable_volume.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/network.dart';
 import 'package:haka_comic/views/settings/pager.dart';
@@ -66,7 +68,14 @@ class _SettingsState extends State<Settings> {
             children: [BrowseMode(), Pager(), ComicBlockScale()],
           ),
           const SizedBox(height: 20),
-          const Block(title: '阅读', children: [ReadModeChanger(), SlipFactor()]),
+          Block(
+            title: '阅读',
+            children: [
+              const ReadModeChanger(),
+              const SlipFactor(),
+              if (!isDesktop) const EnableVolume(),
+            ],
+          ),
           const SizedBox(height: 20),
           Block(
             title: '备份',
