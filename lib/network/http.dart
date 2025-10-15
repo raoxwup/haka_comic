@@ -181,13 +181,24 @@ Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
 
 /// 获取额外推荐 这里跟其它请求不一样的host 格式也不一致
 Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
-  final response = await Dio().get(
-    'https://recommend.go2778.com/pic/recommend/get',
-    queryParameters: {'c': id},
-  );
-  final json = jsonDecode(response.data) as List<dynamic>;
-  final data = json.map((data) => ExtraRecommendComic.fromJson(data)).toList();
-  return data;
+  const maxRetries = 3;
+  for (var i = 0; i < maxRetries; i++) {
+    try {
+      final response = await Dio().get(
+        'https://recommend.go2778.com/pic/recommend/get',
+        queryParameters: {'c': id},
+      );
+      final json = jsonDecode(response.data) as List<dynamic>;
+      final data = json
+          .map((data) => ExtraRecommendComic.fromJson(data))
+          .toList();
+      return data;
+    } catch (e) {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(Duration(seconds: 2 * i));
+    }
+  }
+  throw Exception('Failed to fetch extra recommend comics');
 }
 
 /// 获取章节图片  一次性请求所有图片
@@ -224,22 +235,40 @@ Future<List<ChapterImage>> fetchChapterImages(
 
 /// 获取漫画分享ID
 Future<int> fetchComicShareId(String id) async {
-  final response = await Dio().get(
-    'https://recommend.go2778.com/pic/share/set',
-    queryParameters: {'c': id},
-  );
-  final json = jsonDecode(response.data);
-  return json['shareId'] as int;
+  const maxRetries = 3;
+  for (var i = 0; i < maxRetries; i++) {
+    try {
+      final response = await Dio().get(
+        'https://recommend.go2778.com/pic/share/set',
+        queryParameters: {'c': id},
+      );
+      final json = jsonDecode(response.data);
+      return json['shareId'] as int;
+    } catch (e) {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(Duration(seconds: 2 * i));
+    }
+  }
+  throw Exception('Failed to fetch comic share ID');
 }
 
 /// 根据分享ID获取漫画信息
 Future<String> fetchComicIdByShareId(String shareId) async {
-  final response = await Dio().get(
-    'https://recommend.go2778.com/pic/share/get',
-    queryParameters: {'shareId': shareId},
-  );
-  final json = jsonDecode(response.data);
-  return json['cid'] as String;
+  const maxRetries = 3;
+  for (var i = 0; i < maxRetries; i++) {
+    try {
+      final response = await Dio().get(
+        'https://recommend.go2778.com/pic/share/get',
+        queryParameters: {'id': shareId},
+      );
+      final json = jsonDecode(response.data);
+      return json['comicId'] as String;
+    } catch (e) {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(Duration(seconds: 2 * i));
+    }
+  }
+  throw Exception('Failed to fetch comic ID by share ID');
 }
 
 /// 获取个人信息

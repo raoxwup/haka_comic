@@ -3,40 +3,30 @@ import 'package:haka_comic/network/models.dart';
 
 enum ReadMode {
   /// 条漫模式
-  vertical,
+  vertical('连续从上到下'),
 
   /// 单页横向从左到右
-  leftToRight,
+  leftToRight('单页从左到右'),
 
   /// 单页横向从右到左
-  rightToLeft,
+  rightToLeft('单页从右到左'),
 
   /// 双页横向从左到右
-  doubleLeftToRight,
+  doubleLeftToRight('双页从左到右'),
 
   /// 双页横向从右到左
-  doubleRightToLeft,
-}
+  doubleRightToLeft('双页从右到左');
 
-ReadMode stringToReadMode(String mode) {
-  return switch (mode) {
-    'vertical' => ReadMode.vertical,
-    'leftToRight' => ReadMode.leftToRight,
-    'rightToLeft' => ReadMode.rightToLeft,
-    'doubleLeftToRight' => ReadMode.doubleLeftToRight,
-    'doubleRightToLeft' => ReadMode.doubleRightToLeft,
-    _ => ReadMode.vertical,
-  };
-}
+  final String displayName;
 
-String readModeToString(ReadMode mode) {
-  return switch (mode) {
-    ReadMode.vertical => '连续从上到下',
-    ReadMode.leftToRight => '单页从左到右',
-    ReadMode.rightToLeft => '单页从右到左',
-    ReadMode.doubleLeftToRight => '双页从左到右',
-    ReadMode.doubleRightToLeft => '双页从右到左',
-  };
+  const ReadMode(this.displayName);
+
+  static ReadMode fromName(String? name) {
+    return ReadMode.values.firstWhere(
+      (mode) => mode.name == name,
+      orElse: () => vertical,
+    );
+  }
 }
 
 class ReaderProvider with ChangeNotifier {

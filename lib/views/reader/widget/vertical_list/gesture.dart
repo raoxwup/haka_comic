@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -69,10 +70,9 @@ class _GestureWrapperState extends State<GestureWrapper>
 
     if (clampedCount == _activePointers) return;
 
-    final newPhysics =
-        clampedCount >= 2
-            ? const NeverScrollableScrollPhysics()
-            : widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
+    final newPhysics = clampedCount >= 2
+        ? const NeverScrollableScrollPhysics()
+        : widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
 
     // 优化：只在物理效果类型变化时才调用setState
     if (newPhysics.runtimeType != _listPhysics.runtimeType) {
@@ -92,16 +92,15 @@ class _GestureWrapperState extends State<GestureWrapper>
     if (_transformationController.value != Matrix4.identity()) {
       endMatrix = Matrix4.identity();
     } else {
-      endMatrix =
-          Matrix4.identity()
-            ..translateByVector3(
-              Vector3(
-                -_doubleTapPosition.dx * 2.0,
-                -_doubleTapPosition.dy * 2.0,
-                0.0,
-              ),
-            )
-            ..scaleByVector3(Vector3(3.0, 3.0, 1.0));
+      endMatrix = Matrix4.identity()
+        ..translateByVector3(
+          Vector3(
+            -_doubleTapPosition.dx * 2.0,
+            -_doubleTapPosition.dy * 2.0,
+            0.0,
+          ),
+        )
+        ..scaleByVector3(Vector3(3.0, 3.0, 1.0));
     }
     _animation = Matrix4Tween(
       begin: _transformationController.value,
@@ -156,12 +155,13 @@ class _GestureWrapperState extends State<GestureWrapper>
       HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     }
 
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    )..addListener(() {
-      _transformationController.value = _animation.value;
-    });
+    _animationController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        )..addListener(() {
+          _transformationController.value = _animation.value;
+        });
   }
 
   @override
@@ -184,16 +184,18 @@ class _GestureWrapperState extends State<GestureWrapper>
     double topFraction = 0.35;
     double centerFraction = 0.3;
 
+    final slipFactor = AppConf().slipFactor;
+
     final topHeight = height * topFraction;
     final centerHeight = height * centerFraction;
 
     final dy = _tapDownDetails.localPosition.dy;
     if (dy < topHeight) {
-      widget.jumpOffset(height * -0.5);
+      widget.jumpOffset(height * slipFactor * -1);
     } else if (dy < (topHeight + centerHeight)) {
       widget.openOrCloseToolbar();
     } else {
-      widget.jumpOffset(height * 0.5);
+      widget.jumpOffset(height * slipFactor);
     }
   }
 

@@ -83,9 +83,10 @@ class _ComicRankState extends State<ComicRank>
         AutomaticKeepAliveClientMixin,
         AutoRegisterHandlerMixin,
         BlockedWordsMixin {
-  final _handler = fetchComicRank.useRequest(
+  late final _handler = fetchComicRank.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch comic rank success', data.toString());
+      setState(filterComics);
     },
     onError: (e, _) {
       Log.error('Fetch comic rank error', e);
@@ -96,6 +97,9 @@ class _ComicRankState extends State<ComicRank>
   List<AsyncRequestHandler> registerHandler() => [_handler];
 
   @override
+  List<ComicBase> get comics => _handler.data?.comics ?? [];
+
+  @override
   void initState() {
     super.initState();
     _handler.run(ComicRankPayload(type: widget.type));
@@ -104,17 +108,12 @@ class _ComicRankState extends State<ComicRank>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final comics = _handler.data?.comics ?? [];
 
     return BasePage(
       isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
       onRetry: _handler.refresh,
       error: _handler.error,
-      child: CommonTMIList(
-        comics: comics,
-        blockedTags: blockedTags,
-        blockedWords: blockedWords,
-      ),
+      child: CommonTMIList(comics: filteredComics.cast<Doc>()),
     );
   }
 

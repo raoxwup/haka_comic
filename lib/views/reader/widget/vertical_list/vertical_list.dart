@@ -16,6 +16,7 @@ class VerticalList extends StatefulWidget {
     required this.itemScrollController,
     required this.openOrCloseToolbar,
     required this.images,
+    required this.scrollOffsetController,
   });
 
   /// 图片可见回调
@@ -30,6 +31,9 @@ class VerticalList extends StatefulWidget {
   /// 需要渲染的图片
   final List<ChapterImage> images;
 
+  /// 列表偏移
+  final ScrollOffsetController scrollOffsetController;
+
   @override
   State<VerticalList> createState() => _VerticalListState();
 }
@@ -38,8 +42,6 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
-  final ScrollOffsetController scrollOffsetController =
-      ScrollOffsetController();
 
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
@@ -76,9 +78,9 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
   /// 翻页
   void jumpOffset(double offset) {
-    scrollOffsetController.animateScroll(
+    widget.scrollOffsetController.animateScroll(
       offset: offset,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
     );
   }
 
@@ -98,7 +100,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         itemCount: widget.images.length + 1,
         itemScrollController: widget.itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        scrollOffsetController: scrollOffsetController,
+        scrollOffsetController: widget.scrollOffsetController,
         itemBuilder: (context, index) {
           if (index == widget.images.length) {
             return const Padding(
@@ -136,14 +138,12 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    final visibleIndices =
-        positions
-            .where(
-              (pos) =>
-                  pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
-            )
-            .map((position) => position.index)
-            .toList();
+    final visibleIndices = positions
+        .where(
+          (pos) => pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
+        )
+        .map((position) => position.index)
+        .toList();
 
     if (visibleIndices.isEmpty) return;
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class TagBlock extends StatefulWidget {
@@ -38,23 +39,29 @@ class _TagBlockState extends State<TagBlock> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Tag屏蔽')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(8.0),
-        itemCount: blockedTags.length,
-        itemBuilder: (context, index) {
-          final tag = blockedTags[index];
-          return ListTile(
-            key: ValueKey(tag),
-            title: Text(tag, overflow: TextOverflow.ellipsis, maxLines: 1),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () async {
-                await helper.delete(tag);
+      body: blockedTags.isEmpty
+          ? const Empty()
+          : ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: blockedTags.length,
+              itemBuilder: (context, index) {
+                final tag = blockedTags[index];
+                return ListTile(
+                  key: ValueKey(tag),
+                  title: Text(
+                    tag,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () async {
+                      await helper.delete(tag);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final tag = await showDialog<String>(

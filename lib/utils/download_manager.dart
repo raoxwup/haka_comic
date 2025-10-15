@@ -120,8 +120,8 @@ class _ComicDownloader {
     }
 
     const batchSize = 3;
-    final api = Api.fromValue(
-      (await SharedPreferences.getInstance()).getString('api') ?? Api.web.value,
+    final api = Api.fromName(
+      (await SharedPreferences.getInstance()).getString('api'),
     );
 
     for (int start = 0; start < remaining.length; start += batchSize) {
@@ -209,7 +209,7 @@ class _ComicDownloader {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
+    final api = Api.fromName(prefs.getString('api'));
 
     if (token == null) {
       throw Exception('Token is null');

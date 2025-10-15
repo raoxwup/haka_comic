@@ -5,63 +5,13 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 
 class SimpleSearchListItem extends StatelessWidget {
-  const SimpleSearchListItem({
-    super.key,
-    required this.comic,
-    required this.blockedWords,
-  });
+  const SimpleSearchListItem({super.key, required this.comic});
 
   final SearchComic comic;
-
-  final String? blockedWords;
 
   @override
   Widget build(BuildContext context) {
     final item = comic;
-
-    if (blockedWords != null) {
-      final words = blockedWords!.split('');
-      final displayWords =
-          words.length > 4 ? [...words.sublist(0, 4), '...'] : words;
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: SingleChildScrollView(
-          child: Column(
-            spacing: 3,
-            children: [
-              AspectRatio(
-                aspectRatio: 1 / 1.4,
-                child: Card(
-                  clipBehavior: Clip.hardEdge,
-                  elevation: 0,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children:
-                          displayWords
-                              .map(
-                                (e) => Text(
-                                  e,
-                                  style: context.textTheme.labelLarge,
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  ),
-                ),
-              ),
-              Text(
-                '已屏蔽',
-                style: context.textTheme.titleSmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     return Stack(
       children: [
@@ -69,7 +19,7 @@ class SimpleSearchListItem extends StatelessWidget {
           child: InkWell(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             onTap: () {
-              context.push('/details/${item.id}');
+              context.push('/details/${item.uid}');
             },
             child: Padding(
               padding: const EdgeInsets.all(2),

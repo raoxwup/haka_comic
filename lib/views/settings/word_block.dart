@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/word_block_helper.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class WordBlock extends StatefulWidget {
@@ -38,23 +39,29 @@ class _WordBlockState extends State<WordBlock> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('标题关键词屏蔽')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(8.0),
-        itemCount: blockedWords.length,
-        itemBuilder: (context, index) {
-          final word = blockedWords[index];
-          return ListTile(
-            key: ValueKey(word),
-            title: Text(word, overflow: TextOverflow.ellipsis, maxLines: 1),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () async {
-                await helper.delete(word);
+      body: blockedWords.isEmpty
+          ? const Empty()
+          : ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: blockedWords.length,
+              itemBuilder: (context, index) {
+                final word = blockedWords[index];
+                return ListTile(
+                  key: ValueKey(word),
+                  title: Text(
+                    word,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () async {
+                      await helper.delete(word);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final word = await showDialog<String>(

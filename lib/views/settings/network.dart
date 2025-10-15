@@ -4,7 +4,6 @@ import 'package:haka_comic/network/client.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
-import 'package:haka_comic/widgets/toast.dart';
 
 class Network extends StatefulWidget {
   const Network({super.key});
@@ -21,31 +20,29 @@ class _NetworkState extends State<Network> {
     return MenuListTile.withValue(
       icon: Icons.network_check_outlined,
       title: 'API切换',
-      value: _api.value,
-      items:
-          Api.values.map((api) {
-            return PopupMenuItem(
-              value: api.value,
-              child: ListTile(
-                leading: Icon(
-                  _api.value == api.value
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: context.colorScheme.primary,
-                ),
-                title: Text(api.name),
-              ),
-            );
-          }).toList(),
+      value: _api.name,
+      items: Api.values.map((api) {
+        return PopupMenuItem(
+          value: api.name,
+          child: ListTile(
+            leading: Icon(
+              _api.name == api.name
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
+              color: context.colorScheme.primary,
+            ),
+            title: Text(api.name),
+          ),
+        );
+      }).toList(),
       onSelected: (value) {
-        if (value == _api.value) return;
+        if (value == _api.name) return;
         setState(() {
-          final api = Api.fromValue(value);
+          final api = Api.fromName(value);
           _api = api;
           AppConf().api = api;
           Client.setBaseUrl(api.host);
         });
-        Toast.show(message: '建议重启应用以确保切换生效');
       },
     );
   }

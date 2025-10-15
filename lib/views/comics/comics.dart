@@ -49,6 +49,7 @@ class _ComicsState extends State<Comics>
         } else {
           _comics = data.comics.docs;
         }
+        filterComics();
       });
     },
     onError: (e, _) {
@@ -58,6 +59,9 @@ class _ComicsState extends State<Comics>
 
   @override
   List<AsyncRequestHandler> registerHandler() => [handler];
+
+  @override
+  List<ComicBase> get comics => _comics;
 
   @override
   Future<void> loadMore() async {
@@ -124,59 +128,47 @@ class _ComicsState extends State<Comics>
               ),
             ],
           ),
-          body:
-              pagination
-                  ? BasePage(
-                    isLoading: handler.isLoading || !completed,
-                    onRetry: handler.refresh,
-                    error: handler.error,
-                    child: CommonTMIList(
-                      controller: scrollController,
-                      comics: _comics,
-                      blockedTags: blockedTags,
-                      blockedWords: blockedWords,
-                      pageSelectorBuilder: (context) {
-                        return PageSelector(
-                          pages: pages,
-                          onPageChange: _onPageChange,
-                          currentPage: page,
-                        );
-                      },
-                    ),
-                  )
-                  : BasePage(
-                    isLoading: false,
-                    onRetry: handler.refresh,
-                    error: handler.error,
-                    child: CommonTMIList(
-                      controller: scrollController,
-                      comics: _comics,
-                      blockedTags: blockedTags,
-                      blockedWords: blockedWords,
-                      footerBuilder: (context) {
-                        final loading = handler.isLoading;
-                        return SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child:
-                                  loading
-                                      ? CircularProgressIndicator(
-                                        constraints: BoxConstraints.tight(
-                                          const Size(28, 28),
-                                        ),
-                                        strokeWidth: 3,
-                                      )
-                                      : Text(
-                                        '没有更多数据了',
-                                        style: context.textTheme.bodySmall,
-                                      ),
-                            ),
+          body: BasePage(
+            isLoading: pagination ? (handler.isLoading || !completed) : false,
+            onRetry: handler.refresh,
+            error: handler.error,
+            child: CommonTMIList(
+              controller: pagination ? null : scrollController,
+              comics: filteredComics.cast<Doc>(),
+              pageSelectorBuilder: pagination
+                  ? (context) {
+                      return PageSelector(
+                        pages: pages,
+                        onPageChange: _onPageChange,
+                        currentPage: page,
+                      );
+                    }
+                  : null,
+              footerBuilder: pagination
+                  ? null
+                  : (context) {
+                      final loading = handler.isLoading;
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: loading
+                                ? CircularProgressIndicator(
+                                    constraints: BoxConstraints.tight(
+                                      const Size(28, 28),
+                                    ),
+                                    strokeWidth: 3,
+                                  )
+                                : Text(
+                                    '没有更多数据了',
+                                    style: context.textTheme.bodySmall,
+                                  ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      );
+                    },
+            ),
+          ),
         );
       },
     );
@@ -188,6 +180,7 @@ class _ComicsState extends State<Comics>
       sortType = type;
       page = 1;
       _comics = [];
+      filterComics();
     });
     handler.run(
       ComicsPayload(
@@ -205,11 +198,10 @@ class _ComicsState extends State<Comics>
   void _buildSortTypeSelector() {
     showDialog(
       context: context,
-      builder:
-          (context) => SortTypeSelector(
-            sortType: sortType,
-            onSortTypeChange: _onSortTypeChange,
-          ),
+      builder: (context) => SortTypeSelector(
+        sortType: sortType,
+        onSortTypeChange: _onSortTypeChange,
+      ),
     );
   }
 }

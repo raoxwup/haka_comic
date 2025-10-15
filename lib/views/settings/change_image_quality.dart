@@ -18,27 +18,25 @@ class _ChangeImageQualityState extends State<ChangeImageQuality> {
     return MenuListTile.withValue(
       icon: Icons.image_outlined,
       title: '图片质量',
-      value: getImageQualityDisplayName(_imageQuality),
-      items:
-          ImageQuality.values.map((imageQuality) {
-            return PopupMenuItem(
-              value: imageQuality,
-              child: ListTile(
-                leading: Icon(
-                  _imageQuality == imageQuality
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: Theme.of(context).primaryColor,
-                ),
-                title: Text(getImageQualityDisplayName(imageQuality)),
-              ),
-            );
-          }).toList(),
-      onSelected:
-          (value) => setState(() {
-            _imageQuality = value;
-            AppConf().imageQuality = value;
-          }),
+      value: _imageQuality.displayName,
+      items: ImageQuality.values.map((imageQuality) {
+        return PopupMenuItem(
+          value: imageQuality,
+          child: ListTile(
+            leading: Icon(
+              _imageQuality == imageQuality
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: Text(imageQuality.displayName),
+          ),
+        );
+      }).toList(),
+      onSelected: (value) => setState(() {
+        _imageQuality = value;
+        AppConf().imageQuality = value;
+      }),
     );
   }
 }

@@ -57,19 +57,26 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
       body: ListView(
         children: [
           const SizedBox(height: 20),
-          Container(
-            clipBehavior: Clip.hardEdge,
-            decoration: const BoxDecoration(shape: BoxShape.circle),
-            child: Image.asset(
-              isDarkMode
-                  ? 'assets/icons/ios/Dark.png'
-                  : 'assets/icons/ios/Light.png',
-              width: 120,
-              height: 120,
+          ConstrainedBox(
+            constraints: BoxConstraints.tight(const Size(120, 120)),
+            child: Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  isDarkMode
+                      ? 'assets/icons/ios/Dark.png'
+                      : 'assets/icons/ios/Light.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 5),
-          Text('Version ${SetupConf.appVersion}', textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          Text(
+            'Version ${SetupConf.appVersion}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 15),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -80,27 +87,24 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
             ),
           ),
           const SizedBox(height: 20),
-          ListTile(
+          SwitchListTile(
             title: const Text('启动时检查更新'),
-            trailing: Switch(
-              value: _checkUpdate,
-              onChanged: (value) {
-                setState(() {
-                  _checkUpdate = value;
-                  AppConf().checkUpdate = value;
-                });
-              },
-            ),
+            value: _checkUpdate,
+            onChanged: (value) {
+              setState(() {
+                _checkUpdate = value;
+                AppConf().checkUpdate = value;
+              });
+            },
           ),
           ListTile(
             title: const Text('检查更新'),
-            trailing:
-                _handler.isLoading
-                    ? CircularProgressIndicator(
-                      constraints: BoxConstraints.tight(const Size(16, 16)),
-                      strokeWidth: 2,
-                    )
-                    : const Icon(Icons.arrow_forward_ios),
+            trailing: _handler.isLoading
+                ? CircularProgressIndicator(
+                    constraints: BoxConstraints.tight(const Size(16, 16)),
+                    strokeWidth: 2,
+                  )
+                : const Icon(Icons.arrow_forward_ios),
             onTap: () => _handler.run(),
           ),
           ListTile(
@@ -117,20 +121,18 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
 void showUpdateDialog() {
   showDialog(
     context: navigatorKey.currentContext!,
-    builder:
-        (context) => AlertDialog(
-          title: const Text('更新'),
-          content: const Text('有新版本可用，是否前往下载?'),
-          actions: [
-            TextButton(child: const Text('取消'), onPressed: () => context.pop()),
-            TextButton(
-              child: const Text('前往'),
-              onPressed:
-                  () => launchUrl(
-                    Uri.parse('https://github.com/raoxwup/haka_comic/releases'),
-                  ),
-            ),
-          ],
+    builder: (context) => AlertDialog(
+      title: const Text('更新'),
+      content: const Text('有新版本可用，是否前往下载?'),
+      actions: [
+        TextButton(child: const Text('取消'), onPressed: () => context.pop()),
+        TextButton(
+          child: const Text('前往'),
+          onPressed: () => launchUrl(
+            Uri.parse('https://github.com/raoxwup/haka_comic/releases'),
+          ),
         ),
+      ],
+    ),
   );
 }

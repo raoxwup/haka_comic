@@ -33,31 +33,29 @@ class TMIList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = context.width;
-    final gridDelegate =
-        isSimpleMode
-            ? SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  (UiMode.m1(context)
-                      ? 130
-                      : UiMode.m2(context)
-                      ? 135
-                      : 140) *
-                  scale,
-              mainAxisSpacing: 2,
-              crossAxisSpacing: 3,
-              childAspectRatio: 1 / 1.66,
-            )
-            : SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  UiMode.m1(context)
-                      ? width
-                      : UiMode.m2(context)
-                      ? width / 2
-                      : width / 3,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 2.5,
-            );
+    final gridDelegate = isSimpleMode
+        ? SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent:
+                (UiMode.m1(context)
+                    ? 130
+                    : UiMode.m2(context)
+                    ? 135
+                    : 140) *
+                scale,
+            mainAxisSpacing: 2,
+            crossAxisSpacing: 3,
+            childAspectRatio: 1 / 1.66,
+          )
+        : SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: UiMode.m1(context)
+                ? width
+                : UiMode.m2(context)
+                ? width / 2
+                : width / 3,
+            mainAxisSpacing: 5,
+            crossAxisSpacing: 5,
+            childAspectRatio: 2.5,
+          );
 
     return CustomScrollView(
       controller: controller,

@@ -41,6 +41,7 @@ class _SearchComicsState extends State<SearchComics>
         } else {
           _comics = data.comics.docs;
         }
+        filterComics();
       });
     },
     onError: (e, _) {
@@ -54,6 +55,9 @@ class _SearchComicsState extends State<SearchComics>
 
   @override
   List<AsyncRequestHandler> registerHandler() => [_handler];
+
+  @override
+  List<ComicBase> get comics => _comics;
 
   @override
   Future<void> loadMore() async {
@@ -141,69 +145,54 @@ class _SearchComicsState extends State<SearchComics>
     final pages = _handler.data?.comics.pages ?? 1;
     return TMIList(
       controller: pagination ? null : scrollController,
-      itemCount: _comics.length,
+      itemCount: filteredComics.length,
       itemBuilder: _buildItem,
-      pageSelectorBuilder:
-          pagination
-              ? (context) => PageSelector(
-                currentPage: _page,
-                pages: pages,
-                onPageChange: _onPageChange,
-              )
-              : null,
-      footerBuilder:
-          pagination
-              ? null
-              : (context) {
-                final loading = _handler.isLoading;
-                return SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child:
-                          loading
-                              ? CircularProgressIndicator(
-                                constraints: BoxConstraints.tight(
-                                  const Size(28, 28),
-                                ),
-                                strokeWidth: 3,
-                              )
-                              : Text(
-                                '没有更多数据了',
-                                style: context.textTheme.bodySmall,
-                              ),
-                    ),
+      pageSelectorBuilder: pagination
+          ? (context) => PageSelector(
+              currentPage: _page,
+              pages: pages,
+              onPageChange: _onPageChange,
+            )
+          : null,
+      footerBuilder: pagination
+          ? null
+          : (context) {
+              final loading = _handler.isLoading;
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: loading
+                        ? CircularProgressIndicator(
+                            constraints: BoxConstraints.tight(
+                              const Size(28, 28),
+                            ),
+                            strokeWidth: 3,
+                          )
+                        : Text('没有更多数据了', style: context.textTheme.bodySmall),
                   ),
-                );
-              },
+                ),
+              );
+            },
     );
   }
 
   Widget _buildItem(BuildContext context, int index) {
-    final item = _comics[index];
-    final key = ValueKey(item.id);
-
-    // 屏蔽逻辑
-    final tag = item.tags.firstWhereOrNull((t) => blockedTags.contains(t));
-    final category = item.categories.firstWhereOrNull(
-      (c) => AppConf().blacklist.contains(c),
-    );
-    final word = blockedWords.firstWhereOrNull((w) => item.title.contains(w));
-    final blocked = category ?? tag ?? word;
+    final item = filteredComics[index] as SearchComic;
+    final key = ValueKey(item.uid);
 
     return isSimpleMode
-        ? SimpleSearchListItem(comic: item, key: key, blockedWords: blocked)
-        : SearchListItem(comic: item, key: key, blockedWords: blocked);
+        ? SimpleSearchListItem(comic: item, key: key)
+        : SearchListItem(comic: item, key: key);
   }
 
   void _buildSortTypeSelector() {
     showDialog(
       context: context,
-      builder:
-          (context) => SortTypeSelector(
-            sortType: _sortType,
-            onSortTypeChange: _onSortTypeChange,
-          ),
+      builder: (context) => SortTypeSelector(
+        sortType: _sortType,
+        onSortTypeChange: _onSortTypeChange,
+      ),
     );
   }
 
@@ -213,6 +202,7 @@ class _SearchComicsState extends State<SearchComics>
       _sortType = type;
       _page = 1;
       _comics = [];
+      filterComics();
     });
     _handler.run(
       SearchPayload(keyword: _searchController.text, page: 1, sort: type),

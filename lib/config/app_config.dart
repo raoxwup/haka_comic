@@ -22,9 +22,6 @@ class AppConf {
   /// 图片质量
   ImageQuality _imageQuality = ImageQuality.original;
 
-  /// 分流
-  Server _server = Server.one;
-
   /// 启动时是否检查更新
   bool _checkUpdate = true;
 
@@ -58,6 +55,12 @@ class AppConf {
   /// 漫画块大小
   double _scale = 1.0;
 
+  /// 条漫模式下翻页滑动距离 [n] * 屏幕高度
+  double _slipFactor = 0.5;
+
+  /// 是否启用音量键翻页
+  bool _enableVolume = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -66,26 +69,25 @@ class AppConf {
     instance._email = prefs.getString('email') ?? '';
     instance._password = prefs.getString('password') ?? '';
     instance._token = prefs.getString('token') ?? '';
-    instance._imageQuality = getImageQuality(
-      prefs.getString('imageQuality') ?? 'original',
+    instance._imageQuality = ImageQuality.fromName(
+      prefs.getString('imageQuality'),
     );
-    instance._server = getServer(prefs.getString('server') ?? '1');
     instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
-    instance._readMode = stringToReadMode(
-      prefs.getString('readMode') ?? ReadMode.vertical.name,
-    );
+    instance._readMode = ReadMode.fromName(prefs.getString('readMode'));
     instance._blacklist = prefs.getStringList('blacklist') ?? [];
     instance._visibleCategories =
         prefs.getStringList('visibleCategories') ?? [];
     instance._webdavUrl = prefs.getString('webdavUrl') ?? '';
     instance._webdavUser = prefs.getString('webdavUser') ?? '';
     instance._webdavPassword = prefs.getString('webdavPassword') ?? '';
-    instance._comicBlockMode = stringToComicBlockMode(
-      prefs.getString('comicBlockMode') ?? '详细',
+    instance._comicBlockMode = ComicBlockMode.fromDisplayName(
+      prefs.getString('comicBlockMode'),
     );
     instance._pagination = prefs.getBool('pagination') ?? true;
-    instance._api = Api.fromValue(prefs.getString('api') ?? Api.web.value);
+    instance._api = Api.fromName(prefs.getString('api'));
     instance._scale = prefs.getDouble('scale') ?? 1.0;
+    instance._slipFactor = prefs.getDouble('slipFactor') ?? 0.5;
+    instance._enableVolume = prefs.getBool('enableVolume') ?? true;
   }
 
   set email(String value) {
@@ -106,11 +108,6 @@ class AppConf {
   set imageQuality(ImageQuality value) {
     _imageQuality = value;
     SharedPreferencesUtil.prefs.setString('imageQuality', value.name);
-  }
-
-  set server(Server value) {
-    _server = value;
-    SharedPreferencesUtil.prefs.setString('server', getServerName(value));
   }
 
   set checkUpdate(bool value) {
@@ -150,10 +147,7 @@ class AppConf {
 
   set comicBlockMode(ComicBlockMode value) {
     _comicBlockMode = value;
-    SharedPreferencesUtil.prefs.setString(
-      'comicBlockMode',
-      comicBlockModeToString(value),
-    );
+    SharedPreferencesUtil.prefs.setString('comicBlockMode', value.displayName);
   }
 
   set pagination(bool value) {
@@ -163,7 +157,7 @@ class AppConf {
 
   set api(Api value) {
     _api = value;
-    SharedPreferencesUtil.prefs.setString('api', value.value);
+    SharedPreferencesUtil.prefs.setString('api', value.name);
   }
 
   set scale(double value) {
@@ -171,11 +165,20 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('scale', value);
   }
 
+  set slipFactor(double value) {
+    _slipFactor = value;
+    SharedPreferencesUtil.prefs.setDouble('slipFactor', value);
+  }
+
+  set enableVolume(bool value) {
+    _enableVolume = value;
+    SharedPreferencesUtil.prefs.setBool('enableVolume', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
   ImageQuality get imageQuality => _imageQuality;
-  Server get server => _server;
   bool get checkUpdate => _checkUpdate;
   ReadMode get readMode => _readMode;
   List<String> get blacklist => _blacklist;
@@ -187,6 +190,8 @@ class AppConf {
   bool get pagination => _pagination;
   Api get api => _api;
   double get scale => _scale;
+  double get slipFactor => _slipFactor;
+  bool get enableVolume => _enableVolume;
 
   /// 清除token
   void clearAuth() {
@@ -200,7 +205,6 @@ class AppConf {
     _password = '';
     _token = '';
     _imageQuality = ImageQuality.original;
-    _server = Server.one;
     _checkUpdate = true;
     _readMode = ReadMode.vertical;
     _blacklist = [];
@@ -212,6 +216,8 @@ class AppConf {
     _pagination = true;
     _api = Api.web;
     _scale = 1.0;
+    _slipFactor = 0.5;
+    _enableVolume = true;
     SharedPreferencesUtil.prefs.clear();
   }
 }

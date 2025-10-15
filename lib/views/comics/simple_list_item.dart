@@ -13,7 +13,6 @@ class SimpleListItem extends StatelessWidget {
     this.onSecondaryTapDown,
     this.onLongPress,
     this.onSecondaryTap,
-    required this.blockedWords,
   });
 
   final Doc doc;
@@ -28,55 +27,9 @@ class SimpleListItem extends StatelessWidget {
 
   final void Function()? onSecondaryTap;
 
-  final String? blockedWords;
-
   @override
   Widget build(BuildContext context) {
     final item = doc;
-
-    if (blockedWords != null) {
-      final words = blockedWords!.split('');
-      final displayWords =
-          words.length > 4 ? [...words.sublist(0, 4), '...'] : words;
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: SingleChildScrollView(
-          child: Column(
-            spacing: 3,
-            children: [
-              AspectRatio(
-                aspectRatio: 1 / 1.4,
-                child: Card(
-                  clipBehavior: Clip.hardEdge,
-                  elevation: 0,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children:
-                          displayWords
-                              .map(
-                                (e) => Text(
-                                  e,
-                                  style: context.textTheme.labelLarge,
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  ),
-                ),
-              ),
-              Text(
-                '已屏蔽',
-                style: context.textTheme.titleSmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     return Stack(
       children: [
@@ -92,14 +45,14 @@ class SimpleListItem extends StatelessWidget {
             onSecondaryTap: onSecondaryTap,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration:
-                  isSelected
-                      ? BoxDecoration(
-                        color: context.colorScheme.secondaryContainer
-                            .withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(12),
-                      )
-                      : null,
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: context.colorScheme.secondaryContainer.withValues(
+                        alpha: 0.65,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    )
+                  : null,
               child: SingleChildScrollView(
                 child: Column(
                   spacing: 3,

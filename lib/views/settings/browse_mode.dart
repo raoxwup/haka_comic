@@ -2,21 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
-enum ComicBlockMode { simple, detailed }
+enum ComicBlockMode {
+  simple('简洁'),
+  detailed('详细');
 
-String comicBlockModeToString(ComicBlockMode mode) {
-  return switch (mode) {
-    ComicBlockMode.simple => '简洁',
-    ComicBlockMode.detailed => '详细',
-  };
-}
+  final String displayName;
 
-ComicBlockMode stringToComicBlockMode(String mode) {
-  return switch (mode) {
-    '简洁' => ComicBlockMode.simple,
-    '详细' => ComicBlockMode.detailed,
-    _ => ComicBlockMode.detailed,
-  };
+  const ComicBlockMode(this.displayName);
+
+  static ComicBlockMode fromDisplayName(String? displayName) {
+    return ComicBlockMode.values.firstWhere(
+      (mode) => mode.displayName == displayName,
+      orElse: () => detailed,
+    );
+  }
 }
 
 class BrowseMode extends StatefulWidget {
@@ -34,22 +33,19 @@ class _BrowseModeState extends State<BrowseMode> {
     return MenuListTile.withValue(
       icon: Icons.view_day_outlined,
       title: '漫画块',
-      value: comicBlockModeToString(_mode),
-      items:
-          ComicBlockMode.values.map((mode) {
-            return PopupMenuItem(
-              value: mode,
-              child: ListTile(
-                leading: Icon(
-                  _mode == mode
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: Theme.of(context).primaryColor,
-                ),
-                title: Text(comicBlockModeToString(mode)),
-              ),
-            );
-          }).toList(),
+      value: _mode.displayName,
+      items: ComicBlockMode.values.map((mode) {
+        return PopupMenuItem(
+          value: mode,
+          child: ListTile(
+            leading: Icon(
+              _mode == mode ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: Text(mode.displayName),
+          ),
+        );
+      }).toList(),
       onSelected: (value) {
         setState(() {
           _mode = value;
