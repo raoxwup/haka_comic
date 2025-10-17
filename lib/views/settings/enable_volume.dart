@@ -16,15 +16,16 @@ class _EnableVolumeState extends State<EnableVolume> {
   Widget build(BuildContext context) {
     return ListTile(
       title: const Text('音量键翻页'),
-      leading: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: context.colorScheme.primary.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+      leading: CircleAvatar(
+        radius: 17,
+        backgroundColor: context.colorScheme.primary.withOpacity(0.1),
+        child: Icon(
+          Icons.volume_down_outlined,
+          size: 22,
+          color: context.colorScheme.primary,
         ),
-        child: const Icon(Icons.volume_down_outlined, size: 22),
       ),
-      trailing: Switch.adaptive(
+      trailing: Switch(
         value: _enable,
         onChanged: (value) {
           setState(() {
