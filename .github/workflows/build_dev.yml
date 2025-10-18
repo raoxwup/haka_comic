@@ -30,26 +30,31 @@ jobs:
       - name: Install create-dmg
         run: npm install -g create-dmg
 
-      # 打包 .app 成 DMG（带拖拽安装效果）
+      # 打包 .app 成 DMG（跳过签名）
       - name: Package .app into DMG
         run: |
           cd build/macos/Build/Products/Release/
+          # 获取 .app 名称
           appName=$(ls -d *.app | head -n 1)
+          # 生成 DMG 文件名（不带版本号也可以，最终用 ls 获取）
           dmgName="${appName%.app}.dmg"
-          echo "packaging $appName into $dmgName"
+          echo "Packaging $appName into $dmgName"
 
-          # 新建一个临时目录，避免同名冲突
+          # 新建临时目录
           mkdir -p dmg_out
+
+          # 打包 DMG，跳过签名
           create-dmg "$appName" \
             --overwrite \
             --dmg-title "${appName%.app}" \
             --volname "${appName%.app}" \
             --icon-size 120 \
             --no-code-sign \
-            --out "dmg_out/$dmgName"
+            --out dmg_out
 
-          # 把生成的 DMG 移回 Release 目录，方便 upload-artifact 抓取
-          mv "dmg_out/$dmgName" .
+          # 获取生成的 DMG 实际文件名（避免版本号不一致导致 mv 失败）
+          generatedDmg=$(ls dmg_out/*.dmg | head -n 1)
+          mv "$generatedDmg" .
 
       # 上传 DMG
       - name: Upload macOS DMG
