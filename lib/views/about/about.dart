@@ -61,7 +61,7 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
             constraints: BoxConstraints.tight(const Size(120, 120)),
             child: Center(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(25),
                 child: Image.asset(
                   isDarkMode
                       ? 'assets/icons/ios/Dark.png'

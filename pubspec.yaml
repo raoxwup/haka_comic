@@ -6,7 +6,7 @@ version: 1.0.2
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
-  flutter: 3.35.3
+  flutter: 3.35.6
 
 dependencies:
   flutter:
@@ -40,6 +40,7 @@ dependencies:
   window_manager: ^0.5.1
   vector_math: ^2.2.0
   volume_button_override: ^0.0.1
+  go_transitions: ^0.8.2
 
 dev_dependencies:
   flutter_test:

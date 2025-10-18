@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
@@ -96,6 +97,14 @@ class _AppState extends State<App> {
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           backgroundColor: colorScheme.surface,
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.windows: GoTransitions.fade,
+            TargetPlatform.android: GoTransitions.fadeUpwards,
+            TargetPlatform.iOS: GoTransitions.cupertino,
+            TargetPlatform.macOS: GoTransitions.fade,
+          },
         ),
       );
 

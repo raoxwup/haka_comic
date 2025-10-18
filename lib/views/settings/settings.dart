@@ -17,14 +17,9 @@ import 'package:haka_comic/views/settings/theme_color.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
-class Settings extends StatefulWidget {
+class Settings extends StatelessWidget {
   const Settings({super.key});
 
-  @override
-  State<Settings> createState() => _SettingsState();
-}
-
-class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

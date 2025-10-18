@@ -17,7 +17,7 @@ class ListItem extends StatelessWidget {
     this.onSecondaryTap,
   });
 
-  final Doc doc;
+  final ComicBase doc;
 
   final bool isSelected;
 
@@ -43,7 +43,7 @@ class ListItem extends StatelessWidget {
             },
             onTapDown: onTapDown,
             onSecondaryTapDown: onSecondaryTapDown,
-            onLongPress: () => onLongPress?.call(item),
+            onLongPress: item is Doc ? () => onLongPress?.call(item) : null,
             onSecondaryTap: onSecondaryTap,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -67,7 +67,9 @@ class ListItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '[${item.pagesCount}P]${item.title}',
+                          item is Doc
+                              ? '[${item.pagesCount}P]${item.title}'
+                              : item.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: context.textTheme.titleSmall,
@@ -89,7 +91,9 @@ class ListItem extends StatelessWidget {
                               style: context.textTheme.labelSmall,
                             ),
                             Text(
-                              '${formatNumber(item.totalViews)} views',
+                              item.totalViews != null
+                                  ? '${formatNumber(item.totalViews!)} views'
+                                  : '?? views',
                               style: context.textTheme.labelSmall,
                             ),
                           ],

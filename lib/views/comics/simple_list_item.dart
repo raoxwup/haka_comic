@@ -15,7 +15,7 @@ class SimpleListItem extends StatelessWidget {
     this.onSecondaryTap,
   });
 
-  final Doc doc;
+  final ComicBase doc;
 
   final bool isSelected;
 
@@ -41,7 +41,7 @@ class SimpleListItem extends StatelessWidget {
             },
             onTapDown: onTapDown,
             onSecondaryTapDown: onSecondaryTapDown,
-            onLongPress: () => onLongPress?.call(item),
+            onLongPress: item is Doc ? () => onLongPress?.call(item) : null,
             onSecondaryTap: onSecondaryTap,
             child: Container(
               padding: const EdgeInsets.all(2),

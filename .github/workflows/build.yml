@@ -3,6 +3,16 @@ name: Cross-Platform Build
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "要构建的分支"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - main
 
 jobs:
   android-build:
@@ -12,6 +22,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -82,6 +94,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - uses: subosito/flutter-action@v2
         with:
@@ -127,6 +141,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -220,34 +236,53 @@ jobs:
           retention-days: 5
 
   macos-build:
-      name: MacOS Build
-      runs-on: macos-15
+    name: MacOS Build
+    runs-on: macos-15
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
-        - name: Setup Flutter
-          uses: subosito/flutter-action@v2
-          with:
-            channel: "stable"
-            flutter-version-file: pubspec.yaml
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version-file: pubspec.yaml
 
-        - name: Install dependencies
-          run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-        - name: Build macOS Release
-          run: flutter build macos --release
+      # 构建 macOS Release
+      - name: Build macOS Release
+        run: flutter build macos --release
 
-        - name: Package .app into zip
-          run: |
-            cd build/macos/Build/Products/Release/
-            appName=$(ls -d *.app | head -n 1)
-            zip -r "${appName%.app}.zip" "$appName"
+      # 安装 create-dmg 工具
+      - name: Install create-dmg
+        run: npm install -g create-dmg
 
-        - name: Upload macOS App
-          uses: actions/upload-artifact@v4
-          with:
-            name: macos-app
-            path: build/macos/Build/Products/Release/*.zip
-            retention-days: 5
+      # 打包 .app 成 DMG（跳过签名）
+      - name: Package .app into DMG
+        run: |
+          cd build/macos/Build/Products/Release/
+          # 获取 .app 名称
+          appName=$(ls -d *.app | head -n 1)
+          # 生成 DMG 文件名
+          dmgName="${appName%.app}.dmg"
+          echo "Packaging $appName into $dmgName"
+
+          # 打包 DMG，跳过签名
+          create-dmg "$appName" \
+            --overwrite \
+            --no-version-in-filename \
+            --dmg-title "${appName%.app}" \
+            --no-code-sign
+
+      # 上传 DMG
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-dmg
+          path: build/macos/Build/Products/Release/*.dmg
+          retention-days: 5
