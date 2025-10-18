@@ -3,6 +3,7 @@ name: Cross-Platform Build
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   android-build:

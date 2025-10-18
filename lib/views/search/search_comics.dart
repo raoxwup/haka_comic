@@ -11,9 +11,9 @@ import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
+import 'package:haka_comic/views/comics/simple_list_item.dart';
 import 'package:haka_comic/views/comics/tmi_list.dart';
-import 'package:haka_comic/views/search/search_list_item.dart';
-import 'package:haka_comic/views/search/simple_search_list_item.dart';
+import 'package:haka_comic/views/comics/list_item.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -182,8 +182,8 @@ class _SearchComicsState extends State<SearchComics>
     final key = ValueKey(item.uid);
 
     return isSimpleMode
-        ? SimpleSearchListItem(comic: item, key: key)
-        : SearchListItem(comic: item, key: key);
+        ? SimpleListItem(doc: item, key: key)
+        : ListItem(doc: item, key: key);
   }
 
   void _buildSortTypeSelector() {
