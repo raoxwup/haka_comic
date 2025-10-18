@@ -103,7 +103,7 @@ class _AppState extends State<App> {
             TargetPlatform.windows: GoTransitions.fade,
             TargetPlatform.android: GoTransitions.fadeUpwards,
             TargetPlatform.iOS: GoTransitions.cupertino,
-            TargetPlatform.macOS: GoTransitions.cupertino,
+            TargetPlatform.macOS: GoTransitions.fade,
           },
         ),
       );
