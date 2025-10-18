@@ -45,6 +45,7 @@ jobs:
             --dmg-title "${appName%.app}" \
             --volname "${appName%.app}" \
             --icon-size 120 \
+            --no-internet-enable \
             --out "dmg_out/$dmgName"
 
           # 把生成的 DMG 移回 Release 目录，方便 upload-artifact 抓取
