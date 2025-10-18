@@ -40,21 +40,12 @@ jobs:
           dmgName="${appName%.app}.dmg"
           echo "Packaging $appName into $dmgName"
 
-          # 新建临时目录
-          mkdir -p dmg_out
-
           # 打包 DMG，跳过签名
           create-dmg "$appName" \
             --overwrite \
+            --no-version-in-filename \
             --dmg-title "${appName%.app}" \
-            --volname "${appName%.app}" \
-            --icon-size 120 \
-            --no-code-sign \
-            --out dmg_out
-
-          # 获取生成的 DMG 实际文件名（避免版本号不一致导致 mv 失败）
-          generatedDmg=$(ls dmg_out/*.dmg | head -n 1)
-          mv "$generatedDmg" .
+            --no-code-sign
 
       # 上传 DMG
       - name: Upload macOS DMG
