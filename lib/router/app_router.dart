@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
@@ -53,206 +52,78 @@ final GoRouter appRouter = GoRouter(
     return null;
   },
   routes: <RouteBase>[
-    GoRoute(
-      path: '/',
-      pageBuilder:
-          (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const Home()),
-    ),
-    GoRoute(
-      path: '/login',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Login());
-      },
-    ),
-    GoRoute(
-      path: '/register',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Register());
-      },
-    ),
+    GoRoute(path: '/', builder: (_, _) => const Home()),
+    GoRoute(path: '/login', builder: (_, _) => const Login()),
+    GoRoute(path: '/register', builder: (_, _) => const Register()),
     GoRoute(
       path: '/comics',
-      pageBuilder: (context, state) {
-        return CupertinoPage(
-          key: state.pageKey,
-          child: Comics(
-            c: state.uri.queryParameters['c'],
-            t: state.uri.queryParameters['t'],
-            ca: state.uri.queryParameters['ca'],
-            a: state.uri.queryParameters['a'],
-            ct: state.uri.queryParameters['ct'],
-          ),
+      builder: (_, state) {
+        return Comics(
+          c: state.uri.queryParameters['c'],
+          t: state.uri.queryParameters['t'],
+          ca: state.uri.queryParameters['ca'],
+          a: state.uri.queryParameters['a'],
+          ct: state.uri.queryParameters['ct'],
         );
       },
     ),
     GoRoute(
       path: '/details/:id',
-      pageBuilder: (context, state) {
-        return CupertinoPage(
-          key: state.pageKey,
-          child: ComicDetails(id: state.pathParameters['id']!),
-        );
-      },
+      builder: (_, state) => ComicDetails(id: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/comments/:id',
-      pageBuilder: (context, state) {
-        return CupertinoPage(
-          key: state.pageKey,
-          child: CommentsPage(id: state.pathParameters['id']!),
-        );
-      },
+      builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/sub_comments',
-      pageBuilder: (context, state) {
-        final models.Comment comment = state.extra as models.Comment;
-        return CupertinoPage(
-          key: state.pageKey,
-          child: SubCommentsPage(comment: comment),
-        );
-      },
+      builder: (_, state) =>
+          SubCommentsPage(comment: state.extra as models.Comment),
     ),
-    GoRoute(
-      path: '/search',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Search());
-      },
-    ),
-    GoRoute(
-      path: '/settings',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Settings());
-      },
-    ),
+    GoRoute(path: '/search', builder: (_, _) => const Search()),
+    GoRoute(path: '/settings', builder: (_, _) => const Settings()),
     GoRoute(
       path: '/search_comics',
-      pageBuilder: (context, state) {
-        return CupertinoPage(
-          key: state.pageKey,
-          child: SearchComics(keyword: state.uri.queryParameters['keyword']!),
-        );
-      },
+      builder: (_, state) =>
+          SearchComics(keyword: state.uri.queryParameters['keyword']!),
     ),
-    GoRoute(
-      path: '/reader',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Reader());
-      },
-    ),
-    GoRoute(
-      path: '/rank',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Rank());
-      },
-    ),
-    GoRoute(
-      path: '/random',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Random());
-      },
-    ),
-    GoRoute(
-      path: '/favorites',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Favorites());
-      },
-    ),
-    GoRoute(
-      path: '/history',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const History());
-      },
-    ),
-    GoRoute(
-      path: '/downloads',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Downloads());
-      },
-    ),
-    GoRoute(
-      path: '/personal_comments',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Comments());
-      },
-    ),
+    GoRoute(path: '/reader', builder: (_, _) => const Reader()),
+    GoRoute(path: '/rank', builder: (_, _) => const Rank()),
+    GoRoute(path: '/random', builder: (_, _) => const Random()),
+    GoRoute(path: '/favorites', builder: (_, _) => const Favorites()),
+    GoRoute(path: '/history', builder: (_, _) => const History()),
+    GoRoute(path: '/downloads', builder: (_, _) => const Downloads()),
+    GoRoute(path: '/personal_comments', builder: (_, _) => const Comments()),
     GoRoute(
       path: '/personal_sub_comments',
-      pageBuilder: (context, state) {
+      builder: (_, state) {
         final extra = state.extra as Map;
         final comment = extra['comment'] as models.PersonalComment;
         final user = extra['user'] as models.User;
-        return CupertinoPage(
-          key: state.pageKey,
-          child: PersonalSubComment(comment: comment, user: user),
-        );
+        return PersonalSubComment(comment: comment, user: user);
       },
     ),
-    GoRoute(
-      path: '/personal_editor',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Editor());
-      },
-    ),
+    GoRoute(path: '/personal_editor', builder: (_, _) => const Editor()),
     GoRoute(
       path: '/downloader',
-      pageBuilder: (context, state) {
+      builder: (_, state) {
         final extra = state.extra as Map;
         final DownloadComic downloadComic =
             extra['downloadComic'] as DownloadComic;
         final chapters = extra['chapters'] as List<models.Chapter>;
-        return CupertinoPage(
-          key: state.pageKey,
-          child: Downloader(chapters: chapters, downloadComic: downloadComic),
-        );
+        return Downloader(chapters: chapters, downloadComic: downloadComic);
       },
     ),
-    GoRoute(
-      path: '/about',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const About());
-      },
-    ),
-    GoRoute(
-      path: '/blacklist',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Blacklist());
-      },
-    ),
+    GoRoute(path: '/about', builder: (_, _) => const About()),
+    GoRoute(path: '/blacklist', builder: (_, _) => const Blacklist()),
     GoRoute(
       path: '/visible_categories',
-      pageBuilder: (context, state) {
-        return CupertinoPage(
-          key: state.pageKey,
-          child: const VisibleCategories(),
-        );
-      },
+      builder: (_, _) => const VisibleCategories(),
     ),
-    GoRoute(
-      path: '/webdav',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const WebDAV());
-      },
-    ),
-    GoRoute(
-      path: '/notifications',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const Notifications());
-      },
-    ),
-    GoRoute(
-      path: '/tag_block',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const TagBlock());
-      },
-    ),
-    GoRoute(
-      path: '/word_block',
-      pageBuilder: (context, state) {
-        return CupertinoPage(key: state.pageKey, child: const WordBlock());
-      },
-    ),
+    GoRoute(path: '/webdav', builder: (_, _) => const WebDAV()),
+    GoRoute(path: '/notifications', builder: (_, _) => const Notifications()),
+    GoRoute(path: '/tag_block', builder: (_, _) => const TagBlock()),
+    GoRoute(path: '/word_block', builder: (_, _) => const WordBlock()),
   ],
 );
 

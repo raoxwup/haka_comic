@@ -18,12 +18,8 @@ class _EnableVolumeState extends State<EnableVolume> {
       title: const Text('音量键翻页'),
       leading: CircleAvatar(
         radius: 17,
-        backgroundColor: context.colorScheme.primary.withOpacity(0.1),
-        child: Icon(
-          Icons.volume_down_outlined,
-          size: 22,
-          color: context.colorScheme.primary,
-        ),
+        backgroundColor: context.colorScheme.primary.withValues(alpha: .1),
+        child: const Icon(Icons.volume_down_outlined, size: 22),
       ),
       trailing: Switch(
         value: _enable,

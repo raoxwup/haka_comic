@@ -1,0 +1,53 @@
+name: Cross-Platform Build
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  macos-build:
+    name: MacOS Build
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version-file: pubspec.yaml
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 构建 macOS Release
+      - name: Build macOS Release
+        run: flutter build macos --release
+
+      # 安装 create-dmg 工具
+      - name: Install create-dmg
+        run: npm install -g create-dmg
+
+      # 打包 .app 成 DMG（带拖拽安装效果）
+      - name: Package .app into DMG
+        run: |
+          cd build/macos/Build/Products/Release/
+          appName=$(ls -d *.app | head -n 1)
+          dmgName="${appName%.app}.dmg"
+          create-dmg "$appName" \
+            --overwrite \
+            --dmg-title "${appName%.app}" \
+            --volname "${appName%.app}" \
+            --app-drop-link 150 150 \
+            --icon-size 120 \
+            "./$dmgName"
+
+      # 上传 DMG
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-dmg
+          path: build/macos/Build/Products/Release/*.dmg
+          retention-days: 5
