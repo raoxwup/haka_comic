@@ -22,33 +22,39 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 构建 macOS Release
       - name: Build macOS Release
         run: flutter build macos --release
 
-      # 安装 create-dmg 工具
       - name: Install create-dmg
         run: npm install -g create-dmg
 
-      # 打包 .app 成 DMG（带拖拽安装效果）
       - name: Package .app into DMG
         run: |
           cd build/macos/Build/Products/Release/
-          # 获取 .app 名称
+
+          # 创建临时目录
+          mkdir dmg_temp
+          cp -R *.app dmg_temp/
+          cd dmg_temp
+
+          # 获取 .app 名称并去掉空格
           appName="$(ls -d *.app | head -n 1)"
-          # 临时去掉空格
           safeAppName="${appName// /_}"
           mv "$appName" "$safeAppName"
-          dmgName="${safeAppName%.app}.dmg"
+
+          # DMG 输出路径
+          dmgName="../${safeAppName%.app}.dmg"
           echo "Packaging $safeAppName into $dmgName"
+
+          # 生成 DMG
           create-dmg "$safeAppName" \
             --overwrite \
             --dmg-title "${safeAppName%.app}" \
             --volname "${safeAppName%.app}" \
             --icon-size 120 \
-            "./$dmgName"
+            "$dmgName"
 
-      # 上传 DMG
+      # 7️⃣ 上传 DMG
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
