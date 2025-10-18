@@ -36,11 +36,11 @@ jobs:
           cd build/macos/Build/Products/Release/
           appName=$(ls -d *.app | head -n 1)
           dmgName="${appName%.app}.dmg"
+          echo "packaging $appName into $dmgName"
           create-dmg "$appName" \
             --overwrite \
             --dmg-title "${appName%.app}" \
             --volname "${appName%.app}" \
-            --app-drop-link 150 150 \
             --icon-size 120 \
             "./$dmgName"
 
