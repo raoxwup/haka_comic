@@ -34,13 +34,17 @@ jobs:
       - name: Package .app into DMG
         run: |
           cd build/macos/Build/Products/Release/
-          appName=$(ls -d *.app | head -n 1)
-          dmgName="${appName%.app}.dmg"
-          echo "packaging $appName into $dmgName"
-          create-dmg "$appName" \
+          # 获取 .app 名称
+          appName="$(ls -d *.app | head -n 1)"
+          # 临时去掉空格
+          safeAppName="${appName// /_}"
+          mv "$appName" "$safeAppName"
+          dmgName="${safeAppName%.app}.dmg"
+          echo "Packaging $safeAppName into $dmgName"
+          create-dmg "$safeAppName" \
             --overwrite \
-            --dmg-title "${appName%.app}" \
-            --volname "${appName%.app}" \
+            --dmg-title "${safeAppName%.app}" \
+            --volname "${safeAppName%.app}" \
             --icon-size 120 \
             "./$dmgName"
 
