@@ -33,8 +33,6 @@ dependencies:
     git:
       url: https://github.com/raoxwup/photo_view.git
       ref: 5aa96132ed6a06b44796e9b184a1d92e89757f37
-  # photo_view:
-  #   path: D:/Projects/practice/flutter/photo_view
   file_picker: ^10.3.3
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
