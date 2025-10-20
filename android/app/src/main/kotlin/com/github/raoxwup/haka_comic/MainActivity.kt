@@ -1,11 +1,11 @@
 package com.github.raoxwup.haka_comic
 
 import android.os.Bundle
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "back_to_home"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
