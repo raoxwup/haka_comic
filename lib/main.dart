@@ -101,7 +101,7 @@ class _AppState extends State<App> {
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.windows: GoTransitions.fade,
-            TargetPlatform.android: GoTransitions.fadeUpwards,
+            TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
             TargetPlatform.iOS: GoTransitions.cupertino,
             TargetPlatform.macOS: GoTransitions.fade,
           },
