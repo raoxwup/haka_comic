@@ -88,7 +88,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   Widget build(BuildContext context) {
     final physics =
         ScrollPhysicsInherited.of(context) ??
-        const AlwaysScrollableScrollPhysics();
+        const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
 
     return GestureWrapper(
       openOrCloseToolbar: widget.openOrCloseToolbar,
