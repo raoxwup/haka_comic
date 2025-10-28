@@ -46,8 +46,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
-  final Map<int, PhotoViewController> photoViewControllers = {};
-
   /// 获取当前章节ID
   String get cid => context.reader.cid;
 
@@ -80,15 +78,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     if (widget.isDoublePage != oldWidget.isDoublePage) {
       jumpToPage();
     }
-  }
-
-  @override
-  void dispose() {
-    for (var controller in photoViewControllers.values) {
-      controller.dispose();
-    }
-
-    super.dispose();
   }
 
   TapDownDetails? _tapDetails;
@@ -149,14 +138,11 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
             onPageChanged: _onPageChanged,
             reverse: isReverse,
             builder: (context, index) {
-              photoViewControllers[index] ??= PhotoViewController();
-
               if (!isDoublePage) {
                 final item = widget.images[index];
                 return PhotoViewGalleryPageOptions(
-                  minScale: PhotoViewComputedScale.contained * 1,
-                  maxScale: PhotoViewComputedScale.covered * 4,
-                  controller: photoViewControllers[index],
+                  minScale: PhotoViewComputedScale.contained * 1.0,
+                  maxScale: PhotoViewComputedScale.covered * 4.0,
                   imageProvider: CachedNetworkImageProvider(item.media.url),
                   filterQuality: FilterQuality.medium,
                   errorBuilder: (context, error, stackTrace, retry) {
@@ -189,7 +175,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               final size = Size(constraints.maxWidth, constraints.maxHeight);
               return PhotoViewGalleryPageOptions.customChild(
                 childSize: size * 2,
-                controller: photoViewControllers[index],
                 minScale: PhotoViewComputedScale.contained * 1.0,
                 maxScale: PhotoViewComputedScale.covered * 10.0,
                 child: buildPageImages(items),
@@ -243,9 +228,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   }
 
   void _onPageChanged(index) {
-    // 将上一页的图片状态重置
-    photoViewControllers[_visibleFirstIndex]?.reset();
-
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
 
     if (_visibleFirstIndex > index) {
