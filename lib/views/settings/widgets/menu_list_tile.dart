@@ -4,7 +4,7 @@ import 'package:haka_comic/utils/extension.dart';
 class MenuListTile<T> extends StatelessWidget {
   const MenuListTile.withValue({
     super.key,
-    required this.icon,
+    this.icon,
     required this.title,
     required this.value,
     required this.items,
@@ -13,7 +13,7 @@ class MenuListTile<T> extends StatelessWidget {
 
   const MenuListTile.withAction({
     super.key,
-    required this.icon,
+    this.icon,
     required this.title,
     required this.onTap,
     this.value,
@@ -22,7 +22,7 @@ class MenuListTile<T> extends StatelessWidget {
 
   final String title;
   final String? value;
-  final IconData icon;
+  final IconData? icon;
   final List<PopupMenuEntry<T>>? items;
   final ValueChanged<T>? onSelected;
   final VoidCallback? onTap;
@@ -31,14 +31,16 @@ class MenuListTile<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(title),
-      leading: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: context.colorScheme.primary.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 22),
-      ),
+      leading: icon == null
+          ? null
+          : Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: context.colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 22),
+            ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: 5.0,
