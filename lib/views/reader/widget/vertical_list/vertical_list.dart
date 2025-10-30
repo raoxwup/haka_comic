@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:haka_comic/widgets/toast.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -17,6 +19,7 @@ class VerticalList extends StatefulWidget {
     required this.openOrCloseToolbar,
     required this.images,
     required this.scrollOffsetController,
+    required this.action,
   });
 
   /// 图片可见回调
@@ -33,6 +36,9 @@ class VerticalList extends StatefulWidget {
 
   /// 列表偏移
   final ScrollOffsetController scrollOffsetController;
+
+  /// 上一章或下一章
+  final VoidCallback? Function(ReaderBottomActionType) action;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -78,6 +84,26 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
   /// 翻页
   void jumpOffset(double offset) {
+    if (context.reader.pageNo == 0 && offset < 0) {
+      final previous = widget.action(ReaderBottomActionType.previous);
+      if (previous != null) {
+        previous();
+      } else {
+        Toast.show(message: '没有上一章了');
+      }
+      return;
+    }
+
+    if (context.reader.pageNo == widget.images.length - 1 && offset > 0) {
+      final next = widget.action(ReaderBottomActionType.next);
+      if (next != null) {
+        next();
+      } else {
+        Toast.show(message: '没有下一章了');
+      }
+      return;
+    }
+
     widget.scrollOffsetController.animateScroll(
       offset: offset,
       duration: const Duration(milliseconds: 200),
@@ -87,8 +113,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   @override
   Widget build(BuildContext context) {
     final physics =
-        ScrollPhysicsInherited.of(context) ??
-        const AlwaysScrollableScrollPhysics();
+        ScrollPhysicsInherited.of(context) ?? const BouncingScrollPhysics();
 
     return GestureWrapper(
       openOrCloseToolbar: widget.openOrCloseToolbar,

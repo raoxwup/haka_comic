@@ -1,7 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/network/models.dart' as models;
+import 'package:haka_comic/network/models.dart'
+    show Comment, PersonalComment, User, Chapter;
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
@@ -25,6 +26,7 @@ import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
+import 'package:haka_comic/views/settings/gesture_area.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
@@ -77,8 +79,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/sub_comments',
-      builder: (_, state) =>
-          SubCommentsPage(comment: state.extra as models.Comment),
+      builder: (_, state) => SubCommentsPage(comment: state.extra as Comment),
     ),
     GoRoute(path: '/search', builder: (_, _) => const Search()),
     GoRoute(path: '/settings', builder: (_, _) => const Settings()),
@@ -98,8 +99,8 @@ final GoRouter appRouter = GoRouter(
       path: '/personal_sub_comments',
       builder: (_, state) {
         final extra = state.extra as Map;
-        final comment = extra['comment'] as models.PersonalComment;
-        final user = extra['user'] as models.User;
+        final comment = extra['comment'] as PersonalComment;
+        final user = extra['user'] as User;
         return PersonalSubComment(comment: comment, user: user);
       },
     ),
@@ -110,7 +111,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map;
         final DownloadComic downloadComic =
             extra['downloadComic'] as DownloadComic;
-        final chapters = extra['chapters'] as List<models.Chapter>;
+        final chapters = extra['chapters'] as List<Chapter>;
         return Downloader(chapters: chapters, downloadComic: downloadComic);
       },
     ),
@@ -124,6 +125,19 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/notifications', builder: (_, _) => const Notifications()),
     GoRoute(path: '/tag_block', builder: (_, _) => const TagBlock()),
     GoRoute(path: '/word_block', builder: (_, _) => const WordBlock()),
+    GoRoute(
+      path: '/gesture_area',
+      builder: (_, _) => const GestureArea(),
+      routes: [
+        GoRoute(
+          path: 'details/:type',
+          builder: (_, state) {
+            final type = GestureAreaType.fromName(state.pathParameters['type']);
+            return GestureAreaDetails(type: type);
+          },
+        ),
+      ],
+    ),
   ],
 );
 

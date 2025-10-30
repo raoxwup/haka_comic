@@ -30,13 +30,13 @@ class GestureWrapper extends StatefulWidget {
   const GestureWrapper({
     super.key,
     required this.child,
-    this.initialPhysics,
+    this.initialPhysics = const BouncingScrollPhysics(),
     required this.jumpOffset,
     required this.openOrCloseToolbar,
   });
 
   final Widget child;
-  final ScrollPhysics? initialPhysics;
+  final ScrollPhysics initialPhysics;
   final Function(double) jumpOffset;
   final VoidCallback openOrCloseToolbar;
 
@@ -53,11 +53,12 @@ class _GestureWrapperState extends State<GestureWrapper>
   int _activePointers = 0;
 
   /// 滑动控制
-  late ScrollPhysics _listPhysics;
+  late ScrollPhysics _listPhysics = widget.initialPhysics;
+
+  final _focusNode = FocusNode()..requestFocus();
 
   ///双击缩放相关
-  final TransformationController _transformationController =
-      TransformationController();
+  final _transformationController = TransformationController();
   Offset _doubleTapPosition = Offset.zero;
   late AnimationController _animationController;
   late Animation<Matrix4> _animation;
@@ -72,7 +73,7 @@ class _GestureWrapperState extends State<GestureWrapper>
 
     final newPhysics = clampedCount >= 2
         ? const NeverScrollableScrollPhysics()
-        : widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
+        : widget.initialPhysics;
 
     // 优化：只在物理效果类型变化时才调用setState
     if (newPhysics.runtimeType != _listPhysics.runtimeType) {
@@ -135,8 +136,7 @@ class _GestureWrapperState extends State<GestureWrapper>
       if (_isCtrlPressed) {
         setState(() {
           _isCtrlPressed = false;
-          _listPhysics =
-              widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
+          _listPhysics = widget.initialPhysics;
         });
       }
     }
@@ -147,13 +147,6 @@ class _GestureWrapperState extends State<GestureWrapper>
   @override
   void initState() {
     super.initState();
-
-    _listPhysics =
-        widget.initialPhysics ?? const AlwaysScrollableScrollPhysics();
-
-    if (isDesktop) {
-      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
-    }
 
     _animationController =
         AnimationController(
@@ -166,13 +159,11 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   @override
   void dispose() {
-    if (isDesktop) {
-      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
-    }
-
     _transformationController.dispose();
 
     _animationController.dispose();
+
+    _focusNode.dispose();
 
     super.dispose();
   }
@@ -181,10 +172,11 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   void _handleTap() {
     final height = context.height;
-    double topFraction = 0.35;
-    double centerFraction = 0.3;
+    final appConf = AppConf();
+    double centerFraction = appConf.verticalCenterFraction;
+    double topFraction = (1 - centerFraction) / 2;
 
-    final slipFactor = AppConf().slipFactor;
+    final slipFactor = appConf.slipFactor;
 
     final topHeight = height * topFraction;
     final centerHeight = height * centerFraction;
@@ -207,17 +199,22 @@ class _GestureWrapperState extends State<GestureWrapper>
         onPointerDown: (event) => _updatePointerCount(1),
         onPointerUp: (event) => _updatePointerCount(-1),
         onPointerCancel: (event) => _updatePointerCount(-1),
-        child: GestureDetector(
-          onTap: _handleTap,
-          onTapDown: (details) => _tapDownDetails = details,
-          onDoubleTapDown: _handleDoubleTapDown,
-          onDoubleTap: _handleDoubleTap,
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            scaleEnabled: isDesktop ? _isCtrlPressed : true,
-            minScale: 1,
-            maxScale: 3.5,
-            child: widget.child,
+        child: KeyboardListener(
+          focusNode: _focusNode,
+          autofocus: true,
+          onKeyEvent: _handleKeyEvent,
+          child: GestureDetector(
+            onTap: _handleTap,
+            onTapDown: (details) => _tapDownDetails = details,
+            onDoubleTapDown: _handleDoubleTapDown,
+            onDoubleTap: _handleDoubleTap,
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              scaleEnabled: isDesktop ? _isCtrlPressed : true,
+              minScale: 1,
+              maxScale: 3.5,
+              child: widget.child,
+            ),
           ),
         ),
       ),

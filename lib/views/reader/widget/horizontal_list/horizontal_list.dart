@@ -1,11 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:haka_comic/widgets/toast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -20,6 +23,7 @@ class HorizontalList extends StatefulWidget {
     required this.isReverse,
     required this.openOrCloseToolbar,
     required this.multiPageImages,
+    required this.action,
   });
 
   /// 图片可见回调
@@ -38,6 +42,9 @@ class HorizontalList extends StatefulWidget {
 
   final List<List<ChapterImage>> multiPageImages;
 
+  /// 上一章或下一章
+  final VoidCallback? Function(ReaderBottomActionType) action;
+
   @override
   State<HorizontalList> createState() => _HorizontalListState();
 }
@@ -45,8 +52,6 @@ class HorizontalList extends StatefulWidget {
 class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
-
-  final Map<int, PhotoViewController> photoViewControllers = {};
 
   /// 获取当前章节ID
   String get cid => context.reader.cid;
@@ -56,6 +61,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   /// 是否双页模式
   bool get isDoublePage => widget.isDoublePage;
+
+  int get itemCount =>
+      isDoublePage ? widget.multiPageImages.length : widget.images.length;
 
   void jumpToPage() {
     final reader = context.reader;
@@ -82,37 +90,50 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     }
   }
 
-  @override
-  void dispose() {
-    for (var controller in photoViewControllers.values) {
-      controller.dispose();
-    }
-
-    super.dispose();
-  }
-
   TapDownDetails? _tapDetails;
 
-  void previousPage() => widget.pageController.previousPage(
-    duration: const Duration(milliseconds: 200),
-    curve: Curves.linear,
-  );
+  void previousPage() {
+    if (context.reader.pageNo == 0) {
+      final previous = widget.action(ReaderBottomActionType.previous);
+      if (previous != null) {
+        previous();
+      } else {
+        Toast.show(message: '没有上一章了');
+      }
+      return;
+    }
 
-  void nextPage() => widget.pageController.nextPage(
-    duration: const Duration(milliseconds: 200),
-    curve: Curves.linear,
-  );
+    widget.pageController.previousPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.linear,
+    );
+  }
+
+  void nextPage() {
+    final correctPageNo = isDoublePage
+        ? toCorrectMultiPageNo(context.reader.pageNo, 2)
+        : context.reader.pageNo;
+    if (correctPageNo == itemCount - 1) {
+      final next = widget.action(ReaderBottomActionType.next);
+      if (next != null) {
+        next();
+      } else {
+        Toast.show(message: '没有下一章了');
+      }
+      return;
+    }
+
+    widget.pageController.nextPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.linear,
+    );
+  }
 
   void _handleTap() {
     if (_tapDetails == null) return;
     final width = context.width;
-    double leftFraction = 0.3;
-    double centerFraction = 0.4;
-
-    if (width > 600) {
-      leftFraction = 0.2;
-      centerFraction = 0.6;
-    }
+    double centerFraction = AppConf().horizontalCenterFraction;
+    double leftFraction = (1 - centerFraction) / 2;
 
     final leftWidth = width * leftFraction;
     final centerWidth = width * centerFraction;
@@ -142,21 +163,16 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               color: context.colorScheme.surfaceContainerLowest,
             ),
             scrollPhysics: const BouncingScrollPhysics(),
-            itemCount: isDoublePage
-                ? widget.multiPageImages.length
-                : widget.images.length,
+            itemCount: itemCount,
             pageController: widget.pageController,
             onPageChanged: _onPageChanged,
             reverse: isReverse,
             builder: (context, index) {
-              photoViewControllers[index] ??= PhotoViewController();
-
               if (!isDoublePage) {
                 final item = widget.images[index];
                 return PhotoViewGalleryPageOptions(
-                  minScale: PhotoViewComputedScale.contained * 1,
-                  maxScale: PhotoViewComputedScale.covered * 4,
-                  controller: photoViewControllers[index],
+                  minScale: PhotoViewComputedScale.contained * 1.0,
+                  maxScale: PhotoViewComputedScale.covered * 4.0,
                   imageProvider: CachedNetworkImageProvider(item.media.url),
                   filterQuality: FilterQuality.medium,
                   errorBuilder: (context, error, stackTrace, retry) {
@@ -189,7 +205,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               final size = Size(constraints.maxWidth, constraints.maxHeight);
               return PhotoViewGalleryPageOptions.customChild(
                 childSize: size * 2,
-                controller: photoViewControllers[index],
                 minScale: PhotoViewComputedScale.contained * 1.0,
                 maxScale: PhotoViewComputedScale.covered * 10.0,
                 child: buildPageImages(items),
@@ -243,9 +258,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   }
 
   void _onPageChanged(index) {
-    // 将上一页的图片状态重置
-    photoViewControllers[_visibleFirstIndex]?.reset();
-
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
 
     if (_visibleFirstIndex > index) {

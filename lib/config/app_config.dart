@@ -61,6 +61,12 @@ class AppConf {
   /// 是否启用音量键翻页
   bool _enableVolume = true;
 
+  /// 竖向阅读菜单呼出占比
+  double _verticalCenterFraction = 0.3;
+
+  /// 横向阅读菜单呼出占比
+  double _horizontalCenterFraction = 0.4;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -88,6 +94,10 @@ class AppConf {
     instance._scale = prefs.getDouble('scale') ?? 1.0;
     instance._slipFactor = prefs.getDouble('slipFactor') ?? 0.5;
     instance._enableVolume = prefs.getBool('enableVolume') ?? true;
+    instance._verticalCenterFraction =
+        prefs.getDouble('verticalCenterFraction') ?? 0.3;
+    instance._horizontalCenterFraction =
+        prefs.getDouble('horizontalCenterFraction') ?? 0.4;
   }
 
   set email(String value) {
@@ -175,6 +185,16 @@ class AppConf {
     SharedPreferencesUtil.prefs.setBool('enableVolume', value);
   }
 
+  set verticalCenterFraction(double value) {
+    _verticalCenterFraction = value;
+    SharedPreferencesUtil.prefs.setDouble('verticalCenterFraction', value);
+  }
+
+  set horizontalCenterFraction(double value) {
+    _horizontalCenterFraction = value;
+    SharedPreferencesUtil.prefs.setDouble('horizontalCenterFraction', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -192,6 +212,8 @@ class AppConf {
   double get scale => _scale;
   double get slipFactor => _slipFactor;
   bool get enableVolume => _enableVolume;
+  double get verticalCenterFraction => _verticalCenterFraction;
+  double get horizontalCenterFraction => _horizontalCenterFraction;
 
   /// 清除token
   void clearAuth() {
@@ -218,6 +240,8 @@ class AppConf {
     _scale = 1.0;
     _slipFactor = 0.5;
     _enableVolume = true;
+    _verticalCenterFraction = 0.3;
+    _horizontalCenterFraction = 0.4;
     SharedPreferencesUtil.prefs.clear();
   }
 }
