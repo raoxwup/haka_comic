@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.0.2
+version: 1.0.3
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
@@ -41,6 +41,7 @@ dependencies:
   vector_math: ^2.2.0
   volume_button_override: ^0.0.1
   go_transitions: ^0.8.2
+  material_symbols_icons: ^4.2874.0
 
 dev_dependencies:
   flutter_test:

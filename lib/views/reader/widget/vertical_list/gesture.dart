@@ -30,9 +30,7 @@ class GestureWrapper extends StatefulWidget {
   const GestureWrapper({
     super.key,
     required this.child,
-    this.initialPhysics = const BouncingScrollPhysics(
-      parent: AlwaysScrollableScrollPhysics(),
-    ),
+    this.initialPhysics = const BouncingScrollPhysics(),
     required this.jumpOffset,
     required this.openOrCloseToolbar,
   });
@@ -174,10 +172,11 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   void _handleTap() {
     final height = context.height;
-    double topFraction = 0.35;
-    double centerFraction = 0.3;
+    final appConf = AppConf();
+    double centerFraction = appConf.verticalCenterFraction;
+    double topFraction = (1 - centerFraction) / 2;
 
-    final slipFactor = AppConf().slipFactor;
+    final slipFactor = appConf.slipFactor;
 
     final topHeight = height * topFraction;
     final centerHeight = height * centerFraction;

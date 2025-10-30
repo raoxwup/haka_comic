@@ -39,7 +39,7 @@ class MenuListTile<T> extends StatelessWidget {
                 color: context.colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 22),
+              child: Icon(icon, size: 22, weight: 700),
             ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

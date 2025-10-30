@@ -239,6 +239,13 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
       ),
     );
 
+    VoidCallback? action(ReaderBottomActionType type) {
+      return switch (type) {
+        ReaderBottomActionType.previous => isFirstChapter ? null : goPrevious,
+        ReaderBottomActionType.next => isLastChapter ? null : goNext,
+      };
+    }
+
     Widget listWidget = _readMode == ReadMode.vertical
         ? VerticalList(
             onItemVisibleChanged: onPageNoChanged,
@@ -246,6 +253,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             openOrCloseToolbar: openOrCloseToolbar,
             scrollOffsetController: _scrollOffsetController,
             images: _images,
+            action: action,
           )
         : HorizontalList(
             onItemVisibleChanged: onPageNoChanged,
@@ -255,6 +263,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             images: _images,
             multiPageImages: _multiPageImages,
             isReverse: isReverse,
+            action: action,
           );
 
     final total = isDoublePage ? _multiPageImages.length : _images.length;
@@ -305,13 +314,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             total: total,
             pageNo: correctPageNo,
             isVerticalMode: _readMode == ReadMode.vertical,
-            action: (type) {
-              return switch (type) {
-                ReaderBottomActionType.previous =>
-                  isFirstChapter ? null : goPrevious,
-                ReaderBottomActionType.next => isLastChapter ? null : goNext,
-              };
-            },
+            action: action,
           ),
         ],
       ),
