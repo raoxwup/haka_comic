@@ -231,76 +231,70 @@ class _DownloadsState extends State<Downloads> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title:
-              _isSelecting
-                  ? AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 150),
-                    transitionBuilder: (child, animation) {
-                      return SlideTransitionX(
-                        position: animation,
-                        direction: AxisDirection.down,
-                        child: child,
-                      );
+          title: _isSelecting
+              ? AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  transitionBuilder: (child, animation) {
+                    return SlideTransitionX(
+                      position: animation,
+                      direction: AxisDirection.down,
+                      child: child,
+                    );
+                  },
+                  child: Text(
+                    '${_selectedTaskIds.length}',
+                    key: ValueKey(_selectedTaskIds.length),
+                  ),
+                )
+              : const Text('我的下载'),
+          leading: _isSelecting
+              ? IconButton(
+                  onPressed: () => close(),
+                  icon: const Icon(Icons.close),
+                )
+              : null,
+          actions: _isSelecting
+              ? [
+                  IconButton(
+                    onPressed: () => setState(() => _selectedTaskIds.clear()),
+                    icon: const Icon(Icons.deselect),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(
+                      () =>
+                          _selectedTaskIds.addAll(tasks.map((e) => e.comic.id)),
+                    ),
+                    icon: const Icon(Icons.select_all),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        final allIds = tasks.map((e) => e.comic.id).toSet();
+                        _selectedTaskIds = _selectedTaskIds
+                            .difference(allIds)
+                            .union(allIds.difference(_selectedTaskIds));
+                      });
                     },
-                    child: Text(
-                      '${_selectedTaskIds.length}',
-                      key: ValueKey(_selectedTaskIds.length),
-                    ),
-                  )
-                  : const Text('我的下载'),
-          leading:
-              _isSelecting
-                  ? IconButton(
-                    onPressed: () => close(),
-                    icon: const Icon(Icons.close),
-                  )
-                  : null,
-          actions:
-              _isSelecting
-                  ? [
-                    IconButton(
-                      onPressed: () => setState(() => _selectedTaskIds.clear()),
-                      icon: const Icon(Icons.deselect),
-                    ),
-                    IconButton(
-                      onPressed:
-                          () => setState(
-                            () => _selectedTaskIds.addAll(
-                              tasks.map((e) => e.comic.id),
-                            ),
-                          ),
-                      icon: const Icon(Icons.select_all),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          final allIds = tasks.map((e) => e.comic.id).toSet();
-                          _selectedTaskIds = _selectedTaskIds
-                              .difference(allIds)
-                              .union(allIds.difference(_selectedTaskIds));
-                        });
-                      },
-                      icon: const Icon(Icons.repeat),
-                    ),
-                  ]
-                  : [
-                    IconButton(
-                      onPressed: () => setState(() => _isSelecting = true),
-                      icon: const Icon(Icons.checklist_rtl),
-                    ),
-                  ],
+                    icon: const Icon(Icons.repeat),
+                  ),
+                ]
+              : [
+                  IconButton(
+                    onPressed: () => setState(() => _isSelecting = true),
+                    icon: const Icon(Icons.checklist_rtl),
+                  ),
+                ],
         ),
         body: CustomScrollView(
           slivers: [
             if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
             SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent:
-                    UiMode.m1(context)
-                        ? width
-                        : UiMode.m2(context)
-                        ? width / 2
-                        : width / 3,
+                maxCrossAxisExtent: UiMode.m1(context)
+                    ? width
+                    : UiMode.m2(context)
+                    ? width / 2
+                    : width / 3,
                 mainAxisSpacing: 5,
                 crossAxisSpacing: 5,
                 childAspectRatio: 2.5,
@@ -310,16 +304,15 @@ class _DownloadsState extends State<Downloads> {
                 return InkWell(
                   key: ValueKey(task.comic.id),
                   onTapDown: (details) => _tapDownDetails = details,
-                  onLongPress:
-                      _isSelecting
-                          ? null
-                          : () {
-                            _showContextMenu(
-                              context,
-                              _tapDownDetails.globalPosition,
-                              task,
-                            );
-                          },
+                  onLongPress: _isSelecting
+                      ? null
+                      : () {
+                          _showContextMenu(
+                            context,
+                            _tapDownDetails.globalPosition,
+                            task,
+                          );
+                        },
                   onTap: () {
                     if (_isSelecting) {
                       setState(() {
@@ -339,14 +332,13 @@ class _DownloadsState extends State<Downloads> {
                       vertical: 5,
                       horizontal: 10,
                     ),
-                    decoration:
-                        _selectedTaskIds.contains(task.comic.id)
-                            ? BoxDecoration(
-                              color: context.colorScheme.secondaryContainer
-                                  .withValues(alpha: 0.65),
-                              borderRadius: BorderRadius.circular(12),
-                            )
-                            : null,
+                    decoration: _selectedTaskIds.contains(task.comic.id)
+                        ? BoxDecoration(
+                            color: context.colorScheme.secondaryContainer
+                                .withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(12),
+                          )
+                        : null,
                     child: Row(
                       spacing: 8,
                       children: [
@@ -401,10 +393,9 @@ class _DownloadsState extends State<Downloads> {
                                 const SizedBox(height: 5),
                                 LinearProgressIndicator(
                                   borderRadius: BorderRadius.circular(99),
-                                  value:
-                                      task.total == 0
-                                          ? null
-                                          : task.completed / task.total,
+                                  value: task.total == 0
+                                      ? null
+                                      : task.completed / task.total,
                                 ),
                               ],
                             ),
@@ -419,28 +410,26 @@ class _DownloadsState extends State<Downloads> {
             ),
           ],
         ),
-        persistentFooterButtons:
-            _isSelecting
-                ? [
-                  FilledButton.tonalIcon(
-                    onPressed:
-                        (_selectedTaskIds.isEmpty || !isAllCompleted)
-                            ? null
-                            : exportTasks,
-                    label: const Text('导出'),
-                    icon: const Icon(Icons.drive_file_move),
+        persistentFooterButtons: _isSelecting
+            ? [
+                FilledButton.tonalIcon(
+                  onPressed: (_selectedTaskIds.isEmpty || !isAllCompleted)
+                      ? null
+                      : exportTasks,
+                  label: const Text('导出'),
+                  icon: const Icon(Icons.drive_file_move),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _selectedTaskIds.isEmpty ? null : clearTasks,
+                  label: const Text('删除'),
+                  icon: const Icon(Icons.delete_forever),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colorScheme.error,
+                    foregroundColor: context.colorScheme.onError,
                   ),
-                  FilledButton.tonalIcon(
-                    onPressed: _selectedTaskIds.isEmpty ? null : clearTasks,
-                    label: const Text('删除'),
-                    icon: const Icon(Icons.delete_forever),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: context.colorScheme.error,
-                      foregroundColor: context.colorScheme.onError,
-                    ),
-                  ),
-                ]
-                : null,
+                ),
+              ]
+            : null,
       ),
     );
   }
