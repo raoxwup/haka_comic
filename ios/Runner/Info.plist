@@ -47,8 +47,6 @@
 	</array>
 	<key>NSAppleMusicUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your music.</string>
-	<key>UISupportsDocumentBrowser</key>
-	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
