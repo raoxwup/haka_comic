@@ -167,13 +167,8 @@ jobs:
           $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
           $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
 
-          # 读取原始项目名
-          $nameLine = Select-String -Path "pubspec.yaml" -Pattern "^name:\s*(.+)$"
-          $rawName = $nameLine.Matches[0].Groups[1].Value.Trim()
-
-          # 转成首字母大写并空格化
-          $appNameParts = ($rawName -replace "_", " ") -split " "
-          $appName = ($appNameParts | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) }) -join " "
+          # 应用名称
+          $appName = "HaKa Comic"
 
           # 查找生成的 exe 文件名
           $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
@@ -265,18 +260,22 @@ jobs:
       # 打包 .app 成 DMG（跳过签名）
       - name: Package .app into DMG
         run: |
+          # 读取版本号
+          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
+          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
+
           cd build/macos/Build/Products/Release/
           # 获取 .app 名称
           appName=$(ls -d *.app | head -n 1)
           # 生成 DMG 文件名
-          dmgName="${appName%.app}.dmg"
+          dmgName="${appName%.app}-v$version.dmg"
           echo "Packaging $appName into $dmgName"
 
           # 打包 DMG，跳过签名
           create-dmg "$appName" \
             --overwrite \
             --no-version-in-filename \
-            --dmg-title "${appName%.app}" \
+            --dmg-title "${appName%.app}-v$version" \
             --no-code-sign
 
       # 上传 DMG
