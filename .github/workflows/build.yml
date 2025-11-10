@@ -15,8 +15,22 @@ on:
           - main
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      app-version: ${{ steps.get_version.outputs.app-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - id: get_version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          echo "app-version=$version" >> $GITHUB_OUTPUT
+
   android-build:
     name: Android Build
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
@@ -51,22 +65,20 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-        # 构建带签名的 APK
-      - name: Build Universal APK
-        run: flutter build apk --release
+      - name: Build APKs
+        run: flutter build apk --release --split-per-abi
 
-      - name: Move Universal APK
+      - name: Move And Rename APKs
         run: |
-          mkdir -p artifacts/universal
-          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/app-universal-release.apk
-
-      - name: Build Split APKs
-        run: flutter build apk --split-per-abi
-
-      - name: Move Split APKs
-        run: |
-          mkdir -p artifacts/split
-          mv build/app/outputs/apk/release/*.apk artifacts/split/
+          version=${{ needs.setup.outputs.app-version }}
+          mkdir -p artifacts
+          for file in build/app/outputs/flutter-apk/*.apk; do
+            filename=$(basename "$file")
+            if [ "$filename" = "app-release.apk" ]; then
+              filename="app-universal-release.apk"
+            fi
+            mv "$file" "artifacts/${filename%.apk}-v$version.apk"
+          done
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -86,7 +98,7 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           body: Android build completed. APKs attached.
-          attachments: artifacts/split/app-arm64-v8a-release.apk
+          attachments: artifacts/app-arm64-v8a-release.apk
 
   ios-build:
     name: iOS Build

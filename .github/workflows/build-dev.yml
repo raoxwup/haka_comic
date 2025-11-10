@@ -20,44 +20,18 @@ defaults:
 
 jobs:
   setup:
-    name: Setup Flutter Environment
     runs-on: ubuntu-latest
     outputs:
-      flutter-version: ${{ steps.flutter.outputs.flutter-version }}
       app-version: ${{ steps.get_version.outputs.app-version }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
-
-      - name: Setup Flutter
-        id: flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version-file: pubspec.yaml
-
-      - name: Cache Flutter packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            build/
-          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Get app version
-        id: get_version
+      - id: get_version
         run: |
           version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
           echo "app-version=$version" >> $GITHUB_OUTPUT
 
-  # ==================== Android 构建 ====================
   android-build:
     name: Android Build
     needs: setup
@@ -97,17 +71,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # -------- 构建 Universal APK --------
-      - name: Build Universal APK
-        run: flutter build apk --release
-
-      - name: Move Universal APK
-        run: |
-          version=${{ needs.setup.outputs.app-version }}
-          mkdir -p artifacts/universal
-          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/app-universal-v$version.apk
-
-      # -------- 构建 Split APKs --------
       - name: Build Split APKs
         run: flutter build apk --release --split-per-abi
 
@@ -126,7 +89,6 @@ jobs:
           path: artifacts/
           retention-days: 5
 
-  # ==================== iOS 构建 ====================
   ios-build:
     name: iOS Build
     needs: setup
@@ -161,7 +123,6 @@ jobs:
           path: build/ios/iphoneos/*.ipa
           retention-days: 5
 
-  # ==================== Windows 构建 ====================
   windows-build:
     name: Windows Build
     needs: setup
