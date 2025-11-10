@@ -1,0 +1,291 @@
+name: Dev Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "要构建的分支"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - main
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup Flutter Environment
+    runs-on: ubuntu-latest
+    outputs:
+      flutter-version: ${{ steps.flutter.outputs.flutter-version }}
+      app-version: ${{ steps.get_version.outputs.app-version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup Flutter
+        id: flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Cache Flutter packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            build/
+          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Get app version
+        id: get_version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          echo "app-version=$version" >> $GITHUB_OUTPUT
+
+  # ==================== Android 构建 ====================
+  android-build:
+    name: Android Build
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+
+      - name: Set up keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # -------- 构建 Universal APK --------
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Move Universal APK
+        run: |
+          version=${{ needs.setup.outputs.app-version }}
+          mkdir -p artifacts/universal
+          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/app-universal-v$version.apk
+
+      # -------- 构建 Split APKs --------
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Move Split APKs
+        run: |
+          version=${{ needs.setup.outputs.app-version }}
+          mkdir -p artifacts/split
+          for file in build/app/outputs/flutter-apk/*.apk; do
+            mv "$file" "artifacts/split/$(basename "$file" .apk)-v$version.apk"
+          done
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apks
+          path: artifacts/
+          retention-days: 5
+
+  # ==================== iOS 构建 ====================
+  ios-build:
+    name: iOS Build
+    needs: setup
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+          architecture: x64
+
+      - run: flutter pub get
+
+      - name: Build unsigned IPA
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p build/ios/iphoneos/Payload
+          mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
+          cd build/ios/iphoneos/
+          zip -r HaKaComic-v${{ needs.setup.outputs.app-version }}.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/iphoneos/*.ipa
+          retention-days: 5
+
+  # ==================== Windows 构建 ====================
+  windows-build:
+    name: Windows Build
+    needs: setup
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Create Inno Setup Script
+        shell: pwsh
+        run: |
+          $version = "${{ needs.setup.outputs.app-version }}"
+          $appName = "HaKa Comic"
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
+
+          $content = @"
+          [Setup]
+          AppName=$appName
+          AppVersion=$version
+          DefaultDirName={autopf}\$appName
+          DefaultGroupName=$appName
+          OutputBaseFilename=${appName}-Setup-v$version
+          Compression=lzma
+          SolidCompression=yes
+
+          [Files]
+          Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
+
+          [Icons]
+          Name: "{group}\$appName"; Filename: "{app}\$exeName"
+          Name: "{userdesktop}\$appName"; Filename: "{app}\$exeName"
+
+          [Run]
+          Filename: "{app}\$exeName"; Flags: nowait postinstall skipifsilent
+          "@
+
+          $content | Out-File -FilePath installer.iss -Encoding ascii
+
+      - name: Build Installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: Output/*.exe
+          retention-days: 5
+
+  # ==================== macOS 构建 ====================
+  macos-build:
+    name: macOS Build
+    needs: setup
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - run: flutter pub get
+
+      - name: Install create-dmg
+        run: npm install -g create-dmg
+
+      - name: Build macOS Release
+        run: flutter build macos --release
+
+      - name: Package .app into DMG
+        run: |
+          version=${{ needs.setup.outputs.app-version }}
+          cd build/macos/Build/Products/Release/
+          appName=$(ls -d *.app | head -n 1)
+          dmgName="${appName%.app}-v$version.dmg"
+          create-dmg "$appName" --overwrite --dmg-title "${appName%.app} v$version" --no-code-sign
+          mv *.dmg "$dmgName"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-dmg
+          path: build/macos/Build/Products/Release/*.dmg
+          retention-days: 5
+
+  # ==================== 通知邮件 ====================
+  notify:
+    name: Notify Build Completion
+    needs: [android-build, ios-build, windows-build, macos-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dawidd6/action-send-mail@v5
+        with:
+          server_address: smtp.qq.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: All Platform Builds Completed
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          body: |
+            ✅ All platform builds completed successfully!
+            - Android Universal + Split APKs
+            - iOS IPA
+            - Windows Installer
+            - macOS DMG
+
+            请前往 GitHub Actions Artifacts 下载对应产物。
