@@ -16,6 +16,7 @@ on:
 
 jobs:
   setup:
+    name: Setup
     runs-on: ubuntu-latest
     outputs:
       app-version: ${{ steps.get_version.outputs.app-version }}
@@ -50,6 +51,16 @@ jobs:
         with:
           channel: "stable"
           flutter-version-file: pubspec.yaml
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Create key.properties
         run: |
@@ -102,6 +113,7 @@ jobs:
 
   ios-build:
     name: iOS Build
+    needs: setup
     runs-on: macos-15
 
     steps:
@@ -125,13 +137,13 @@ jobs:
           mkdir -p build/ios/iphoneos/Payload
           mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
           cd build/ios/iphoneos/
-          zip -r no-codesign-ios.ipa Payload
+          zip -r no-codesign-ios-v${{ needs.setup.outputs.app-version }}.ipa Payload
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
-          path: build/ios/iphoneos/no-codesign-ios.ipa
+          path: build/ios/iphoneos/*.ipa
           retention-days: 5
 
       - name: Notify iOS Build
@@ -145,10 +157,11 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           body: iOS build completed. IPA attached.
-          attachments: build/ios/iphoneos/no-codesign-ios.ipa
+          attachments: build/ios/iphoneos/*.ipa
 
   windows-build:
     name: Windows Build
+    needs: setup
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -175,11 +188,8 @@ jobs:
         id: get_info
         shell: pwsh
         run: |
-          # 读取版本号
-          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
-          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
+          $version = ${{ needs.setup.outputs.app-version }}
 
-          # 应用名称
           $appName = "HaKa Comic"
 
           # 查找生成的 exe 文件名
@@ -244,6 +254,7 @@ jobs:
 
   macos-build:
     name: MacOS Build
+    needs: setup
     runs-on: macos-15
 
     steps:
@@ -261,21 +272,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 构建 macOS Release
-      - name: Build macOS Release
+      - name: Build MacOS Release
         run: flutter build macos --release
 
-      # 安装 create-dmg 工具
       - name: Install create-dmg
         run: npm install -g create-dmg
 
-      # 打包 .app 成 DMG（跳过签名）
       - name: Package .app into DMG
         run: |
-          # 读取版本号
-          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
-          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
-
+          version=${{ needs.setup.outputs.app-version }}
           cd build/macos/Build/Products/Release/
           # 获取 .app 名称
           appName=$(ls -d *.app | head -n 1)
@@ -283,14 +288,11 @@ jobs:
           dmgName="${appName%.app}-v$version.dmg"
           echo "Packaging $appName into $dmgName"
 
-          # 打包 DMG，跳过签名
           create-dmg "$appName" \
             --overwrite \
-            --no-version-in-filename \
-            --dmg-title "${appName%.app}-v$version" \
+            --dmg-title "${appName%.app} v$version" \
             --no-code-sign
 
-      # 上传 DMG
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
