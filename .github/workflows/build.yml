@@ -76,7 +76,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APKs
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Build Split APKs
         run: flutter build apk --release --split-per-abi
 
       - name: Move And Rename APKs
@@ -184,43 +187,25 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
 
-      - name: Read app info from pubspec.yaml and exe
-        id: get_info
-        shell: pwsh
-        run: |
-          $version = ${{ needs.setup.outputs.app-version }}
-
-          $appName = "HaKa Comic"
-
-          # 查找生成的 exe 文件名
-          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
-          $exeName = $exePath.Name
-
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "appName=$appName" >> $env:GITHUB_OUTPUT
-          echo "exeName=$exeName" >> $env:GITHUB_OUTPUT
-
       - name: Create Inno Setup Script
         shell: pwsh
         run: |
-          $version = "${{ steps.get_info.outputs.version }}"
-          $appName = "${{ steps.get_info.outputs.appName }}"
-          $exeName = "${{ steps.get_info.outputs.exeName }}"
+          $version = "${{ needs.setup.outputs.app-version }}"
+          $appName = "HaKa Comic"
 
-          # 转义双引号，防止写入出错
-          $appNameEscaped = $appName -replace '"','\"'
-          $exeNameEscaped = $exeName -replace '"','\"'
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
 
           # 构造输出文件名
-          $outputFile = "$appNameEscaped-Setup-v$version"
-          $DefaultDir = "{autopf}/$appNameEscaped"
+          $outputFile = "$appName-Setup-v$version"
+          $DefaultDir = "{autopf}/$appName"
 
           $content = @"
           [Setup]
-          AppName=$appNameEscaped
+          AppName=$appName
           AppVersion=$version
           DefaultDirName=$DefaultDir
-          DefaultGroupName=$appNameEscaped
+          DefaultGroupName=$appName
           OutputBaseFilename=$outputFile
           Compression=lzma
           SolidCompression=yes
@@ -230,11 +215,11 @@ jobs:
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
-          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
 
           [Run]
-          Filename: `"{app}\$exeNameEscaped`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
+          Filename: `"{app}\$exeName`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
           "@
 
           # 输出到文件
@@ -290,8 +275,11 @@ jobs:
 
           create-dmg "$appName" \
             --overwrite \
-            --dmg-title "${appName%.app} v$version" \
+            --no-version-in-filename \
+            --dmg-title "${appName%.app}" \
             --no-code-sign
+
+          mv *.dmg "$dmgName"
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
