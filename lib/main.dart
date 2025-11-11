@@ -13,11 +13,13 @@ import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/app_router.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 void main(List<String> args) {
   runZonedGuarded(
@@ -52,7 +54,7 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> {
+class _AppState extends State<App> with WindowListener {
   @override
   initState() {
     super.initState();
@@ -63,6 +65,49 @@ class _AppState extends State<App> {
 
     if (AppConf().checkUpdate) {
       checkUpdate();
+    }
+
+    if (isDesktop) {
+      windowManager.addListener(this);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (isDesktop) {
+      windowManager.removeListener(this);
+    }
+    super.dispose();
+  }
+
+  @override
+  void onWindowMoved() => _saveWindowState();
+  @override
+  void onWindowResized() => _saveWindowState();
+  @override
+  void onWindowMaximize() => _saveWindowState();
+  @override
+  void onWindowUnmaximize() => _saveWindowState();
+  @override
+  void onWindowEnterFullScreen() => _saveWindowState();
+  @override
+  void onWindowLeaveFullScreen() => _saveWindowState();
+  @override
+  void onWindowClose() => _saveWindowState();
+
+  Future<void> _saveWindowState() async {
+    final conf = AppConf();
+
+    final isFullScreen = await windowManager.isFullScreen();
+    conf.windowFullscreen = isFullScreen;
+
+    if (!isFullScreen) {
+      final position = await windowManager.getPosition();
+      final size = await windowManager.getSize();
+      conf.windowX = position.dx;
+      conf.windowY = position.dy;
+      conf.windowWidth = size.width;
+      conf.windowHeight = size.height;
     }
   }
 
