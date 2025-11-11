@@ -26,6 +26,9 @@ class StartupPrepare {
   }
 }
 
+/// 启动窗口
+/// 如果有上一次的窗口状态,则恢复
+/// 如果上一次窗口状态是全屏，则只恢复全屏，启动尺寸则使用默认尺寸
 Future<void> startDesktop() async {
   if (isDesktop) {
     await windowManager.ensureInitialized();
@@ -37,8 +40,11 @@ Future<void> startDesktop() async {
     final w = conf.windowWidth;
     final isFullscreen = conf.windowFullscreen;
 
+    // 默认窗口大小
+    final defaultSize = const Size(900.0, 620.0);
+
     WindowOptions windowOptions = WindowOptions(
-      size: Size(w, h),
+      size: (w != null && h != null) ? Size(w, h) : defaultSize,
       center: (x == null || y == null),
       backgroundColor: Colors.transparent,
       skipTaskbar: false,

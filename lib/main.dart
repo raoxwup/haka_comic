@@ -92,8 +92,6 @@ class _AppState extends State<App> with WindowListener {
   void onWindowEnterFullScreen() => _saveWindowState();
   @override
   void onWindowLeaveFullScreen() => _saveWindowState();
-  @override
-  void onWindowClose() => _saveWindowState();
 
   Future<void> _saveWindowState() async {
     final conf = AppConf();

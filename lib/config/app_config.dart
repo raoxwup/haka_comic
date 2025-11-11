@@ -71,8 +71,8 @@ class AppConf {
   bool? _windowFullscreen;
   double? _windowX;
   double? _windowY;
-  double _windowWidth = 900.0;
-  double _windowHeight = 620.0;
+  double? _windowWidth;
+  double? _windowHeight;
 
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
@@ -105,11 +105,11 @@ class AppConf {
         prefs.getDouble('verticalCenterFraction') ?? 0.3;
     instance._horizontalCenterFraction =
         prefs.getDouble('horizontalCenterFraction') ?? 0.4;
-    instance._windowFullscreen = prefs.getBool('window_fullscreen');
-    instance._windowX = prefs.getDouble('window_x');
-    instance._windowY = prefs.getDouble('window_y');
-    instance._windowWidth = prefs.getDouble('window_width') ?? 900.0;
-    instance._windowHeight = prefs.getDouble('window_height') ?? 620.0;
+    instance._windowFullscreen = prefs.getBool('windowFullscreen');
+    instance._windowX = prefs.getDouble('windowX');
+    instance._windowY = prefs.getDouble('windowY');
+    instance._windowWidth = prefs.getDouble('windowWidth');
+    instance._windowHeight = prefs.getDouble('windowHeight');
   }
 
   set email(String value) {
@@ -225,13 +225,15 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('windowY', value);
   }
 
-  set windowWidth(double value) {
+  set windowWidth(double? value) {
     _windowWidth = value;
+    if (value == null) return;
     SharedPreferencesUtil.prefs.setDouble('windowWidth', value);
   }
 
-  set windowHeight(double value) {
+  set windowHeight(double? value) {
     _windowHeight = value;
+    if (value == null) return;
     SharedPreferencesUtil.prefs.setDouble('windowHeight', value);
   }
 
@@ -258,8 +260,8 @@ class AppConf {
   bool? get windowFullscreen => _windowFullscreen;
   double? get windowX => _windowX;
   double? get windowY => _windowY;
-  double get windowWidth => _windowWidth;
-  double get windowHeight => _windowHeight;
+  double? get windowWidth => _windowWidth;
+  double? get windowHeight => _windowHeight;
 
   /// 清除token
   void clearAuth() {
