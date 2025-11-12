@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_transitions/go_transitions.dart';
@@ -94,6 +95,8 @@ class _AppState extends State<App> with WindowListener {
   void onWindowLeaveFullScreen() => _saveWindowState();
 
   Future<void> _saveWindowState() async {
+    if (kDebugMode) return;
+
     final conf = AppConf();
 
     final isFullScreen = await windowManager.isFullScreen();

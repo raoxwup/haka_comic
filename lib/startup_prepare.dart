@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
@@ -28,7 +29,7 @@ class StartupPrepare {
 
 /// 启动窗口 如果有上一次的窗口状态,则恢复
 Future<void> startDesktop() async {
-  if (isDesktop) {
+  if (isDesktop && kReleaseMode) {
     await windowManager.ensureInitialized();
 
     final conf = AppConf();

@@ -148,12 +148,11 @@ class ProFile extends StatelessWidget {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         fit: BoxFit.cover,
-                        image:
-                            user?.avatar?.url != null
-                                ? CachedNetworkImageProvider(
-                                  user?.avatar?.url ?? '',
-                                )
-                                : const AssetImage('assets/images/login.png'),
+                        image: user?.avatar?.url != null
+                            ? CachedNetworkImageProvider(
+                                user?.avatar?.url ?? '',
+                              )
+                            : const AssetImage('assets/images/login.png'),
                       ),
                     ),
                   ),
@@ -276,8 +275,8 @@ class Favorites extends StatefulWidget {
 
 class _FavoritesState extends State<Favorites> {
   late final _handler = fetchFavoriteComics.useRequest(
-    onSuccess:
-        (data, _) => Log.info('Fetch favorite comics success', data.toString()),
+    onSuccess: (data, _) =>
+        Log.info('Fetch favorite comics success', data.toString()),
     onError: (e, _) => Log.error('Fetch favorite comics error', e),
   );
 
@@ -363,30 +362,27 @@ class _ComicSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 13),
             child: SizedBox(
               height: 135,
-              child:
-                  error != null || isLoading
-                      ? BasePage(
-                        isLoading: isLoading,
-                        onRetry: onRetry,
-                        error: error,
-                        errorBuilder:
-                            (_) => Center(
-                              child: IconButton(
-                                onPressed: onRetry,
-                                icon: const Icon(Icons.refresh),
-                              ),
-                            ),
-                        child:
-                            isEmpty
-                                ? const Empty(
-                                  imageWidth: 100,
-                                  height: double.infinity,
-                                )
-                                : _buildList(),
-                      )
-                      : isEmpty
-                      ? const Empty(imageWidth: 100, height: double.infinity)
-                      : _buildList(),
+              child: error != null || isLoading
+                  ? BasePage(
+                      isLoading: isLoading,
+                      onRetry: onRetry,
+                      error: error,
+                      errorBuilder: (_) => Center(
+                        child: IconButton(
+                          onPressed: onRetry,
+                          icon: const Icon(Icons.refresh),
+                        ),
+                      ),
+                      child: isEmpty
+                          ? const Empty(
+                              imageWidth: 100,
+                              height: double.infinity,
+                            )
+                          : _buildList(),
+                    )
+                  : isEmpty
+                  ? const Empty(imageWidth: 100, height: double.infinity)
+                  : _buildList(),
             ),
           ),
         ],

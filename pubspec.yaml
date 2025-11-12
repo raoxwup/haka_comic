@@ -33,7 +33,7 @@ dependencies:
   photo_view:
     git:
       url: https://github.com/raoxwup/photo_view.git
-      ref: ba2e5d829dfd1091eaa84678034ae27615d17bd9
+      ref: d2b008b9f94f9c531e8f6e99be6f894e84de456a
   # photo_view:
   #   path: D:/Projects/practice/Flutter/photo_view
 
