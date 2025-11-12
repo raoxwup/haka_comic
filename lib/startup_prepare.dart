@@ -26,9 +26,7 @@ class StartupPrepare {
   }
 }
 
-/// 启动窗口
-/// 如果有上一次的窗口状态,则恢复
-/// 如果上一次窗口状态是全屏，则只恢复全屏，启动尺寸则使用默认尺寸
+/// 启动窗口 如果有上一次的窗口状态,则恢复
 Future<void> startDesktop() async {
   if (isDesktop) {
     await windowManager.ensureInitialized();
