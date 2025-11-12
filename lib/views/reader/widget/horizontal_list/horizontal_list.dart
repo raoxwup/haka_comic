@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
@@ -175,6 +176,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       onTap: _handleTap,
       child: Listener(
         onPointerSignal: (event) {
+          if (HardwareKeyboard.instance.isControlPressed) return;
           if (event is PointerScrollEvent) {
             _handleScroll(event);
           }
