@@ -76,18 +76,15 @@ class ReaderBottom extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    TextButton.icon(
+                    IconButton(
                       onPressed: () {
                         Scaffold.of(context).openDrawer();
                       },
-                      style: TextButton.styleFrom(
-                        foregroundColor: context.colorScheme.onSurface,
-                      ),
-                      label: const Text('章节'),
+                      tooltip: '章节',
                       icon: const Icon(Icons.menu_outlined),
                     ),
                     if (isVerticalMode)
-                      TextButton.icon(
+                      IconButton(
                         onPressed: () {
                           final slipFactor = ValueNotifier(
                             AppConf().slipFactor,
@@ -121,12 +118,16 @@ class ReaderBottom extends StatelessWidget {
                             },
                           );
                         },
-                        style: TextButton.styleFrom(
-                          foregroundColor: context.colorScheme.onSurface,
-                        ),
-                        label: const Text('滑动距离'),
+                        tooltip: '滑动距离',
                         icon: const Icon(Icons.straighten_outlined),
                       ),
+                    IconButton(
+                      onPressed: () {
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                      tooltip: '定时翻页',
+                      icon: const Icon(Icons.timer_outlined),
+                    ),
                   ],
                 ),
               ),
@@ -156,13 +157,17 @@ class PageSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (total <= 1) return const SizedBox.shrink();
-    return Slider(
-      value: value.toDouble(),
-      min: 0,
-      max: (total - 1).toDouble(),
-      divisions: total - 1,
-      label: '${value + 1}',
-      onChanged: (value) => onChanged(value.toInt()),
+    return Focus(
+      canRequestFocus: false,
+      descendantsAreFocusable: false,
+      child: Slider(
+        value: value.toDouble(),
+        min: 0,
+        max: (total - 1).toDouble(),
+        divisions: total - 1,
+        label: '${value + 1}',
+        onChanged: (value) => onChanged(value.round()),
+      ),
     );
   }
 }
