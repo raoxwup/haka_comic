@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ import 'package:haka_comic/views/reader/app_bar.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/next_chapter.dart';
 import 'package:haka_comic/views/reader/page_no_tag.dart';
+import 'package:haka_comic/views/reader/page_turn_toolbar.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -190,6 +192,17 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     },
   );
 
+  // 定时翻页
+  bool _isAutoPageTurning = false;
+  Timer? _autoPageTurnTimer;
+
+  void startAutoPageTurn(int intervalSeconds) {
+    openOrCloseToolbar();
+    setState(() {
+      _isAutoPageTurning = !_isAutoPageTurning;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -316,6 +329,8 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             isVerticalMode: _readMode == ReadMode.vertical,
             action: action,
           ),
+
+          // PageTurnToolbar(),
         ],
       ),
       drawer: Drawer(
