@@ -74,6 +74,9 @@ class AppConf {
   double? _windowWidth;
   double? _windowHeight;
 
+  /// 翻页间隔
+  int _interval = 5;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -110,6 +113,7 @@ class AppConf {
     instance._windowY = prefs.getDouble('windowY');
     instance._windowWidth = prefs.getDouble('windowWidth');
     instance._windowHeight = prefs.getDouble('windowHeight');
+    instance._interval = prefs.getInt('interval') ?? 5;
   }
 
   set email(String value) {
@@ -237,6 +241,11 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('windowHeight', value);
   }
 
+  set interval(int value) {
+    _interval = value;
+    SharedPreferencesUtil.prefs.setInt('interval', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -262,6 +271,8 @@ class AppConf {
   double? get windowY => _windowY;
   double? get windowWidth => _windowWidth;
   double? get windowHeight => _windowHeight;
+
+  int get interval => _interval;
 
   /// 清除token
   void clearAuth() {

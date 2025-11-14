@@ -12,6 +12,7 @@ class PageTurnToolbar extends StatelessWidget {
     required this.showToolbar,
     required this.interval,
     required this.stopPageTurn,
+    required this.openOrCloseToolbar,
   });
 
   final ValueChanged<int> onIntervalChanged;
@@ -20,7 +21,9 @@ class PageTurnToolbar extends StatelessWidget {
 
   final int interval;
 
-  final VoidCallback stopPageTurn;
+  final VoidCallback? stopPageTurn;
+
+  final VoidCallback? openOrCloseToolbar;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +33,7 @@ class PageTurnToolbar extends StatelessWidget {
 
     if (isM1) {
       return AnimatedPositioned(
+        onEnd: stopPageTurn,
         bottom: showToolbar ? 0 : -(bottom + kBottomBarHeight),
         left: 0,
         right: 0,
@@ -50,6 +54,7 @@ class PageTurnToolbar extends StatelessWidget {
     }
 
     return AnimatedPositioned(
+      onEnd: stopPageTurn,
       bottom: showToolbar
           ? kBottomBarBottom
           : -(bottom + kBottomBarBottom + kBottomBarHeight),
@@ -85,6 +90,10 @@ class PageTurnToolbar extends StatelessWidget {
             const Text('间隔'),
             Expanded(
               child: Slider(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 20,
+                ),
                 value: interval.toDouble(),
                 min: 2,
                 max: 60,
@@ -98,7 +107,10 @@ class PageTurnToolbar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(onPressed: stopPageTurn, child: const Text('关闭自动翻页')),
+            TextButton(
+              onPressed: openOrCloseToolbar,
+              child: const Text('关闭自动翻页'),
+            ),
           ],
         ),
       ],
