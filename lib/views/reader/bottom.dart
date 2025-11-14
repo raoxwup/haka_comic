@@ -20,7 +20,6 @@ class ReaderBottom extends StatelessWidget {
     required this.pageNo,
     required this.isVerticalMode,
     required this.startPageTurn,
-    required this.openOrCloseToolbar,
   });
 
   final ValueChanged<int> onSliderChanged;
@@ -37,9 +36,7 @@ class ReaderBottom extends StatelessWidget {
 
   final bool isVerticalMode;
 
-  final VoidCallback? startPageTurn;
-
-  final VoidCallback openOrCloseToolbar;
+  final VoidCallback startPageTurn;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +46,6 @@ class ReaderBottom extends StatelessWidget {
 
     if (isM1) {
       return AnimatedPositioned(
-        onEnd: startPageTurn,
         bottom: showToolbar ? 0 : -(bottom + kBottomBarHeight),
         left: 0,
         right: 0,
@@ -70,7 +66,6 @@ class ReaderBottom extends StatelessWidget {
     }
 
     return AnimatedPositioned(
-      onEnd: startPageTurn,
       bottom: showToolbar
           ? kBottomBarBottom
           : -(bottom + kBottomBarBottom + kBottomBarHeight),
@@ -170,7 +165,7 @@ class ReaderBottom extends StatelessWidget {
                   icon: const Icon(Icons.straighten_outlined),
                 ),
               IconButton(
-                onPressed: openOrCloseToolbar,
+                onPressed: startPageTurn,
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),

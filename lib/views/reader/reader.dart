@@ -249,7 +249,6 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
 
   // 定时翻页
   bool _isPageTurning = false;
-  bool _readyToPageTurning = false;
   Timer? _turnPageTimer;
   int _interval = AppConf().interval;
 
@@ -417,25 +416,19 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
                   pageNo: correctPageNo,
                   isVerticalMode: _readMode.isVertical,
                   action: action,
-                  openOrCloseToolbar: () {
+                  startPageTurn: () {
                     openOrCloseToolbar();
-                    setState(() {
-                      _readyToPageTurning = true;
-                    });
+                    _startPageTurn();
                   },
-                  startPageTurn: _readyToPageTurning ? _startPageTurn : null,
                 )
               : PageTurnToolbar(
                   showToolbar: _showToolbar,
                   interval: _interval,
                   onIntervalChanged: _updateInterval,
-                  openOrCloseToolbar: () {
+                  stopPageTurn: () {
                     openOrCloseToolbar();
-                    setState(() {
-                      _readyToPageTurning = false;
-                    });
+                    _stopPageTurn();
                   },
-                  stopPageTurn: !_readyToPageTurning ? _stopPageTurn : null,
                 ),
         ],
       ),
