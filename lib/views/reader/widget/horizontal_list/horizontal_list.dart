@@ -10,7 +10,6 @@ import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
-import 'package:haka_comic/widgets/toast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -26,6 +25,7 @@ class HorizontalList extends StatefulWidget {
     required this.openOrCloseToolbar,
     required this.multiPageImages,
     required this.action,
+    required this.pageTurn,
   });
 
   /// 图片可见回调
@@ -46,6 +46,8 @@ class HorizontalList extends StatefulWidget {
 
   /// 上一章或下一章
   final VoidCallback? Function(ReaderBottomActionType) action;
+
+  final void Function([bool]) pageTurn;
 
   @override
   State<HorizontalList> createState() => _HorizontalListState();
@@ -94,43 +96,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   TapDownDetails? _tapDetails;
 
-  void previousPage() {
-    if (context.reader.pageNo == 0) {
-      final previous = widget.action(ReaderBottomActionType.previous);
-      if (previous != null) {
-        previous();
-      } else {
-        Toast.show(message: '没有上一章了');
-      }
-      return;
-    }
-
-    widget.pageController.previousPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
-  }
-
-  void nextPage() {
-    final correctPageNo = isDoublePage
-        ? toCorrectMultiPageNo(context.reader.pageNo, 2)
-        : context.reader.pageNo;
-    if (correctPageNo == itemCount - 1) {
-      final next = widget.action(ReaderBottomActionType.next);
-      if (next != null) {
-        next();
-      } else {
-        Toast.show(message: '没有下一章了');
-      }
-      return;
-    }
-
-    widget.pageController.nextPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
-  }
-
   void _handleTap() {
     if (_tapDetails == null) return;
     final width = context.width;
@@ -143,11 +108,11 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final dx = _tapDetails!.localPosition.dx;
 
     if (dx < leftWidth) {
-      isReverse ? nextPage() : previousPage();
+      widget.pageTurn(isReverse);
     } else if (dx < (leftWidth + centerWidth)) {
       widget.openOrCloseToolbar();
     } else {
-      isReverse ? previousPage() : nextPage();
+      widget.pageTurn(!isReverse);
     }
   }
 
@@ -157,9 +122,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     _lock = true;
 
     if (event.scrollDelta.dy > 0) {
-      nextPage();
+      widget.pageTurn();
     } else if (event.scrollDelta.dy < 0) {
-      previousPage();
+      widget.pageTurn(false);
     }
 
     Future.delayed(const Duration(milliseconds: 200), () {

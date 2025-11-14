@@ -27,6 +27,17 @@ enum ReadMode {
       orElse: () => vertical,
     );
   }
+
+  /// 是否为条漫阅读模式
+  bool get isVertical => this == vertical;
+
+  /// 是否为双页阅读模式
+  bool get isDoublePage =>
+      this == doubleLeftToRight || this == doubleRightToLeft;
+
+  /// 是否是从右到左阅读模式
+  bool get isReverse =>
+      this == ReadMode.rightToLeft || this == ReadMode.doubleRightToLeft;
 }
 
 class ReaderProvider with ChangeNotifier {

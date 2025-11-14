@@ -37,7 +37,7 @@ class GestureWrapper extends StatefulWidget {
 
   final Widget child;
   final ScrollPhysics initialPhysics;
-  final Function(double) jumpOffset;
+  final void Function(double) jumpOffset;
   final VoidCallback openOrCloseToolbar;
 
   @override

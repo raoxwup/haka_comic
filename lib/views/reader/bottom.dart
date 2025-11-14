@@ -13,15 +13,16 @@ enum ReaderBottomActionType { previous, next }
 class ReaderBottom extends StatelessWidget {
   const ReaderBottom({
     super.key,
-    required this.onPageNoChanged,
+    required this.onSliderChanged,
     required this.showToolbar,
     required this.action,
     required this.total,
     required this.pageNo,
     required this.isVerticalMode,
+    required this.startPageTurn,
   });
 
-  final ValueChanged<int> onPageNoChanged;
+  final ValueChanged<int> onSliderChanged;
 
   final bool showToolbar;
 
@@ -34,6 +35,8 @@ class ReaderBottom extends StatelessWidget {
   final int pageNo;
 
   final bool isVerticalMode;
+
+  final VoidCallback startPageTurn;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +76,7 @@ class ReaderBottom extends StatelessWidget {
       child: Align(
         alignment: Alignment.center,
         child: WithBlur(
-          borderRadius: BorderRadius.circular(36),
+          borderRadius: BorderRadius.circular(32),
           child: Container(
             width: 550,
             padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 8),
@@ -103,7 +106,7 @@ class ReaderBottom extends StatelessWidget {
             ),
             Expanded(
               child: PageSlider(
-                onChanged: onPageNoChanged,
+                onChanged: onSliderChanged,
                 value: pageNo,
                 total: total,
               ),
@@ -162,9 +165,7 @@ class ReaderBottom extends StatelessWidget {
                   icon: const Icon(Icons.straighten_outlined),
                 ),
               IconButton(
-                onPressed: () {
-                  Scaffold.of(context).openEndDrawer();
-                },
+                onPressed: startPageTurn,
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),
