@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
@@ -8,7 +10,6 @@ import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
-import 'package:haka_comic/widgets/toast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -24,6 +25,7 @@ class HorizontalList extends StatefulWidget {
     required this.openOrCloseToolbar,
     required this.multiPageImages,
     required this.action,
+    required this.pageTurn,
   });
 
   /// 图片可见回调
@@ -44,6 +46,8 @@ class HorizontalList extends StatefulWidget {
 
   /// 上一章或下一章
   final VoidCallback? Function(ReaderBottomActionType) action;
+
+  final void Function([bool]) pageTurn;
 
   @override
   State<HorizontalList> createState() => _HorizontalListState();
@@ -92,43 +96,6 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
   TapDownDetails? _tapDetails;
 
-  void previousPage() {
-    if (context.reader.pageNo == 0) {
-      final previous = widget.action(ReaderBottomActionType.previous);
-      if (previous != null) {
-        previous();
-      } else {
-        Toast.show(message: '没有上一章了');
-      }
-      return;
-    }
-
-    widget.pageController.previousPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
-  }
-
-  void nextPage() {
-    final correctPageNo = isDoublePage
-        ? toCorrectMultiPageNo(context.reader.pageNo, 2)
-        : context.reader.pageNo;
-    if (correctPageNo == itemCount - 1) {
-      final next = widget.action(ReaderBottomActionType.next);
-      if (next != null) {
-        next();
-      } else {
-        Toast.show(message: '没有下一章了');
-      }
-      return;
-    }
-
-    widget.pageController.nextPage(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.linear,
-    );
-  }
-
   void _handleTap() {
     if (_tapDetails == null) return;
     final width = context.width;
@@ -141,12 +108,28 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final dx = _tapDetails!.localPosition.dx;
 
     if (dx < leftWidth) {
-      isReverse ? nextPage() : previousPage();
+      widget.pageTurn(isReverse);
     } else if (dx < (leftWidth + centerWidth)) {
       widget.openOrCloseToolbar();
     } else {
-      isReverse ? previousPage() : nextPage();
+      widget.pageTurn(!isReverse);
     }
+  }
+
+  bool _lock = false;
+  void _handleScroll(PointerScrollEvent event) {
+    if (_lock) return;
+    _lock = true;
+
+    if (event.scrollDelta.dy > 0) {
+      widget.pageTurn();
+    } else if (event.scrollDelta.dy < 0) {
+      widget.pageTurn(false);
+    }
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _lock = false;
+    });
   }
 
   @override
@@ -156,77 +139,85 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
         _tapDetails = details;
       },
       onTap: _handleTap,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return PhotoViewGallery.builder(
-            backgroundDecoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerLowest,
-            ),
-            scrollPhysics: const BouncingScrollPhysics(),
-            itemCount: itemCount,
-            pageController: widget.pageController,
-            onPageChanged: _onPageChanged,
-            reverse: isReverse,
-            builder: (context, index) {
-              if (!isDoublePage) {
-                final item = widget.images[index];
-                return PhotoViewGalleryPageOptions(
-                  minScale: PhotoViewComputedScale.contained * 1.0,
-                  maxScale: PhotoViewComputedScale.covered * 4.0,
-                  imageProvider: CachedNetworkImageProvider(item.media.url),
-                  filterQuality: FilterQuality.medium,
-                  errorBuilder: (context, error, stackTrace, retry) {
-                    return Center(
-                      child: IconButton(
-                        onPressed: () async {
-                          final provider = CachedNetworkImageProvider(
-                            item.media.url,
-                          );
-                          provider.evict();
-                          retry();
-                        },
-                        icon: const Icon(Icons.refresh),
-                      ),
-                    );
-                  },
-                  onImageFrame: (info, synchronousCall) {
-                    final imageSize = ImageSize(
-                      imageId: item.uid,
-                      width: info.image.width,
-                      height: info.image.height,
-                      cid: cid,
-                    );
-                    insertImageSize(imageSize);
-                  },
-                );
-              }
-
-              final items = widget.multiPageImages[index];
-              final size = Size(constraints.maxWidth, constraints.maxHeight);
-              return PhotoViewGalleryPageOptions.customChild(
-                childSize: size * 2,
-                minScale: PhotoViewComputedScale.contained * 1.0,
-                maxScale: PhotoViewComputedScale.covered * 10.0,
-                child: buildPageImages(items),
-              );
-            },
-            loadingBuilder: (context, event) {
-              return Center(
-                child: CircularProgressIndicator(
-                  value: event?.expectedTotalBytes == null
-                      ? 0
-                      : event!.cumulativeBytesLoaded /
-                            event.expectedTotalBytes!,
-                  strokeWidth: 3,
-                  constraints: BoxConstraints.tight(const Size(28, 28)),
-                  backgroundColor: Colors.grey.shade300,
-                  color: context.colorScheme.primary,
-                  strokeCap: StrokeCap.round,
-                ),
-              );
-            },
-          );
+      child: Listener(
+        onPointerSignal: (event) {
+          if (HardwareKeyboard.instance.isControlPressed) return;
+          if (event is PointerScrollEvent) {
+            _handleScroll(event);
+          }
         },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return PhotoViewGallery.builder(
+              backgroundDecoration: BoxDecoration(
+                color: context.colorScheme.surfaceContainerLowest,
+              ),
+              scrollPhysics: const BouncingScrollPhysics(),
+              itemCount: itemCount,
+              pageController: widget.pageController,
+              onPageChanged: _onPageChanged,
+              reverse: isReverse,
+              builder: (context, index) {
+                if (!isDoublePage) {
+                  final item = widget.images[index];
+                  return PhotoViewGalleryPageOptions(
+                    minScale: PhotoViewComputedScale.contained * 1.0,
+                    maxScale: PhotoViewComputedScale.covered * 4.0,
+                    imageProvider: CachedNetworkImageProvider(item.media.url),
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (context, error, stackTrace, retry) {
+                      return Center(
+                        child: IconButton(
+                          onPressed: () async {
+                            final provider = CachedNetworkImageProvider(
+                              item.media.url,
+                            );
+                            provider.evict();
+                            retry();
+                          },
+                          icon: const Icon(Icons.refresh),
+                        ),
+                      );
+                    },
+                    onImageFrame: (info, synchronousCall) {
+                      final imageSize = ImageSize(
+                        imageId: item.uid,
+                        width: info.image.width,
+                        height: info.image.height,
+                        cid: cid,
+                      );
+                      insertImageSize(imageSize);
+                    },
+                  );
+                }
+
+                final items = widget.multiPageImages[index];
+                final size = Size(constraints.maxWidth, constraints.maxHeight);
+                return PhotoViewGalleryPageOptions.customChild(
+                  childSize: size * 2,
+                  minScale: PhotoViewComputedScale.contained * 1.0,
+                  maxScale: PhotoViewComputedScale.covered * 10.0,
+                  child: buildPageImages(items),
+                );
+              },
+              loadingBuilder: (context, event) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: event?.expectedTotalBytes == null
+                        ? 0
+                        : event!.cumulativeBytesLoaded /
+                              event.expectedTotalBytes!,
+                    strokeWidth: 3,
+                    constraints: BoxConstraints.tight(const Size(28, 28)),
+                    backgroundColor: Colors.grey.shade300,
+                    color: context.colorScheme.primary,
+                    strokeCap: StrokeCap.round,
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

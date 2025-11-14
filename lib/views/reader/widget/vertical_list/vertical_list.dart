@@ -7,7 +7,6 @@ import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
-import 'package:haka_comic/widgets/toast.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -20,6 +19,7 @@ class VerticalList extends StatefulWidget {
     required this.images,
     required this.scrollOffsetController,
     required this.action,
+    required this.pageTurn,
   });
 
   /// 图片可见回调
@@ -39,6 +39,9 @@ class VerticalList extends StatefulWidget {
 
   /// 上一章或下一章
   final VoidCallback? Function(ReaderBottomActionType) action;
+
+  /// 翻页
+  final void Function(double) pageTurn;
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -82,34 +85,6 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     super.dispose();
   }
 
-  /// 翻页
-  void jumpOffset(double offset) {
-    if (context.reader.pageNo == 0 && offset < 0) {
-      final previous = widget.action(ReaderBottomActionType.previous);
-      if (previous != null) {
-        previous();
-      } else {
-        Toast.show(message: '没有上一章了');
-      }
-      return;
-    }
-
-    if (context.reader.pageNo == widget.images.length - 1 && offset > 0) {
-      final next = widget.action(ReaderBottomActionType.next);
-      if (next != null) {
-        next();
-      } else {
-        Toast.show(message: '没有下一章了');
-      }
-      return;
-    }
-
-    widget.scrollOffsetController.animateScroll(
-      offset: offset,
-      duration: const Duration(milliseconds: 200),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final physics =
@@ -117,7 +92,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
     return GestureWrapper(
       openOrCloseToolbar: widget.openOrCloseToolbar,
-      jumpOffset: jumpOffset,
+      jumpOffset: widget.pageTurn,
       child: ScrollablePositionedList.builder(
         initialScrollIndex: context.reader.pageNo,
         padding: EdgeInsets.zero,

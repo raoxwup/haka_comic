@@ -13,10 +13,37 @@ on:
         options:
           - dev
           - main
+      target:
+        description: "要构建的平台"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+          - macos
+          - windows
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      app-version: ${{ steps.get_version.outputs.app-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - id: get_version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          echo "app-version=$version" >> $GITHUB_OUTPUT
+
   android-build:
+    if: ${{ github.event.inputs.target == 'android' || github.event.inputs.target == 'all' }}
     name: Android Build
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
@@ -37,6 +64,16 @@ jobs:
           channel: "stable"
           flutter-version-file: pubspec.yaml
 
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
@@ -51,22 +88,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-        # 构建带签名的 APK
       - name: Build Universal APK
         run: flutter build apk --release
 
-      - name: Move Universal APK
-        run: |
-          mkdir -p artifacts/universal
-          mv build/app/outputs/apk/release/app-release.apk artifacts/universal/app-universal-release.apk
-
       - name: Build Split APKs
-        run: flutter build apk --split-per-abi
+        run: flutter build apk --release --split-per-abi
 
-      - name: Move Split APKs
+      - name: Move And Rename APKs
         run: |
-          mkdir -p artifacts/split
-          mv build/app/outputs/apk/release/*.apk artifacts/split/
+          version=${{ needs.setup.outputs.app-version }}
+          mkdir -p artifacts
+          for file in build/app/outputs/flutter-apk/*.apk; do
+            filename=$(basename "$file")
+            if [ "$filename" = "app-release.apk" ]; then
+              filename="app-universal-release.apk"
+            fi
+            mv "$file" "artifacts/${filename%.apk}-v$version.apk"
+          done
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -86,10 +124,12 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           body: Android build completed. APKs attached.
-          attachments: artifacts/split/app-arm64-v8a-release.apk
+          attachments: artifacts/app-arm64-v8a-release.apk
 
   ios-build:
+    if: ${{ github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
     name: iOS Build
+    needs: setup
     runs-on: macos-15
 
     steps:
@@ -113,13 +153,13 @@ jobs:
           mkdir -p build/ios/iphoneos/Payload
           mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
           cd build/ios/iphoneos/
-          zip -r no-codesign-ios.ipa Payload
+          zip -r no-codesign-ios-v${{ needs.setup.outputs.app-version }}.ipa Payload
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
-          path: build/ios/iphoneos/no-codesign-ios.ipa
+          path: build/ios/iphoneos/*.ipa
           retention-days: 5
 
       - name: Notify iOS Build
@@ -133,10 +173,12 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           body: iOS build completed. IPA attached.
-          attachments: build/ios/iphoneos/no-codesign-ios.ipa
+          attachments: build/ios/iphoneos/*.ipa
 
   windows-build:
+    if: ${{ github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
     name: Windows Build
+    needs: setup
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -159,51 +201,25 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
 
-      - name: Read app info from pubspec.yaml and exe
-        id: get_info
-        shell: pwsh
-        run: |
-          # 读取版本号
-          $versionLine = Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$"
-          $version = $versionLine.Matches[0].Groups[1].Value.Split("+")[0].Trim()
-
-          # 读取原始项目名
-          $nameLine = Select-String -Path "pubspec.yaml" -Pattern "^name:\s*(.+)$"
-          $rawName = $nameLine.Matches[0].Groups[1].Value.Trim()
-
-          # 转成首字母大写并空格化
-          $appNameParts = ($rawName -replace "_", " ") -split " "
-          $appName = ($appNameParts | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1) }) -join " "
-
-          # 查找生成的 exe 文件名
-          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
-          $exeName = $exePath.Name
-
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "appName=$appName" >> $env:GITHUB_OUTPUT
-          echo "exeName=$exeName" >> $env:GITHUB_OUTPUT
-
       - name: Create Inno Setup Script
         shell: pwsh
         run: |
-          $version = "${{ steps.get_info.outputs.version }}"
-          $appName = "${{ steps.get_info.outputs.appName }}"
-          $exeName = "${{ steps.get_info.outputs.exeName }}"
+          $version = "${{ needs.setup.outputs.app-version }}"
+          $appName = "HaKa Comic"
 
-          # 转义双引号，防止写入出错
-          $appNameEscaped = $appName -replace '"','\"'
-          $exeNameEscaped = $exeName -replace '"','\"'
+          $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
+          $exeName = $exePath.Name
 
           # 构造输出文件名
-          $outputFile = "$appNameEscaped-Setup-v$version"
-          $DefaultDir = "{autopf}/$appNameEscaped"
+          $outputFile = "$appName-Setup-v$version"
+          $DefaultDir = "{autopf}/$appName"
 
           $content = @"
           [Setup]
-          AppName=$appNameEscaped
+          AppName=$appName
           AppVersion=$version
           DefaultDirName=$DefaultDir
-          DefaultGroupName=$appNameEscaped
+          DefaultGroupName=$appName
           OutputBaseFilename=$outputFile
           Compression=lzma
           SolidCompression=yes
@@ -213,11 +229,11 @@ jobs:
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: `"{group}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
-          Name: `"{userdesktop}\$appNameEscaped`"; Filename: `"{app}\$exeNameEscaped`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
 
           [Run]
-          Filename: `"{app}\$exeNameEscaped`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
+          Filename: `"{app}\$exeName`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
           "@
 
           # 输出到文件
@@ -236,7 +252,9 @@ jobs:
           retention-days: 5
 
   macos-build:
+    if: ${{ github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
     name: MacOS Build
+    needs: setup
     runs-on: macos-15
 
     steps:
@@ -254,32 +272,30 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 构建 macOS Release
-      - name: Build macOS Release
+      - name: Build MacOS Release
         run: flutter build macos --release
 
-      # 安装 create-dmg 工具
       - name: Install create-dmg
         run: npm install -g create-dmg
 
-      # 打包 .app 成 DMG（跳过签名）
       - name: Package .app into DMG
         run: |
+          version=${{ needs.setup.outputs.app-version }}
           cd build/macos/Build/Products/Release/
           # 获取 .app 名称
           appName=$(ls -d *.app | head -n 1)
           # 生成 DMG 文件名
-          dmgName="${appName%.app}.dmg"
+          dmgName="${appName%.app}-v$version.dmg"
           echo "Packaging $appName into $dmgName"
 
-          # 打包 DMG，跳过签名
           create-dmg "$appName" \
             --overwrite \
             --no-version-in-filename \
             --dmg-title "${appName%.app}" \
             --no-code-sign
 
-      # 上传 DMG
+          mv *.dmg "$dmgName"
+
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:

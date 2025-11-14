@@ -10,6 +10,8 @@ class Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = context.colorScheme;
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -19,7 +21,10 @@ class Item extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color:
-                color ?? context.colorScheme.surfaceDim.withValues(alpha: 0.45),
+                color ??
+                (theme.brightness == Brightness.dark
+                    ? scheme.surfaceContainerHighest.withValues(alpha: .5)
+                    : scheme.surfaceDim.withValues(alpha: .45)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(title, style: context.textTheme.bodyMedium),

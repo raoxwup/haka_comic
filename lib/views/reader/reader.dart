@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -14,9 +15,11 @@ import 'package:haka_comic/views/reader/app_bar.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/next_chapter.dart';
 import 'package:haka_comic/views/reader/page_no_tag.dart';
+import 'package:haka_comic/views/reader/page_turn_toolbar.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
@@ -68,16 +71,6 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
       AppConf().readMode = mode;
     });
   }
-
-  /// 是否是双页阅读模式
-  bool get isDoublePage =>
-      _readMode == ReadMode.doubleLeftToRight ||
-      _readMode == ReadMode.doubleRightToLeft;
-
-  /// 是否是从右到左阅读模式
-  bool get isReverse =>
-      _readMode == ReadMode.rightToLeft ||
-      _readMode == ReadMode.doubleRightToLeft;
 
   /// 是否显示顶部/底部工具栏
   bool _showToolbar = false;
@@ -141,14 +134,90 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     );
   }
 
-  /// 跳转指定页
-  void toPageNo(int index) {
+  /// 底部工具栏Slider OnChanged
+  void onSliderChanged(int index) {
     context.reader.pageNo = index;
-    if (_readMode == ReadMode.vertical) {
+    if (_readMode.isVertical) {
       _itemScrollController.jumpTo(index: index);
     } else {
       _pageController.jumpToPage(index);
     }
+  }
+
+  /// VerticalList 跳转 offset
+  void _pageTurnForVertical(double offset) {
+    final reader = context.reader;
+    if (reader.pageNo == 0 && offset < 0) {
+      if (!reader.isFirstChapter) {
+        goPrevious();
+      } else {
+        Toast.show(message: '没有上一章了');
+      }
+      return;
+    }
+
+    if (reader.pageNo == _images.length - 1 && offset > 0) {
+      if (!reader.isLastChapter) {
+        goNext();
+      } else {
+        _stopPageTurn();
+        Toast.show(message: '没有下一章了');
+      }
+      return;
+    }
+
+    _scrollOffsetController.animateScroll(
+      offset: offset,
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  /// HorizontalList 翻页
+  void _pageTurnForHorizontal([bool isTurnNext = true]) {
+    final reader = context.reader;
+
+    void previousPage() {
+      if (reader.pageNo == 0) {
+        if (!reader.isFirstChapter) {
+          goPrevious();
+        } else {
+          Toast.show(message: '没有上一章了');
+        }
+        return;
+      }
+
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.linear,
+      );
+    }
+
+    void nextPage() {
+      final correctPageNo = _readMode.isDoublePage
+          ? toCorrectMultiPageNo(reader.pageNo, 2)
+          : reader.pageNo;
+
+      final itemCount = _readMode.isDoublePage
+          ? _multiPageImages.length
+          : _images.length;
+
+      if (correctPageNo == itemCount - 1) {
+        if (!reader.isLastChapter) {
+          goNext();
+        } else {
+          _stopPageTurn();
+          Toast.show(message: '没有下一章了');
+        }
+        return;
+      }
+
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.linear,
+      );
+    }
+
+    isTurnNext ? nextPage() : previousPage();
   }
 
   /// 音量键控制器
@@ -158,16 +227,10 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   late final volumeUpAction = ButtonAction(
     id: ButtonActionId.volumeUp,
     onAction: () {
-      if (_readMode == ReadMode.vertical) {
-        _scrollOffsetController.animateScroll(
-          offset: context.height * AppConf().slipFactor * -1,
-          duration: const Duration(milliseconds: 200),
-        );
+      if (_readMode.isVertical) {
+        _pageTurnForVertical(context.height * AppConf().slipFactor * -1);
       } else {
-        _pageController.previousPage(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.linear,
-        );
+        _pageTurnForHorizontal(false);
       }
     },
   );
@@ -176,19 +239,51 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   late final volumeDownAction = ButtonAction(
     id: ButtonActionId.volumeDown,
     onAction: () {
-      if (_readMode == ReadMode.vertical) {
-        _scrollOffsetController.animateScroll(
-          offset: context.height * AppConf().slipFactor,
-          duration: const Duration(milliseconds: 200),
-        );
+      if (_readMode.isVertical) {
+        _pageTurnForVertical(context.height * AppConf().slipFactor);
       } else {
-        _pageController.nextPage(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.linear,
-        );
+        _pageTurnForHorizontal();
       }
     },
   );
+
+  // 定时翻页
+  bool _isPageTurning = false;
+  bool _readyToPageTurning = false;
+  Timer? _turnPageTimer;
+  int _interval = AppConf().interval;
+
+  void _startPageTurn() {
+    _turnPageTimer?.cancel();
+    _turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
+      if (_handler.isLoading) return;
+      if (_readMode.isVertical) {
+        _pageTurnForVertical(context.height * AppConf().slipFactor);
+      } else {
+        _pageTurnForHorizontal();
+      }
+    });
+    setState(() {
+      _isPageTurning = true;
+    });
+  }
+
+  void _stopPageTurn() {
+    _turnPageTimer?.cancel();
+    setState(() {
+      _isPageTurning = false;
+    });
+  }
+
+  void _updateInterval(int interval) {
+    setState(() {
+      _interval = interval;
+      AppConf().interval = interval;
+    });
+    if (_isPageTurning) {
+      _startPageTurn();
+    }
+  }
 
   @override
   void initState() {
@@ -218,6 +313,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
     volumeController.stopListening();
+    _turnPageTimer?.cancel();
     super.dispose();
   }
 
@@ -246,7 +342,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
       };
     }
 
-    Widget listWidget = _readMode == ReadMode.vertical
+    Widget listWidget = _readMode.isVertical
         ? VerticalList(
             onItemVisibleChanged: onPageNoChanged,
             itemScrollController: _itemScrollController,
@@ -254,20 +350,25 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             scrollOffsetController: _scrollOffsetController,
             images: _images,
             action: action,
+            pageTurn: _pageTurnForVertical,
           )
         : HorizontalList(
             onItemVisibleChanged: onPageNoChanged,
             pageController: _pageController,
-            isDoublePage: isDoublePage,
+            isDoublePage: _readMode.isDoublePage,
             openOrCloseToolbar: openOrCloseToolbar,
             images: _images,
             multiPageImages: _multiPageImages,
-            isReverse: isReverse,
+            isReverse: _readMode.isReverse,
             action: action,
+            pageTurn: _pageTurnForHorizontal,
           );
 
-    final total = isDoublePage ? _multiPageImages.length : _images.length;
-    final correctPageNo = isDoublePage
+    final total = _readMode.isDoublePage
+        ? _multiPageImages.length
+        : _images.length;
+
+    final correctPageNo = _readMode.isDoublePage
         ? toCorrectMultiPageNo(pageNo, 2)
         : context.reader.pageNo;
 
@@ -308,14 +409,34 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             },
           ),
 
-          ReaderBottom(
-            onPageNoChanged: toPageNo,
-            showToolbar: _showToolbar,
-            total: total,
-            pageNo: correctPageNo,
-            isVerticalMode: _readMode == ReadMode.vertical,
-            action: action,
-          ),
+          !_isPageTurning
+              ? ReaderBottom(
+                  onSliderChanged: onSliderChanged,
+                  showToolbar: _showToolbar,
+                  total: total,
+                  pageNo: correctPageNo,
+                  isVerticalMode: _readMode.isVertical,
+                  action: action,
+                  openOrCloseToolbar: () {
+                    openOrCloseToolbar();
+                    setState(() {
+                      _readyToPageTurning = true;
+                    });
+                  },
+                  startPageTurn: _readyToPageTurning ? _startPageTurn : null,
+                )
+              : PageTurnToolbar(
+                  showToolbar: _showToolbar,
+                  interval: _interval,
+                  onIntervalChanged: _updateInterval,
+                  openOrCloseToolbar: () {
+                    openOrCloseToolbar();
+                    setState(() {
+                      _readyToPageTurning = false;
+                    });
+                  },
+                  stopPageTurn: !_readyToPageTurning ? _stopPageTurn : null,
+                ),
         ],
       ),
       drawer: Drawer(

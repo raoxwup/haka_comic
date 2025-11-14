@@ -67,6 +67,16 @@ class AppConf {
   /// 横向阅读菜单呼出占比
   double _horizontalCenterFraction = 0.4;
 
+  /// 窗口状态
+  bool? _windowFullscreen;
+  double? _windowX;
+  double? _windowY;
+  double? _windowWidth;
+  double? _windowHeight;
+
+  /// 翻页间隔
+  int _interval = 5;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -98,6 +108,12 @@ class AppConf {
         prefs.getDouble('verticalCenterFraction') ?? 0.3;
     instance._horizontalCenterFraction =
         prefs.getDouble('horizontalCenterFraction') ?? 0.4;
+    instance._windowFullscreen = prefs.getBool('windowFullscreen');
+    instance._windowX = prefs.getDouble('windowX');
+    instance._windowY = prefs.getDouble('windowY');
+    instance._windowWidth = prefs.getDouble('windowWidth');
+    instance._windowHeight = prefs.getDouble('windowHeight');
+    instance._interval = prefs.getInt('interval') ?? 5;
   }
 
   set email(String value) {
@@ -195,6 +211,41 @@ class AppConf {
     SharedPreferencesUtil.prefs.setDouble('horizontalCenterFraction', value);
   }
 
+  set windowFullscreen(bool? value) {
+    _windowFullscreen = value;
+    if (value == null) return;
+    SharedPreferencesUtil.prefs.setBool('windowFullscreen', value);
+  }
+
+  set windowX(double? value) {
+    _windowX = value;
+    if (value == null) return;
+    SharedPreferencesUtil.prefs.setDouble('windowX', value);
+  }
+
+  set windowY(double? value) {
+    _windowY = value;
+    if (value == null) return;
+    SharedPreferencesUtil.prefs.setDouble('windowY', value);
+  }
+
+  set windowWidth(double? value) {
+    _windowWidth = value;
+    if (value == null) return;
+    SharedPreferencesUtil.prefs.setDouble('windowWidth', value);
+  }
+
+  set windowHeight(double? value) {
+    _windowHeight = value;
+    if (value == null) return;
+    SharedPreferencesUtil.prefs.setDouble('windowHeight', value);
+  }
+
+  set interval(int value) {
+    _interval = value;
+    SharedPreferencesUtil.prefs.setInt('interval', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -215,33 +266,17 @@ class AppConf {
   double get verticalCenterFraction => _verticalCenterFraction;
   double get horizontalCenterFraction => _horizontalCenterFraction;
 
+  bool? get windowFullscreen => _windowFullscreen;
+  double? get windowX => _windowX;
+  double? get windowY => _windowY;
+  double? get windowWidth => _windowWidth;
+  double? get windowHeight => _windowHeight;
+
+  int get interval => _interval;
+
   /// 清除token
   void clearAuth() {
     _token = '';
     SharedPreferencesUtil.prefs.remove('token');
-  }
-
-  /// 清空
-  void clearCredentials() {
-    _email = '';
-    _password = '';
-    _token = '';
-    _imageQuality = ImageQuality.original;
-    _checkUpdate = true;
-    _readMode = ReadMode.vertical;
-    _blacklist = [];
-    _visibleCategories = [];
-    _webdavUser = '';
-    _webdavPassword = '';
-    _webdavUrl = '';
-    _comicBlockMode = ComicBlockMode.detailed;
-    _pagination = true;
-    _api = Api.web;
-    _scale = 1.0;
-    _slipFactor = 0.5;
-    _enableVolume = true;
-    _verticalCenterFraction = 0.3;
-    _horizontalCenterFraction = 0.4;
-    SharedPreferencesUtil.prefs.clear();
   }
 }

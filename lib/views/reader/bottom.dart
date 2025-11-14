@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 
 const kBottomBarHeight = 105.0;
+const kBottomBarBottom = 15.0;
 
 enum ReaderBottomActionType { previous, next }
 
@@ -11,15 +13,17 @@ enum ReaderBottomActionType { previous, next }
 class ReaderBottom extends StatelessWidget {
   const ReaderBottom({
     super.key,
-    required this.onPageNoChanged,
+    required this.onSliderChanged,
     required this.showToolbar,
     required this.action,
     required this.total,
     required this.pageNo,
     required this.isVerticalMode,
+    required this.startPageTurn,
+    required this.openOrCloseToolbar,
   });
 
-  final ValueChanged<int> onPageNoChanged;
+  final ValueChanged<int> onSliderChanged;
 
   final bool showToolbar;
 
@@ -33,107 +37,147 @@ class ReaderBottom extends StatelessWidget {
 
   final bool isVerticalMode;
 
+  final VoidCallback? startPageTurn;
+
+  final VoidCallback openOrCloseToolbar;
+
   @override
   Widget build(BuildContext context) {
     final bottom = context.bottom;
 
+    final isM1 = UiMode.m1(context);
+
+    if (isM1) {
+      return AnimatedPositioned(
+        onEnd: startPageTurn,
+        bottom: showToolbar ? 0 : -(bottom + kBottomBarHeight),
+        left: 0,
+        right: 0,
+        height: bottom + kBottomBarHeight,
+        duration: const Duration(milliseconds: 250),
+        child: WithBlur(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+            decoration: BoxDecoration(
+              color: context.colorScheme.secondaryContainer.withValues(
+                alpha: 0.6,
+              ),
+            ),
+            child: _buildContent(context),
+          ),
+        ),
+      );
+    }
+
+    return AnimatedPositioned(
+      onEnd: startPageTurn,
+      bottom: showToolbar
+          ? kBottomBarBottom
+          : -(bottom + kBottomBarBottom + kBottomBarHeight),
+      left: 0,
+      right: 0,
+      height: kBottomBarHeight,
+      duration: const Duration(milliseconds: 250),
+      child: Align(
+        alignment: Alignment.center,
+        child: WithBlur(
+          borderRadius: BorderRadius.circular(32),
+          child: Container(
+            width: 550,
+            padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 8),
+            decoration: BoxDecoration(
+              color: context.colorScheme.secondaryContainer.withValues(
+                alpha: 0.6,
+              ),
+            ),
+            child: _buildContent(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final previousAction = action(ReaderBottomActionType.previous);
     final nextAction = action(ReaderBottomActionType.next);
 
-    return AnimatedPositioned(
-      bottom: showToolbar ? 0 : -(bottom + kBottomBarHeight),
-      left: 0,
-      right: 0,
-      height: bottom + kBottomBarHeight,
-      duration: const Duration(milliseconds: 250),
-      child: WithBlur(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
-          decoration: BoxDecoration(
-            color: context.colorScheme.surface.withValues(alpha: 0.92),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: previousAction,
-                  ),
-                  Expanded(
-                    child: PageSlider(
-                      onChanged: onPageNoChanged,
-                      value: pageNo,
-                      total: total,
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: nextAction,
-                  ),
-                ],
+    return Column(
+      children: [
+        Row(
+          children: [
+            IconButton.filledTonal(
+              icon: const Icon(Icons.skip_previous),
+              onPressed: previousAction,
+            ),
+            Expanded(
+              child: PageSlider(
+                onChanged: onSliderChanged,
+                value: pageNo,
+                total: total,
               ),
-              Expanded(
-                child: Row(
-                  children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        Scaffold.of(context).openDrawer();
+            ),
+            IconButton.filledTonal(
+              icon: const Icon(Icons.skip_next),
+              onPressed: nextAction,
+            ),
+          ],
+        ),
+        Expanded(
+          child: Row(
+            spacing: 5,
+            children: [
+              IconButton(
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                tooltip: '章节',
+                icon: const Icon(Icons.menu_outlined),
+              ),
+              if (isVerticalMode)
+                IconButton(
+                  onPressed: () {
+                    final slipFactor = ValueNotifier(AppConf().slipFactor);
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return SimpleDialog(
+                          contentPadding: const EdgeInsets.all(20),
+                          title: const Text('滑动距离'),
+                          children: [
+                            const Text('用于调整阅读时翻页的滑动距离。'),
+                            ValueListenableBuilder<double>(
+                              valueListenable: slipFactor,
+                              builder: (context, value, child) {
+                                return Slider(
+                                  value: value * 10,
+                                  min: 3,
+                                  max: 10,
+                                  divisions: 7,
+                                  label: '$value * 屏高',
+                                  onChanged: (double value) {
+                                    slipFactor.value = value / 10;
+                                    AppConf().slipFactor = value / 10;
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        );
                       },
-                      style: TextButton.styleFrom(
-                        foregroundColor: context.colorScheme.onSurface,
-                      ),
-                      label: const Text('章节'),
-                      icon: const Icon(Icons.menu_outlined),
-                    ),
-                    if (isVerticalMode)
-                      TextButton.icon(
-                        onPressed: () {
-                          final slipFactor = ValueNotifier(
-                            AppConf().slipFactor,
-                          );
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return SimpleDialog(
-                                contentPadding: const EdgeInsets.all(20),
-                                title: const Text('滑动距离'),
-                                children: [
-                                  const Text('用于调整阅读时翻页的滑动距离。'),
-                                  ValueListenableBuilder<double>(
-                                    valueListenable: slipFactor,
-                                    builder: (context, value, child) {
-                                      return Slider(
-                                        value: value * 10,
-                                        min: 3,
-                                        max: 10,
-                                        divisions: 7,
-                                        label: '$value * 屏高',
-                                        onChanged: (double value) {
-                                          slipFactor.value = value / 10;
-                                          AppConf().slipFactor = value / 10;
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: context.colorScheme.onSurface,
-                        ),
-                        label: const Text('滑动距离'),
-                        icon: const Icon(Icons.straighten_outlined),
-                      ),
-                  ],
+                    );
+                  },
+                  tooltip: '滑动距离',
+                  icon: const Icon(Icons.straighten_outlined),
                 ),
+              IconButton(
+                onPressed: openOrCloseToolbar,
+                tooltip: '定时翻页',
+                icon: const Icon(Icons.timer_outlined),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -156,13 +200,17 @@ class PageSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (total <= 1) return const SizedBox.shrink();
-    return Slider(
-      value: value.toDouble(),
-      min: 0,
-      max: (total - 1).toDouble(),
-      divisions: total - 1,
-      label: '${value + 1}',
-      onChanged: (value) => onChanged(value.toInt()),
+    return Focus(
+      canRequestFocus: false,
+      descendantsAreFocusable: false,
+      child: Slider(
+        value: value.toDouble(),
+        min: 0,
+        max: (total - 1).toDouble(),
+        divisions: total - 1,
+        label: '${value + 1}',
+        onChanged: (value) => onChanged(value.round()),
+      ),
     );
   }
 }

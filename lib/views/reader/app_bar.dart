@@ -72,7 +72,9 @@ class ReaderAppBar extends StatelessWidget {
             ),
           ],
           title: Text(context.reader.title),
-          backgroundColor: context.colorScheme.surface.withValues(alpha: 0.92),
+          backgroundColor: context.colorScheme.secondaryContainer.withValues(
+            alpha: 0.6,
+          ),
         ),
       ),
     );

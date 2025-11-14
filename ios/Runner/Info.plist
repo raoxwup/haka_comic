@@ -45,6 +45,10 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>NSAppleMusicUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your music.</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

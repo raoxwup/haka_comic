@@ -87,22 +87,22 @@ void showCreator(BuildContext context, Creator? creator) {
                 Text('Lv.${creator?.level ?? 0}'),
                 creator?.avatar == null
                     ? Card(
-                      clipBehavior: Clip.hardEdge,
-                      elevation: 0,
-                      shape: const CircleBorder(),
-                      child: Container(
+                        clipBehavior: Clip.hardEdge,
+                        elevation: 0,
+                        shape: const CircleBorder(),
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          padding: const EdgeInsets.all(10),
+                          child: Image.asset('assets/images/user.png'),
+                        ),
+                      )
+                    : BaseImage(
+                        url: creator?.avatar?.url ?? '',
                         width: 110,
                         height: 110,
-                        padding: const EdgeInsets.all(10),
-                        child: Image.asset('assets/images/user.png'),
+                        shape: const CircleBorder(),
                       ),
-                    )
-                    : BaseImage(
-                      url: creator?.avatar?.url ?? '',
-                      width: 110,
-                      height: 110,
-                      shape: const CircleBorder(),
-                    ),
                 Text(creator?.slogan ?? '暂无简介'),
                 const SizedBox(height: 10),
                 Row(
@@ -111,8 +111,8 @@ void showCreator(BuildContext context, Creator? creator) {
                   children: [
                     if (creator?.role == 'knight')
                       TextButton(
-                        onPressed:
-                            () => context.push('/comics?ca=${creator?.id}'),
+                        onPressed: () =>
+                            context.push('/comics?ca=${creator?.id}'),
                         child: const Text("Ta的上传"),
                       ),
                     TextButton(
@@ -176,27 +176,19 @@ String sanitizeFileName(String name, {String replacement = '_'}) {
 
 /// 根据平台返回不同的下载目录
 Future<String> getDownloadDirectory() async {
-  String path;
   if (isIos || isMacOS) {
-    path = (await getApplicationDocumentsDirectory()).path;
-  } else {
-    final downloadPath = (await getDownloadsDirectory())?.path;
-    if (downloadPath == null) {
-      if (isAndroid) {
-        final externalPath = (await getExternalStorageDirectory())?.path;
-        if (externalPath == null) {
-          path = (await getApplicationDocumentsDirectory()).path;
-        } else {
-          path = externalPath;
-        }
-      } else {
-        path = (await getApplicationDocumentsDirectory()).path;
-      }
-    } else {
-      path = downloadPath;
-    }
+    return (await getApplicationDocumentsDirectory()).path;
   }
-  return path;
+
+  final downloadPath = (await getDownloadsDirectory())?.path;
+  if (downloadPath != null) return downloadPath;
+
+  if (isAndroid) {
+    final externalPath = (await getExternalStorageDirectory())?.path;
+    if (externalPath != null) return externalPath;
+  }
+
+  return (await getApplicationDocumentsDirectory()).path;
 }
 
 /// 复制文件
