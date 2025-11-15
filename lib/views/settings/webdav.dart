@@ -24,20 +24,13 @@ class WebDAV extends StatefulWidget {
 
 class _WebDAVState extends State<WebDAV> {
   final appConf = AppConf();
-  final _urlController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  late final _urlController = TextEditingController()..text = appConf.webdavUrl;
+  late final _usernameController = TextEditingController()
+    ..text = appConf.webdavUser;
+  late final _passwordController = TextEditingController()
+    ..text = appConf.webdavPassword;
   ActionType _actionType = ActionType.upload;
   bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _urlController.text = appConf.webdavUrl;
-    _usernameController.text = appConf.webdavUser;
-    _passwordController.text = appConf.webdavPassword;
-  }
 
   @override
   void dispose() {

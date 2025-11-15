@@ -28,57 +28,55 @@ class ThemeColor extends StatelessWidget {
       title: '主题颜色',
       value: color,
       icon: Icons.color_lens_outlined,
-      items:
-          _colors.map((String color) {
-            return PopupMenuItem(
-              value: color,
-              child: ListTile(
-                leading:
-                    color == 'System'
-                        ? Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            gradient: SweepGradient(
-                              colors: [
-                                Colors.red,
-                                Colors.pink,
-                                Colors.green,
-                                Colors.blue,
-                                Colors.yellow,
-                                Colors.orange,
-                                Colors.purple,
-                              ],
-                              stops: _generateStops(7),
-                              center: Alignment.center,
-                              startAngle: 0,
-                              endAngle: 2 * pi,
-                              tileMode: TileMode.clamp,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.settings,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                        : Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: ThemeProvider.stringToColor(color),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                title: Text(color),
-              ),
-            );
-          }).toList(),
-      onSelected:
-          (value) => context.read<ThemeProvider>().setPrimaryColor(value),
+      items: _colors.map((String color) {
+        return PopupMenuItem(
+          value: color,
+          child: ListTile(
+            leading: color == 'System'
+                ? Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      gradient: SweepGradient(
+                        colors: [
+                          Colors.red,
+                          Colors.pink,
+                          Colors.green,
+                          Colors.blue,
+                          Colors.yellow,
+                          Colors.orange,
+                          Colors.purple,
+                        ],
+                        stops: _generateStops(7),
+                        center: Alignment.center,
+                        startAngle: 0,
+                        endAngle: 2 * pi,
+                        tileMode: TileMode.clamp,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.settings,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: ThemeProvider.stringToColor(color),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+            title: Text(color),
+          ),
+        );
+      }).toList(),
+      onSelected: (value) =>
+          context.read<ThemeProvider>().setPrimaryColor(value),
     );
   }
 

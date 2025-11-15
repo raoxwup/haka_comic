@@ -91,10 +91,9 @@ class _SubCommentsPageState extends State<SubCommentsPage>
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(title: const Text('子评论')),
-          body:
-              handler.error != null
-                  ? _buildError()
-                  : Stack(children: [_buildList(_comments), _buildBottom()]),
+          body: handler.error != null
+              ? _buildError()
+              : Stack(children: [_buildList(_comments), _buildBottom()]),
         );
       },
     );
@@ -176,27 +175,26 @@ class _SubCommentsPageState extends State<SubCommentsPage>
                           borderRadius: const BorderRadius.all(
                             Radius.circular(8),
                           ),
-                          child:
-                              item.user.avatar == null
-                                  ? Card(
-                                    clipBehavior: Clip.hardEdge,
-                                    elevation: 0,
-                                    shape: const CircleBorder(),
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      padding: const EdgeInsets.all(5),
-                                      child: Image.asset(
-                                        'assets/images/user.png',
-                                      ),
-                                    ),
-                                  )
-                                  : BaseImage(
-                                    url: item.user.avatar!.url,
+                          child: item.user.avatar == null
+                              ? Card(
+                                  clipBehavior: Clip.hardEdge,
+                                  elevation: 0,
+                                  shape: const CircleBorder(),
+                                  child: Container(
                                     width: 40,
                                     height: 40,
-                                    shape: const CircleBorder(),
+                                    padding: const EdgeInsets.all(5),
+                                    child: Image.asset(
+                                      'assets/images/user.png',
+                                    ),
                                   ),
+                                )
+                              : BaseImage(
+                                  url: item.user.avatar!.url,
+                                  width: 40,
+                                  height: 40,
+                                  shape: const CircleBorder(),
+                                ),
                         ),
                       ),
                       Expanded(
@@ -253,13 +251,12 @@ class _SubCommentsPageState extends State<SubCommentsPage>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child:
-            _hasMore
-                ? CircularProgressIndicator(
-                  constraints: BoxConstraints.tight(const Size(28, 28)),
-                  strokeWidth: 3,
-                )
-                : Text('没有更多数据了', style: context.textTheme.bodySmall),
+        child: _hasMore
+            ? CircularProgressIndicator(
+                constraints: BoxConstraints.tight(const Size(28, 28)),
+                strokeWidth: 3,
+              )
+            : Text('没有更多数据了', style: context.textTheme.bodySmall),
       ),
     );
   }
@@ -282,25 +279,24 @@ class _SubCommentsPageState extends State<SubCommentsPage>
                   child: InkWell(
                     onTap: () => showCreator(context, comment.user),
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    child:
-                        comment.user.avatar == null
-                            ? Card(
-                              clipBehavior: Clip.hardEdge,
-                              elevation: 0,
-                              shape: const CircleBorder(),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                padding: const EdgeInsets.all(5),
-                                child: Image.asset('assets/images/user.png'),
-                              ),
-                            )
-                            : BaseImage(
-                              url: comment.user.avatar!.url,
+                    child: comment.user.avatar == null
+                        ? Card(
+                            clipBehavior: Clip.hardEdge,
+                            elevation: 0,
+                            shape: const CircleBorder(),
+                            child: Container(
                               width: 40,
                               height: 40,
-                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(5),
+                              child: Image.asset('assets/images/user.png'),
                             ),
+                          )
+                        : BaseImage(
+                            url: comment.user.avatar!.url,
+                            width: 40,
+                            height: 40,
+                            shape: const CircleBorder(),
+                          ),
                   ),
                 ),
                 Expanded(
@@ -342,21 +338,20 @@ class _SubCommentsPageState extends State<SubCommentsPage>
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(),
-      builder:
-          (context) => CommentInput(
-            id: widget.comment.id,
-            handler: sendReply.useRequest(
-              onSuccess: (data, _) {
-                Log.info('Send reply success', 'reply');
-                _refresh();
-                context.pop();
-              },
-              onError: (e, _) {
-                Log.error('Send reply error', e);
-                Toast.show(message: '回复失败');
-              },
-            ),
-          ),
+      builder: (context) => CommentInput(
+        id: widget.comment.id,
+        handler: sendReply.useRequest(
+          onSuccess: (data, _) {
+            Log.info('Send reply success', 'reply');
+            _refresh();
+            context.pop();
+          },
+          onError: (e, _) {
+            Log.error('Send reply error', e);
+            Toast.show(message: '回复失败');
+          },
+        ),
+      ),
     );
   }
 }

@@ -15,7 +15,6 @@ import 'package:haka_comic/views/reader/app_bar.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/next_chapter.dart';
 import 'package:haka_comic/views/reader/page_no_tag.dart';
-import 'package:haka_comic/views/reader/page_turn_toolbar.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -77,11 +76,13 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
 
   /// 切换工具栏显示状态
   void openOrCloseToolbar() {
-    setState(() {
-      _showToolbar = !_showToolbar;
-      SystemChrome.setEnabledSystemUIMode(
-        _showToolbar ? SystemUiMode.edgeToEdge : SystemUiMode.immersive,
-      );
+    Future.microtask(() {
+      setState(() {
+        _showToolbar = !_showToolbar;
+        SystemChrome.setEnabledSystemUIMode(
+          _showToolbar ? SystemUiMode.edgeToEdge : SystemUiMode.immersive,
+        );
+      });
     });
   }
 
@@ -408,28 +409,25 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
             },
           ),
 
-          !_isPageTurning
-              ? ReaderBottom(
-                  onSliderChanged: onSliderChanged,
-                  showToolbar: _showToolbar,
-                  total: total,
-                  pageNo: correctPageNo,
-                  isVerticalMode: _readMode.isVertical,
-                  action: action,
-                  startPageTurn: () {
-                    openOrCloseToolbar();
-                    _startPageTurn();
-                  },
-                )
-              : PageTurnToolbar(
-                  showToolbar: _showToolbar,
-                  interval: _interval,
-                  onIntervalChanged: _updateInterval,
-                  stopPageTurn: () {
-                    openOrCloseToolbar();
-                    _stopPageTurn();
-                  },
-                ),
+          ReaderBottom(
+            onSliderChanged: onSliderChanged,
+            showToolbar: _showToolbar,
+            total: total,
+            pageNo: correctPageNo,
+            isVerticalMode: _readMode.isVertical,
+            action: action,
+            startPageTurn: () {
+              openOrCloseToolbar();
+              _startPageTurn();
+            },
+            stopPageTurn: () {
+              openOrCloseToolbar();
+              _stopPageTurn();
+            },
+            interval: _interval,
+            onIntervalChanged: _updateInterval,
+            isPageTurning: _isPageTurning,
+          ),
         ],
       ),
       drawer: Drawer(

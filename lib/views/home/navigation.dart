@@ -11,43 +11,39 @@ final List<dynamic> destinations = [
     "selectedIcon": Icons.category,
     "label": '分类',
     "extendBodyBehindAppBar": false,
-    "buildAppBar":
-        (BuildContext context) => AppBar(
-          title: const Text('分类'),
-          actions:
-              actions
-                  .map(
-                    (e) => IconButton(
-                      tooltip: e['label'],
-                      onPressed: () => e['onPressed'](context),
-                      icon: Icon(e['icon']),
-                    ),
-                  )
-                  .toList(),
-        ),
+    "buildAppBar": (BuildContext context) => AppBar(
+      title: const Text('分类'),
+      actions: actions
+          .map(
+            (e) => IconButton(
+              tooltip: e['label'],
+              onPressed: () => e['onPressed'](context),
+              icon: Icon(e['icon']),
+            ),
+          )
+          .toList(),
+    ),
   },
   {
     "icon": Icons.person_outline,
     "selectedIcon": Icons.person,
     "label": '我的',
     "extendBodyBehindAppBar": true,
-    "buildAppBar":
-        (BuildContext context) => AppBar(
-          title: const Text('我的'),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          systemOverlayStyle: SystemUiOverlayStyle.dark,
-          actions:
-              actions
-                  .map(
-                    (e) => IconButton(
-                      tooltip: e['label'],
-                      onPressed: () => e['onPressed'](context),
-                      icon: Icon(e['icon']),
-                    ),
-                  )
-                  .toList(),
-        ),
+    "buildAppBar": (BuildContext context) => AppBar(
+      title: const Text('我的'),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      actions: actions
+          .map(
+            (e) => IconButton(
+              tooltip: e['label'],
+              onPressed: () => e['onPressed'](context),
+              icon: Icon(e['icon']),
+            ),
+          )
+          .toList(),
+    ),
   },
 ];
 
@@ -107,16 +103,15 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       selectedIndex: widget.selectedIndex,
       onDestinationSelected: widget.onDestinationSelected,
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      destinations:
-          destinations
-              .map(
-                (e) => NavigationDestination(
-                  icon: Icon(e['icon']),
-                  label: e['label'],
-                  selectedIcon: Icon(e['selectedIcon']),
-                ),
-              )
-              .toList(),
+      destinations: destinations
+          .map(
+            (e) => NavigationDestination(
+              icon: Icon(e['icon']),
+              label: e['label'],
+              selectedIcon: Icon(e['selectedIcon']),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -134,29 +129,27 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             spacing: 8,
-            children:
-                actions
-                    .map(
-                      (e) => IconButton(
-                        tooltip: e['label'],
-                        icon: Icon(e['icon']),
-                        onPressed: () => e['onPressed'](context),
-                      ),
-                    )
-                    .toList(),
+            children: actions
+                .map(
+                  (e) => IconButton(
+                    tooltip: e['label'],
+                    icon: Icon(e['icon']),
+                    onPressed: () => e['onPressed'](context),
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),
-      destinations:
-          destinations
-              .map(
-                (e) => NavigationRailDestination(
-                  icon: Icon(e['icon']),
-                  selectedIcon: Icon(e['selectedIcon']),
-                  label: Text(e['label']),
-                ),
-              )
-              .toList(),
+      destinations: destinations
+          .map(
+            (e) => NavigationRailDestination(
+              icon: Icon(e['icon']),
+              selectedIcon: Icon(e['selectedIcon']),
+              label: Text(e['label']),
+            ),
+          )
+          .toList(),
     );
   }
 }

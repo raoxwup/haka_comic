@@ -78,15 +78,15 @@ class Log {
     }
   }
 
-  static info(String title, String content) {
+  static void info(String title, String content) {
     add(LogLevel.info, title, content);
   }
 
-  static warning(String title, String content) {
+  static void warning(String title, String content) {
     add(LogLevel.warning, title, content);
   }
 
-  static error(String title, Object content, [Object? stackTrace]) {
+  static void error(String title, Object content, [Object? stackTrace]) {
     var info = content.toString();
     if (stackTrace != null) {
       info += "\n${stackTrace.toString()}";

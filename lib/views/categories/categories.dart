@@ -72,12 +72,11 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
     }
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent:
-            UiMode.m1(context)
-                ? 130
-                : UiMode.m2(context)
-                ? 135
-                : 140,
+        maxCrossAxisExtent: UiMode.m1(context)
+            ? 130
+            : UiMode.m2(context)
+            ? 135
+            : 140,
         mainAxisSpacing: 5,
         crossAxisSpacing: 3,
         childAspectRatio: 1 / 1.3,

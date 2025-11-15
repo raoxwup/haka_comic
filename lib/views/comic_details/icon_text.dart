@@ -17,7 +17,10 @@ class IconText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       spacing: spacing,
-      children: [icon, Text(text, style: context.textTheme.bodySmall)],
+      children: [
+        icon,
+        Text(text, style: context.textTheme.bodySmall),
+      ],
     );
   }
 }

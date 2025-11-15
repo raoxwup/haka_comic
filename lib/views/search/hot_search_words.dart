@@ -47,13 +47,12 @@ class _HotSearchWordsState extends State<HotSearchWords>
         error: _handler.error,
         isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
         onRetry: _handler.refresh,
-        errorBuilder:
-            (context) => Center(
-              child: IconButton(
-                onPressed: _handler.refresh,
-                icon: const Icon(Icons.refresh),
-              ),
-            ),
+        errorBuilder: (context) => Center(
+          child: IconButton(
+            onPressed: _handler.refresh,
+            icon: const Icon(Icons.refresh),
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,18 +72,17 @@ class _HotSearchWordsState extends State<HotSearchWords>
             Wrap(
               spacing: 5,
               runSpacing: 5,
-              children:
-                  words
-                      .map(
-                        (e) => Item(
-                          title: e,
-                          onTap: () {
-                            context.read<SearchProvider>().add(e);
-                            context.push('/search_comics?keyword=$e');
-                          },
-                        ),
-                      )
-                      .toList(),
+              children: words
+                  .map(
+                    (e) => Item(
+                      title: e,
+                      onTap: () {
+                        context.read<SearchProvider>().add(e);
+                        context.push('/search_comics?keyword=$e');
+                      },
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),

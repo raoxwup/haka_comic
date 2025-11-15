@@ -25,8 +25,9 @@ class PageSelector extends StatelessWidget {
     final Widget child = Row(
       children: [
         FilledButton.tonal(
-          onPressed:
-              currentPage <= 1 ? null : () => onPageChange(currentPage - 1),
+          onPressed: currentPage <= 1
+              ? null
+              : () => onPageChange(currentPage - 1),
           child: const Text('上一页'),
         ),
         const Spacer(),
@@ -39,8 +40,9 @@ class PageSelector extends StatelessWidget {
         ),
         const Spacer(),
         FilledButton.tonal(
-          onPressed:
-              currentPage >= pages ? null : () => onPageChange(currentPage + 1),
+          onPressed: currentPage >= pages
+              ? null
+              : () => onPageChange(currentPage + 1),
           child: const Text('下一页'),
         ),
       ],
@@ -48,11 +50,11 @@ class PageSelector extends StatelessWidget {
 
     return isSliver ?? true
         ? SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-            child: child,
-          ),
-        )
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+              child: child,
+            ),
+          )
         : child;
   }
 

@@ -4,10 +4,10 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS images (
             id INTEGER PRIMARY KEY,
             cid TEXT NOT NULL,
@@ -18,12 +18,12 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_images_cid_image_id
           ON images (cid, image_id);
         ''');
-      }),
-    );
+    }),
+  );
 
 class ImagesHelper {
   static late SqliteDatabase _db;

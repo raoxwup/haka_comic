@@ -214,7 +214,7 @@ class ListItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 5,
-              children: [title, if (subtitle != null) subtitle!],
+              children: [title, ?subtitle],
             ),
             const Spacer(),
             trailing,

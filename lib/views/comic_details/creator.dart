@@ -17,10 +17,9 @@ class ComicCreator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String time =
-        updatedAt == null
-            ? ''
-            : DateTime.parse(updatedAt!).toString().split(' ')[0];
+    final String time = updatedAt == null
+        ? ''
+        : DateTime.parse(updatedAt!).toString().split(' ')[0];
     return InkWell(
       onTap: () => showCreator(context, creator),
       borderRadius: const BorderRadius.all(Radius.circular(8)),

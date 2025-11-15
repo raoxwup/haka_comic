@@ -33,8 +33,9 @@ class _DownloaderState extends State<Downloader> {
       widget.downloadComic.id,
     );
     setState(() {
-      downloadedChapterIds =
-          downloadChapters.map((chapter) => chapter.id).toSet();
+      downloadedChapterIds = downloadChapters
+          .map((chapter) => chapter.id)
+          .toSet();
     });
   }
 
@@ -43,16 +44,15 @@ class _DownloaderState extends State<Downloader> {
     DownloadManager.addTask(
       ComicDownloadTask(
         comic: widget.downloadComic,
-        chapters:
-            chapters
-                .map(
-                  (chapter) => DownloadChapter(
-                    id: chapter.uid,
-                    title: chapter.title,
-                    order: chapter.order,
-                  ),
-                )
-                .toList(),
+        chapters: chapters
+            .map(
+              (chapter) => DownloadChapter(
+                id: chapter.uid,
+                title: chapter.title,
+                order: chapter.order,
+              ),
+            )
+            .toList(),
       ),
     );
     context.pop();
@@ -80,18 +80,17 @@ class _DownloaderState extends State<Downloader> {
             title: Text(chapter.title),
             trailing: Checkbox(
               value: selected || isDownloaded,
-              onChanged:
-                  isDownloaded
-                      ? null
-                      : (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedChapters.add(chapter);
-                          } else {
-                            selectedChapters.remove(chapter);
-                          }
-                        });
-                      },
+              onChanged: isDownloaded
+                  ? null
+                  : (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedChapters.add(chapter);
+                        } else {
+                          selectedChapters.remove(chapter);
+                        }
+                      });
+                    },
             ),
             onTap: () {
               setState(() {
@@ -112,20 +111,18 @@ class _DownloaderState extends State<Downloader> {
             Expanded(
               child: Builder(
                 builder: (context) {
-                  final canDownloadChapters =
-                      widget.chapters
-                          .where(
-                            (chapter) =>
-                                !downloadedChapterIds.contains(chapter.uid),
-                          )
-                          .toList();
+                  final canDownloadChapters = widget.chapters
+                      .where(
+                        (chapter) =>
+                            !downloadedChapterIds.contains(chapter.uid),
+                      )
+                      .toList();
                   return TextButton(
-                    onPressed:
-                        canDownloadChapters.isNotEmpty
-                            ? () {
-                              startDownload(canDownloadChapters);
-                            }
-                            : null,
+                    onPressed: canDownloadChapters.isNotEmpty
+                        ? () {
+                            startDownload(canDownloadChapters);
+                          }
+                        : null,
                     child: const Text('下载全部'),
                   );
                 },
@@ -133,12 +130,11 @@ class _DownloaderState extends State<Downloader> {
             ),
             Expanded(
               child: FilledButton(
-                onPressed:
-                    selectedChapters.isNotEmpty
-                        ? () {
-                          startDownload(selectedChapters);
-                        }
-                        : null,
+                onPressed: selectedChapters.isNotEmpty
+                    ? () {
+                        startDownload(selectedChapters);
+                      }
+                    : null,
                 child: const Text('下载所选'),
               ),
             ),

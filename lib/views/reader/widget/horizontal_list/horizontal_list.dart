@@ -227,9 +227,12 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final children = correctImages.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
+      final size = correctImages.length;
       return Expanded(
         child: Align(
-          alignment: index == 0 ? Alignment.centerRight : Alignment.centerLeft,
+          alignment: size == 1
+              ? Alignment.center
+              : (index == 0 ? Alignment.centerRight : Alignment.centerLeft),
           child: ComicImage.noUseCache(
             url: item.media.url,
             onImageSizeChanged: (width, height) {

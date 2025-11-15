@@ -31,10 +31,9 @@ class _HomeState extends State<Home> {
         return Scaffold(
           extendBodyBehindAppBar:
               destinations[_selectedIndex]['extendBodyBehindAppBar'],
-          appBar:
-              UiMode.m1(context)
-                  ? destinations[_selectedIndex]['buildAppBar'](context)
-                  : null,
+          appBar: UiMode.m1(context)
+              ? destinations[_selectedIndex]['buildAppBar'](context)
+              : null,
           body: Row(
             children: [
               if (!UiMode.m1(context)) _buildAppNavigationBar(),
@@ -51,8 +50,9 @@ class _HomeState extends State<Home> {
               ),
             ],
           ),
-          bottomNavigationBar:
-              UiMode.m1(context) ? _buildAppNavigationBar() : null,
+          bottomNavigationBar: UiMode.m1(context)
+              ? _buildAppNavigationBar()
+              : null,
         );
       },
     );

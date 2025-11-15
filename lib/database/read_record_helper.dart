@@ -6,10 +6,10 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS read_record (
             id INTEGER PRIMARY KEY,
             cid TEXT UNIQUE NOT NULL,
@@ -19,12 +19,12 @@ final migrations =
           );
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_read_record_cid
           ON read_record (cid);
         ''');
-      }),
-    );
+    }),
+  );
 
 class ReadRecordHelper with ChangeNotifier {
   ReadRecordHelper._internal();

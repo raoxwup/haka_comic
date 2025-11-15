@@ -8,11 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:path/path.dart' as p;
 
-final migrations =
-    SqliteMigrations()
-      ..add(
-        SqliteMigration(1, (tx) async {
-          await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS history (
             id INTEGER PRIMARY KEY,
             cid TEXT UNIQUE NOT NULL,
@@ -33,7 +32,7 @@ final migrations =
           )
         ''');
 
-          await tx.execute('''
+      await tx.execute('''
           CREATE TRIGGER IF NOT EXISTS update_history_timestamp 
           AFTER UPDATE ON history 
           BEGIN
@@ -41,18 +40,18 @@ final migrations =
           END;
         ''');
 
-          await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_updated_at ON history (updated_at);
         ''');
-        }),
-      )
-      ..add(
-        SqliteMigration(2, (tx) async {
-          await tx.execute('''
+    }),
+  )
+  ..add(
+    SqliteMigration(2, (tx) async {
+      await tx.execute('''
           ALTER TABLE history ADD COLUMN tags TEXT DEFAULT '[]';
         ''');
-        }),
-      );
+    }),
+  );
 
 class HistoryHelper with ChangeNotifier {
   HistoryHelper._create();

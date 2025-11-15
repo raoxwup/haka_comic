@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart' hide Block;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';

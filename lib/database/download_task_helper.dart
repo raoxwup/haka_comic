@@ -3,12 +3,12 @@ import 'package:haka_comic/utils/download_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        // await tx.execute('PRAGMA foreign_keys = ON;');
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      // await tx.execute('PRAGMA foreign_keys = ON;');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_task(
             id TEXT PRIMARY KEY,
             total INTEGER DEFAULT 0,
@@ -19,7 +19,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TRIGGER IF NOT EXISTS update_download_task_timestamp 
           AFTER UPDATE ON download_task 
           BEGIN
@@ -27,7 +27,7 @@ final migrations =
           END;
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_comic(
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -36,7 +36,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_chapter(
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -47,7 +47,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS chapter_image(
             id INTEGER PRIMARY KEY,
             file_server TEXT NOT NULL,
@@ -60,17 +60,17 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_download_chapter_task_id 
           ON download_chapter(task_id)
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_chapter_image_chapter_id 
           ON chapter_image(chapter_id)
         ''');
-      }),
-    );
+    }),
+  );
 
 class DownloadTaskHelper {
   DownloadTaskHelper._create();

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/src/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -136,11 +137,15 @@ class _DownloadsState extends State<Downloads> {
         final destDir = Directory(
           p.join(
             selectedDirectory,
-            sanitizeFileName(task.comic.title).substringSafe(0, 20),
+            '${sanitizeFileName(task.comic.title).substringSafe(0, 20)}.zip',
           ),
         );
 
-        await copyDirectory(sourceDir, destDir);
+        await compressFolder(
+          sourceFolder: sourceDir.path,
+          outputZip: destDir.path,
+          method: 'Deflated',
+        );
       }
 
       Toast.show(message: "导出成功");

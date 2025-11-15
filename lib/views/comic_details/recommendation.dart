@@ -71,13 +71,12 @@ class _RecommendationState extends State<Recommendation>
     height: 180,
     width: double.infinity,
     child: Center(
-      child:
-          handler.error != null
-              ? IconButton(
-                onPressed: handler.refresh,
-                icon: const Icon(Icons.refresh),
-              )
-              : const CircularProgressIndicator(),
+      child: handler.error != null
+          ? IconButton(
+              onPressed: handler.refresh,
+              icon: const Icon(Icons.refresh),
+            )
+          : const CircularProgressIndicator(),
     ),
   );
 
@@ -85,41 +84,40 @@ class _RecommendationState extends State<Recommendation>
     return SizedBox(
       height: 190,
       width: double.infinity,
-      child:
-          _comics.isEmpty
-              ? Column(
-                spacing: 5,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/icon_empty.png', height: 160),
-                  const Text('暂无推荐'),
-                ],
-              )
-              : ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _comics.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final item = _comics[index];
-                  return InkWell(
-                    onTap: () => context.push('/details/${item.id}'),
-                    hoverColor: Colors.transparent,
-                    child: SizedBox(
-                      width: 100,
-                      child: Column(
-                        children: [
-                          BaseImage(url: item.url, width: 100, height: 130),
-                          Text(
-                            item.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+      child: _comics.isEmpty
+          ? Column(
+              spacing: 5,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/icon_empty.png', height: 160),
+                const Text('暂无推荐'),
+              ],
+            )
+          : ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _comics.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final item = _comics[index];
+                return InkWell(
+                  onTap: () => context.push('/details/${item.id}'),
+                  hoverColor: Colors.transparent,
+                  child: SizedBox(
+                    width: 100,
+                    child: Column(
+                      children: [
+                        BaseImage(url: item.url, width: 100, height: 130),
+                        Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

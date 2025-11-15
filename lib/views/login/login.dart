@@ -123,21 +123,20 @@ class _LoginState extends State<Login> {
                 labelText: '密码',
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.lock),
-                suffixIcon:
-                    password.isNotEmpty
-                        ? IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _showPassword = !_showPassword;
-                            });
-                          },
-                          icon: Icon(
-                            _showPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                        )
-                        : null,
+                suffixIcon: password.isNotEmpty
+                    ? IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        },
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                      )
+                    : null,
               ),
               onChanged: _update,
               onFieldSubmitted: (value) => enable ? _login() : null,
