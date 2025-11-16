@@ -176,7 +176,13 @@ class HistoryHelper with ChangeNotifier {
 
   Future<File> backup() async {
     final tempDir = await getTemporaryDirectory();
-    final path = p.join(tempDir.path, 'history.db');
+    final backupDir = Directory(p.join(tempDir.path, 'backup'));
+
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+
+    final path = p.join(backupDir.path, 'history.db');
     final file = File(path);
     if (await file.exists()) {
       await file.delete();

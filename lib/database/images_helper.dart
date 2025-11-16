@@ -84,7 +84,13 @@ class ImagesHelper {
 
   static Future<File> backup() async {
     final tempDir = await getTemporaryDirectory();
-    final path = p.join(tempDir.path, 'images.db');
+    final backupDir = Directory(p.join(tempDir.path, 'backup'));
+
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+
+    final path = p.join(backupDir.path, 'images.db');
     final file = File(path);
     if (await file.exists()) {
       await file.delete();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/config/app_config.dart';
 
 class SearchProvider with ChangeNotifier {
   static const historyLength = 20;
@@ -8,11 +8,9 @@ class SearchProvider with ChangeNotifier {
   List<String> get history => _history;
 
   SearchProvider() {
-    final history = SharedPreferencesUtil.prefs.getStringList('search_history');
-    if (history != null) {
-      _history.addAll(history);
-      notifyListeners();
-    }
+    final history = AppConf().searchHistory;
+    _history.addAll(history);
+    notifyListeners();
   }
 
   void add(String keyword) {
@@ -39,10 +37,6 @@ class SearchProvider with ChangeNotifier {
   @override
   void notifyListeners() {
     super.notifyListeners();
-    useCache();
-  }
-
-  void useCache() {
-    SharedPreferencesUtil.prefs.setStringList('search_history', _history);
+    AppConf().searchHistory = _history;
   }
 }

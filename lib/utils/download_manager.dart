@@ -382,11 +382,12 @@ class DownloadManager {
     ));
 
     _mainReceivePort.listen((message) {
-      if (message is SendPort) {
-        _workerSendPort = message;
-        completer.complete();
-      } else if (message is List<ComicDownloadTask>) {
-        streamController.add(message);
+      switch (message) {
+        case SendPort sendPort:
+          _workerSendPort = sendPort;
+          completer.complete();
+        case List<ComicDownloadTask> tasks:
+          streamController.add(tasks);
       }
     });
 
@@ -447,23 +448,15 @@ enum DownloadTaskStatus {
   completed,
 
   /// 错误
-  error,
-}
+  error;
 
-DownloadTaskStatus downloadTaskStatusFromString(String status) {
-  switch (status) {
-    case 'queued':
-      return DownloadTaskStatus.queued;
-    case 'downloading':
-      return DownloadTaskStatus.downloading;
-    case 'paused':
-      return DownloadTaskStatus.paused;
-    case 'completed':
-      return DownloadTaskStatus.completed;
-    case 'error':
-      return DownloadTaskStatus.error;
-    default:
-      throw Exception('Unknown status: $status');
+  const DownloadTaskStatus();
+
+  static DownloadTaskStatus fromName(String name) {
+    return DownloadTaskStatus.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => throw Exception('Unknown status name: $name'),
+    );
   }
 }
 

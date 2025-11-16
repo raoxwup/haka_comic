@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/config/app_config.dart';
 
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
@@ -35,26 +35,20 @@ class ThemeProvider with ChangeNotifier {
   }
 
   ThemeProvider() {
-    final mode =
-        SharedPreferencesUtil.prefs.getString('theme_mode') ?? 'System';
+    final mode = AppConf().themeMode;
     _themeMode = stringToThemeMode[mode]!;
-
-    _primaryColor =
-        SharedPreferencesUtil.prefs.getString('primary_color') ?? 'System';
+    _primaryColor = AppConf().primaryColor;
   }
 
   void setThemeMode(ThemeMode mode) {
     _themeMode = mode;
-    SharedPreferencesUtil.prefs.setString(
-      'theme_mode',
-      themeModeToString[mode]!,
-    );
+    AppConf().themeMode = themeModeToString[mode]!;
     notifyListeners();
   }
 
   void setPrimaryColor(String color) {
     _primaryColor = color;
-    SharedPreferencesUtil.prefs.setString('primary_color', color);
+    AppConf().primaryColor = color;
     notifyListeners();
   }
 }

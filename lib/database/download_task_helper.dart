@@ -200,7 +200,7 @@ class DownloadTaskHelper {
         );
         task.total = row['total'];
         task.completed = row['completed'];
-        task.status = downloadTaskStatusFromString(row['status']);
+        task.status = DownloadTaskStatus.fromName(row['status']);
         tasksMap[taskId] = task;
       }
 
@@ -244,10 +244,6 @@ class DownloadTaskHelper {
   Future<void> deleteBatch(List<String> ids) async {
     final params = ids.map((id) => [id]).toList();
     await _db.writeTransaction((tx) async {
-      // await tx.getAll('PRAGMA foreign_keys = ON;');
-      // final result = await tx.get('PRAGMA foreign_keys;');
-      // print(result);
-
       await tx.executeBatch('DELETE FROM download_task WHERE id = ?', params);
 
       // 外键无效, sqlite_async不知道怎么启用外键，这里手动删除
