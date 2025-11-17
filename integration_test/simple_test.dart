@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haka_comic/main.dart';
-import 'package:haka_comic/src/rust/frb_generated.dart';
+import 'package:haka_comic/rust/frb_generated.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {

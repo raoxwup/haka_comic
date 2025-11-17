@@ -1,20 +1,14 @@
 use std::fs::File;
 use std::path::Path;
 use walkdir::WalkDir;
-pub use zip::CompressionMethod;
 use zip::{
     write::{FileOptions, ZipWriter},
-    ZipArchive,
+    CompressionMethod, ZipArchive,
 };
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
 }
 
 // 压缩文件夹

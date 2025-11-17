@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/src/rust/api/simple.dart';
+import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
