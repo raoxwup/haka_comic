@@ -50,7 +50,8 @@ dependencies:
   material_symbols_icons: ^4.2874.0
   rust_lib_haka_comic:
     path: rust_builder
-  flutter_rust_bridge: 2.11.1
+  flutter_rust_bridge: ^2.11.1
+  legalize: ^1.2.2
 
 dev_dependencies:
   flutter_test:

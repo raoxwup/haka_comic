@@ -15,6 +15,7 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:legalize/legalize.dart';
 import 'package:path/path.dart' as p;
 
 class Downloads extends StatefulWidget {
@@ -131,13 +132,16 @@ class _DownloadsState extends State<Downloads> {
 
       for (var task in _selectedTasks) {
         final sourceDir = Directory(
-          p.join(downloadPath, sanitizeFileName(task.comic.title)),
+          p.join(
+            downloadPath,
+            legalizeFilename(task.comic.title, os: Platform.operatingSystem),
+          ),
         );
 
         final destDir = Directory(
           p.join(
             selectedDirectory,
-            '${sanitizeFileName(task.comic.title).substringSafe(0, 20)}.zip',
+            '${legalizeFilename(task.comic.title, os: Platform.operatingSystem)}.zip',
           ),
         );
 

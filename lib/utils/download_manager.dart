@@ -10,6 +10,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:legalize/legalize.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -136,8 +137,8 @@ class _ComicDownloader {
 
         final path = p.join(
           _dirPath,
-          sanitizeFileName(task.comic.title),
-          sanitizeFileName(chapter.title),
+          legalizeFilename(task.comic.title, os: Platform.operatingSystem),
+          legalizeFilename(chapter.title, os: Platform.operatingSystem),
           image.originalName,
         );
 
@@ -323,7 +324,10 @@ class _ComicDownloader {
       if (index != -1) {
         final path = p.join(
           _dirPath,
-          sanitizeFileName(tasks[index].comic.title),
+          legalizeFilename(
+            tasks[index].comic.title,
+            os: Platform.operatingSystem,
+          ),
         );
         if (Directory(path).existsSync()) {
           Directory(path).deleteSync(recursive: true);
