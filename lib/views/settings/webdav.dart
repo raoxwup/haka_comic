@@ -78,10 +78,10 @@ class _WebDAVState extends State<WebDAV> {
 
         final zipFile = File(p.join(tempDir.path, 'backup.zip'));
 
-        await compressFolder(
-          sourceFolder: backupDir.path,
-          outputZip: zipFile.path,
-          method: 'Deflated',
+        await compress(
+          sourceFolderPath: backupDir.path,
+          outputZipPath: zipFile.path,
+          compressionMethod: CompressionMethod.deflated,
         );
 
         await client.writeFromFile(zipFile.path, '$baseDir/backup.zip');
@@ -104,9 +104,9 @@ class _WebDAVState extends State<WebDAV> {
           p.join(restoreDir.path, 'backup.zip'),
         );
 
-        await decompressFolder(
-          zipFile: p.join(restoreDir.path, 'backup.zip'),
-          outputFolder: restoreDir.path,
+        await decompress(
+          sourceZipPath: p.join(restoreDir.path, 'backup.zip'),
+          outputFolderPath: restoreDir.path,
         );
 
         final imagesDB = File('${restoreDir.path}/images.db');

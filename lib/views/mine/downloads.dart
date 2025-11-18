@@ -141,10 +141,10 @@ class _DownloadsState extends State<Downloads> {
           ),
         );
 
-        await compressFolder(
-          sourceFolder: sourceDir.path,
-          outputZip: destDir.path,
-          method: 'Deflated',
+        await compress(
+          sourceFolderPath: sourceDir.path,
+          outputZipPath: destDir.path,
+          compressionMethod: CompressionMethod.deflated,
         );
       }
 

@@ -6,20 +6,32 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<void> compressFolder({
-  required String sourceFolder,
-  required String outputZip,
-  required String method,
-}) => RustLib.instance.api.crateApiSimpleCompressFolder(
-  sourceFolder: sourceFolder,
-  outputZip: outputZip,
-  method: method,
+Future<void> compress({
+  required String sourceFolderPath,
+  required String outputZipPath,
+  required CompressionMethod compressionMethod,
+}) => RustLib.instance.api.crateApiSimpleCompress(
+  sourceFolderPath: sourceFolderPath,
+  outputZipPath: outputZipPath,
+  compressionMethod: compressionMethod,
 );
 
-Future<void> decompressFolder({
-  required String zipFile,
-  required String outputFolder,
-}) => RustLib.instance.api.crateApiSimpleDecompressFolder(
-  zipFile: zipFile,
-  outputFolder: outputFolder,
+Future<void> decompress({
+  required String sourceZipPath,
+  required String outputFolderPath,
+}) => RustLib.instance.api.crateApiSimpleDecompress(
+  sourceZipPath: sourceZipPath,
+  outputFolderPath: outputFolderPath,
 );
+
+enum CompressionMethod {
+  stored,
+  deflated,
+  deflate64,
+  bzip2,
+  aes,
+  zstd,
+  lzma,
+  xz,
+  ppmd,
+}

@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 266881338;
+  int get rustContentHash => -1288460227;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -77,15 +77,15 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<void> crateApiSimpleCompressFolder({
-    required String sourceFolder,
-    required String outputZip,
-    required String method,
+  Future<void> crateApiSimpleCompress({
+    required String sourceFolderPath,
+    required String outputZipPath,
+    required CompressionMethod compressionMethod,
   });
 
-  Future<void> crateApiSimpleDecompressFolder({
-    required String zipFile,
-    required String outputFolder,
+  Future<void> crateApiSimpleDecompress({
+    required String sourceZipPath,
+    required String outputFolderPath,
   });
 
   Future<void> crateApiSimpleInitApp();
@@ -100,18 +100,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<void> crateApiSimpleCompressFolder({
-    required String sourceFolder,
-    required String outputZip,
-    required String method,
+  Future<void> crateApiSimpleCompress({
+    required String sourceFolderPath,
+    required String outputZipPath,
+    required CompressionMethod compressionMethod,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(sourceFolder, serializer);
-          sse_encode_String(outputZip, serializer);
-          sse_encode_String(method, serializer);
+          sse_encode_String(sourceFolderPath, serializer);
+          sse_encode_String(outputZipPath, serializer);
+          sse_encode_compression_method(compressionMethod, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -123,30 +123,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiSimpleCompressFolderConstMeta,
-        argValues: [sourceFolder, outputZip, method],
+        constMeta: kCrateApiSimpleCompressConstMeta,
+        argValues: [sourceFolderPath, outputZipPath, compressionMethod],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleCompressFolderConstMeta =>
-      const TaskConstMeta(
-        debugName: "compress_folder",
-        argNames: ["sourceFolder", "outputZip", "method"],
-      );
+  TaskConstMeta get kCrateApiSimpleCompressConstMeta => const TaskConstMeta(
+    debugName: "compress",
+    argNames: ["sourceFolderPath", "outputZipPath", "compressionMethod"],
+  );
 
   @override
-  Future<void> crateApiSimpleDecompressFolder({
-    required String zipFile,
-    required String outputFolder,
+  Future<void> crateApiSimpleDecompress({
+    required String sourceZipPath,
+    required String outputFolderPath,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(zipFile, serializer);
-          sse_encode_String(outputFolder, serializer);
+          sse_encode_String(sourceZipPath, serializer);
+          sse_encode_String(outputFolderPath, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -158,18 +157,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiSimpleDecompressFolderConstMeta,
-        argValues: [zipFile, outputFolder],
+        constMeta: kCrateApiSimpleDecompressConstMeta,
+        argValues: [sourceZipPath, outputFolderPath],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleDecompressFolderConstMeta =>
-      const TaskConstMeta(
-        debugName: "decompress_folder",
-        argNames: ["zipFile", "outputFolder"],
-      );
+  TaskConstMeta get kCrateApiSimpleDecompressConstMeta => const TaskConstMeta(
+    debugName: "decompress",
+    argNames: ["sourceZipPath", "outputFolderPath"],
+  );
 
   @override
   Future<void> crateApiSimpleInitApp() {
@@ -205,6 +203,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CompressionMethod dco_decode_compression_method(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CompressionMethod.values[raw as int];
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
@@ -230,6 +240,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CompressionMethod sse_decode_compression_method(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CompressionMethod.values[inner];
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -248,12 +273,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
-  }
-
-  @protected
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
@@ -263,6 +282,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_compression_method(
+    CompressionMethod self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
   }
 
   @protected
@@ -284,12 +318,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
   }
 
   @protected

@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 266881338;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1288460227;
 
 // Section: executor
 
@@ -45,7 +45,7 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 // Section: wire_funcs
 
-fn wire__crate__api__simple__compress_folder_impl(
+fn wire__crate__api__simple__compress_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -53,7 +53,7 @@ fn wire__crate__api__simple__compress_folder_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "compress_folder",
+            debug_name: "compress",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -67,16 +67,17 @@ fn wire__crate__api__simple__compress_folder_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_source_folder = <String>::sse_decode(&mut deserializer);
-            let api_output_zip = <String>::sse_decode(&mut deserializer);
-            let api_method = <String>::sse_decode(&mut deserializer);
+            let api_source_folder_path = <String>::sse_decode(&mut deserializer);
+            let api_output_zip_path = <String>::sse_decode(&mut deserializer);
+            let api_compression_method =
+                <crate::api::simple::CompressionMethod>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::simple::compress_folder(
-                        &api_source_folder,
-                        &api_output_zip,
-                        &api_method,
+                    let output_ok = crate::api::simple::compress(
+                        &api_source_folder_path,
+                        &api_output_zip_path,
+                        api_compression_method,
                     )?;
                     Ok(output_ok)
                 })())
@@ -84,7 +85,7 @@ fn wire__crate__api__simple__compress_folder_impl(
         },
     )
 }
-fn wire__crate__api__simple__decompress_folder_impl(
+fn wire__crate__api__simple__decompress_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -92,7 +93,7 @@ fn wire__crate__api__simple__decompress_folder_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "decompress_folder",
+            debug_name: "decompress",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -106,13 +107,15 @@ fn wire__crate__api__simple__decompress_folder_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_zip_file = <String>::sse_decode(&mut deserializer);
-            let api_output_folder = <String>::sse_decode(&mut deserializer);
+            let api_source_zip_path = <String>::sse_decode(&mut deserializer);
+            let api_output_folder_path = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok =
-                        crate::api::simple::decompress_folder(&api_zip_file, &api_output_folder)?;
+                    let output_ok = crate::api::simple::decompress(
+                        &api_source_zip_path,
+                        &api_output_folder_path,
+                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -164,6 +167,32 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::api::simple::CompressionMethod {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::simple::CompressionMethod::Stored,
+            1 => crate::api::simple::CompressionMethod::Deflated,
+            2 => crate::api::simple::CompressionMethod::Deflate64,
+            3 => crate::api::simple::CompressionMethod::Bzip2,
+            4 => crate::api::simple::CompressionMethod::Aes,
+            5 => crate::api::simple::CompressionMethod::Zstd,
+            6 => crate::api::simple::CompressionMethod::Lzma,
+            7 => crate::api::simple::CompressionMethod::Xz,
+            8 => crate::api::simple::CompressionMethod::Ppmd,
+            _ => unreachable!("Invalid variant for CompressionMethod: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -188,13 +217,6 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
-impl SseDecode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -211,8 +233,8 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        1 => wire__crate__api__simple__compress_folder_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__simple__decompress_folder_impl(port, ptr, rust_vec_len, data_len),
+        1 => wire__crate__api__simple__compress_impl(port, ptr, rust_vec_len, data_len),
+        2 => wire__crate__api__simple__decompress_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
@@ -232,10 +254,69 @@ fn pde_ffi_dispatcher_sync_impl(
 
 // Section: rust2dart
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::simple::CompressionMethod> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self.0 {
+            crate::api::simple::CompressionMethod::Stored => 0.into_dart(),
+            crate::api::simple::CompressionMethod::Deflated => 1.into_dart(),
+            crate::api::simple::CompressionMethod::Deflate64 => 2.into_dart(),
+            crate::api::simple::CompressionMethod::Bzip2 => 3.into_dart(),
+            crate::api::simple::CompressionMethod::Aes => 4.into_dart(),
+            crate::api::simple::CompressionMethod::Zstd => 5.into_dart(),
+            crate::api::simple::CompressionMethod::Lzma => 6.into_dart(),
+            crate::api::simple::CompressionMethod::Xz => 7.into_dart(),
+            crate::api::simple::CompressionMethod::Ppmd => 8.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::simple::CompressionMethod>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::simple::CompressionMethod>>
+    for crate::api::simple::CompressionMethod
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::simple::CompressionMethod> {
+        self.into()
+    }
+}
+
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.into_bytes(), serializer);
+    }
+}
+
+impl SseEncode for crate::api::simple::CompressionMethod {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::simple::CompressionMethod::Stored => 0,
+                crate::api::simple::CompressionMethod::Deflated => 1,
+                crate::api::simple::CompressionMethod::Deflate64 => 2,
+                crate::api::simple::CompressionMethod::Bzip2 => 3,
+                crate::api::simple::CompressionMethod::Aes => 4,
+                crate::api::simple::CompressionMethod::Zstd => 5,
+                crate::api::simple::CompressionMethod::Lzma => 6,
+                crate::api::simple::CompressionMethod::Xz => 7,
+                crate::api::simple::CompressionMethod::Ppmd => 8,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -259,13 +340,6 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
-}
-
-impl SseEncode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
-    }
 }
 
 impl SseEncode for bool {

@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::path::Path;
 use walkdir::WalkDir;
+pub use zip::CompressionMethod;
 use zip::{
     write::{FileOptions, ZipWriter},
-    CompressionMethod, ZipArchive,
+    ZipArchive,
 };
 
 #[flutter_rust_bridge::frb(init)]
@@ -11,41 +12,51 @@ pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
 }
 
-// 压缩文件夹
-pub fn compress_folder(source_folder: &str, output_zip: &str, method: &str) -> Result<(), String> {
-    let method = match method {
-        "Stored" => CompressionMethod::Stored,
-        "Deflated" => CompressionMethod::Deflated,
-        "Bzip2" => CompressionMethod::Bzip2,
-        "Zstd" => CompressionMethod::Zstd,
-        _ => return Err(format!("Unsupported compression method: {}", method)),
-    };
+#[flutter_rust_bridge::frb(mirror(CompressionMethod))]
+pub enum _CompressionMethod {
+    Stored,
+    Deflated,
+    Deflate64,
+    Bzip2,
+    Aes,
+    Zstd,
+    Lzma,
+    Xz,
+    Ppmd,
+}
 
-    let path = Path::new(source_folder);
+// 压缩
+pub fn compress(
+    source_folder_path: &str,
+    output_zip_path: &str,
+    compression_method: CompressionMethod,
+) -> Result<(), String> {
+    let path = Path::new(source_folder_path);
 
     if !path.is_dir() {
         return Err(format!(
             "Source folder '{}' is not a directory",
-            source_folder
+            source_folder_path
         ));
     }
 
-    let file = File::create(output_zip).map_err(|e| e.to_string())?;
+    let file = File::create(output_zip_path).map_err(|e| e.to_string())?;
     let mut zip = ZipWriter::new(file);
 
-    let options: FileOptions<'_, ()> = FileOptions::default().compression_method(method);
+    let options: FileOptions<'_, ()> =
+        FileOptions::default().compression_method(compression_method);
 
-    for entry in WalkDir::new(source_folder) {
+    for entry in WalkDir::new(source_folder_path) {
         let entry = entry.map_err(|e| e.to_string())?;
         let entry_path = entry.path();
 
         // 跳过输出的zip文件本身
-        if entry_path == Path::new(output_zip) {
+        if entry_path == Path::new(output_zip_path) {
             continue;
         }
 
         let relative_path = entry_path
-            .strip_prefix(source_folder)
+            .strip_prefix(source_folder_path)
             .map_err(|e| e.to_string())?;
 
         if entry_path.is_file() {
@@ -65,24 +76,24 @@ pub fn compress_folder(source_folder: &str, output_zip: &str, method: &str) -> R
 }
 
 // 解压
-pub fn decompress_folder(zip_file: &str, output_folder: &str) -> Result<(), String> {
-    let file = File::open(zip_file).map_err(|e| e.to_string())?;
+pub fn decompress(source_zip_path: &str, output_folder_path: &str) -> Result<(), String> {
+    let file = File::open(source_zip_path).map_err(|e| e.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
 
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
-        let outpath = Path::new(output_folder).join(file.mangled_name());
+        let out_path = Path::new(output_folder_path).join(file.mangled_name());
 
         if (*file.name()).ends_with('/') {
-            std::fs::create_dir_all(&outpath).map_err(|e| e.to_string())?;
+            std::fs::create_dir_all(&out_path).map_err(|e| e.to_string())?;
         } else {
-            if let Some(p) = outpath.parent() {
+            if let Some(p) = out_path.parent() {
                 if !p.exists() {
                     std::fs::create_dir_all(&p).map_err(|e| e.to_string())?;
                 }
             }
-            let mut outfile = File::create(&outpath).map_err(|e| e.to_string())?;
-            std::io::copy(&mut file, &mut outfile).map_err(|e| e.to_string())?;
+            let mut out_file = File::create(&out_path).map_err(|e| e.to_string())?;
+            std::io::copy(&mut file, &mut out_file).map_err(|e| e.to_string())?;
         }
     }
 
