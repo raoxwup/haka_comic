@@ -9,8 +9,8 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:legalize/legalize.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -137,8 +137,8 @@ class _ComicDownloader {
 
         final path = p.join(
           _dirPath,
-          legalizeFilename(task.comic.title, os: Platform.operatingSystem),
-          legalizeFilename(chapter.title, os: Platform.operatingSystem),
+          task.comic.title.legalized,
+          chapter.title.legalized,
           image.originalName,
         );
 
@@ -322,13 +322,7 @@ class _ComicDownloader {
       _cancelTokens.remove(id);
       final index = tasks.indexWhere((t) => t.comic.id == id);
       if (index != -1) {
-        final path = p.join(
-          _dirPath,
-          legalizeFilename(
-            tasks[index].comic.title,
-            os: Platform.operatingSystem,
-          ),
-        );
+        final path = p.join(_dirPath, tasks[index].comic.title.legalized);
         if (Directory(path).existsSync()) {
           Directory(path).deleteSync(recursive: true);
         }

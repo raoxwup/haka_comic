@@ -6,8 +6,6 @@ import 'package:sqlite_async/sqlite_async.dart';
 final migrations = SqliteMigrations()
   ..add(
     SqliteMigration(1, (tx) async {
-      // await tx.execute('PRAGMA foreign_keys = ON;');
-
       await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_task(
             id TEXT PRIMARY KEY,
@@ -72,6 +70,15 @@ final migrations = SqliteMigrations()
     }),
   );
 
+// 自定义 SqliteOpenFactory 以启用外键支持
+class SqliteOpenFactory extends DefaultSqliteOpenFactory {
+  SqliteOpenFactory({required super.path});
+  @override
+  List<String> pragmaStatements(SqliteOpenOptions options) {
+    return ['PRAGMA foreign_keys = ON;'];
+  }
+}
+
 class DownloadTaskHelper {
   DownloadTaskHelper._create();
 
@@ -86,7 +93,9 @@ class DownloadTaskHelper {
   Future<void> initialize() async {
     if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
-    _db = SqliteDatabase(path: '$dbPath/download_task.db');
+    _db = SqliteDatabase.withFactory(
+      SqliteOpenFactory(path: '$dbPath/download_tasks.db'),
+    );
     await migrations.migrate(_db);
     isInitialized = true;
   }
