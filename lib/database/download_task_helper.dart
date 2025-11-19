@@ -75,7 +75,9 @@ class SqliteOpenFactory extends DefaultSqliteOpenFactory {
   SqliteOpenFactory({required super.path});
   @override
   List<String> pragmaStatements(SqliteOpenOptions options) {
-    return ['PRAGMA foreign_keys = ON;'];
+    final statements = super.pragmaStatements(options);
+    statements.add('PRAGMA foreign_keys = ON;');
+    return statements;
   }
 }
 
