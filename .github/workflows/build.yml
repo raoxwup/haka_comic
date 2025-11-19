@@ -234,6 +234,27 @@ jobs:
 
           [Run]
           Filename: `"{app}\$exeName`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
+
+          [Code]
+          // 删除 Flutter getApplicationSupportDirectory() 数据目录:
+          // Windows 上等于: C:\Users\<User>\AppData\Roaming\HaKa Comic
+          procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+          var
+            SupportDir: string;
+          begin
+            if CurUninstallStep = usUninstall then
+            begin
+              SupportDir := ExpandConstant('{userappdata}\com.github.raoxwup\$appName');
+
+              if DirExists(SupportDir) then
+              begin
+                Log('Removing ApplicationSupportDirectory: ' + SupportDir);
+                DelTree(SupportDir, True, True, True);
+              end;
+
+              Log('Uninstall cleanup finished.');
+            end;
+          end;
           "@
 
           # 输出到文件
