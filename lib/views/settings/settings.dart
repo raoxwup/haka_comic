@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart' hide Block;
+import 'package:haka_comic/views/settings/auth.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
@@ -95,6 +96,7 @@ class Settings extends StatelessWidget {
             title: '通用',
             children: [
               const ClearCache(),
+              const Auth(),
               MenuListTile.withAction(
                 icon: Icons.info_outline,
                 title: '关于',

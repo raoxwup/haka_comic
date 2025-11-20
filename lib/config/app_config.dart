@@ -86,6 +86,9 @@ class AppConf {
   /// 翻页间隔
   int _interval = 5;
 
+  /// 是否需要身份认证
+  bool _needAuth = false;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -130,6 +133,7 @@ class AppConf {
         prefsWithCache.getString('primary_color') ?? 'System';
     instance._searchHistory =
         prefsWithCache.getStringList('search_history') ?? [];
+    instance._needAuth = prefsWithCache.getBool('needAuth') ?? false;
   }
 
   set email(String value) {
@@ -289,6 +293,11 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setStringList('search_history', value);
   }
 
+  set needAuth(bool value) {
+    _needAuth = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('needAuth', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -319,6 +328,7 @@ class AppConf {
   String get themeMode => _themeMode;
   String get primaryColor => _primaryColor;
   List<String> get searchHistory => _searchHistory;
+  bool get needAuth => _needAuth;
 
   /// 清除token
   void clearAuth() {
