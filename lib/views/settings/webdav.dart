@@ -69,7 +69,7 @@ class _WebDAVState extends State<WebDAV> {
       final list = await client.readDir('/');
       if (_actionType == ActionType.upload) {
         await Future.wait([
-          ImagesHelper.backup(),
+          ImagesHelper().backup(),
           HistoryHelper().backup(),
           ReadRecordHelper().backup(),
         ]);
@@ -114,7 +114,7 @@ class _WebDAVState extends State<WebDAV> {
         final readRecordDB = File('${restoreDir.path}/read_record.db');
 
         await Future.wait([
-          ImagesHelper.restore(imagesDB),
+          ImagesHelper().restore(imagesDB),
           HistoryHelper().restore(historyDB),
           ReadRecordHelper().restore(readRecordDB),
         ]);

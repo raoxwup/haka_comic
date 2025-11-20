@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/database/utils.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
-import 'package:path/path.dart' as p;
 
 final migrations = SqliteMigrations()
   ..add(
@@ -53,25 +51,26 @@ final migrations = SqliteMigrations()
     }),
   );
 
-class HistoryHelper with ChangeNotifier {
+class HistoryHelper with ChangeNotifier, DbBackupMixin {
   HistoryHelper._create();
 
   static final _instance = HistoryHelper._create();
 
   factory HistoryHelper() => _instance;
 
-  late SqliteDatabase _db;
-  String get _dbPath => '${SetupConf.dataPath}/history.db';
+  @override
+  String get dbName => 'history.db';
 
   final streamController = StreamController<String>.broadcast();
 
+  @override
   Future<void> initialize() async {
-    _db = SqliteDatabase(path: _dbPath);
-    await migrations.migrate(_db);
+    super.initialize();
+    await migrations.migrate(db);
   }
 
   Future<void> insert(Comic comic) async {
-    await _db.writeTransaction((tx) async {
+    await db.writeTransaction((tx) async {
       await tx.execute(
         '''
         INSERT OR REPLACE INTO history (
@@ -127,19 +126,19 @@ class HistoryHelper with ChangeNotifier {
   }
 
   Future<void> delete(String id) async {
-    await _db.execute('DELETE FROM history WHERE cid = ?', [id]);
+    await db.execute('DELETE FROM history WHERE cid = ?', [id]);
 
     /// 单独的通知，避免在删除时触发其他监听器
     streamController.add(id);
   }
 
   Future<void> deleteAll() async {
-    await _db.execute('DELETE FROM history');
+    await db.execute('DELETE FROM history');
     notifyListeners();
   }
 
   Future<List<HistoryDoc>> query(int page) async {
-    final result = await _db.getAll(
+    final result = await db.getAll(
       'SELECT * FROM history ORDER BY updated_at DESC LIMIT 20 OFFSET ?',
       [(page - 1) * 20],
     );
@@ -170,42 +169,13 @@ class HistoryHelper with ChangeNotifier {
   }
 
   Future<int> count() async {
-    final result = await _db.get('SELECT COUNT(*) FROM history');
+    final result = await db.get('SELECT COUNT(*) FROM history');
     return result['COUNT(*)'] as int;
   }
 
-  Future<File> backup() async {
-    final tempDir = await getTemporaryDirectory();
-    final backupDir = Directory(p.join(tempDir.path, 'backup'));
-
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-    }
-
-    final path = p.join(backupDir.path, 'history.db');
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await _db.execute('VACUUM INTO ?', [path]);
-    return File(path);
-  }
-
+  @override
   Future<void> restore(File file) async {
-    // 关闭当前数据库
-    await _db.close();
-    // 删除旧文件
-    final files = [File(_dbPath), File('$_dbPath-wal'), File('$_dbPath-shm')];
-    for (var file in files) {
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
-    // 复制新文件
-    await file.copy(_dbPath);
-    // 重新打开数据库
-    await initialize();
-
+    super.restore(file);
     notifyListeners();
   }
 }

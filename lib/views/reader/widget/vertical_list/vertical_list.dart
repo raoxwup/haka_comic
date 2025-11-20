@@ -63,7 +63,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
   /// 初始化图片尺寸缓存
   Future<void> _initImageSizeCache() async {
-    final sizes = await ImagesHelper.query(cid);
+    final sizes = await ImagesHelper().query(cid);
     for (var imageSize in sizes) {
       _imageSizeCache[imageSize.imageId] = imageSize;
     }

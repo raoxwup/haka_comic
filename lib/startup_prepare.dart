@@ -22,7 +22,7 @@ class StartupPrepare {
     ]);
     return Future.wait([
       HistoryHelper().initialize(),
-      ImagesHelper.initialize(),
+      ImagesHelper().initialize(),
       ReadRecordHelper().initialize(),
       DownloadManager.initialize(),
       TagBlockHelper().initialize(),

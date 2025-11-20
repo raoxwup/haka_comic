@@ -1,7 +1,4 @@
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'package:haka_comic/config/setup_config.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:haka_comic/database/utils.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final migrations = SqliteMigrations()
@@ -25,17 +22,24 @@ final migrations = SqliteMigrations()
     }),
   );
 
-class ImagesHelper {
-  static late SqliteDatabase _db;
-  static String get dbPath => '${SetupConf.dataPath}/images.db';
+class ImagesHelper with DbBackupMixin {
+  ImagesHelper._();
 
-  static Future<void> initialize() async {
-    _db = SqliteDatabase(path: dbPath);
-    await migrations.migrate(_db);
+  static final _instance = ImagesHelper._();
+
+  factory ImagesHelper() => _instance;
+
+  @override
+  String get dbName => 'images.db';
+
+  @override
+  Future<void> initialize() async {
+    super.initialize();
+    await migrations.migrate(db);
   }
 
-  static Future<void> insert(ImageSize imageSize) async {
-    await _db.writeTransaction((tx) async {
+  Future<void> insert(ImageSize imageSize) async {
+    await db.writeTransaction((tx) async {
       await tx.execute(
         '''
         INSERT INTO images (cid, image_id, width, height)
@@ -49,15 +53,13 @@ class ImagesHelper {
     });
   }
 
-  static Future<List<ImageSize>> query(String cid) async {
-    final result = await _db.getAll('SELECT * FROM images WHERE cid = ?', [
-      cid,
-    ]);
+  Future<List<ImageSize>> query(String cid) async {
+    final result = await db.getAll('SELECT * FROM images WHERE cid = ?', [cid]);
     return result.map((row) => ImageSize.fromJson(row)).toList();
   }
 
-  static Future<ImageSize?> find(String cid, String imageId) async {
-    final result = await _db.getOptional(
+  Future<ImageSize?> find(String cid, String imageId) async {
+    final result = await db.getOptional(
       'SELECT * FROM images WHERE cid = ? AND image_id = ?',
       [cid, imageId],
     );
@@ -65,8 +67,8 @@ class ImagesHelper {
     return ImageSize.fromJson(result);
   }
 
-  static Future<void> trim() async {
-    await _db.execute('''
+  Future<void> trim() async {
+    await db.execute('''
         DELETE FROM images
         WHERE id IN (
           SELECT id FROM images
@@ -78,44 +80,8 @@ class ImagesHelper {
       ''');
   }
 
-  static Future<void> clear() async {
-    await _db.execute('DELETE FROM images');
-  }
-
-  static Future<File> backup() async {
-    final tempDir = await getTemporaryDirectory();
-    final backupDir = Directory(p.join(tempDir.path, 'backup'));
-
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-    }
-
-    final path = p.join(backupDir.path, 'images.db');
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await _db.execute('VACUUM INTO ?', [path]);
-    return File(path);
-  }
-
-  static Future<void> restore(File file) async {
-    // 关闭当前数据库
-    await _db.close();
-
-    // 删除旧文件
-    final files = [File(dbPath), File('$dbPath-wal'), File('$dbPath-shm')];
-    for (var file in files) {
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
-
-    // 复制新文件
-    await file.copy(dbPath);
-
-    // 重新打开数据库
-    await initialize();
+  Future<void> clear() async {
+    await db.execute('DELETE FROM images');
   }
 }
 

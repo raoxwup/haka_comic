@@ -62,7 +62,7 @@ class _AppState extends State<App> with WindowListener {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     // 清理图片宽高缓存
-    ImagesHelper.trim();
+    ImagesHelper().trim();
 
     if (AppConf().checkUpdate) {
       checkUpdate();
