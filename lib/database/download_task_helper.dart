@@ -1,7 +1,8 @@
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/download_manager.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import 'package:path/path.dart' as p;
 
 final migrations = SqliteMigrations()
   ..add(
@@ -19,10 +20,10 @@ final migrations = SqliteMigrations()
 
       await tx.execute('''
           CREATE TRIGGER IF NOT EXISTS update_download_task_timestamp 
-          AFTER UPDATE ON download_task 
-          BEGIN
-              UPDATE download_task SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
-          END;
+            AFTER UPDATE ON download_task 
+            BEGIN
+                UPDATE download_task SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+            END;
         ''');
 
       await tx.execute('''
@@ -92,11 +93,13 @@ class DownloadTaskHelper {
 
   bool isInitialized = false;
 
+  String get dbName => 'download_task.db';
+
   Future<void> initialize() async {
     if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
     _db = SqliteDatabase.withFactory(
-      SqliteOpenFactory(path: '$dbPath/download_tasks.db'),
+      SqliteOpenFactory(path: p.join(dbPath, dbName)),
     );
     await migrations.migrate(_db);
     isInitialized = true;

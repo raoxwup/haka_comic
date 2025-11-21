@@ -20,6 +20,7 @@ class StartupPrepare {
       SetupConf.initialize(),
       RustLib.init(),
     ]);
+    print(SetupConf.dataPath);
     return Future.wait([
       HistoryHelper().initialize(),
       ImagesHelper().initialize(),

@@ -10,8 +10,10 @@ mixin DbBackupMixin on Object {
   String get dbName;
   String get dbPath => p.join(SetupConf.dataPath, dbName);
 
+  SqliteDatabase initSqliteDatabase() => SqliteDatabase(path: dbPath);
+
   Future<void> initialize() async {
-    _db = SqliteDatabase(path: dbPath);
+    _db = initSqliteDatabase();
   }
 
   Future<File> backup() async {
