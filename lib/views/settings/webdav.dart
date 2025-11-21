@@ -109,9 +109,11 @@ class _WebDAVState extends State<WebDAV> {
           outputFolderPath: restoreDir.path,
         );
 
-        final imagesDB = File('${restoreDir.path}/images.db');
-        final historyDB = File('${restoreDir.path}/history.db');
-        final readRecordDB = File('${restoreDir.path}/read_record.db');
+        final imagesDB = File(p.join(restoreDir.path, ImagesHelper().dbName));
+        final historyDB = File(p.join(restoreDir.path, HistoryHelper().dbName));
+        final readRecordDB = File(
+          p.join(restoreDir.path, ReadRecordHelper().dbName),
+        );
 
         await Future.wait([
           ImagesHelper().restore(imagesDB),

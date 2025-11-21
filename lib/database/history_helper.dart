@@ -61,8 +61,6 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
   @override
   String get dbName => 'history.db';
 
-  final streamController = StreamController<String>.broadcast();
-
   @override
   Future<void> initialize() async {
     super.initialize();
@@ -127,9 +125,7 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
 
   Future<void> delete(String id) async {
     await db.execute('DELETE FROM history WHERE cid = ?', [id]);
-
-    /// 单独的通知，避免在删除时触发其他监听器
-    streamController.add(id);
+    notifyListeners();
   }
 
   Future<void> deleteAll() async {
@@ -175,7 +171,8 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
 
   @override
   Future<void> restore(File file) async {
-    super.restore(file);
+    await super.restore(file);
+    await Future.delayed(const Duration(milliseconds: 100));
     notifyListeners();
   }
 }

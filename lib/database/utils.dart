@@ -8,7 +8,7 @@ mixin DbBackupMixin on Object {
   late SqliteDatabase _db;
   SqliteDatabase get db => _db;
   String get dbName;
-  String get dbPath => '${SetupConf.dataPath}/$dbName';
+  String get dbPath => p.join(SetupConf.dataPath, dbName);
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);
