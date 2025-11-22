@@ -53,6 +53,7 @@ dependencies:
   flutter_rust_bridge: ^2.11.1
   legalize: ^1.2.2
   local_auth: ^3.0.0
+  pool: ^1.5.2
 
 dev_dependencies:
   flutter_test:

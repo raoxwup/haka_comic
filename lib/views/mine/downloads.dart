@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -45,19 +44,19 @@ class _DownloadsState extends State<Downloads> {
     DownloadTaskStatus.paused: {
       "icon": Icons.play_arrow,
       "action": (String comicId) {
-        DownloadManager.resumeTask(comicId);
+        BackgroundDownloader.resumeTask(comicId);
       },
     },
     DownloadTaskStatus.downloading: {
       "icon": Icons.pause,
       "action": (String comicId) {
-        DownloadManager.pauseTask(comicId);
+        BackgroundDownloader.pauseTask(comicId);
       },
     },
     DownloadTaskStatus.error: {
       "icon": Icons.refresh,
       "action": (String comicId) {
-        DownloadManager.resumeTask(comicId);
+        BackgroundDownloader.resumeTask(comicId);
       },
     },
   };
@@ -65,12 +64,12 @@ class _DownloadsState extends State<Downloads> {
   @override
   void initState() {
     super.initState();
-    _subscription = DownloadManager.streamController.stream.listen(
+    _subscription = BackgroundDownloader.streamController.stream.listen(
       (event) => setState(() {
         tasks = event;
       }),
     );
-    DownloadManager.getTasks();
+    BackgroundDownloader.getTasks();
   }
 
   @override
@@ -107,7 +106,7 @@ class _DownloadsState extends State<Downloads> {
     );
 
     if (result == true) {
-      DownloadManager.deleteTasks(_selectedTaskIds.toList());
+      BackgroundDownloader.deleteTasks(_selectedTaskIds.toList());
       setState(() {
         tasks.removeWhere((t) => _selectedTaskIds.contains(t.comic.id));
       });
@@ -142,7 +141,7 @@ class _DownloadsState extends State<Downloads> {
         await compress(
           sourceFolderPath: sourceDir.path,
           outputZipPath: destDir.path,
-          compressionMethod: CompressionMethod.deflated,
+          compressionMethod: CompressionMethod.stored,
         );
       }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -42,7 +41,7 @@ class _DownloaderState extends State<Downloader> {
 
   void startDownload(List<Chapter> chapters) {
     if (chapters.isEmpty) return;
-    DownloadManager.addTask(
+    BackgroundDownloader.addTask(
       ComicDownloadTask(
         comic: widget.downloadComic,
         chapters: chapters

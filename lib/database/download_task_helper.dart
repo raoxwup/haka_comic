@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -82,7 +83,7 @@ class SqliteOpenFactory extends DefaultSqliteOpenFactory {
   }
 }
 
-class DownloadTaskHelper {
+class DownloadTaskHelper with ChangeNotifier {
   DownloadTaskHelper._create();
 
   static final _instance = DownloadTaskHelper._create();
@@ -111,6 +112,7 @@ class DownloadTaskHelper {
 
   /// 插入或者更新下载任务列表
   Future<void> insert(List<ComicDownloadTask> tasks) async {
+    notifyListeners();
     await _db.writeTransaction((tx) async {
       for (var task in tasks) {
         await tx.execute(
@@ -249,6 +251,7 @@ class DownloadTaskHelper {
 
   /// 根据comicId移除下载任务
   Future<void> delete(String id) async {
+    notifyListeners();
     await _db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM download_task WHERE id = ?', [id]);
     });
@@ -256,20 +259,10 @@ class DownloadTaskHelper {
 
   /// 批量移除下载任务
   Future<void> deleteBatch(List<String> ids) async {
+    notifyListeners();
     final params = ids.map((id) => [id]).toList();
     await _db.writeTransaction((tx) async {
       await tx.executeBatch('DELETE FROM download_task WHERE id = ?', params);
-
-      // 外键无效, sqlite_async不知道怎么启用外键，这里手动删除
-      await tx.executeBatch(
-        'DELETE FROM chapter_image WHERE chapter_id IN (SELECT id FROM download_chapter WHERE task_id = ?)',
-        params,
-      );
-      await tx.executeBatch(
-        'DELETE FROM download_chapter WHERE task_id = ?',
-        params,
-      );
-      await tx.executeBatch('DELETE FROM download_comic WHERE id = ?', params);
     });
   }
 
