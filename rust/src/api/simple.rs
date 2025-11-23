@@ -1,3 +1,5 @@
+use image::GenericImageView;
+use oxidize_pdf::{Document, Image, Page};
 use std::fs::File;
 use std::path::Path;
 use walkdir::WalkDir;
@@ -98,4 +100,81 @@ pub fn decompress(source_zip_path: &str, output_folder_path: &str) -> Result<(),
     }
 
     Ok(())
+}
+
+// 导出pdf
+pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
+    let fixed_width: f64 = 210.0;
+
+    let mut doc = Document::new();
+
+    let images = collect_images(source_folder_path);
+
+    for image in images.iter() {
+        println!("Add image: {:?}", image.path);
+
+        let img = image::open(image.path.clone()).unwrap();
+        let (img_w, img_h) = img.dimensions();
+
+        // 等比缩放计算
+        let scale = fixed_width / (img_w as f64);
+        let display_h = img_h as f64 * scale;
+
+        let mut page = Page::new(fixed_width, display_h);
+
+        let img = match image.ext.as_str() {
+            "jpg" | "jpeg" => Image::from_jpeg_file(&image.path).unwrap(),
+            "png" => Image::from_png_file(&image.path).unwrap(),
+            _ => continue,
+        };
+
+        let name = Path::new(&image.path)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap();
+
+        page.add_image(name, img);
+
+        page.draw_image(name, 0.0, 0.0, fixed_width, display_h)
+            .unwrap();
+
+        doc.add_page(page);
+    }
+
+    doc.save(output_pdf_path).map_err(|e| e.to_string())?;
+
+    println!("PDF saved → {}", output_pdf_path);
+
+    Ok(())
+}
+
+struct ImageMeta {
+    pub path: String,
+    pub ext: String,
+}
+
+/// 递归收集图片
+fn collect_images(dir: &str) -> Vec<ImageMeta> {
+    let mut imgs: Vec<ImageMeta> = vec![];
+
+    for entry in WalkDir::new(dir) {
+        let entry = entry.unwrap();
+        let path = entry.path();
+
+        if path.is_file() {
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
+            if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) {
+                imgs.push(ImageMeta {
+                    path: path.to_string_lossy().to_string(),
+                    ext,
+                });
+            }
+        }
+    }
+    imgs.sort_by(|a, b| a.path.cmp(&b.path));
+    imgs
 }

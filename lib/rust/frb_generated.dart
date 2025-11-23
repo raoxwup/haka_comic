@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1288460227;
+  int get rustContentHash => -1109305866;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -86,6 +86,11 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimpleDecompress({
     required String sourceZipPath,
     required String outputFolderPath,
+  });
+
+  Future<void> crateApiSimpleExportPdf({
+    required String sourceFolderPath,
+    required String outputPdfPath,
   });
 
   Future<void> crateApiSimpleInitApp();
@@ -170,6 +175,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<void> crateApiSimpleExportPdf({
+    required String sourceFolderPath,
+    required String outputPdfPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(sourceFolderPath, serializer);
+          sse_encode_String(outputPdfPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiSimpleExportPdfConstMeta,
+        argValues: [sourceFolderPath, outputPdfPath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSimpleExportPdfConstMeta => const TaskConstMeta(
+    debugName: "export_pdf",
+    argNames: ["sourceFolderPath", "outputPdfPath"],
+  );
+
+  @override
   Future<void> crateApiSimpleInitApp() {
     return handler.executeNormal(
       NormalTask(
@@ -178,7 +217,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },

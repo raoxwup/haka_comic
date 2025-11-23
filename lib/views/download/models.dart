@@ -64,17 +64,18 @@ class ComicDownloadTask {
 
 /// 下载任务状态
 enum DownloadTaskStatus {
-  queued,
+  queued('等待中'),
 
-  downloading,
+  downloading('下载中'),
 
-  paused,
+  paused('已暂停'),
 
-  completed,
+  completed('已完成'),
 
-  error;
+  error('下载出错');
 
-  const DownloadTaskStatus();
+  const DownloadTaskStatus(this.displayName);
+  final String displayName;
 
   static DownloadTaskStatus fromName(String name) {
     return DownloadTaskStatus.values.firstWhere(

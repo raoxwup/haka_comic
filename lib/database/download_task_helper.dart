@@ -251,7 +251,6 @@ class DownloadTaskHelper with ChangeNotifier {
 
   /// 根据comicId移除下载任务
   Future<void> delete(String id) async {
-    notifyListeners();
     await _db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM download_task WHERE id = ?', [id]);
     });
@@ -259,7 +258,6 @@ class DownloadTaskHelper with ChangeNotifier {
 
   /// 批量移除下载任务
   Future<void> deleteBatch(List<String> ids) async {
-    notifyListeners();
     final params = ids.map((id) => [id]).toList();
     await _db.writeTransaction((tx) async {
       await tx.executeBatch('DELETE FROM download_task WHERE id = ?', params);

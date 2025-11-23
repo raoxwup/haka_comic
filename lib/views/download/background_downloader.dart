@@ -412,6 +412,8 @@ class _DownloadExecutor {
         tasks.removeAt(index);
       }
     }
+
+    notify();
   }
 }
 

@@ -6,6 +6,9 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `collect_images`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ImageMeta`
+
 Future<void> compress({
   required String sourceFolderPath,
   required String outputZipPath,
@@ -22,6 +25,14 @@ Future<void> decompress({
 }) => RustLib.instance.api.crateApiSimpleDecompress(
   sourceZipPath: sourceZipPath,
   outputFolderPath: outputFolderPath,
+);
+
+Future<void> exportPdf({
+  required String sourceFolderPath,
+  required String outputPdfPath,
+}) => RustLib.instance.api.crateApiSimpleExportPdf(
+  sourceFolderPath: sourceFolderPath,
+  outputPdfPath: outputPdfPath,
 );
 
 enum CompressionMethod {
