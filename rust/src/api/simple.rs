@@ -1,6 +1,8 @@
-use image::GenericImageView;
+use image::ImageReader;
 use oxidize_pdf::{Document, Image, Page};
+use rayon::prelude::*;
 use std::fs::File;
+use std::io::{BufReader, Cursor};
 use std::path::Path;
 use walkdir::WalkDir;
 pub use zip::CompressionMethod;
@@ -103,59 +105,140 @@ pub fn decompress(source_zip_path: &str, output_folder_path: &str) -> Result<(),
 }
 
 // 导出pdf
+// pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
+//     let fixed_width: f64 = 210.0;
+
+//     let mut doc = Document::new();
+
+//     let images = collect_images(source_folder_path);
+
+//     for path in images.iter() {
+//         let reader = ImageReader::new(BufReader::new(File::open(path).unwrap()))
+//             .with_guessed_format()
+//             .unwrap();
+
+//         let img = match reader.format() {
+//             Some(image::ImageFormat::Jpeg) => Image::from_jpeg_file(path).unwrap(),
+//             Some(image::ImageFormat::Png) => Image::from_png_file(path).unwrap(),
+//             _ => {
+//                 let mut bytes: Vec<u8> = Vec::new();
+//                 reader
+//                     .decode()
+//                     .unwrap()
+//                     .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Jpeg)
+//                     .unwrap();
+//                 Image::from_jpeg_data(bytes).unwrap()
+//             }
+//         };
+
+//         let img_w = img.width();
+//         let img_h = img.height();
+
+//         let scale = fixed_width / (img_w as f64);
+//         let display_h = img_h as f64 * scale;
+
+//         let mut page = Page::new(fixed_width, display_h);
+
+//         let name = Path::new(path)
+//             .file_name()
+//             .and_then(|n| n.to_str())
+//             .unwrap();
+
+//         page.add_image(name, img);
+
+//         page.draw_image(name, 0.0, 0.0, fixed_width, display_h)
+//             .unwrap();
+
+//         doc.add_page(page);
+//     }
+
+//     doc.save(output_pdf_path).map_err(|e| e.to_string())?;
+
+//     println!("PDF saved → {}", output_pdf_path);
+
+//     Ok(())
+// }
+
 pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
     let fixed_width: f64 = 210.0;
 
+    let all_images = collect_images(source_folder_path);
+
     let mut doc = Document::new();
 
-    let images = collect_images(source_folder_path);
+    const BATCH_SIZE: usize = 20;
 
-    for image in images.iter() {
-        println!("Add image: {:?}", image.path);
+    for (_, chunk) in all_images.chunks(BATCH_SIZE).enumerate() {
+        let processed_batch: Vec<Result<(Image, String, f64), String>> = chunk
+            .par_iter()
+            .map(|path| process_single_image(path, fixed_width))
+            .collect();
 
-        let img = image::open(image.path.clone()).unwrap();
-        let (img_w, img_h) = img.dimensions();
+        for result in processed_batch {
+            match result {
+                Ok((img, name, display_h)) => {
+                    let mut page = Page::new(fixed_width, display_h);
+                    page.add_image(&name, img);
 
-        // 等比缩放计算
-        let scale = fixed_width / (img_w as f64);
-        let display_h = img_h as f64 * scale;
+                    if let Err(e) = page.draw_image(&name, 0.0, 0.0, fixed_width, display_h) {
+                        eprintln!("警告: 图片绘制失败 [{}]: {}", name, e);
+                    }
 
-        let mut page = Page::new(fixed_width, display_h);
-
-        let img = match image.ext.as_str() {
-            "jpg" | "jpeg" => Image::from_jpeg_file(&image.path).unwrap(),
-            "png" => Image::from_png_file(&image.path).unwrap(),
-            _ => continue,
-        };
-
-        let name = Path::new(&image.path)
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap();
-
-        page.add_image(name, img);
-
-        page.draw_image(name, 0.0, 0.0, fixed_width, display_h)
-            .unwrap();
-
-        doc.add_page(page);
+                    doc.add_page(page);
+                }
+                Err(e) => {
+                    eprintln!("警告: 跳过损坏或无法读取的图片: {}", e);
+                }
+            }
+        }
     }
 
     doc.save(output_pdf_path).map_err(|e| e.to_string())?;
 
-    println!("PDF saved → {}", output_pdf_path);
-
     Ok(())
 }
 
-struct ImageMeta {
-    pub path: String,
-    pub ext: String,
+fn process_single_image(path: &str, fixed_width: f64) -> Result<(Image, String, f64), String> {
+    let file = File::open(path).map_err(|e| e.to_string())?;
+    let reader = ImageReader::new(BufReader::new(file))
+        .with_guessed_format()
+        .map_err(|e| e.to_string())?;
+
+    let format = reader.format();
+
+    let img_obj = match format {
+        Some(image::ImageFormat::Jpeg) => Image::from_jpeg_file(path).map_err(|e| e.to_string())?,
+        Some(image::ImageFormat::Png) => Image::from_png_file(path).map_err(|e| e.to_string())?,
+        _ => {
+            let mut bytes: Vec<u8> = Vec::new();
+            reader
+                .decode()
+                .map_err(|_| "解码失败".to_string())?
+                .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Jpeg)
+                .map_err(|_| "转码失败".to_string())?;
+
+            Image::from_jpeg_data(bytes).map_err(|e| e.to_string())?
+        }
+    };
+
+    // 3. 准备元数据
+    let name = Path::new(path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("unknown")
+        .to_string();
+
+    let img_w = img_obj.width();
+    let img_h = img_obj.height();
+    let scale = fixed_width / (img_w as f64);
+    let display_h = img_h as f64 * scale;
+
+    Ok((img_obj, name, display_h))
 }
 
 /// 递归收集图片
-fn collect_images(dir: &str) -> Vec<ImageMeta> {
-    let mut imgs: Vec<ImageMeta> = vec![];
+fn collect_images(dir: &str) -> Vec<String> {
+    let mut imgs = vec![];
 
     for entry in WalkDir::new(dir) {
         let entry = entry.unwrap();
@@ -168,13 +251,10 @@ fn collect_images(dir: &str) -> Vec<ImageMeta> {
                 .unwrap_or("")
                 .to_lowercase();
             if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) {
-                imgs.push(ImageMeta {
-                    path: path.to_string_lossy().to_string(),
-                    ext,
-                });
+                imgs.push(path.to_string_lossy().to_string());
             }
         }
     }
-    imgs.sort_by(|a, b| a.path.cmp(&b.path));
+    imgs.sort();
     imgs
 }

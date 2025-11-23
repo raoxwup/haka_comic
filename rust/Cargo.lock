@@ -1558,6 +1558,7 @@ dependencies = [
  "flutter_rust_bridge",
  "image",
  "oxidize-pdf",
+ "rayon",
  "walkdir",
  "zip",
 ]

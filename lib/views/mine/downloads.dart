@@ -207,16 +207,19 @@ class _DownloadsState extends State<Downloads> {
       }
     } catch (e) {
       Log.error("export comic failed", e);
-      Toast.show(message: "导出失败");
+      showSnackBar("导出失败: $e");
+      // Toast.show(message: "导出失败");
     } finally {
-      for (var task in _selectedTasks) {
-        final tempFile = File(
-          p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
-        );
-        if (await tempFile.exists()) {
-          await tempFile.delete();
-        }
-      }
+      Future.wait(
+        _selectedTasks.map((task) async {
+          final tempFile = File(
+            p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+          );
+          if (await tempFile.exists()) {
+            await tempFile.delete();
+          }
+        }),
+      );
       if (mounted) {
         Loader.hide(context);
       }

@@ -6,8 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `collect_images`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ImageMeta`
+// These functions are ignored because they are not marked as `pub`: `collect_images`, `process_single_image`
 
 Future<void> compress({
   required String sourceFolderPath,
