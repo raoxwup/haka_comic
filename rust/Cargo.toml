@@ -1,0 +1,17 @@
+[package]
+name = "rust_lib_haka_comic"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.11.1"
+zip = "6.0.0"
+walkdir = "2.5.0"
+image = "0.25.9"
+oxidize-pdf = "1.6.4"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

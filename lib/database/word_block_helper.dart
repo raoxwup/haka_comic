@@ -5,17 +5,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:path/path.dart' as p;
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS word_block (
             id INTEGER PRIMARY KEY,
             word TEXT UNIQUE NOT NULL
           );
         ''');
-      }),
-    );
+    }),
+  );
 
 class WordBlockHelper with ChangeNotifier {
   WordBlockHelper._internal();

@@ -46,40 +46,42 @@ class _SearchHistoryState extends State<SearchHistory> {
     return history.isEmpty
         ? const SizedBox.shrink()
         : Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 2,
-          children: [
-            Row(
-              spacing: 5,
-              children: [
-                Text(
-                  '搜索历史',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
+            children: [
+              Row(
+                spacing: 5,
+                children: [
+                  Text(
+                    '搜索历史',
+                    style: context.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                IconButton(onPressed: clear, icon: const Icon(Icons.clear_all)),
-              ],
-            ),
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children:
-                  history
-                      .map(
-                        (e) => Item(
-                          title: e,
-                          onTap: () {
-                            context.read<SearchProvider>().add(e);
-                            context.push('/search_comics?keyword=$e');
-                          },
-                        ),
-                      )
-                      .toList(),
-            ),
-          ],
-        );
+                  const Spacer(),
+                  IconButton(
+                    onPressed: clear,
+                    icon: const Icon(Icons.clear_all),
+                  ),
+                ],
+              ),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: history
+                    .map(
+                      (e) => Item(
+                        title: e,
+                        onTap: () {
+                          context.read<SearchProvider>().add(e);
+                          context.push('/search_comics?keyword=$e');
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          );
   }
 }

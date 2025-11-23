@@ -1,16 +1,17 @@
-import 'dart:io' as io;
+import 'dart:io' show File, Directory;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:webdav_client/webdav_client.dart';
+import 'package:webdav_client/webdav_client.dart' hide File;
 import 'package:path/path.dart' as p;
 
 enum ActionType { upload, download }
@@ -24,20 +25,13 @@ class WebDAV extends StatefulWidget {
 
 class _WebDAVState extends State<WebDAV> {
   final appConf = AppConf();
-  final _urlController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  late final _urlController = TextEditingController()..text = appConf.webdavUrl;
+  late final _usernameController = TextEditingController()
+    ..text = appConf.webdavUser;
+  late final _passwordController = TextEditingController()
+    ..text = appConf.webdavPassword;
   ActionType _actionType = ActionType.upload;
   bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _urlController.text = appConf.webdavUrl;
-    _usernameController.text = appConf.webdavUser;
-    _passwordController.text = appConf.webdavPassword;
-  }
 
   @override
   void dispose() {
@@ -48,7 +42,6 @@ class _WebDAVState extends State<WebDAV> {
     super.dispose();
   }
 
-  /// Connect to WebDAV server and perform upload or download
   void connectWebDAV() async {
     const baseDir = '/HaKa Comic';
     final url = _urlController.text.trim();
@@ -60,7 +53,7 @@ class _WebDAVState extends State<WebDAV> {
       return;
     }
 
-    var client = newClient(
+    final client = newClient(
       url,
       user: username,
       password: password,
@@ -72,54 +65,62 @@ class _WebDAVState extends State<WebDAV> {
     });
 
     try {
+      final tempDir = await getTemporaryDirectory();
       final list = await client.readDir('/');
       if (_actionType == ActionType.upload) {
-        if (list.any((item) => item.name == 'HaKa Comic')) {
-          await client.remove('/HaKa Comic/');
-        }
-        final files = await Future.wait([
-          ImagesHelper.backup(),
+        await Future.wait([
+          ImagesHelper().backup(),
           HistoryHelper().backup(),
           ReadRecordHelper().backup(),
         ]);
-        await Future.wait(
-          files.map((file) {
-            final fileName = p.basename(file.path);
-            return client.writeFromFile(file.path, '$baseDir/$fileName');
-          }),
+
+        final backupDir = Directory(p.join(tempDir.path, 'backup'));
+
+        final zipFile = File(p.join(tempDir.path, 'backup.zip'));
+
+        await compress(
+          sourceFolderPath: backupDir.path,
+          outputZipPath: zipFile.path,
+          compressionMethod: CompressionMethod.deflated,
         );
-        for (var file in files) {
-          if (await file.exists()) {
-            await file.delete();
-          }
+
+        await client.writeFromFile(zipFile.path, '$baseDir/backup.zip');
+
+        if (await zipFile.exists()) {
+          await zipFile.delete();
         }
+
         Toast.show(message: '上传成功');
       } else if (_actionType == ActionType.download) {
         if (!list.any((item) => item.name == 'HaKa Comic')) {
           Toast.show(message: '远程目录不存在');
           return;
         }
-        final names = {'images.db', 'history.db', 'read_record.db'};
-        final files = await client.readDir(baseDir);
-        if (!files.map((f) => f.name).toSet().containsAll(names)) {
-          Toast.show(message: '远程目录不完整');
-          return;
-        }
-        final tempDir = await getTemporaryDirectory();
-        await Future.wait(
-          names.map((name) {
-            final path = '${tempDir.path}/$name';
-            return client.read2File('$baseDir/$name', path);
-          }),
+
+        final restoreDir = Directory(p.join(tempDir.path, 'restore'));
+
+        await client.read2File(
+          '$baseDir/backup.zip',
+          p.join(restoreDir.path, 'backup.zip'),
         );
-        final imagesDB = io.File('${tempDir.path}/images.db');
-        final historyDB = io.File('${tempDir.path}/history.db');
-        final readRecordDB = io.File('${tempDir.path}/read_record.db');
+
+        await decompress(
+          sourceZipPath: p.join(restoreDir.path, 'backup.zip'),
+          outputFolderPath: restoreDir.path,
+        );
+
+        final imagesDB = File(p.join(restoreDir.path, ImagesHelper().dbName));
+        final historyDB = File(p.join(restoreDir.path, HistoryHelper().dbName));
+        final readRecordDB = File(
+          p.join(restoreDir.path, ReadRecordHelper().dbName),
+        );
+
         await Future.wait([
-          ImagesHelper.restore(imagesDB),
+          ImagesHelper().restore(imagesDB),
           HistoryHelper().restore(historyDB),
           ReadRecordHelper().restore(readRecordDB),
         ]);
+
         Toast.show(message: '下载成功');
       }
 

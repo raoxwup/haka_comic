@@ -87,15 +87,12 @@ class _NotificationsState extends State<Notifications>
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Center(
-                  child:
-                      _handler.isLoading
-                          ? CircularProgressIndicator(
-                            constraints: BoxConstraints.tight(
-                              const Size(28, 28),
-                            ),
-                            strokeWidth: 3,
-                          )
-                          : Text('没有更多数据了', style: context.textTheme.bodySmall),
+                  child: _handler.isLoading
+                      ? CircularProgressIndicator(
+                          constraints: BoxConstraints.tight(const Size(28, 28)),
+                          strokeWidth: 3,
+                        )
+                      : Text('没有更多数据了', style: context.textTheme.bodySmall),
                 ),
               );
             }

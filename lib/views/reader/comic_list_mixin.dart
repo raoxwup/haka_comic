@@ -47,6 +47,6 @@ mixin ComicListMixin<T extends StatefulWidget> on State<T> {
 
   /// 将图片尺寸信息插入数据库
   void insertImageSize(ImageSize imageSize) {
-    ImagesHelper.insert(imageSize);
+    ImagesHelper().insert(imageSize);
   }
 }

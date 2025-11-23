@@ -89,12 +89,11 @@ class _ClearCacheState extends State<ClearCache> {
     return MenuListTile.withAction(
       icon: Icons.delete_sweep_outlined,
       title: '清理缓存',
-      value:
-          _isClearing
-              ? "清理中..."
-              : _isCalculating
-              ? '计算中...'
-              : formatSize(_cacheSize),
+      value: _isClearing
+          ? "清理中..."
+          : _isCalculating
+          ? '计算中...'
+          : formatSize(_cacheSize),
       onTap: () async {
         final bool? result = await showDialog(
           context: context,

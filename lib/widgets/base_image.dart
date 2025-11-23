@@ -59,34 +59,32 @@ class _BaseImageState extends State<BaseImage> {
       elevation: 0,
       child: ValueListenableBuilder(
         valueListenable: keyNotifier,
-        builder:
-            (context, value, child) =>
-                widget.url.isEmpty
-                    ? Image.asset(
-                      'assets/images/login.png',
-                      fit: widget.fit,
-                      width: widget.width ?? double.infinity,
-                      height: widget.height ?? double.infinity,
-                    )
-                    : CachedNetworkImage(
-                      key: value,
-                      imageUrl: widget.url,
-                      fit: widget.fit,
-                      width: widget.width ?? double.infinity,
-                      height: widget.height ?? double.infinity,
-                      progressIndicatorBuilder: widget.progressIndicatorBuilder,
-                      errorWidget:
-                          widget.errorBuilder ??
-                          (context, url, error) => Center(
-                            child: IconButton(
-                              onPressed: () {
-                                keyNotifier.value = UniqueKey();
-                              },
-                              icon: const Icon(Icons.refresh),
-                            ),
-                          ),
-                      imageBuilder: widget.imageBuilder,
+        builder: (context, value, child) => widget.url.isEmpty
+            ? Image.asset(
+                'assets/images/login.png',
+                fit: widget.fit,
+                width: widget.width ?? double.infinity,
+                height: widget.height ?? double.infinity,
+              )
+            : CachedNetworkImage(
+                key: value,
+                imageUrl: widget.url,
+                fit: widget.fit,
+                width: widget.width ?? double.infinity,
+                height: widget.height ?? double.infinity,
+                progressIndicatorBuilder: widget.progressIndicatorBuilder,
+                errorWidget:
+                    widget.errorBuilder ??
+                    (context, url, error) => Center(
+                      child: IconButton(
+                        onPressed: () {
+                          keyNotifier.value = UniqueKey();
+                        },
+                        icon: const Icon(Icons.refresh),
+                      ),
                     ),
+                imageBuilder: widget.imageBuilder,
+              ),
       ),
     );
   }

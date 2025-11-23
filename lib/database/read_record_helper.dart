@@ -1,15 +1,12 @@
-import 'dart:io';
-import 'package:path/path.dart' as p;
+import 'package:haka_comic/database/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS read_record (
             id INTEGER PRIMARY KEY,
             cid TEXT UNIQUE NOT NULL,
@@ -19,31 +16,32 @@ final migrations =
           );
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_read_record_cid
           ON read_record (cid);
         ''');
-      }),
-    );
+    }),
+  );
 
-class ReadRecordHelper with ChangeNotifier {
+class ReadRecordHelper with ChangeNotifier, DbBackupMixin {
   ReadRecordHelper._internal();
 
   static final _instance = ReadRecordHelper._internal();
 
   factory ReadRecordHelper() => _instance;
 
-  late SqliteDatabase _db;
-  String get dbPath => '${SetupConf.dataPath}/read_record.db';
+  @override
+  String get dbName => 'read_record.db';
 
+  @override
   Future<void> initialize() async {
-    _db = SqliteDatabase(path: dbPath);
-    await migrations.migrate(_db);
+    super.initialize();
+    await migrations.migrate(db);
   }
 
   Future<void> insert(ComicReadRecord record) async {
     try {
-      await _db.writeTransaction((tx) async {
+      await db.writeTransaction((tx) async {
         await tx.execute(
           '''
           INSERT INTO read_record (cid, chapter_id, chapter_title, page_no)
@@ -64,38 +62,11 @@ class ReadRecordHelper with ChangeNotifier {
   }
 
   Future<ComicReadRecord?> query(String cid) async {
-    final result = await _db.getOptional(
+    final result = await db.getOptional(
       'SELECT * FROM read_record WHERE cid = ?',
       [cid],
     );
     return result == null ? null : ComicReadRecord.fromJson(result);
-  }
-
-  Future<File> backup() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = p.join(tempDir.path, 'read_record.db');
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await _db.execute('VACUUM INTO ?', [path]);
-    return File(path);
-  }
-
-  Future<void> restore(File file) async {
-    // 关闭当前数据库
-    await _db.close();
-    // 删除旧文件
-    final files = [File(dbPath), File('$dbPath-wal'), File('$dbPath-shm')];
-    for (var file in files) {
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
-    // 复制新文件
-    await file.copy(dbPath);
-    // 重新打开数据库
-    await initialize();
   }
 }
 

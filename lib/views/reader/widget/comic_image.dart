@@ -74,10 +74,9 @@ class _ComicImageState extends State<ComicImage> {
     Widget createPlaceholder({required Widget child}) {
       if (!widget.useCacheSize) return Center(child: child);
       final width = context.width;
-      final height =
-          widget.imageSize != null
-              ? (widget.imageSize!.height * width) / widget.imageSize!.width
-              : context.height * 0.6;
+      final height = widget.imageSize != null
+          ? (widget.imageSize!.height * width) / widget.imageSize!.width
+          : context.height * 0.6;
       return SizedBox(
         height: height,
         width: width,
@@ -102,13 +101,12 @@ class _ComicImageState extends State<ComicImage> {
           ),
         );
       },
-      errorWidget:
-          (context, url, error) => createPlaceholder(
-            child: IconButton(
-              onPressed: _refreshImage,
-              icon: const Icon(Icons.refresh),
-            ),
-          ),
+      errorWidget: (context, url, error) => createPlaceholder(
+        child: IconButton(
+          onPressed: _refreshImage,
+          icon: const Icon(Icons.refresh),
+        ),
+      ),
       imageBuilder: (context, imageProvider) {
         final resolve = imageProvider.resolve(const ImageConfiguration());
 

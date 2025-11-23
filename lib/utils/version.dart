@@ -20,12 +20,11 @@ class Version implements Comparable<Version> {
     final match = regex.firstMatch(versionStr);
     if (match == null) throw FormatException('Invalid version: $versionStr');
 
-    final preRelease =
-        (match.group(4) ?? '')
-            .split('.')
-            .where((s) => s.isNotEmpty)
-            .map<Object>((s) => int.tryParse(s) ?? s)
-            .toList();
+    final preRelease = (match.group(4) ?? '')
+        .split('.')
+        .where((s) => s.isNotEmpty)
+        .map<Object>((s) => int.tryParse(s) ?? s)
+        .toList();
 
     return Version(
       major: int.parse(match.group(1)!),

@@ -133,22 +133,22 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
               children: [
                 user?.avatar == null
                     ? Card(
-                      clipBehavior: Clip.hardEdge,
-                      elevation: 0,
-                      shape: const CircleBorder(),
-                      child: Container(
+                        clipBehavior: Clip.hardEdge,
+                        elevation: 0,
+                        shape: const CircleBorder(),
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          padding: const EdgeInsets.all(5),
+                          child: Image.asset('assets/images/user.png'),
+                        ),
+                      )
+                    : BaseImage(
+                        url: user!.avatar!.url,
                         width: 64,
                         height: 64,
-                        padding: const EdgeInsets.all(5),
-                        child: Image.asset('assets/images/user.png'),
+                        shape: const CircleBorder(),
                       ),
-                    )
-                    : BaseImage(
-                      url: user!.avatar!.url,
-                      width: 64,
-                      height: 64,
-                      shape: const CircleBorder(),
-                    ),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -188,11 +188,10 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
                             isLiked: item.isLiked,
                           ),
                           InkWell(
-                            onTap:
-                                () => context.push(
-                                  '/personal_sub_comments',
-                                  extra: {'comment': item, 'user': user},
-                                ),
+                            onTap: () => context.push(
+                              '/personal_sub_comments',
+                              extra: {'comment': item, 'user': user},
+                            ),
                             borderRadius: const BorderRadius.all(
                               Radius.circular(99),
                             ),
@@ -234,13 +233,12 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child:
-            hasMore
-                ? CircularProgressIndicator(
-                  constraints: BoxConstraints.tight(const Size(28, 28)),
-                  strokeWidth: 3,
-                )
-                : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
+        child: hasMore
+            ? CircularProgressIndicator(
+                constraints: BoxConstraints.tight(const Size(28, 28)),
+                strokeWidth: 3,
+              )
+            : Text('没有更多数据了', style: Theme.of(context).textTheme.bodySmall),
       ),
     );
   }

@@ -20,6 +20,10 @@ class ReaderBottom extends StatelessWidget {
     required this.pageNo,
     required this.isVerticalMode,
     required this.startPageTurn,
+    required this.interval,
+    required this.onIntervalChanged,
+    required this.stopPageTurn,
+    required this.isPageTurning,
   });
 
   final ValueChanged<int> onSliderChanged;
@@ -37,6 +41,14 @@ class ReaderBottom extends StatelessWidget {
   final bool isVerticalMode;
 
   final VoidCallback startPageTurn;
+
+  final int interval;
+
+  final ValueChanged<int> onIntervalChanged;
+
+  final VoidCallback stopPageTurn;
+
+  final bool isPageTurning;
 
   @override
   Widget build(BuildContext context) {
@@ -93,10 +105,20 @@ class ReaderBottom extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: isPageTurning
+          ? _buildPageTurnContent()
+          : _buildCommonContent(context),
+    );
+  }
+
+  Widget _buildCommonContent(BuildContext context) {
     final previousAction = action(ReaderBottomActionType.previous);
     final nextAction = action(ReaderBottomActionType.next);
 
     return Column(
+      key: const ValueKey('common_toolbar'),
       children: [
         Row(
           children: [
@@ -169,6 +191,38 @@ class ReaderBottom extends StatelessWidget {
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPageTurnContent() {
+    return Column(
+      key: const ValueKey('page_turn_toolbar'),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('间隔'),
+            Expanded(
+              child: Slider(
+                value: interval.toDouble(),
+                min: 2,
+                max: 60,
+                divisions: 58,
+                onChanged: (v) => onIntervalChanged(v.round()),
+              ),
+            ),
+            Text('$interval s'),
+          ],
+        ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(onPressed: stopPageTurn, child: const Text('关闭自动翻页')),
             ],
           ),
         ),

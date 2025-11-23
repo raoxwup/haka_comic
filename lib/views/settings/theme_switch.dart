@@ -59,10 +59,9 @@ class _ThemeSwitchState extends State<ThemeSwitch>
   }
 
   void _handleThemeChange() {
-    final width =
-        context.width > 400
-            ? 400 - 16 * 2 - 5 * 2
-            : context.width - 16 * 2 - 5 * 2;
+    final width = context.width > 400
+        ? 400 - 16 * 2 - 5 * 2
+        : context.width - 16 * 2 - 5 * 2;
     // ThemeMode themeMode = context.select<AppData, ThemeMode>(
     //   (data) => data.themeMode,
     // );
@@ -87,10 +86,9 @@ class _ThemeSwitchState extends State<ThemeSwitch>
   @override
   Widget build(BuildContext context) {
     // 因为constraints限制，最大宽度为400
-    final width =
-        context.width > 400
-            ? 400 - 16 * 2 - 5 * 2
-            : context.width - 16 * 2 - 5 * 2;
+    final width = context.width > 400
+        ? 400 - 16 * 2 - 5 * 2
+        : context.width - 16 * 2 - 5 * 2;
     return Container(
       width: double.infinity,
       height: 50,

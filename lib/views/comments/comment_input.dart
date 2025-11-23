@@ -76,14 +76,13 @@ class _CommentInputState extends State<CommentInput> {
               ),
               Button.text(
                 isLoading: _handler.isLoading,
-                onPressed:
-                    content.isEmpty
-                        ? null
-                        : () {
-                          _handler.run(
-                            SendCommentPayload(id: widget.id, content: content),
-                          );
-                        },
+                onPressed: content.isEmpty
+                    ? null
+                    : () {
+                        _handler.run(
+                          SendCommentPayload(id: widget.id, content: content),
+                        );
+                      },
                 child: const Text('发送'),
               ),
             ],

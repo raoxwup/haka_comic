@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:legalize/legalize.dart';
+import 'package:path/path.dart' as p;
 
 extension WaitFuture<T> on Future<T> {
   Future<void> wait() async {
@@ -187,5 +190,21 @@ extension StringExt on String {
       end = length;
     }
     return substring(start, end);
+  }
+}
+
+extension Legalized on String {
+  String get legalized {
+    final str = legalizeFilename(this, os: Platform.operatingSystem);
+    const max = 255;
+    if (str.length <= max) return str;
+    final ext = p.extension(str);
+
+    if (ext.isNotEmpty && str.length > max) {
+      final name = str.substring(0, max - ext.length);
+      return '$name$ext';
+    }
+
+    return str.substring(0, max);
   }
 }

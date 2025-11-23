@@ -37,7 +37,7 @@ class _MineState extends State<Mine> with AutoRegisterHandlerMixin {
   );
 
   late final _punchInHandler = punchIn.useRequest(
-    onSuccess: (_, __) {
+    onSuccess: (_, _) {
       Log.info('Punch in success', '');
       Toast.show(message: '打卡成功');
     },
@@ -217,10 +217,9 @@ class HistoryComics extends StatefulWidget {
 }
 
 class _HistoryComicsState extends State<HistoryComics> {
-  final HistoryHelper _helper = HistoryHelper();
+  final _helper = HistoryHelper();
   List<HistoryDoc> _comics = [];
   int? _comicsCount;
-  late final StreamSubscription _subscription;
 
   Future<void> _getHistory() async {
     final comics = await _helper.query(1);
@@ -236,15 +235,11 @@ class _HistoryComicsState extends State<HistoryComics> {
     super.initState();
     _getHistory();
     _helper.addListener(_getHistory);
-    _subscription = _helper.streamController.stream.listen((event) {
-      _getHistory();
-    });
   }
 
   @override
   void dispose() {
     _helper.removeListener(_getHistory);
-    _subscription.cancel();
     super.dispose();
   }
 

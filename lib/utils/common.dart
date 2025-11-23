@@ -5,6 +5,7 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -33,42 +34,11 @@ String getTextBeforeNewLine(String text) {
 }
 
 String getFormattedTime(String dateString) {
-  // 解析为 DateTime 对象（自动识别 UTC）
-  DateTime dateTime = DateTime.parse(dateString);
-
-  // 可选：转换为本地时间（根据需求决定是否调用）
-  DateTime localDateTime = dateTime.toLocal();
-
-  // 提取日期时间各部分
-  String year = localDateTime.year.toString();
-  String month = _addLeadingZero(localDateTime.month);
-  String day = _addLeadingZero(localDateTime.day);
-  String hour = _addLeadingZero(localDateTime.hour);
-  String minute = _addLeadingZero(localDateTime.minute);
-  String second = _addLeadingZero(localDateTime.second);
-
-  // 拼接为 YYYY-MM-DD HH:mm:ss 格式
-  String formattedDate = "$year-$month-$day $hour:$minute:$second";
-
-  return formattedDate;
+  return Jiffy.parse(dateString).format(pattern: 'yyyy-MM-dd HH:mm:ss');
 }
 
 String getFormattedDate(String dateString) {
-  DateTime dateTime = DateTime.parse(dateString);
-
-  DateTime localDateTime = dateTime.toLocal();
-
-  String year = localDateTime.year.toString();
-  String month = _addLeadingZero(localDateTime.month);
-  String day = _addLeadingZero(localDateTime.day);
-
-  String formattedDate = "$year-$month-$day";
-
-  return formattedDate;
-}
-
-String _addLeadingZero(int number) {
-  return number.toString().padLeft(2, '0');
+  return Jiffy.parse(dateString).format(pattern: 'yyyy-MM-dd');
 }
 
 void showCreator(BuildContext context, Creator? creator) {
@@ -164,14 +134,6 @@ String _addThousandsSeparator(String numberStr) {
     buffer.write(numberStr[i]);
   }
   return buffer.toString();
-}
-
-/// 清理名称中的非法字符（路径分隔符和系统保留字符）
-String sanitizeFileName(String name, {String replacement = '_'}) {
-  final sanitized = name
-      .replaceAll(RegExp(r'[/\\]'), replacement)
-      .replaceAll(' ', '');
-  return sanitized;
 }
 
 /// 根据平台返回不同的下载目录

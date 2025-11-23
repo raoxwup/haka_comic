@@ -10,6 +10,12 @@ class AppConf {
 
   factory AppConf() => instance;
 
+  /// 主题模式
+  String _themeMode = 'System';
+
+  /// 主题颜色
+  String _primaryColor = 'System';
+
   /// 账号
   String _email = '';
 
@@ -67,6 +73,9 @@ class AppConf {
   /// 横向阅读菜单呼出占比
   double _horizontalCenterFraction = 0.4;
 
+  /// 搜索历史
+  List<String> _searchHistory = [];
+
   /// 窗口状态
   bool? _windowFullscreen;
   double? _windowX;
@@ -77,173 +86,216 @@ class AppConf {
   /// 翻页间隔
   int _interval = 5;
 
+  /// 是否需要身份认证
+  bool _needAuth = false;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
   static Future<void> initialize() async {
-    final prefs = await SharedPreferencesUtil.init();
-    instance._email = prefs.getString('email') ?? '';
-    instance._password = prefs.getString('password') ?? '';
-    instance._token = prefs.getString('token') ?? '';
+    final prefsWithCache = await SharedPreferencesUtil.init();
+    instance._email = prefsWithCache.getString('email') ?? '';
+    instance._password = prefsWithCache.getString('password') ?? '';
+    instance._token = prefsWithCache.getString('token') ?? '';
     instance._imageQuality = ImageQuality.fromName(
-      prefs.getString('imageQuality'),
+      prefsWithCache.getString('imageQuality'),
     );
-    instance._checkUpdate = prefs.getBool('checkUpdate') ?? true;
-    instance._readMode = ReadMode.fromName(prefs.getString('readMode'));
-    instance._blacklist = prefs.getStringList('blacklist') ?? [];
+    instance._checkUpdate = prefsWithCache.getBool('checkUpdate') ?? true;
+    instance._readMode = ReadMode.fromName(
+      prefsWithCache.getString('readMode'),
+    );
+    instance._blacklist = prefsWithCache.getStringList('blacklist') ?? [];
     instance._visibleCategories =
-        prefs.getStringList('visibleCategories') ?? [];
-    instance._webdavUrl = prefs.getString('webdavUrl') ?? '';
-    instance._webdavUser = prefs.getString('webdavUser') ?? '';
-    instance._webdavPassword = prefs.getString('webdavPassword') ?? '';
+        prefsWithCache.getStringList('visibleCategories') ?? [];
+    instance._webdavUrl = prefsWithCache.getString('webdavUrl') ?? '';
+    instance._webdavUser = prefsWithCache.getString('webdavUser') ?? '';
+    instance._webdavPassword = prefsWithCache.getString('webdavPassword') ?? '';
     instance._comicBlockMode = ComicBlockMode.fromDisplayName(
-      prefs.getString('comicBlockMode'),
+      prefsWithCache.getString('comicBlockMode'),
     );
-    instance._pagination = prefs.getBool('pagination') ?? true;
-    instance._api = Api.fromName(prefs.getString('api'));
-    instance._scale = prefs.getDouble('scale') ?? 1.0;
-    instance._slipFactor = prefs.getDouble('slipFactor') ?? 0.5;
-    instance._enableVolume = prefs.getBool('enableVolume') ?? true;
+    instance._pagination = prefsWithCache.getBool('pagination') ?? true;
+    instance._api = Api.fromName(prefsWithCache.getString('api'));
+    instance._scale = prefsWithCache.getDouble('scale') ?? 1.0;
+    instance._slipFactor = prefsWithCache.getDouble('slipFactor') ?? 0.5;
+    instance._enableVolume = prefsWithCache.getBool('enableVolume') ?? true;
     instance._verticalCenterFraction =
-        prefs.getDouble('verticalCenterFraction') ?? 0.3;
+        prefsWithCache.getDouble('verticalCenterFraction') ?? 0.3;
     instance._horizontalCenterFraction =
-        prefs.getDouble('horizontalCenterFraction') ?? 0.4;
-    instance._windowFullscreen = prefs.getBool('windowFullscreen');
-    instance._windowX = prefs.getDouble('windowX');
-    instance._windowY = prefs.getDouble('windowY');
-    instance._windowWidth = prefs.getDouble('windowWidth');
-    instance._windowHeight = prefs.getDouble('windowHeight');
-    instance._interval = prefs.getInt('interval') ?? 5;
+        prefsWithCache.getDouble('horizontalCenterFraction') ?? 0.4;
+    instance._windowFullscreen = prefsWithCache.getBool('windowFullscreen');
+    instance._windowX = prefsWithCache.getDouble('windowX');
+    instance._windowY = prefsWithCache.getDouble('windowY');
+    instance._windowWidth = prefsWithCache.getDouble('windowWidth');
+    instance._windowHeight = prefsWithCache.getDouble('windowHeight');
+    instance._interval = prefsWithCache.getInt('interval') ?? 5;
+    instance._themeMode = prefsWithCache.getString('theme_mode') ?? 'System';
+    instance._primaryColor =
+        prefsWithCache.getString('primary_color') ?? 'System';
+    instance._searchHistory =
+        prefsWithCache.getStringList('search_history') ?? [];
+    instance._needAuth = prefsWithCache.getBool('needAuth') ?? false;
   }
 
   set email(String value) {
     _email = value;
-    SharedPreferencesUtil.prefs.setString('email', value);
+    SharedPreferencesUtil.prefsWithCache.setString('email', value);
   }
 
   set password(String value) {
     _password = value;
-    SharedPreferencesUtil.prefs.setString('password', value);
+    SharedPreferencesUtil.prefsWithCache.setString('password', value);
   }
 
   set token(String value) {
     _token = value;
-    SharedPreferencesUtil.prefs.setString('token', value);
+    SharedPreferencesUtil.prefsWithCache.setString('token', value);
   }
 
   set imageQuality(ImageQuality value) {
     _imageQuality = value;
-    SharedPreferencesUtil.prefs.setString('imageQuality', value.name);
+    SharedPreferencesUtil.prefsWithCache.setString('imageQuality', value.name);
   }
 
   set checkUpdate(bool value) {
     _checkUpdate = value;
-    SharedPreferencesUtil.prefs.setBool('checkUpdate', value);
+    SharedPreferencesUtil.prefsWithCache.setBool('checkUpdate', value);
   }
 
   set readMode(ReadMode value) {
     _readMode = value;
-    SharedPreferencesUtil.prefs.setString('readMode', value.name);
+    SharedPreferencesUtil.prefsWithCache.setString('readMode', value.name);
   }
 
   set blacklist(List<String> value) {
     _blacklist = value;
-    SharedPreferencesUtil.prefs.setStringList('blacklist', value);
+    SharedPreferencesUtil.prefsWithCache.setStringList('blacklist', value);
   }
 
   set visibleCategories(List<String> value) {
     _visibleCategories = value;
-    SharedPreferencesUtil.prefs.setStringList('visibleCategories', value);
+    SharedPreferencesUtil.prefsWithCache.setStringList(
+      'visibleCategories',
+      value,
+    );
   }
 
   set webdavUrl(String value) {
     _webdavUrl = value;
-    SharedPreferencesUtil.prefs.setString('webdavUrl', value);
+    SharedPreferencesUtil.prefsWithCache.setString('webdavUrl', value);
   }
 
   set webdavUser(String value) {
     _webdavUser = value;
-    SharedPreferencesUtil.prefs.setString('webdavUser', value);
+    SharedPreferencesUtil.prefsWithCache.setString('webdavUser', value);
   }
 
   set webdavPassword(String value) {
     _webdavPassword = value;
-    SharedPreferencesUtil.prefs.setString('webdavPassword', value);
+    SharedPreferencesUtil.prefsWithCache.setString('webdavPassword', value);
   }
 
   set comicBlockMode(ComicBlockMode value) {
     _comicBlockMode = value;
-    SharedPreferencesUtil.prefs.setString('comicBlockMode', value.displayName);
+    SharedPreferencesUtil.prefsWithCache.setString(
+      'comicBlockMode',
+      value.displayName,
+    );
   }
 
   set pagination(bool value) {
     _pagination = value;
-    SharedPreferencesUtil.prefs.setBool('pagination', value);
+    SharedPreferencesUtil.prefsWithCache.setBool('pagination', value);
   }
 
   set api(Api value) {
     _api = value;
-    SharedPreferencesUtil.prefs.setString('api', value.name);
+    SharedPreferencesUtil.prefsWithCache.setString('api', value.name);
   }
 
   set scale(double value) {
     _scale = value;
-    SharedPreferencesUtil.prefs.setDouble('scale', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('scale', value);
   }
 
   set slipFactor(double value) {
     _slipFactor = value;
-    SharedPreferencesUtil.prefs.setDouble('slipFactor', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('slipFactor', value);
   }
 
   set enableVolume(bool value) {
     _enableVolume = value;
-    SharedPreferencesUtil.prefs.setBool('enableVolume', value);
+    SharedPreferencesUtil.prefsWithCache.setBool('enableVolume', value);
   }
 
   set verticalCenterFraction(double value) {
     _verticalCenterFraction = value;
-    SharedPreferencesUtil.prefs.setDouble('verticalCenterFraction', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble(
+      'verticalCenterFraction',
+      value,
+    );
   }
 
   set horizontalCenterFraction(double value) {
     _horizontalCenterFraction = value;
-    SharedPreferencesUtil.prefs.setDouble('horizontalCenterFraction', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble(
+      'horizontalCenterFraction',
+      value,
+    );
   }
 
   set windowFullscreen(bool? value) {
     _windowFullscreen = value;
     if (value == null) return;
-    SharedPreferencesUtil.prefs.setBool('windowFullscreen', value);
+    SharedPreferencesUtil.prefsWithCache.setBool('windowFullscreen', value);
   }
 
   set windowX(double? value) {
     _windowX = value;
     if (value == null) return;
-    SharedPreferencesUtil.prefs.setDouble('windowX', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('windowX', value);
   }
 
   set windowY(double? value) {
     _windowY = value;
     if (value == null) return;
-    SharedPreferencesUtil.prefs.setDouble('windowY', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('windowY', value);
   }
 
   set windowWidth(double? value) {
     _windowWidth = value;
     if (value == null) return;
-    SharedPreferencesUtil.prefs.setDouble('windowWidth', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('windowWidth', value);
   }
 
   set windowHeight(double? value) {
     _windowHeight = value;
     if (value == null) return;
-    SharedPreferencesUtil.prefs.setDouble('windowHeight', value);
+    SharedPreferencesUtil.prefsWithCache.setDouble('windowHeight', value);
   }
 
   set interval(int value) {
     _interval = value;
-    SharedPreferencesUtil.prefs.setInt('interval', value);
+    SharedPreferencesUtil.prefsWithCache.setInt('interval', value);
+  }
+
+  set themeMode(String value) {
+    _themeMode = value;
+    SharedPreferencesUtil.prefsWithCache.setString('theme_mode', value);
+  }
+
+  set primaryColor(String value) {
+    _primaryColor = value;
+    SharedPreferencesUtil.prefsWithCache.setString('primary_color', value);
+  }
+
+  set searchHistory(List<String> value) {
+    _searchHistory = value;
+    SharedPreferencesUtil.prefsWithCache.setStringList('search_history', value);
+  }
+
+  set needAuth(bool value) {
+    _needAuth = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('needAuth', value);
   }
 
   String get email => _email;
@@ -273,10 +325,14 @@ class AppConf {
   double? get windowHeight => _windowHeight;
 
   int get interval => _interval;
+  String get themeMode => _themeMode;
+  String get primaryColor => _primaryColor;
+  List<String> get searchHistory => _searchHistory;
+  bool get needAuth => _needAuth;
 
   /// 清除token
   void clearAuth() {
     _token = '';
-    SharedPreferencesUtil.prefs.remove('token');
+    SharedPreferencesUtil.prefsWithCache.remove('token');
   }
 }

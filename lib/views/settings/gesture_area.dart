@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart' hide Block;
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
@@ -113,8 +113,8 @@ class _GestureAreaDetailsState extends State<GestureAreaDetails> {
           const SizedBox(height: 20),
           Center(
             child: Container(
-              height: 370,
-              width: 200,
+              height: 420,
+              width: 220,
               clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),

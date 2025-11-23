@@ -4,33 +4,28 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/download_manager.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+enum ExportFileType { pdf, zip }
 
 class Downloads extends StatefulWidget {
   const Downloads({super.key});
 
   @override
   State<Downloads> createState() => _DownloadsState();
-}
-
-String downloadTaskStatusToString(DownloadTaskStatus status) {
-  return switch (status) {
-    DownloadTaskStatus.queued => "等待中",
-    DownloadTaskStatus.downloading => "下载中",
-    DownloadTaskStatus.paused => "已暂停",
-    DownloadTaskStatus.completed => "已完成",
-    DownloadTaskStatus.error => "下载失败",
-  };
 }
 
 class _DownloadsState extends State<Downloads> {
@@ -43,19 +38,19 @@ class _DownloadsState extends State<Downloads> {
     DownloadTaskStatus.paused: {
       "icon": Icons.play_arrow,
       "action": (String comicId) {
-        DownloadManager.resumeTask(comicId);
+        BackgroundDownloader.resumeTask(comicId);
       },
     },
     DownloadTaskStatus.downloading: {
       "icon": Icons.pause,
       "action": (String comicId) {
-        DownloadManager.pauseTask(comicId);
+        BackgroundDownloader.pauseTask(comicId);
       },
     },
     DownloadTaskStatus.error: {
       "icon": Icons.refresh,
       "action": (String comicId) {
-        DownloadManager.resumeTask(comicId);
+        BackgroundDownloader.resumeTask(comicId);
       },
     },
   };
@@ -63,12 +58,12 @@ class _DownloadsState extends State<Downloads> {
   @override
   void initState() {
     super.initState();
-    _subscription = DownloadManager.streamController.stream.listen(
+    _subscription = BackgroundDownloader.streamController.stream.listen(
       (event) => setState(() {
         tasks = event;
       }),
     );
-    DownloadManager.getTasks();
+    BackgroundDownloader.getTasks();
   }
 
   @override
@@ -105,15 +100,12 @@ class _DownloadsState extends State<Downloads> {
     );
 
     if (result == true) {
-      DownloadManager.deleteTasks(_selectedTaskIds.toList());
-      setState(() {
-        tasks.removeWhere((t) => _selectedTaskIds.contains(t.comic.id));
-      });
+      BackgroundDownloader.deleteTasks(_selectedTaskIds.toList());
       close();
     }
   }
 
-  void exportTasks() async {
+  Future<void> exportTasks({required ExportFileType type}) async {
     try {
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
@@ -130,17 +122,29 @@ class _DownloadsState extends State<Downloads> {
 
       for (var task in _selectedTasks) {
         final sourceDir = Directory(
-          p.join(downloadPath, sanitizeFileName(task.comic.title)),
+          p.join(downloadPath, task.comic.title.legalized),
         );
 
         final destDir = Directory(
           p.join(
             selectedDirectory,
-            sanitizeFileName(task.comic.title).substringSafe(0, 20),
+            '${task.comic.title.legalized}.${type.name}',
           ),
         );
 
-        await copyDirectory(sourceDir, destDir);
+        switch (type) {
+          case ExportFileType.pdf:
+            await exportPdf(
+              sourceFolderPath: sourceDir.path,
+              outputPdfPath: destDir.path,
+            );
+          case ExportFileType.zip:
+            await compress(
+              sourceFolderPath: sourceDir.path,
+              outputZipPath: destDir.path,
+              compressionMethod: CompressionMethod.stored,
+            );
+        }
       }
 
       Toast.show(message: "导出成功");
@@ -153,6 +157,81 @@ class _DownloadsState extends State<Downloads> {
       }
       close();
     }
+  }
+
+  Future<void> exportTasksWithShare({required ExportFileType type}) async {
+    final docDir = await getApplicationDocumentsDirectory();
+    try {
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      final downloadPath = await getDownloadDirectory();
+
+      for (var task in _selectedTasks) {
+        final sourceDir = Directory(
+          p.join(downloadPath, task.comic.title.legalized),
+        );
+
+        final destFile = File(
+          p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+        );
+
+        switch (type) {
+          case ExportFileType.pdf:
+            await exportPdf(
+              sourceFolderPath: sourceDir.path,
+              outputPdfPath: destFile.path,
+            );
+          case ExportFileType.zip:
+            await compress(
+              sourceFolderPath: sourceDir.path,
+              outputZipPath: destFile.path,
+              compressionMethod: CompressionMethod.stored,
+            );
+        }
+      }
+
+      final params = ShareParams(
+        files: _selectedTasks.map((task) {
+          return XFile(
+            p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+          );
+        }).toList(),
+      );
+
+      final result = await SharePlus.instance.share(params);
+
+      if (result.status == ShareResultStatus.success) {
+        Toast.show(message: "分享成功");
+      }
+    } catch (e) {
+      Log.error("export comic failed", e);
+      Toast.show(message: "导出失败");
+    } finally {
+      for (var task in _selectedTasks) {
+        final tempFile = File(
+          p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+        );
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+      }
+      if (mounted) {
+        Loader.hide(context);
+      }
+      close();
+    }
+  }
+
+  VoidCallback? exportFile({required ExportFileType type}) {
+    final isCanPress = (_selectedTaskIds.isEmpty || !isAllCompleted);
+    if (isCanPress) {
+      return null;
+    }
+    return isIos
+        ? () => exportTasksWithShare(type: type)
+        : () => exportTasks(type: type);
   }
 
   void close() {
@@ -376,7 +455,7 @@ class _DownloadsState extends State<Downloads> {
                                 Row(
                                   children: [
                                     Text(
-                                      downloadTaskStatusToString(task.status),
+                                      task.status.displayName,
                                       style: context.textTheme.bodySmall
                                           ?.copyWith(
                                             color: context.colorScheme.primary,
@@ -413,11 +492,14 @@ class _DownloadsState extends State<Downloads> {
         persistentFooterButtons: _isSelecting
             ? [
                 FilledButton.tonalIcon(
-                  onPressed: (_selectedTaskIds.isEmpty || !isAllCompleted)
-                      ? null
-                      : exportTasks,
-                  label: const Text('导出'),
-                  icon: const Icon(Icons.drive_file_move),
+                  onPressed: exportFile(type: ExportFileType.pdf),
+                  label: const Text('PDF'),
+                  icon: const Icon(Icons.picture_as_pdf),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: exportFile(type: ExportFileType.zip),
+                  label: const Text('ZIP'),
+                  icon: const Icon(Icons.folder_zip),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: _selectedTaskIds.isEmpty ? null : clearTasks,

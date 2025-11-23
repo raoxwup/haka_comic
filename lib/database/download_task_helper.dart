@@ -1,14 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/download_manager.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import 'package:path/path.dart' as p;
 
-final migrations =
-    SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        // await tx.execute('PRAGMA foreign_keys = ON;');
-
-        await tx.execute('''
+final migrations = SqliteMigrations()
+  ..add(
+    SqliteMigration(1, (tx) async {
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_task(
             id TEXT PRIMARY KEY,
             total INTEGER DEFAULT 0,
@@ -19,15 +19,15 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TRIGGER IF NOT EXISTS update_download_task_timestamp 
-          AFTER UPDATE ON download_task 
-          BEGIN
-              UPDATE download_task SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
-          END;
+            AFTER UPDATE ON download_task 
+            BEGIN
+                UPDATE download_task SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+            END;
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_comic(
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -36,7 +36,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS download_chapter(
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -47,7 +47,7 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE TABLE IF NOT EXISTS chapter_image(
             id INTEGER PRIMARY KEY,
             file_server TEXT NOT NULL,
@@ -60,19 +60,30 @@ final migrations =
           )
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_download_chapter_task_id 
           ON download_chapter(task_id)
         ''');
 
-        await tx.execute('''
+      await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_chapter_image_chapter_id 
           ON chapter_image(chapter_id)
         ''');
-      }),
-    );
+    }),
+  );
 
-class DownloadTaskHelper {
+// 自定义 SqliteOpenFactory 以启用外键支持
+class SqliteOpenFactory extends DefaultSqliteOpenFactory {
+  SqliteOpenFactory({required super.path});
+  @override
+  List<String> pragmaStatements(SqliteOpenOptions options) {
+    final statements = super.pragmaStatements(options);
+    statements.add('PRAGMA foreign_keys = ON;');
+    return statements;
+  }
+}
+
+class DownloadTaskHelper with ChangeNotifier {
   DownloadTaskHelper._create();
 
   static final _instance = DownloadTaskHelper._create();
@@ -83,10 +94,14 @@ class DownloadTaskHelper {
 
   bool isInitialized = false;
 
+  String get dbName => 'download_task.db';
+
   Future<void> initialize() async {
     if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
-    _db = SqliteDatabase(path: '$dbPath/download_task.db');
+    _db = SqliteDatabase.withFactory(
+      SqliteOpenFactory(path: p.join(dbPath, dbName)),
+    );
     await migrations.migrate(_db);
     isInitialized = true;
   }
@@ -97,6 +112,7 @@ class DownloadTaskHelper {
 
   /// 插入或者更新下载任务列表
   Future<void> insert(List<ComicDownloadTask> tasks) async {
+    notifyListeners();
     await _db.writeTransaction((tx) async {
       for (var task in tasks) {
         await tx.execute(
@@ -200,7 +216,7 @@ class DownloadTaskHelper {
         );
         task.total = row['total'];
         task.completed = row['completed'];
-        task.status = downloadTaskStatusFromString(row['status']);
+        task.status = DownloadTaskStatus.fromName(row['status']);
         tasksMap[taskId] = task;
       }
 
@@ -244,22 +260,7 @@ class DownloadTaskHelper {
   Future<void> deleteBatch(List<String> ids) async {
     final params = ids.map((id) => [id]).toList();
     await _db.writeTransaction((tx) async {
-      // await tx.getAll('PRAGMA foreign_keys = ON;');
-      // final result = await tx.get('PRAGMA foreign_keys;');
-      // print(result);
-
       await tx.executeBatch('DELETE FROM download_task WHERE id = ?', params);
-
-      // 外键无效, sqlite_async不知道怎么启用外键，这里手动删除
-      await tx.executeBatch(
-        'DELETE FROM chapter_image WHERE chapter_id IN (SELECT id FROM download_chapter WHERE task_id = ?)',
-        params,
-      );
-      await tx.executeBatch(
-        'DELETE FROM download_chapter WHERE task_id = ?',
-        params,
-      );
-      await tx.executeBatch('DELETE FROM download_comic WHERE id = ?', params);
     });
   }
 

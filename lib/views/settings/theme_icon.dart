@@ -121,11 +121,10 @@ class IconPainter extends CustomPainter {
       transform: const GradientRotation(-90 * pi / 180),
     );
 
-    final backgroundPaint =
-        Paint()
-          ..shader = gradient.createShader(
-            Rect.fromCircle(center: center, radius: radius),
-          );
+    final backgroundPaint = Paint()
+      ..shader = gradient.createShader(
+        Rect.fromCircle(center: center, radius: radius),
+      );
 
     // 创建遮罩
     final maskLayer = Paint()..blendMode = BlendMode.dstOut;

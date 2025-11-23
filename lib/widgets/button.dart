@@ -59,17 +59,15 @@ class _ButtonState extends State<Button> {
     return switch (widget.type) {
       ButtonType.filled => FilledButton(
         onPressed: widget.isLoading ? () {} : widget.onPressed,
-        child:
-            widget.isLoading
-                ? _buildCircularProgressIndicator(widget.type)
-                : widget.child,
+        child: widget.isLoading
+            ? _buildCircularProgressIndicator(widget.type)
+            : widget.child,
       ),
       ButtonType.text => TextButton(
         onPressed: widget.isLoading ? () {} : widget.onPressed,
-        child:
-            widget.isLoading
-                ? _buildCircularProgressIndicator(widget.type)
-                : widget.child,
+        child: widget.isLoading
+            ? _buildCircularProgressIndicator(widget.type)
+            : widget.child,
       ),
     };
   }

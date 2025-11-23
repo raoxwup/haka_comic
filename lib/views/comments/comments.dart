@@ -93,10 +93,9 @@ class _CommentsPageState extends State<CommentsPage>
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(title: const Text('评论')),
-          body:
-              handler.error != null
-                  ? _buildError()
-                  : Stack(children: [_buildPage(), _buildBottom()]),
+          body: handler.error != null
+              ? _buildError()
+              : Stack(children: [_buildPage(), _buildBottom()]),
         );
       },
     );
@@ -184,25 +183,24 @@ class _CommentsPageState extends State<CommentsPage>
                 child: InkWell(
                   onTap: () => showCreator(context, item.user),
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child:
-                      item.user.avatar == null
-                          ? Card(
-                            clipBehavior: Clip.hardEdge,
-                            elevation: 0,
-                            shape: const CircleBorder(),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              padding: const EdgeInsets.all(5),
-                              child: Image.asset('assets/images/user.png'),
-                            ),
-                          )
-                          : BaseImage(
-                            url: item.user.avatar!.url,
+                  child: item.user.avatar == null
+                      ? Card(
+                          clipBehavior: Clip.hardEdge,
+                          elevation: 0,
+                          shape: const CircleBorder(),
+                          child: Container(
                             width: 40,
                             height: 40,
-                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(5),
+                            child: Image.asset('assets/images/user.png'),
                           ),
+                        )
+                      : BaseImage(
+                          url: item.user.avatar!.url,
+                          width: 40,
+                          height: 40,
+                          shape: const CircleBorder(),
+                        ),
                 ),
               ),
               Expanded(
@@ -231,8 +229,8 @@ class _CommentsPageState extends State<CommentsPage>
                           id: item.id,
                         ),
                         InkWell(
-                          onTap:
-                              () => context.push('/sub_comments', extra: item),
+                          onTap: () =>
+                              context.push('/sub_comments', extra: item),
                           borderRadius: const BorderRadius.all(
                             Radius.circular(99),
                           ),
@@ -272,13 +270,12 @@ class _CommentsPageState extends State<CommentsPage>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child:
-            _hasMore
-                ? CircularProgressIndicator(
-                  constraints: BoxConstraints.tight(const Size(28, 28)),
-                  strokeWidth: 3,
-                )
-                : Text('没有更多数据了', style: context.textTheme.bodySmall),
+        child: _hasMore
+            ? CircularProgressIndicator(
+                constraints: BoxConstraints.tight(const Size(28, 28)),
+                strokeWidth: 3,
+              )
+            : Text('没有更多数据了', style: context.textTheme.bodySmall),
       ),
     );
   }
@@ -288,21 +285,20 @@ class _CommentsPageState extends State<CommentsPage>
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(),
-      builder:
-          (context) => CommentInput(
-            id: widget.id,
-            handler: sendComment.useRequest(
-              onSuccess: (data, _) {
-                Log.info('Send comment success', 'comment');
-                _refresh();
-                context.pop();
-              },
-              onError: (e, _) {
-                Log.error('Send comment error', e);
-                Toast.show(message: '评论失败');
-              },
-            ),
-          ),
+      builder: (context) => CommentInput(
+        id: widget.id,
+        handler: sendComment.useRequest(
+          onSuccess: (data, _) {
+            Log.info('Send comment success', 'comment');
+            _refresh();
+            context.pop();
+          },
+          onError: (e, _) {
+            Log.error('Send comment error', e);
+            Toast.show(message: '评论失败');
+          },
+        ),
+      ),
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/download_manager.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class Downloader extends StatefulWidget {
@@ -33,26 +33,26 @@ class _DownloaderState extends State<Downloader> {
       widget.downloadComic.id,
     );
     setState(() {
-      downloadedChapterIds =
-          downloadChapters.map((chapter) => chapter.id).toSet();
+      downloadedChapterIds = downloadChapters
+          .map((chapter) => chapter.id)
+          .toSet();
     });
   }
 
   void startDownload(List<Chapter> chapters) {
     if (chapters.isEmpty) return;
-    DownloadManager.addTask(
+    BackgroundDownloader.addTask(
       ComicDownloadTask(
         comic: widget.downloadComic,
-        chapters:
-            chapters
-                .map(
-                  (chapter) => DownloadChapter(
-                    id: chapter.uid,
-                    title: chapter.title,
-                    order: chapter.order,
-                  ),
-                )
-                .toList(),
+        chapters: chapters
+            .map(
+              (chapter) => DownloadChapter(
+                id: chapter.uid,
+                title: chapter.title,
+                order: chapter.order,
+              ),
+            )
+            .toList(),
       ),
     );
     context.pop();
@@ -80,18 +80,17 @@ class _DownloaderState extends State<Downloader> {
             title: Text(chapter.title),
             trailing: Checkbox(
               value: selected || isDownloaded,
-              onChanged:
-                  isDownloaded
-                      ? null
-                      : (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedChapters.add(chapter);
-                          } else {
-                            selectedChapters.remove(chapter);
-                          }
-                        });
-                      },
+              onChanged: isDownloaded
+                  ? null
+                  : (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedChapters.add(chapter);
+                        } else {
+                          selectedChapters.remove(chapter);
+                        }
+                      });
+                    },
             ),
             onTap: () {
               setState(() {
@@ -112,20 +111,18 @@ class _DownloaderState extends State<Downloader> {
             Expanded(
               child: Builder(
                 builder: (context) {
-                  final canDownloadChapters =
-                      widget.chapters
-                          .where(
-                            (chapter) =>
-                                !downloadedChapterIds.contains(chapter.uid),
-                          )
-                          .toList();
+                  final canDownloadChapters = widget.chapters
+                      .where(
+                        (chapter) =>
+                            !downloadedChapterIds.contains(chapter.uid),
+                      )
+                      .toList();
                   return TextButton(
-                    onPressed:
-                        canDownloadChapters.isNotEmpty
-                            ? () {
-                              startDownload(canDownloadChapters);
-                            }
-                            : null,
+                    onPressed: canDownloadChapters.isNotEmpty
+                        ? () {
+                            startDownload(canDownloadChapters);
+                          }
+                        : null,
                     child: const Text('下载全部'),
                   );
                 },
@@ -133,12 +130,11 @@ class _DownloaderState extends State<Downloader> {
             ),
             Expanded(
               child: FilledButton(
-                onPressed:
-                    selectedChapters.isNotEmpty
-                        ? () {
-                          startDownload(selectedChapters);
-                        }
-                        : null,
+                onPressed: selectedChapters.isNotEmpty
+                    ? () {
+                        startDownload(selectedChapters);
+                      }
+                    : null,
                 child: const Text('下载所选'),
               ),
             ),

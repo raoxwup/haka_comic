@@ -55,16 +55,15 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children:
-                sorts
-                    .map(
-                      (e) => ListTile(
-                        title: Text(e['label']),
-                        leading: Radio<ComicSortType>(value: e['value']),
-                        onTap: () => handleChange(e['value']),
-                      ),
-                    )
-                    .toList(),
+            children: sorts
+                .map(
+                  (e) => ListTile(
+                    title: Text(e['label']),
+                    leading: Radio<ComicSortType>(value: e['value']),
+                    onTap: () => handleChange(e['value']),
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),

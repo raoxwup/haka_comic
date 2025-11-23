@@ -69,14 +69,14 @@ class _ThumbUpState extends State<ThumbUp> with AutoRegisterHandlerMixin {
           children: [
             _handler.isLoading
                 ? CircularProgressIndicator(
-                  constraints: BoxConstraints.tight(const Size(12, 12)),
-                  strokeWidth: 1,
-                  color: context.textTheme.bodySmall?.color,
-                )
+                    constraints: BoxConstraints.tight(const Size(12, 12)),
+                    strokeWidth: 1,
+                    color: context.textTheme.bodySmall?.color,
+                  )
                 : Icon(
-                  _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                  size: 16,
-                ),
+                    _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
+                    size: 16,
+                  ),
             Text(_likesCount.toString(), style: context.textTheme.bodySmall),
           ],
         ),

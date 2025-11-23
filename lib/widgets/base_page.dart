@@ -34,15 +34,15 @@ class _BasePageState extends State<BasePage> {
   Widget build(BuildContext context) {
     return widget.error != null
         ? widget.errorBuilder != null
-            ? widget.errorBuilder!(context)
-            : ErrorPage(
-              errorMessage: getTextBeforeNewLine(widget.error.toString()),
-              onRetry: widget.onRetry,
-            )
+              ? widget.errorBuilder!(context)
+              : ErrorPage(
+                  errorMessage: getTextBeforeNewLine(widget.error.toString()),
+                  onRetry: widget.onRetry,
+                )
         : widget.isLoading
         ? widget.indicatorBuilder != null
-            ? widget.indicatorBuilder!(context)
-            : const Center(child: CircularProgressIndicator())
+              ? widget.indicatorBuilder!(context)
+              : const Center(child: CircularProgressIndicator())
         : widget.child;
   }
 }
