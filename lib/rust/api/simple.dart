@@ -8,24 +8,6 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `collect_images`, `process_single_image`
 
-Future<void> compress({
-  required String sourceFolderPath,
-  required String outputZipPath,
-  required CompressionMethod compressionMethod,
-}) => RustLib.instance.api.crateApiSimpleCompress(
-  sourceFolderPath: sourceFolderPath,
-  outputZipPath: outputZipPath,
-  compressionMethod: compressionMethod,
-);
-
-Future<void> decompress({
-  required String sourceZipPath,
-  required String outputFolderPath,
-}) => RustLib.instance.api.crateApiSimpleDecompress(
-  sourceZipPath: sourceZipPath,
-  outputFolderPath: outputFolderPath,
-);
-
 Future<void> exportPdf({
   required String sourceFolderPath,
   required String outputPdfPath,
@@ -33,15 +15,3 @@ Future<void> exportPdf({
   sourceFolderPath: sourceFolderPath,
   outputPdfPath: outputPdfPath,
 );
-
-enum CompressionMethod {
-  stored,
-  deflated,
-  deflate64,
-  bzip2,
-  aes,
-  zstd,
-  lzma,
-  xz,
-  ppmd,
-}

@@ -5,7 +5,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/rust/api/simple.dart';
+import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
