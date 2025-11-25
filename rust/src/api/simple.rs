@@ -1,4 +1,4 @@
-use image::ImageReader;
+use image::ImageFormat;
 use oxidize_pdf::{Document, Image, Page};
 use rayon::prelude::*;
 use std::io::Cursor;
@@ -10,63 +10,9 @@ pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
 }
 
-// 导出pdf
-// pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
-//     let fixed_width: f64 = 210.0;
-
-//     let mut doc = Document::new();
-
-//     let images = collect_images(source_folder_path);
-
-//     for path in images.iter() {
-//         let reader = ImageReader::new(BufReader::new(File::open(path).unwrap()))
-//             .with_guessed_format()
-//             .unwrap();
-
-//         let img = match reader.format() {
-//             Some(image::ImageFormat::Jpeg) => Image::from_jpeg_file(path).unwrap(),
-//             Some(image::ImageFormat::Png) => Image::from_png_file(path).unwrap(),
-//             _ => {
-//                 let mut bytes: Vec<u8> = Vec::new();
-//                 reader
-//                     .decode()
-//                     .unwrap()
-//                     .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Jpeg)
-//                     .unwrap();
-//                 Image::from_jpeg_data(bytes).unwrap()
-//             }
-//         };
-
-//         let img_w = img.width();
-//         let img_h = img.height();
-
-//         let scale = fixed_width / (img_w as f64);
-//         let display_h = img_h as f64 * scale;
-
-//         let mut page = Page::new(fixed_width, display_h);
-
-//         let name = Path::new(path)
-//             .file_name()
-//             .and_then(|n| n.to_str())
-//             .unwrap();
-
-//         page.add_image(name, img);
-
-//         page.draw_image(name, 0.0, 0.0, fixed_width, display_h)
-//             .unwrap();
-
-//         doc.add_page(page);
-//     }
-
-//     doc.save(output_pdf_path).map_err(|e| e.to_string())?;
-
-//     println!("PDF saved → {}", output_pdf_path);
-
-//     Ok(())
-// }
-
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
+// 备选 scannedpdf 可以将oxidize_pdf换成scannedpdf
 pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
     let fixed_width: f64 = 595.0;
 
@@ -107,22 +53,17 @@ pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(),
 }
 
 fn process_single_image(path: &str, fixed_width: f64) -> Result<(Image, String, f64), String> {
-    let reader = ImageReader::open(path)
-        .unwrap()
-        .with_guessed_format()
-        .map_err(|e| e.to_string())?;
-
-    let format = reader.format();
+    let data = std::fs::read(path).map_err(|e| e.to_string())?;
+    let format = image::guess_format(&data).unwrap();
+    let dynamic_image = image::load_from_memory(&data).map_err(|e| e.to_string())?;
 
     let img_obj = match format {
-        Some(image::ImageFormat::Jpeg) => Image::from_jpeg_file(path).map_err(|e| e.to_string())?,
-        Some(image::ImageFormat::Png) => Image::from_png_file(path).map_err(|e| e.to_string())?,
+        ImageFormat::Jpeg => Image::from_jpeg_data(data).map_err(|e| e.to_string())?,
+        ImageFormat::Png => Image::from_png_data(data).map_err(|e| e.to_string())?,
         _ => {
             let mut bytes: Vec<u8> = Vec::new();
-            reader
-                .decode()
-                .map_err(|_| "解码失败".to_string())?
-                .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Jpeg)
+            dynamic_image
+                .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg)
                 .map_err(|_| "转码失败".to_string())?;
 
             Image::from_jpeg_data(bytes).map_err(|e| e.to_string())?
