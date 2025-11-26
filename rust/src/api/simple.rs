@@ -13,7 +13,7 @@ pub fn init_app() {
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-// 备选 可以将oxidize_pdf换成scannedpdf
+// 测试scannedpdf的速度不理想
 pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
     let fixed_width: f64 = 595.0;
 

@@ -10,7 +10,11 @@ crate-type = ["cdylib", "staticlib"]
 flutter_rust_bridge = "=2.11.1"
 zip = "6.0.0"
 walkdir = "2.5.0"
-image = "0.25.9"
+image = { version = "0.25.6", default-features = false, features = [
+    "jpeg",
+    "png",
+    "webp",
+] }
 oxidize-pdf = "1.6.4"
 rayon = "1.11"
 human-sort = "0.2.2"
