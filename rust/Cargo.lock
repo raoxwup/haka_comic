@@ -832,6 +832,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "human-sort"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "140a09c9305e6d5e557e2ed7cbc68e05765a7d4213975b87cb04920689cc6219"
+
+[[package]]
 name = "iana-time-zone"
 version = "0.1.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1556,6 +1562,7 @@ name = "rust_lib_haka_comic"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
+ "human-sort",
  "image",
  "oxidize-pdf",
  "rayon",

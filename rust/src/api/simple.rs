@@ -1,3 +1,4 @@
+use human_sort::compare;
 use image::ImageFormat;
 use oxidize_pdf::{Document, Image, Page};
 use rayon::prelude::*;
@@ -12,7 +13,7 @@ pub fn init_app() {
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-// 备选 scannedpdf 可以将oxidize_pdf换成scannedpdf
+// 备选 可以将oxidize_pdf换成scannedpdf
 pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
     let fixed_width: f64 = 595.0;
 
@@ -84,23 +85,23 @@ fn process_single_image(path: &str, fixed_width: f64) -> Result<(Image, String, 
 
 /// 递归收集图片
 fn collect_images(dir: &str) -> Vec<String> {
-    let mut imgs = vec![];
-
-    for entry in WalkDir::new(dir) {
-        let entry = entry.unwrap();
-        let path = entry.path();
-
-        if path.is_file() {
-            let ext = path
+    let mut imgs = WalkDir::new(dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_file())
+        .filter(|e| {
+            let ext = e
+                .path()
                 .extension()
                 .and_then(|e| e.to_str())
                 .unwrap_or("")
                 .to_lowercase();
-            if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) {
-                imgs.push(path.to_string_lossy().to_string());
-            }
-        }
-    }
-    imgs.sort();
+            ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str())
+        })
+        .map(|e| e.path().to_string_lossy().to_string())
+        .collect::<Vec<String>>();
+
+    imgs.sort_by(|a, b| compare(a, b));
+
     imgs
 }

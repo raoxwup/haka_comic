@@ -13,6 +13,7 @@ walkdir = "2.5.0"
 image = "0.25.9"
 oxidize-pdf = "1.6.4"
 rayon = "1.11"
+human-sort = "0.2.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
