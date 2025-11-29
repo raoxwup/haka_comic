@@ -153,7 +153,7 @@ class _DownloadExecutor {
       final path = p.join(
         _downloadPath,
         task.comic.title.legalized,
-        chapter.title.legalized,
+        '${chapter.order}_${chapter.title.legalized}',
         image.originalName,
       );
 

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -160,7 +161,7 @@ class _DownloadsState extends State<Downloads> {
   }
 
   Future<void> exportTasksWithShare({required ExportFileType type}) async {
-    final docDir = await getApplicationDocumentsDirectory();
+    final docDir = await getApplicationCacheDirectory();
     try {
       if (mounted) {
         Loader.show(context);
@@ -209,14 +210,6 @@ class _DownloadsState extends State<Downloads> {
       Log.error("export comic failed", e);
       Toast.show(message: "导出失败");
     } finally {
-      for (var task in _selectedTasks) {
-        final tempFile = File(
-          p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
-        );
-        if (await tempFile.exists()) {
-          await tempFile.delete();
-        }
-      }
       if (mounted) {
         Loader.hide(context);
       }

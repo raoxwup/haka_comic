@@ -1,180 +1,106 @@
-use image::GenericImageView;
+use human_sort::compare;
+use image::ImageFormat;
 use oxidize_pdf::{Document, Image, Page};
-use std::fs::File;
-use std::path::Path;
+use rayon::prelude::*;
+use std::io::Cursor;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use walkdir::WalkDir;
-pub use zip::CompressionMethod;
-use zip::{
-    write::{FileOptions, ZipWriter},
-    ZipArchive,
-};
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
 }
 
-#[flutter_rust_bridge::frb(mirror(CompressionMethod))]
-pub enum _CompressionMethod {
-    Stored,
-    Deflated,
-    Deflate64,
-    Bzip2,
-    Aes,
-    Zstd,
-    Lzma,
-    Xz,
-    Ppmd,
-}
+static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-// 压缩
-pub fn compress(
-    source_folder_path: &str,
-    output_zip_path: &str,
-    compression_method: CompressionMethod,
-) -> Result<(), String> {
-    let path = Path::new(source_folder_path);
-
-    if !path.is_dir() {
-        return Err(format!(
-            "Source folder '{}' is not a directory",
-            source_folder_path
-        ));
-    }
-
-    let file = File::create(output_zip_path).map_err(|e| e.to_string())?;
-    let mut zip = ZipWriter::new(file);
-
-    let options: FileOptions<'_, ()> =
-        FileOptions::default().compression_method(compression_method);
-
-    for entry in WalkDir::new(source_folder_path) {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let entry_path = entry.path();
-
-        // 跳过输出的zip文件本身
-        if entry_path == Path::new(output_zip_path) {
-            continue;
-        }
-
-        let relative_path = entry_path
-            .strip_prefix(source_folder_path)
-            .map_err(|e| e.to_string())?;
-
-        if entry_path.is_file() {
-            zip.start_file(relative_path.to_string_lossy(), options)
-                .map_err(|e| e.to_string())?;
-            let mut f = File::open(entry_path).map_err(|e| e.to_string())?;
-            std::io::copy(&mut f, &mut zip).map_err(|e| e.to_string())?;
-        } else if relative_path.as_os_str().len() != 0 {
-            zip.add_directory(relative_path.to_string_lossy(), options)
-                .map_err(|e| e.to_string())?;
-        }
-    }
-
-    zip.finish().map_err(|e| e.to_string())?;
-
-    Ok(())
-}
-
-// 解压
-pub fn decompress(source_zip_path: &str, output_folder_path: &str) -> Result<(), String> {
-    let file = File::open(source_zip_path).map_err(|e| e.to_string())?;
-    let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
-
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
-        let out_path = Path::new(output_folder_path).join(file.mangled_name());
-
-        if (*file.name()).ends_with('/') {
-            std::fs::create_dir_all(&out_path).map_err(|e| e.to_string())?;
-        } else {
-            if let Some(p) = out_path.parent() {
-                if !p.exists() {
-                    std::fs::create_dir_all(&p).map_err(|e| e.to_string())?;
-                }
-            }
-            let mut out_file = File::create(&out_path).map_err(|e| e.to_string())?;
-            std::io::copy(&mut file, &mut out_file).map_err(|e| e.to_string())?;
-        }
-    }
-
-    Ok(())
-}
-
-// 导出pdf
 pub fn export_pdf(source_folder_path: &str, output_pdf_path: &str) -> Result<(), String> {
-    let fixed_width: f64 = 210.0;
+    let fixed_width: f64 = 595.0;
+
+    let all_images = collect_images(source_folder_path);
 
     let mut doc = Document::new();
 
-    let images = collect_images(source_folder_path);
+    const BATCH_SIZE: usize = 20;
 
-    for image in images.iter() {
-        println!("Add image: {:?}", image.path);
+    for (_, chunk) in all_images.chunks(BATCH_SIZE).enumerate() {
+        let processed_batch: Vec<Result<(Image, String, f64), String>> = chunk
+            .par_iter()
+            .map(|path| process_single_image(path, fixed_width))
+            .collect();
 
-        let img = image::open(image.path.clone()).unwrap();
-        let (img_w, img_h) = img.dimensions();
+        for result in processed_batch {
+            match result {
+                Ok((img, name, display_h)) => {
+                    let mut page = Page::new(fixed_width, display_h);
+                    page.add_image(&name, img);
 
-        // 等比缩放计算
-        let scale = fixed_width / (img_w as f64);
-        let display_h = img_h as f64 * scale;
+                    if let Err(e) = page.draw_image(&name, 0.0, 0.0, fixed_width, display_h) {
+                        eprintln!("警告: 图片绘制失败 [{}]: {}", name, e);
+                    }
 
-        let mut page = Page::new(fixed_width, display_h);
-
-        let img = match image.ext.as_str() {
-            "jpg" | "jpeg" => Image::from_jpeg_file(&image.path).unwrap(),
-            "png" => Image::from_png_file(&image.path).unwrap(),
-            _ => continue,
-        };
-
-        let name = Path::new(&image.path)
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap();
-
-        page.add_image(name, img);
-
-        page.draw_image(name, 0.0, 0.0, fixed_width, display_h)
-            .unwrap();
-
-        doc.add_page(page);
+                    doc.add_page(page);
+                }
+                Err(e) => {
+                    eprintln!("警告: 跳过损坏或无法读取的图片: {}", e);
+                }
+            }
+        }
     }
 
     doc.save(output_pdf_path).map_err(|e| e.to_string())?;
 
-    println!("PDF saved → {}", output_pdf_path);
-
     Ok(())
 }
 
-struct ImageMeta {
-    pub path: String,
-    pub ext: String,
+fn process_single_image(path: &str, fixed_width: f64) -> Result<(Image, String, f64), String> {
+    let data = std::fs::read(path).map_err(|e| e.to_string())?;
+    let format = image::guess_format(&data).unwrap();
+    let dynamic_image = image::load_from_memory(&data).map_err(|e| e.to_string())?;
+
+    let img_obj = match format {
+        ImageFormat::Jpeg => Image::from_jpeg_data(data).map_err(|e| e.to_string())?,
+        ImageFormat::Png => Image::from_png_data(data).map_err(|e| e.to_string())?,
+        _ => {
+            let mut bytes: Vec<u8> = Vec::new();
+            dynamic_image
+                .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg)
+                .map_err(|_| "转码失败".to_string())?;
+
+            Image::from_jpeg_data(bytes).map_err(|e| e.to_string())?
+        }
+    };
+
+    // 3. 准备元数据
+    let id = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let name = format!("img_{}", id);
+
+    let img_w = img_obj.width();
+    let img_h = img_obj.height();
+    let scale = fixed_width / (img_w as f64);
+    let display_h = img_h as f64 * scale;
+
+    Ok((img_obj, name, display_h))
 }
 
 /// 递归收集图片
-fn collect_images(dir: &str) -> Vec<ImageMeta> {
-    let mut imgs: Vec<ImageMeta> = vec![];
-
-    for entry in WalkDir::new(dir) {
-        let entry = entry.unwrap();
-        let path = entry.path();
-
-        if path.is_file() {
-            let ext = path
+fn collect_images(dir: &str) -> Vec<String> {
+    let mut imgs = WalkDir::new(dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_file())
+        .filter(|e| {
+            let ext = e
+                .path()
                 .extension()
                 .and_then(|e| e.to_str())
                 .unwrap_or("")
                 .to_lowercase();
-            if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) {
-                imgs.push(ImageMeta {
-                    path: path.to_string_lossy().to_string(),
-                    ext,
-                });
-            }
-        }
-    }
-    imgs.sort_by(|a, b| a.path.cmp(&b.path));
+            ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str())
+        })
+        .map(|e| e.path().to_string_lossy().to_string())
+        .collect::<Vec<String>>();
+
+    imgs.sort_by(|a, b| compare(a, b));
+
     imgs
 }

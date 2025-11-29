@@ -5,7 +5,7 @@ import 'package:haka_comic/network/cache.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/network/client.dart';
-import 'package:haka_comic/utils/version.dart';
+import 'package:version/version.dart';
 import 'package:yaml/yaml.dart';
 
 /// 登录

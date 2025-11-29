@@ -12,6 +12,15 @@ zip = "6.0.0"
 walkdir = "2.5.0"
 image = "0.25.9"
 oxidize-pdf = "1.6.4"
+rayon = "1.11"
+human-sort = "0.2.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

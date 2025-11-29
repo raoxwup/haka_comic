@@ -1,19 +1,15 @@
 # HaKa Comic
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://opensource.org/licenses/GPL-3.0)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg?logo=gnu)](https://opensource.org/licenses/GPL-3.0)
+[![GitHub Stars](https://img.shields.io/github/stars/raoxwup/haka_comic.svg?style=flat&logo=github)](https://github.com/raoxwup/haka_comic/stargazers)
 
 ## 📖 项目简介
 
-第三方哗咔漫画跨平台客户端。**练习项目**，支持 Android、iOS、Mac 和 Windows 四个平台，目前仍在持续完善中。欢迎给个 star⭐️ 支持一下。iOS 的 ipa 安装需要自签，有很多工具支持，具体需要自行搜索一下。
+第三方哗咔漫画跨平台客户端。**学习 flutter 的练习项目**，支持 Android、iOS、Mac 和 Windows 四个平台，目前仍在持续完善中。如果觉得项目有帮助，欢迎给个 star ⭐ 支持一下
 
----
+**_关于下载_**
 
-## ✨ 核心功能
-
-- 🆔 **漫画 ID 分享**  
-  支持官方最新分享漫画 ID 功能，详情页可直接复制漫画 ID（使用 ID 见截图红圈标注）
-- 🌐 **多平台适配**  
-  兼容移动端与桌面端设备（Android/iOS/Mac/Windows）
+软件下载在[releases](https://github.com/raoxwup/haka_comic/releases)，Android 一般下载 arm64-v8a 即可，实在不知道下什么选择 universal。iOS 选择 ipa，但需要自签，[这里](https://github.com/Predidit/Kazumi/issues/819)有很全面的自签教程。Mac 选择 dmg。Windows 选择 exe。
 
 ---
 
@@ -24,7 +20,9 @@
 | <img src="./screenshots/分类.png" width="200">    | <img src="./screenshots/漫画列表.png" width="200">    | <img src="./screenshots/漫画详情.png" width="200">    | <img src="./screenshots/阅读.png" width="200">    |
 | <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
 
-**截图可能过时，以实际项目界面为主**
+**截图已经过时，以实际项目界面为主**
+
+---
 
 ## ⚠️ 免责声明
 

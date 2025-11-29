@@ -229,8 +229,10 @@ class _CommentsPageState extends State<CommentsPage>
                           id: item.id,
                         ),
                         InkWell(
-                          onTap: () =>
-                              context.push('/sub_comments', extra: item),
+                          onTap: () => context.push(
+                            '/comments/${widget.id}/sub_comments',
+                            extra: item,
+                          ),
                           borderRadius: const BorderRadius.all(
                             Radius.circular(99),
                           ),

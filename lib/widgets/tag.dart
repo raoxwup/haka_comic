@@ -38,7 +38,9 @@ class Tag extends StatelessWidget {
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(99)),
-          color: color ?? context.colorScheme.inversePrimary,
+          color:
+              color ??
+              context.colorScheme.inversePrimary.withValues(alpha: 0.55),
         ),
         child: Text(tag, style: textStyle),
       ),

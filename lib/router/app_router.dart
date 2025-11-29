@@ -76,10 +76,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/comments/:id',
       builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
-    ),
-    GoRoute(
-      path: '/sub_comments',
-      builder: (_, state) => SubCommentsPage(comment: state.extra as Comment),
+      routes: [
+        GoRoute(
+          path: 'sub_comments',
+          builder: (_, state) =>
+              SubCommentsPage(comment: state.extra as Comment),
+        ),
+      ],
     ),
     GoRoute(path: '/search', builder: (_, _) => const Search()),
     GoRoute(path: '/settings', builder: (_, _) => const Settings()),

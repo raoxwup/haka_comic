@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/compress.dart';
 import 'api/simple.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -66,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1109305866;
+  int get rustContentHash => -1847769472;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -77,13 +78,13 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<void> crateApiSimpleCompress({
+  Future<void> crateApiCompressCompress({
     required String sourceFolderPath,
     required String outputZipPath,
     required CompressionMethod compressionMethod,
   });
 
-  Future<void> crateApiSimpleDecompress({
+  Future<void> crateApiCompressDecompress({
     required String sourceZipPath,
     required String outputFolderPath,
   });
@@ -105,7 +106,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<void> crateApiSimpleCompress({
+  Future<void> crateApiCompressCompress({
     required String sourceFolderPath,
     required String outputZipPath,
     required CompressionMethod compressionMethod,
@@ -128,20 +129,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiSimpleCompressConstMeta,
+        constMeta: kCrateApiCompressCompressConstMeta,
         argValues: [sourceFolderPath, outputZipPath, compressionMethod],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleCompressConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiCompressCompressConstMeta => const TaskConstMeta(
     debugName: "compress",
     argNames: ["sourceFolderPath", "outputZipPath", "compressionMethod"],
   );
 
   @override
-  Future<void> crateApiSimpleDecompress({
+  Future<void> crateApiCompressDecompress({
     required String sourceZipPath,
     required String outputFolderPath,
   }) {
@@ -162,14 +163,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiSimpleDecompressConstMeta,
+        constMeta: kCrateApiCompressDecompressConstMeta,
         argValues: [sourceZipPath, outputFolderPath],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleDecompressConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiCompressDecompressConstMeta => const TaskConstMeta(
     debugName: "decompress",
     argNames: ["sourceZipPath", "outputFolderPath"],
   );

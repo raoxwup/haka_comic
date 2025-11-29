@@ -10,7 +10,7 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
 	<string>HaKa Comic</string>
 	<key>CFBundleExecutable</key>
@@ -68,5 +68,7 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Biometric authentication is required.</string>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
 </dict>
 </plist>
