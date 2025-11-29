@@ -1,4 +1,4 @@
-import 'package:haka_comic/utils/version.dart';
+import 'package:version/version.dart';
 
 extension StringExt on String {
   String substringSafe(int start, [int? end]) {
@@ -13,8 +13,8 @@ extension StringExt on String {
 }
 
 void main() {
-  final local = Version.parse('1.0.3');
-  final remote = Version.parse('1.0.4');
+  final local = Version.parse('1.0.5+1');
+  final remote = Version.parse('1.0.5+2');
 
   print(local.compareTo(remote) < 0);
 }

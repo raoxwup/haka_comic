@@ -41,7 +41,7 @@ jobs:
           echo "app-version=$version" >> $GITHUB_OUTPUT
 
   android-build:
-    if: ${{ github.event.inputs.target == 'android' || github.event.inputs.target == 'all' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'android' || github.event.inputs.target == 'all' }}
     name: Android Build
     needs: setup
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
           attachments: artifacts/app-arm64-v8a-release.apk
 
   ios-build:
-    if: ${{ github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
     name: iOS Build
     needs: setup
     runs-on: macos-15
@@ -176,7 +176,7 @@ jobs:
           attachments: build/ios/iphoneos/*.ipa
 
   windows-build:
-    if: ${{ github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
     name: Windows Build
     needs: setup
     runs-on: windows-latest
@@ -273,7 +273,7 @@ jobs:
           retention-days: 5
 
   macos-build:
-    if: ${{ github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
     name: MacOS Build
     needs: setup
     runs-on: macos-15

@@ -289,20 +289,18 @@ class _ComicDetailsState extends State<ComicDetails>
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
               ),
-              InfoRow(
-                onTap: (data?.author == null || data!.author.isEmpty)
-                    ? null
-                    : () => context.push('/comics?a=${data.author}'),
-                data: data?.author,
-                icon: Icons.person,
-              ),
-              InfoRow(
-                onTap: (data?.chineseTeam == null || data!.chineseTeam.isEmpty)
-                    ? null
-                    : () => context.push('/comics?ct=${data.chineseTeam}'),
-                data: data?.chineseTeam,
-                icon: Icons.translate,
-              ),
+              if (data?.author != null && data!.author.isNotEmpty)
+                InfoRow(
+                  onTap: () => context.push('/comics?a=${data.author}'),
+                  data: data.author,
+                  icon: Icons.person,
+                ),
+              if (data?.chineseTeam != null && data!.chineseTeam.isNotEmpty)
+                InfoRow(
+                  onTap: () => context.push('/comics?ct=${data.chineseTeam}'),
+                  data: data.chineseTeam,
+                  icon: Icons.translate,
+                ),
               ComicShareId(id: widget.id),
               Row(
                 spacing: 10,
@@ -311,7 +309,7 @@ class _ComicDetailsState extends State<ComicDetails>
                     icon: const Icon(
                       Icons.favorite,
                       size: 16,
-                      color: Colors.red,
+                      color: Colors.redAccent,
                     ),
                     text: formatNumber(
                       data?.totalLikes ?? data?.likesCount ?? 0,

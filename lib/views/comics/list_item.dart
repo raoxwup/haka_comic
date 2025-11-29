@@ -84,18 +84,30 @@ class ListItem extends StatelessWidget {
                         ),
                         Expanded(child: _buildCategories(item.categories)),
                         Row(
-                          spacing: 10,
                           children: [
+                            const Icon(
+                              Icons.favorite_rounded,
+                              size: 14,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(width: 4),
                             Text(
-                              '${formatNumber(item.totalLikes ?? item.likesCount)} likes',
+                              formatNumber(item.totalLikes ?? item.likesCount),
                               style: context.textTheme.labelSmall,
                             ),
-                            Text(
-                              item.totalViews != null
-                                  ? '${formatNumber(item.totalViews!)} views'
-                                  : '?? views',
-                              style: context.textTheme.labelSmall,
-                            ),
+                            if (item.totalViews != null) ...[
+                              const SizedBox(width: 10),
+                              const Icon(
+                                Icons.visibility,
+                                size: 14,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                formatNumber(item.totalViews!),
+                                style: context.textTheme.labelSmall,
+                              ),
+                            ],
                           ],
                         ),
                       ],

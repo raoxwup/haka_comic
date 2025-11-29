@@ -161,7 +161,7 @@ class _DownloadsState extends State<Downloads> {
   }
 
   Future<void> exportTasksWithShare({required ExportFileType type}) async {
-    final docDir = await getApplicationDocumentsDirectory();
+    final docDir = await getApplicationCacheDirectory();
     try {
       if (mounted) {
         Loader.show(context);
@@ -208,19 +208,8 @@ class _DownloadsState extends State<Downloads> {
       }
     } catch (e) {
       Log.error("export comic failed", e);
-      showSnackBar("导出失败: $e");
-      // Toast.show(message: "导出失败");
+      Toast.show(message: "导出失败");
     } finally {
-      Future.wait(
-        _selectedTasks.map((task) async {
-          final tempFile = File(
-            p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
-          );
-          if (await tempFile.exists()) {
-            await tempFile.delete();
-          }
-        }),
-      );
       if (mounted) {
         Loader.hide(context);
       }

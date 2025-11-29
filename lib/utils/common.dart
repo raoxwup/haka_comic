@@ -187,3 +187,35 @@ List<List<E>> splitList<E>(List<E> list, int n) {
   }
   return result;
 }
+
+Future<void> showHalfScreenDialog(BuildContext context, Widget child) async {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Stack(
+        children: [
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 400,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: Navigator(
+                onGenerateRoute: (settings) => MaterialPageRoute(
+                  builder: (_) => child,
+                  settings: settings,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
