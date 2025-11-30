@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  downloadsfolder
   dynamic_color
   local_auth_windows
   screen_retriever_windows

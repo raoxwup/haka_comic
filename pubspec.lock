@@ -233,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  dartx:
+    dependency: transitive
+    description:
+      name: dartx
+      sha256: "8b25435617027257d43e6508b5fe061012880ddfdaa75a71d607c3de2a13d244"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   dbus:
     dependency: transitive
     description:
@@ -241,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
+  diacritic:
+    dependency: transitive
+    description:
+      name: diacritic
+      sha256: "12981945ec38931748836cd76f2b38773118d0baef3c68404bdfde9566147876"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
   dio:
     dependency: "direct main"
     description:
@@ -257,6 +273,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  downloadsfolder:
+    dependency: "direct main"
+    description:
+      name: downloadsfolder
+      sha256: "0e1bb7dd634d6231c0ac116c467da94507a07ed62239712ea0dead981d58b114"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   dynamic_color:
     dependency: "direct main"
     description:
@@ -318,6 +342,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
+  flutter_context_menu:
+    dependency: "direct main"
+    description:
+      name: flutter_context_menu
+      sha256: e8f2cd13ef5e3320e35b27b3f7de278d9fc6b3f9c328cc16cd90784fb66d1054
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   flutter_driver:
     dependency: transitive
     description: flutter
@@ -1140,6 +1172,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
+  time:
+    dependency: transitive
+    description:
+      name: time
+      sha256: "370572cf5d1e58adcb3e354c47515da3f7469dac3a95b447117e728e7be6f461"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.5"
   typed_data:
     dependency: transitive
     description:

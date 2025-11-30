@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <downloadsfolder/downloadsfolder_plugin_c_api.h>
 #include <dynamic_color/dynamic_color_plugin_c_api.h>
 #include <local_auth_windows/local_auth_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
@@ -15,6 +16,8 @@
 #include <window_manager/window_manager_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  DownloadsfolderPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("DownloadsfolderPluginCApi"));
   DynamicColorPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DynamicColorPluginCApi"));
   LocalAuthPluginRegisterWithRegistrar(

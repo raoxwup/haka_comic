@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
@@ -19,6 +19,7 @@ import 'package:haka_comic/widgets/toast.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:downloadsfolder/downloadsfolder.dart' as downloadsfolder;
 
 enum ExportFileType { pdf, zip }
 
@@ -106,11 +107,12 @@ class _DownloadsState extends State<Downloads> {
     }
   }
 
-  Future<void> exportTasks({required ExportFileType type}) async {
+  Future<void> exportTasksForDesktop({required ExportFileType type}) async {
     try {
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      String? selectedDirectoryPath = await FilePicker.platform
+          .getDirectoryPath();
 
-      if (selectedDirectory == null) {
+      if (selectedDirectoryPath == null) {
         Toast.show(message: "未选择导出目录");
         return;
       }
@@ -122,27 +124,23 @@ class _DownloadsState extends State<Downloads> {
       final downloadPath = await getDownloadDirectory();
 
       for (var task in _selectedTasks) {
-        final sourceDir = Directory(
-          p.join(downloadPath, task.comic.title.legalized),
-        );
+        final sourceDirPath = p.join(downloadPath, task.comic.title.legalized);
 
-        final destDir = Directory(
-          p.join(
-            selectedDirectory,
-            '${task.comic.title.legalized}.${type.name}',
-          ),
+        final destPath = p.join(
+          selectedDirectoryPath,
+          '${task.comic.title.legalized}.${type.name}',
         );
 
         switch (type) {
           case ExportFileType.pdf:
             await exportPdf(
-              sourceFolderPath: sourceDir.path,
-              outputPdfPath: destDir.path,
+              sourceFolderPath: sourceDirPath,
+              outputPdfPath: destPath,
             );
           case ExportFileType.zip:
             await compress(
-              sourceFolderPath: sourceDir.path,
-              outputZipPath: destDir.path,
+              sourceFolderPath: sourceDirPath,
+              outputZipPath: destPath,
               compressionMethod: CompressionMethod.stored,
             );
         }
@@ -160,8 +158,8 @@ class _DownloadsState extends State<Downloads> {
     }
   }
 
-  Future<void> exportTasksWithShare({required ExportFileType type}) async {
-    final docDir = await getApplicationCacheDirectory();
+  Future<void> exportTasksForIos({required ExportFileType type}) async {
+    final cacheDir = await getApplicationCacheDirectory();
     try {
       if (mounted) {
         Loader.show(context);
@@ -170,24 +168,23 @@ class _DownloadsState extends State<Downloads> {
       final downloadPath = await getDownloadDirectory();
 
       for (var task in _selectedTasks) {
-        final sourceDir = Directory(
-          p.join(downloadPath, task.comic.title.legalized),
-        );
+        final sourcePath = p.join(downloadPath, task.comic.title.legalized);
 
-        final destFile = File(
-          p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+        final destPath = p.join(
+          cacheDir.path,
+          '${task.comic.title.legalized}.${type.name}',
         );
 
         switch (type) {
           case ExportFileType.pdf:
             await exportPdf(
-              sourceFolderPath: sourceDir.path,
-              outputPdfPath: destFile.path,
+              sourceFolderPath: sourcePath,
+              outputPdfPath: destPath,
             );
           case ExportFileType.zip:
             await compress(
-              sourceFolderPath: sourceDir.path,
-              outputZipPath: destFile.path,
+              sourceFolderPath: sourcePath,
+              outputZipPath: destPath,
               compressionMethod: CompressionMethod.stored,
             );
         }
@@ -196,7 +193,7 @@ class _DownloadsState extends State<Downloads> {
       final params = ShareParams(
         files: _selectedTasks.map((task) {
           return XFile(
-            p.join(docDir.path, '${task.comic.title.legalized}.${type.name}'),
+            p.join(cacheDir.path, '${task.comic.title.legalized}.${type.name}'),
           );
         }).toList(),
       );
@@ -204,11 +201,56 @@ class _DownloadsState extends State<Downloads> {
       final result = await SharePlus.instance.share(params);
 
       if (result.status == ShareResultStatus.success) {
-        Toast.show(message: "分享成功");
+        Toast.show(message: "操作成功");
       }
     } catch (e) {
       Log.error("export comic failed", e);
-      Toast.show(message: "导出失败");
+      Toast.show(message: "操作失败");
+    } finally {
+      if (mounted) {
+        Loader.hide(context);
+      }
+      close();
+    }
+  }
+
+  Future<void> exportTasksForAndroid({required ExportFileType type}) async {
+    final cacheDir = await getApplicationCacheDirectory();
+    try {
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      final downloadPath = await getDownloadDirectory();
+
+      for (var task in _selectedTasks) {
+        final sourcePath = p.join(downloadPath, task.comic.title.legalized);
+
+        final fileName = '${task.comic.title.legalized}.${type.name}';
+
+        final destPath = p.join(cacheDir.path, fileName);
+
+        switch (type) {
+          case ExportFileType.pdf:
+            await exportPdf(
+              sourceFolderPath: sourcePath,
+              outputPdfPath: destPath,
+            );
+          case ExportFileType.zip:
+            await compress(
+              sourceFolderPath: sourcePath,
+              outputZipPath: destPath,
+              compressionMethod: CompressionMethod.stored,
+            );
+        }
+
+        await downloadsfolder.copyFileIntoDownloadFolder(destPath, fileName);
+      }
+
+      Toast.show(message: "操作成功");
+    } catch (e) {
+      Log.error("export comic failed", e);
+      Toast.show(message: "操作失败");
     } finally {
       if (mounted) {
         Loader.hide(context);
@@ -222,9 +264,11 @@ class _DownloadsState extends State<Downloads> {
     if (isCanPress) {
       return null;
     }
-    return isIos
-        ? () => exportTasksWithShare(type: type)
-        : () => exportTasks(type: type);
+    return isAndroid
+        ? () => exportTasksForAndroid(type: type)
+        : isDesktop
+        ? () => exportTasksForDesktop(type: type)
+        : () => exportTasksForIos(type: type);
   }
 
   void close() {
@@ -286,15 +330,68 @@ class _DownloadsState extends State<Downloads> {
     }
   }
 
+  // define your context menu entries
+  final entries = <ContextMenuEntry>[
+    MenuItem(
+      label: const Text('Copy'),
+      icon: const Icon(Icons.copy),
+      onSelected: (value) {
+        // implement copy
+      },
+    ),
+    MenuItem(
+      enabled: false, // disable this item
+      label: const Text('Cut'),
+      icon: const Icon(Icons.cut),
+      onSelected: (value) {
+        // implement cut
+      },
+    ),
+    MenuItem(
+      label: const Text('Paste'),
+      icon: const Icon(Icons.paste),
+      onSelected: (value) {
+        // implement paste
+      },
+    ),
+    const MenuDivider(),
+    MenuItem.submenu(
+      label: const Text('Edit'),
+      icon: const Icon(Icons.edit),
+      items: [
+        MenuItem(
+          label: const Text('Undo'),
+          value: "Undo",
+          icon: const Icon(Icons.undo),
+          onSelected: (value) {
+            // implement undo
+          },
+        ),
+        MenuItem(
+          label: const Text('Redo'),
+          value: 'Redo',
+          icon: const Icon(Icons.redo),
+          onSelected: (value) {
+            // implement redo
+          },
+        ),
+      ],
+    ),
+  ];
+
+  // initialize a context menu
+  late final menu = ContextMenu(
+    entries: entries,
+    padding: const EdgeInsets.all(8.0),
+  );
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         if (_isSelecting) {
           close();
         } else {
@@ -373,107 +470,114 @@ class _DownloadsState extends State<Downloads> {
               ),
               itemBuilder: (context, index) {
                 final task = tasks[index];
-                return InkWell(
-                  key: ValueKey(task.comic.id),
-                  onTapDown: (details) => _tapDownDetails = details,
-                  onLongPress: _isSelecting
-                      ? null
-                      : () {
-                          _showContextMenu(
-                            context,
-                            _tapDownDetails.globalPosition,
-                            task,
-                          );
-                        },
-                  onTap: () {
-                    if (_isSelecting) {
-                      setState(() {
-                        if (_selectedTaskIds.contains(task.comic.id)) {
-                          _selectedTaskIds.remove(task.comic.id);
-                        } else {
-                          _selectedTaskIds.add(task.comic.id);
-                        }
-                      });
-                      return;
-                    }
-                    Toast.show(message: "功能开发中...");
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 5,
-                      horizontal: 10,
-                    ),
-                    decoration: _selectedTaskIds.contains(task.comic.id)
-                        ? BoxDecoration(
-                            color: context.colorScheme.secondaryContainer
-                                .withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        BaseImage(url: task.comic.cover, aspectRatio: 90 / 130),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 5),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  task.comic.title,
-                                  style: context.textTheme.titleSmall,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const Spacer(),
-                                if (_iconMap.containsKey(task.status))
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          _iconMap[task.status]!["action"](
-                                            task.comic.id,
-                                          );
-                                        },
-                                        icon: Icon(
-                                          _iconMap[task.status]!["icon"],
+                return ContextMenuRegion(
+                  contextMenu: menu,
+                  child: InkWell(
+                    key: ValueKey(task.comic.id),
+                    onTapDown: (details) => _tapDownDetails = details,
+                    // onLongPress: _isSelecting
+                    //     ? null
+                    //     : () {
+                    //         _showContextMenu(
+                    //           context,
+                    //           _tapDownDetails.globalPosition,
+                    //           task,
+                    //         );
+                    //       },
+                    onTap: () {
+                      if (_isSelecting) {
+                        setState(() {
+                          if (_selectedTaskIds.contains(task.comic.id)) {
+                            _selectedTaskIds.remove(task.comic.id);
+                          } else {
+                            _selectedTaskIds.add(task.comic.id);
+                          }
+                        });
+                        return;
+                      }
+                      Toast.show(message: "功能开发中...");
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 10,
+                      ),
+                      decoration: _selectedTaskIds.contains(task.comic.id)
+                          ? BoxDecoration(
+                              color: context.colorScheme.secondaryContainer
+                                  .withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(12),
+                            )
+                          : null,
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          BaseImage(
+                            url: task.comic.cover,
+                            aspectRatio: 90 / 130,
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    task.comic.title,
+                                    style: context.textTheme.titleSmall,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const Spacer(),
+                                  if (_iconMap.containsKey(task.status))
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {
+                                            _iconMap[task.status]!["action"](
+                                              task.comic.id,
+                                            );
+                                          },
+                                          icon: Icon(
+                                            _iconMap[task.status]!["icon"],
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        task.status.displayName,
+                                        style: context.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  context.colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${task.completed} / ${task.total}',
+                                        style: context.textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      task.status.displayName,
-                                      style: context.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: context.colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${task.completed} / ${task.total}',
-                                      style: context.textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 5),
-                                LinearProgressIndicator(
-                                  borderRadius: BorderRadius.circular(99),
-                                  value: task.total == 0
-                                      ? null
-                                      : task.completed / task.total,
-                                ),
-                              ],
+                                  const SizedBox(height: 5),
+                                  LinearProgressIndicator(
+                                    borderRadius: BorderRadius.circular(99),
+                                    value: task.total == 0
+                                        ? null
+                                        : task.completed / task.total,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
