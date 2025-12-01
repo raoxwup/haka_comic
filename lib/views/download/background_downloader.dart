@@ -102,12 +102,8 @@ class _DownloadExecutor {
   ) async {
     if (chapter.images.isNotEmpty) return;
 
-    final token = prefsWithCache.getString('token');
+    final token = prefsWithCache.getString('token') ?? '';
     final api = Api.fromName(prefsWithCache.getString('api'));
-
-    if (token == null) {
-      throw Exception('Token is null');
-    }
 
     final response = await _fetchChapterImagesIsolate(
       FetchChapterImagesPayload(id: id, order: chapter.order),

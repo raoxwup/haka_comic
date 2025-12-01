@@ -6,6 +6,7 @@ import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
+import 'package:haka_comic/utils/android_download_saver.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
@@ -18,8 +19,8 @@ import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:downloadsfolder/downloadsfolder.dart' as downloadsfolder;
 
 enum ExportFileType { pdf, zip }
 
@@ -196,6 +197,17 @@ class _DownloadsState extends State<Downloads> {
   Future<void> exportTasksForAndroid({required ExportFileType type}) async {
     final cacheDir = await getApplicationCacheDirectory();
     try {
+      final version = await AndroidDownloadSaver.getAndroidVersion();
+
+      if (version <= 28) {
+        final status = await Permission.storage.request();
+        if (!status.isGranted) {
+          if (status.isPermanentlyDenied) openAppSettings();
+          Toast.show(message: "没有必要的储存权限");
+          return;
+        }
+      }
+
       if (mounted) {
         Loader.show(context);
       }
@@ -223,13 +235,16 @@ class _DownloadsState extends State<Downloads> {
             );
         }
 
-        await downloadsfolder.copyFileIntoDownloadFolder(destPath, fileName);
+        await AndroidDownloadSaver.saveToDownloads(
+          filePath: destPath,
+          fileName: fileName,
+        );
       }
 
-      Toast.show(message: "操作成功");
+      Toast.show(message: "导出成功");
     } catch (e) {
       Log.error("export comic failed", e);
-      Toast.show(message: "操作失败");
+      Toast.show(message: "导出失败");
     } finally {
       if (mounted) {
         Loader.hide(context);

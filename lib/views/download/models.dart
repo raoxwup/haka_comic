@@ -93,7 +93,7 @@ enum DownloadTaskStatus {
         icon: Icons.pause,
         action: BackgroundDownloader.pauseTask,
       ),
-      error => (icon: Icons.error, action: BackgroundDownloader.resumeTask),
+      error => (icon: Icons.refresh, action: BackgroundDownloader.resumeTask),
       _ => (icon: Icons.error, action: (_) {}),
     };
   }
