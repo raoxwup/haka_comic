@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:save_to_folder_ios/save_to_folder_ios.dart';
 
 enum ExportFileType { pdf, zip }
 
@@ -139,19 +141,27 @@ class _DownloadsState extends State<Downloads> {
   }
 
   Future<void> exportTasksForIos({required ExportFileType type}) async {
-    final cacheDir = await getApplicationCacheDirectory();
     try {
       if (mounted) {
         Loader.show(context);
       }
+      final cacheDir = await getApplicationCacheDirectory();
 
       final downloadPath = await getDownloadDirectory();
+
+      final tempDir = Directory(p.join(cacheDir.path, 'temp'));
+
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+
+      await tempDir.create(recursive: true);
 
       for (var task in _selectedTasks) {
         final sourcePath = p.join(downloadPath, task.comic.title.legalized);
 
         final destPath = p.join(
-          cacheDir.path,
+          tempDir.path,
           '${task.comic.title.legalized}.${type.name}',
         );
 
@@ -170,18 +180,20 @@ class _DownloadsState extends State<Downloads> {
         }
       }
 
-      final params = ShareParams(
-        files: _selectedTasks.map((task) {
-          return XFile(
-            p.join(cacheDir.path, '${task.comic.title.legalized}.${type.name}'),
-          );
-        }).toList(),
+      final path = p.join(tempDir.path, 'comics.zip');
+
+      await compress(
+        sourceFolderPath: tempDir.path,
+        outputZipPath: path,
+        compressionMethod: CompressionMethod.stored,
       );
 
-      final result = await SharePlus.instance.share(params);
+      final success = await SaveToFolderIos.copy(path);
 
-      if (result.status == ShareResultStatus.success) {
-        Toast.show(message: "操作成功");
+      if (success) {
+        Toast.show(message: "保存成功");
+      } else {
+        Toast.show(message: "保存失败");
       }
     } catch (e) {
       Log.error("export comic failed", e);

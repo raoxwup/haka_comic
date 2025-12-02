@@ -895,6 +895,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
+  save_to_folder_ios:
+    dependency: "direct main"
+    description:
+      name: save_to_folder_ios
+      sha256: efd743fe9da7e808eb9d544db899744cc3e0bd3aebe767040c27a2e1f8d001f3
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   screen_retriever:
     dependency: transitive
     description:

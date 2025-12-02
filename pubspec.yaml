@@ -55,6 +55,7 @@ dependencies:
   share_plus: ^12.0.1
   flutter_context_menu: ^0.4.1
   permission_handler: ^12.0.1
+  save_to_folder_ios: ^1.0.4
 
 dev_dependencies:
   flutter_test:
