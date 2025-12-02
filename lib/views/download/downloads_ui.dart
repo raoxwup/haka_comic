@@ -202,8 +202,33 @@ class _DownloadsState extends State<Downloads> {
       if (version <= 28) {
         final status = await Permission.storage.request();
         if (!status.isGranted) {
-          if (status.isPermanentlyDenied) openAppSettings();
-          Toast.show(message: "没有必要的储存权限");
+          if (status.isPermanentlyDenied) {
+            if (!mounted) return;
+            await showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('缺少权限'),
+                  content: const Text('请在设置中开启存储权限后重试'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => context.pop(),
+                      child: const Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        openAppSettings();
+                        context.pop();
+                      },
+                      child: const Text('打开设置'),
+                    ),
+                  ],
+                );
+              },
+            );
+            return;
+          }
+          Toast.show(message: "没有必要的存储权限");
           return;
         }
       }
