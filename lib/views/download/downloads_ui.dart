@@ -21,7 +21,6 @@ import 'package:haka_comic/widgets/toast.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:save_to_folder_ios/save_to_folder_ios.dart';
 
 enum ExportFileType { pdf, zip }
@@ -141,13 +140,8 @@ class _DownloadsState extends State<Downloads> {
   }
 
   Future<void> exportTasksForIos({required ExportFileType type}) async {
-    try {
-      if (mounted) {
-        Loader.show(context);
-      }
+    Future<String> exportZipFile() async {
       final cacheDir = await getApplicationCacheDirectory();
-
-      final downloadPath = await getDownloadDirectory();
 
       final tempDir = Directory(p.join(cacheDir.path, 'temp'));
 
@@ -157,39 +151,79 @@ class _DownloadsState extends State<Downloads> {
 
       await tempDir.create(recursive: true);
 
-      for (var task in _selectedTasks) {
-        final sourcePath = p.join(downloadPath, task.comic.title.legalized);
+      final zipPath = p.join(tempDir.path, 'comics.zip');
 
-        final destPath = p.join(
-          tempDir.path,
-          '${task.comic.title.legalized}.${type.name}',
-        );
-
-        switch (type) {
-          case ExportFileType.pdf:
-            await exportPdf(
-              sourceFolderPath: sourcePath,
-              outputPdfPath: destPath,
-            );
-          case ExportFileType.zip:
-            await compress(
-              sourceFolderPath: sourcePath,
-              outputZipPath: destPath,
-              compressionMethod: CompressionMethod.stored,
-            );
-        }
-      }
-
-      final path = p.join(tempDir.path, 'comics.zip');
-
-      await compress(
-        sourceFolderPath: tempDir.path,
-        outputZipPath: path,
+      final zipper = await createZipper(
+        zipPath: zipPath,
         compressionMethod: CompressionMethod.stored,
       );
 
-      final success = await SaveToFolderIos.copy(path);
+      final downloadPath = await getDownloadDirectory();
 
+      for (var task in _selectedTasks) {
+        final sourcePath = p.join(downloadPath, task.comic.title.legalized);
+        await zipper.addDirectory(dirPath: sourcePath);
+      }
+
+      await zipper.close();
+
+      return zipPath;
+    }
+
+    Future<String> exportPdfFile() async {
+      final cacheDir = await getApplicationCacheDirectory();
+
+      final tempDir = Directory(p.join(cacheDir.path, 'temp'));
+
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+
+      await tempDir.create(recursive: true);
+
+      final downloadPath = await getDownloadDirectory();
+
+      if (_selectedTasks.length == 1) {
+        final title = _selectedTasks.first.comic.title.legalized;
+        final sourcePath = p.join(downloadPath, title);
+        final destPath = p.join(tempDir.path, '$title.pdf');
+        await exportPdf(sourceFolderPath: sourcePath, outputPdfPath: destPath);
+        return destPath;
+      }
+
+      final zipPath = p.join(tempDir.path, 'comics.zip');
+
+      final zipper = await createZipper(
+        zipPath: zipPath,
+        compressionMethod: CompressionMethod.stored,
+      );
+
+      for (var task in _selectedTasks) {
+        final title = task.comic.title.legalized;
+        final sourcePath = p.join(downloadPath, title);
+        final destPath = p.join(tempDir.path, '$title.pdf');
+        await exportPdf(sourceFolderPath: sourcePath, outputPdfPath: destPath);
+        await zipper.addFile(filePath: destPath);
+      }
+
+      await zipper.close();
+
+      return zipPath;
+    }
+
+    try {
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      final future = switch (type) {
+        ExportFileType.pdf => exportPdfFile(),
+        ExportFileType.zip => exportZipFile(),
+      };
+
+      final path = await future;
+
+      final success = await SaveToFolderIos.copy(path);
       if (success) {
         Toast.show(message: "保存成功");
       } else {
@@ -197,7 +231,7 @@ class _DownloadsState extends State<Downloads> {
       }
     } catch (e) {
       Log.error("export comic failed", e);
-      Toast.show(message: "操作失败");
+      Toast.show(message: "保存失败");
     } finally {
       if (mounted) {
         Loader.hide(context);
