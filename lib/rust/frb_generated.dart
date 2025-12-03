@@ -81,7 +81,6 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiCompressZipperAddDirectory({
     required Zipper that,
     required String dirPath,
-    String? stripPrefix,
   });
 
   Future<void> crateApiCompressZipperAddEmptyDirectory({
@@ -139,7 +138,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Future<void> crateApiCompressZipperAddDirectory({
     required Zipper that,
     required String dirPath,
-    String? stripPrefix,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -150,7 +148,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_String(dirPath, serializer);
-          sse_encode_opt_String(stripPrefix, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -163,7 +160,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_String,
         ),
         constMeta: kCrateApiCompressZipperAddDirectoryConstMeta,
-        argValues: [that, dirPath, stripPrefix],
+        argValues: [that, dirPath],
         apiImpl: this,
       ),
     );
@@ -172,7 +169,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiCompressZipperAddDirectoryConstMeta =>
       const TaskConstMeta(
         debugName: "Zipper_add_directory",
-        argNames: ["that", "dirPath", "stripPrefix"],
+        argNames: ["that", "dirPath"],
       );
 
   @override
@@ -757,12 +754,8 @@ class ZipperImpl extends RustOpaque implements Zipper {
   );
 
   /// 添加整个目录（递归，所有文件都会被加入）
-  Future<void> addDirectory({required String dirPath, String? stripPrefix}) =>
-      RustLib.instance.api.crateApiCompressZipperAddDirectory(
-        that: this,
-        dirPath: dirPath,
-        stripPrefix: stripPrefix,
-      );
+  Future<void> addDirectory({required String dirPath}) => RustLib.instance.api
+      .crateApiCompressZipperAddDirectory(that: this, dirPath: dirPath);
 
   Future<void> addEmptyDirectory({required String dirName}) => RustLib
       .instance
@@ -777,7 +770,6 @@ class ZipperImpl extends RustOpaque implements Zipper {
         pathInZip: pathInZip,
       );
 
-  /// 完成压缩，必须调用！
   Future<void> close() =>
       RustLib.instance.api.crateApiCompressZipperClose(that: this);
 }

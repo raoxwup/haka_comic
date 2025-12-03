@@ -225,13 +225,13 @@ class _DownloadsState extends State<Downloads> {
 
       final success = await SaveToFolderIos.copy(path);
       if (success) {
-        Toast.show(message: "保存成功");
+        Toast.show(message: "导出成功");
       } else {
-        Toast.show(message: "保存失败");
+        Toast.show(message: "导出失败");
       }
     } catch (e) {
       Log.error("export comic failed", e);
-      Toast.show(message: "保存失败");
+      Toast.show(message: "导出失败");
     } finally {
       if (mounted) {
         Loader.hide(context);

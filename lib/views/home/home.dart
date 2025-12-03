@@ -29,10 +29,9 @@ class _HomeState extends State<Home> {
     return RouteAwarePageWrapper(
       builder: (context, isRouteAnimationCompleted) {
         return Scaffold(
-          extendBodyBehindAppBar:
-              destinations[_selectedIndex]['extendBodyBehindAppBar'],
+          extendBodyBehindAppBar: _selectedIndex == 1,
           appBar: UiMode.m1(context)
-              ? destinations[_selectedIndex]['buildAppBar'](context)
+              ? AppHeaderBar(selectedIndex: _selectedIndex)
               : null,
           body: Row(
             children: [

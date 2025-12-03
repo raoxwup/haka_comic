@@ -3,82 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/home/share_dialog.dart';
 
-final List<dynamic> destinations = [
-  {
-    "icon": Icons.category_outlined,
-    "selectedIcon": Icons.category,
-    "label": '分类',
-    "extendBodyBehindAppBar": false,
-    "buildAppBar": (BuildContext context) => AppBar(
-      title: const Text('分类'),
-      actions: actions
-          .map(
-            (e) => IconButton(
-              tooltip: e['label'],
-              onPressed: () => e['onPressed'](context),
-              icon: Icon(e['icon']),
-            ),
-          )
-          .toList(),
-    ),
-  },
-  {
-    "icon": Icons.person_outline,
-    "selectedIcon": Icons.person,
-    "label": '我的',
-    "extendBodyBehindAppBar": true,
-    "buildAppBar": (BuildContext context) => AppBar(
-      title: const Text('我的'),
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
-      actions: actions
-          .map(
-            (e) => IconButton(
-              tooltip: e['label'],
-              onPressed: () => e['onPressed'](context),
-              icon: Icon(e['icon']),
-            ),
-          )
-          .toList(),
-    ),
-  },
-];
-
-final List<dynamic> actions = [
-  {
-    "icon": Icons.search,
-    "label": '搜索',
-    "onPressed": (BuildContext context) {
-      context.push('/search');
-    },
-  },
-  {
-    "icon": Icons.content_paste_go,
-    "label": '漫画ID搜索',
-    "onPressed": (BuildContext context) {
-      showDialog(context: context, builder: (context) => const ShareDialog());
-    },
-  },
-  {
-    "icon": Icons.notifications,
-    "label": '通知',
-    "onPressed": (BuildContext context) {
-      context.push('/notifications');
-    },
-  },
-  {
-    "icon": Icons.settings,
-    "label": '设置',
-    "onPressed": (BuildContext context) {
-      context.push('/settings');
-    },
-  },
-];
-
-class AppNavigationBar extends StatefulWidget {
+class AppNavigationBar extends StatelessWidget {
   const AppNavigationBar({
     super.key,
     required this.selectedIndex,
@@ -89,67 +15,130 @@ class AppNavigationBar extends StatefulWidget {
   final ValueChanged<int> onDestinationSelected;
 
   @override
-  State<AppNavigationBar> createState() => _AppNavigationBarState();
+  Widget build(BuildContext context) {
+    final title = ['分类', '我的'][selectedIndex];
+    return UiMode.m1(context)
+        ? NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onDestinationSelected,
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.category_outlined),
+                label: '分类',
+                selectedIcon: Icon(Icons.category),
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                label: '我的',
+                selectedIcon: Icon(Icons.person),
+              ),
+            ],
+          )
+        : NavigationRail(
+            leading: Text(title, style: context.textTheme.titleLarge),
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onDestinationSelected,
+            labelType: NavigationRailLabelType.none,
+            elevation: 1,
+            trailing: Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 8,
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/search'),
+                      icon: const Icon(Icons.search),
+                      tooltip: '搜索',
+                    ),
+                    IconButton(
+                      onPressed: () => context.push('/settings'),
+                      icon: const Icon(Icons.settings),
+                      tooltip: '设置',
+                    ),
+                    IconButton(
+                      onPressed: () => context.push('/notifications'),
+                      icon: const Icon(Icons.notifications),
+                      tooltip: '通知',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.category_outlined),
+                selectedIcon: Icon(Icons.category),
+                label: Text('分类'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: Text('我的'),
+              ),
+            ],
+          );
+  }
 }
 
-class _AppNavigationBarState extends State<AppNavigationBar> {
+class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppHeaderBar({super.key, required this.selectedIndex});
+
+  final int selectedIndex;
+
   @override
   Widget build(BuildContext context) {
-    return UiMode.m1(context) ? _buildNavigationBar() : _buildNavigationRail();
-  }
-
-  Widget _buildNavigationBar() {
-    return NavigationBar(
-      selectedIndex: widget.selectedIndex,
-      onDestinationSelected: widget.onDestinationSelected,
-      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      destinations: destinations
-          .map(
-            (e) => NavigationDestination(
-              icon: Icon(e['icon']),
-              label: e['label'],
-              selectedIcon: Icon(e['selectedIcon']),
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _buildNavigationRail() {
-    final title = destinations[widget.selectedIndex]['label'];
-    return NavigationRail(
-      leading: Text(title, style: context.textTheme.titleLarge),
-      selectedIndex: widget.selectedIndex,
-      onDestinationSelected: widget.onDestinationSelected,
-      labelType: NavigationRailLabelType.none,
-      elevation: 1,
-      trailing: Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            spacing: 8,
-            children: actions
-                .map(
-                  (e) => IconButton(
-                    tooltip: e['label'],
-                    icon: Icon(e['icon']),
-                    onPressed: () => e['onPressed'](context),
-                  ),
-                )
-                .toList(),
-          ),
+    final title = ['分类', '我的'][selectedIndex];
+    final isCategory = title == '分类';
+    return AppBar(
+      title: Text(title),
+      backgroundColor: isCategory ? null : Colors.transparent,
+      systemOverlayStyle: isCategory ? null : SystemUiOverlayStyle.dark,
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/search'),
+          icon: const Icon(Icons.search),
+          tooltip: '搜索',
         ),
-      ),
-      destinations: destinations
-          .map(
-            (e) => NavigationRailDestination(
-              icon: Icon(e['icon']),
-              selectedIcon: Icon(e['selectedIcon']),
-              label: Text(e['label']),
+        MenuAnchor(
+          menuChildren: [
+            MenuItemButton(
+              style: MenuItemButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              leadingIcon: const Icon(Icons.settings, size: 17.0),
+              onPressed: () => context.push('/settings'),
+              child: const Text('设置'),
             ),
-          )
-          .toList(),
+            MenuItemButton(
+              style: MenuItemButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              leadingIcon: const Icon(Icons.notifications, size: 17.0),
+              onPressed: () => context.push('/notifications'),
+              child: const Text('通知'),
+            ),
+          ],
+          builder: (context, controller, child) {
+            return IconButton(
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: const Icon(Icons.more_horiz),
+              tooltip: '更多',
+            );
+          },
+        ),
+      ],
     );
   }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

@@ -16,7 +16,6 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
 import 'package:haka_comic/views/comic_details/collect_action.dart';
-import 'package:haka_comic/views/comic_details/comic_share_id.dart';
 import 'package:haka_comic/views/comic_details/creator.dart';
 import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
@@ -164,7 +163,10 @@ class _ComicDetailsState extends State<ComicDetails>
                 ),
                 menuChildren: [
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.copy),
+                    style: MenuItemButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    leadingIcon: const Icon(Icons.copy, size: 17.0),
                     child: const Text('复制标题'),
                     onPressed: () async {
                       await Clipboard.setData(
@@ -301,7 +303,7 @@ class _ComicDetailsState extends State<ComicDetails>
                   data: data.chineseTeam,
                   icon: Icons.translate,
                 ),
-              ComicShareId(id: widget.id),
+              // ComicShareId(id: widget.id),
               Row(
                 spacing: 10,
                 children: [

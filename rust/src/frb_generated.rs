@@ -72,7 +72,6 @@ fn wire__crate__api__compress__Zipper_add_directory_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Zipper>,
             >>::sse_decode(&mut deserializer);
             let api_dir_path = <String>::sse_decode(&mut deserializer);
-            let api_strip_prefix = <Option<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
@@ -93,7 +92,6 @@ fn wire__crate__api__compress__Zipper_add_directory_impl(
                     let output_ok = crate::api::compress::Zipper::add_directory(
                         &mut *api_that_guard,
                         api_dir_path,
-                        api_strip_prefix,
                     )?;
                     Ok(output_ok)
                 })())

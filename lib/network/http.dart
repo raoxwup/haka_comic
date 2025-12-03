@@ -233,7 +233,7 @@ Future<List<ChapterImage>> fetchChapterImages(
   return images;
 }
 
-/// 获取漫画分享ID
+/// 获取漫画分享ID 应该是已废弃
 Future<int> fetchComicShareId(String id) async {
   const maxRetries = 3;
   for (var i = 0; i < maxRetries; i++) {
@@ -252,7 +252,7 @@ Future<int> fetchComicShareId(String id) async {
   throw Exception('Failed to fetch comic share ID');
 }
 
-/// 根据分享ID获取漫画信息
+/// 根据分享ID获取漫画信息 应该是已废弃
 Future<String> fetchComicIdByShareId(String shareId) async {
   const maxRetries = 3;
   for (var i = 0; i < maxRetries; i++) {

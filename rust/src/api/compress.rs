@@ -140,30 +140,57 @@ impl Zipper {
     }
 
     /// 添加整个目录（递归，所有文件都会被加入）
-    pub fn add_directory(
-        &mut self,
-        dir_path: String,
-        strip_prefix: Option<String>,
-    ) -> Result<(), String> {
+    pub fn add_directory(&mut self, dir_path: String) -> Result<(), String> {
         let root = Path::new(&dir_path);
         if !root.is_dir() {
             return Err(format!("Not a directory: {}", dir_path));
         }
 
+        let root_name = root
+            .file_name()
+            .ok_or("Invalid directory name")?
+            .to_string_lossy()
+            .to_string();
+
         for entry in walkdir::WalkDir::new(&root) {
             let entry = entry.map_err(|e| e.to_string())?;
             let path = entry.path();
 
-            if path.is_file() {
-                let relative = if let Some(prefix) = &strip_prefix {
-                    path.strip_prefix(prefix)
-                        .map_err(|_| "strip_prefix failed")?
+            // 处理目录：目录也要写入 zip（并以 / 结尾）
+            if path.is_dir() {
+                let relative = path
+                    .strip_prefix(root)
+                    .map_err(|_| "strip_prefix failed for dir")?;
+
+                let name_in_zip = if relative.as_os_str().is_empty() {
+                    // 根目录
+                    format!("{}/", root_name)
                 } else {
-                    path.strip_prefix(&root)
-                        .map_err(|_| "strip_prefix failed")?
+                    format!(
+                        "{}/{}/",
+                        root_name,
+                        relative.to_string_lossy().replace('\\', "/")
+                    )
                 };
 
-                let name_in_zip = relative.to_string_lossy().replace('\\', "/");
+                self.writer
+                    .add_directory(name_in_zip, self.options)
+                    .map_err(|e| format!("add_directory: {}", e))?;
+
+                continue;
+            }
+
+            // 处理文件
+            if path.is_file() {
+                let relative = path
+                    .strip_prefix(root)
+                    .map_err(|_| "strip_prefix failed for file")?;
+
+                let name_in_zip = format!(
+                    "{}/{}",
+                    root_name,
+                    relative.to_string_lossy().replace('\\', "/")
+                );
 
                 self.writer
                     .start_file(name_in_zip.clone(), self.options)
@@ -189,7 +216,6 @@ impl Zipper {
             .map_err(|e| e.to_string())
     }
 
-    /// 完成压缩，必须调用！
     pub fn close(self) -> Result<(), String> {
         self.writer.finish().map_err(|e| e.to_string())?;
         Ok(())
