@@ -92,10 +92,14 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final title = ['分类', '我的'][selectedIndex];
     final isCategory = title == '分类';
+    final systemUiOverlayStyle =
+        Theme.of(context).brightness == Brightness.light
+        ? SystemUiOverlayStyle.dark
+        : SystemUiOverlayStyle.light;
     return AppBar(
       title: Text(title),
       backgroundColor: isCategory ? null : Colors.transparent,
-      systemOverlayStyle: isCategory ? null : SystemUiOverlayStyle.dark,
+      systemOverlayStyle: isCategory ? null : systemUiOverlayStyle,
       actions: [
         IconButton(
           onPressed: () => context.push('/search'),
