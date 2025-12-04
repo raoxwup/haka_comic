@@ -124,12 +124,16 @@ class _DownloadExecutor {
     final api = Api.fromName(await asyncPrefs.getString('api'));
 
     // 构建剩余下载列表
-    final remaining = <MapEntry<DownloadChapter, ImageDetail>>[];
+    final remaining = <MapEntry<DownloadChapter, (ImageDetail, String)>>[];
     int index = 0;
     for (final chapter in task.chapters) {
-      for (final image in chapter.images) {
+      int i = 0;
+      for (var image in chapter.images) {
         if (index++ < task.completed) continue;
-        remaining.add(MapEntry(chapter, image));
+        final paddedIndex = (i + 1).toString().padLeft(4, '0');
+        final ext = p.extension(image.originalName);
+        remaining.add(MapEntry(chapter, (image, '$paddedIndex$ext')));
+        i++;
       }
     }
 
@@ -141,12 +145,12 @@ class _DownloadExecutor {
       if (cancelToken.isCancelled) break;
 
       final chapter = entry.key;
-      final image = entry.value;
+      final (image, fileName) = entry.value;
       final path = p.join(
         _downloadPath,
         task.comic.title.legalized,
         '${chapter.order}_${chapter.title.legalized}',
-        image.originalName,
+        fileName,
       );
 
       final fut = pool.withResource(() async {
