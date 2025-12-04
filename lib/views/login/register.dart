@@ -54,7 +54,22 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
     }
 
     if (nickname.length < 2) {
-      Toast.show(message: '昵称长度至少为2');
+      Toast.show(message: '昵称长度至少2个字符');
+      return;
+    }
+
+    if (nickname.length > 50) {
+      Toast.show(message: '昵称长度不能超过50个字符');
+      return;
+    }
+
+    if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(username)) {
+      Toast.show(message: '用户名只能包含字母和数字');
+      return;
+    }
+
+    if (password.length < 8) {
+      Toast.show(message: '密码长度至少8个字符');
       return;
     }
 
