@@ -61,7 +61,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.10.3
+  build_runner: ^2.10.4
   json_serializable: ^6.11.1
   flutter_launcher_icons: ^0.14.3
   package_rename: ^1.10.0

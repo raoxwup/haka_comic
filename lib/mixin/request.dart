@@ -51,6 +51,17 @@ abstract class BaseRequestHandler<T, P> {
   Future<void> refresh();
 
   Future<void> run(P? param);
+
+  ({
+    T? data,
+    Object? error,
+    bool loading,
+    Future<void> Function() refresh,
+    Future<void> Function(P) run,
+    bool hasError,
+    bool hasData,
+  })
+  get deconstruct;
 }
 
 abstract class AsyncRequestHandler<T, P> implements BaseRequestHandler<T, P> {
@@ -104,6 +115,26 @@ abstract class AsyncRequestHandler<T, P> implements BaseRequestHandler<T, P> {
   bool get hasError => error != null;
   @override
   bool get hasData => data != null;
+
+  @override
+  ({
+    T? data,
+    Object? error,
+    bool loading,
+    Future<void> Function() refresh,
+    Future<void> Function(P) run,
+    bool hasError,
+    bool hasData,
+  })
+  get deconstruct => (
+    data: data,
+    error: error,
+    loading: loading,
+    refresh: refresh,
+    run: run,
+    hasError: hasError,
+    hasData: hasData,
+  );
 }
 
 class AsyncRequestHandlerWithoutParam<T> extends AsyncRequestHandler<T, void> {

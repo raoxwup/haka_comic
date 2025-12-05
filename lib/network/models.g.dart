@@ -147,7 +147,7 @@ Map<String, dynamic> _$CreatorToJson(Creator instance) => <String, dynamic>{
 };
 
 Comic _$ComicFromJson(Map<String, dynamic> json) => Comic(
-  author: json['author'] as String,
+  author: json['author'] as String?,
   categories: (json['categories'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),

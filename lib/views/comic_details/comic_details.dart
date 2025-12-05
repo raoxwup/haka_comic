@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
+import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart'
+    hide UseRequest1Extensions, AsyncRequestHandler;
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
@@ -35,10 +36,10 @@ class ComicDetails extends StatefulWidget {
   State<ComicDetails> createState() => _ComicDetailsState();
 }
 
-class _ComicDetailsState extends State<ComicDetails>
-    with AutoRegisterHandlerMixin {
+class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
   /// 漫画详情
-  final handler = fetchComicDetails.useRequest(
+  late final handler = fetchComicDetails.useRequest(
+    initParam: widget.id,
     onSuccess: (data, _) {
       Log.info('Fetch comic details', data.toString());
       HistoryHelper().insert(data.comic);
@@ -50,6 +51,7 @@ class _ComicDetailsState extends State<ComicDetails>
 
   /// 漫画章节
   late final chaptersHandler = fetchChapters.useRequest(
+    initParam: widget.id,
     onSuccess: (data, _) {
       Log.info('Fetch chapters success', data.toString());
       // 哔咔最新的排在最前面
@@ -63,9 +65,9 @@ class _ComicDetailsState extends State<ComicDetails>
   @override
   List<AsyncRequestHandler> registerHandler() => [handler, chaptersHandler];
 
-  final ValueNotifier<bool> _showTitleNotifier = ValueNotifier(false);
-  final ScrollController _scrollController = ScrollController();
-  final double _scrollThreshold = 80;
+  final _showTitleNotifier = ValueNotifier(false);
+  final _scrollController = ScrollController();
+  final _scrollThreshold = 80.0;
   final _helper = ReadRecordHelper();
 
   // 阅读记录
@@ -91,9 +93,6 @@ class _ComicDetailsState extends State<ComicDetails>
   @override
   void initState() {
     super.initState();
-
-    handler.run(widget.id);
-    chaptersHandler.run(widget.id);
 
     _scrollController.addListener(_handleScroll);
 
@@ -180,8 +179,7 @@ class _ComicDetailsState extends State<ComicDetails>
             ],
           ),
           body: BasePage(
-            isLoading:
-                handler.isLoading || chaptersHandler.isLoading || !completed,
+            isLoading: handler.loading || chaptersHandler.loading || !completed,
             onRetry: () {
               handler.refresh();
               chaptersHandler.refresh();
@@ -195,8 +193,10 @@ class _ComicDetailsState extends State<ComicDetails>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTitle(data),
-                  _buildTags(data, '分类'),
-                  _buildTags(data, '标签'),
+                  if (data?.categories != null && data!.categories.isNotEmpty)
+                    _buildTags(data, '分类'),
+                  if (data?.tags != null && data!.tags.isNotEmpty)
+                    _buildTags(data, '标签'),
                   _buildActions(data),
                   if (UiMode.m1(context))
                     ValueListenableBuilder(
@@ -291,7 +291,7 @@ class _ComicDetailsState extends State<ComicDetails>
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (data?.author != null && data!.author.isNotEmpty)
+              if (data?.author != null && data!.author!.isNotEmpty)
                 InfoRow(
                   onTap: () => context.push('/comics?a=${data.author}'),
                   data: data.author,
