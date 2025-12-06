@@ -66,6 +66,10 @@ class _MineState extends State<Mine> with AutoRegisterHandlerMixin {
       isLoading: _userProfileHandler.isLoading,
       onRetry: _userProfileHandler.refresh,
       error: _userProfileHandler.error,
+      indicatorBuilder: (_) => Padding(
+        padding: EdgeInsets.only(top: context.top),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [

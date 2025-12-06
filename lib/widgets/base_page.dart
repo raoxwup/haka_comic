@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 
-class BasePage extends StatefulWidget {
+class BasePage extends StatelessWidget {
   const BasePage({
     super.key,
     this.error,
@@ -14,35 +14,33 @@ class BasePage extends StatefulWidget {
   });
 
   final Object? error;
-
   final bool isLoading;
-
   final VoidCallback onRetry;
-
   final Widget child;
+  final Widget Function(BuildContext context)? indicatorBuilder;
+  final Widget Function(BuildContext context)? errorBuilder;
 
-  final Widget Function(BuildContext)? indicatorBuilder;
-
-  final Widget Function(BuildContext)? errorBuilder;
-
-  @override
-  State<BasePage> createState() => _BasePageState();
-}
-
-class _BasePageState extends State<BasePage> {
   @override
   Widget build(BuildContext context) {
-    return widget.error != null
-        ? widget.errorBuilder != null
-              ? widget.errorBuilder!(context)
-              : ErrorPage(
-                  errorMessage: getTextBeforeNewLine(widget.error.toString()),
-                  onRetry: widget.onRetry,
-                )
-        : widget.isLoading
-        ? widget.indicatorBuilder != null
-              ? widget.indicatorBuilder!(context)
-              : const Center(child: CircularProgressIndicator())
-        : widget.child;
+    if (error != null) {
+      final builder = errorBuilder;
+      if (builder != null) {
+        return builder(context);
+      }
+      return ErrorPage(
+        errorMessage: getTextBeforeNewLine(error.toString()),
+        onRetry: onRetry,
+      );
+    }
+
+    if (isLoading) {
+      final builder = indicatorBuilder;
+      if (builder != null) {
+        return builder(context);
+      }
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return child;
   }
 }

@@ -3,18 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart'
+    hide UseRequest1Extensions, AsyncRequestHandler;
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/reader/app_bar.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/next_chapter.dart';
 import 'package:haka_comic/views/reader/page_no_tag.dart';
+import 'package:haka_comic/views/reader/widget/reader_keyboard_listener.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
@@ -35,9 +37,13 @@ class Reader extends StatefulWidget {
   State<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
+class _ReaderState extends State<Reader> with UseRequestMixin {
   /// 章节图片获取
   late final _handler = fetchChapterImages.useRequest(
+    initParam: FetchChapterImagesPayload(
+      id: context.reader.cid,
+      order: context.reader.currentChapter.order,
+    ),
     onSuccess: (data, _) {
       Log.info('Fetch chapter images success', data.toString());
     },
@@ -221,31 +227,37 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
     isTurnNext ? nextPage() : previousPage();
   }
 
+  /// 向前翻页
+  void prev() {
+    if (_readMode.isVertical) {
+      _pageTurnForVertical(context.height * AppConf().slipFactor * -1);
+    } else {
+      _pageTurnForHorizontal(false);
+    }
+  }
+
+  /// 向后翻页
+  void next() {
+    if (_readMode.isVertical) {
+      _pageTurnForVertical(context.height * AppConf().slipFactor);
+    } else {
+      _pageTurnForHorizontal();
+    }
+  }
+
   /// 音量键控制器
   final volumeController = VolumeButtonController();
 
   /// 音量+事件
   late final volumeUpAction = ButtonAction(
     id: ButtonActionId.volumeUp,
-    onAction: () {
-      if (_readMode.isVertical) {
-        _pageTurnForVertical(context.height * AppConf().slipFactor * -1);
-      } else {
-        _pageTurnForHorizontal(false);
-      }
-    },
+    onAction: prev,
   );
 
   /// 音量-事件
   late final volumeDownAction = ButtonAction(
     id: ButtonActionId.volumeDown,
-    onAction: () {
-      if (_readMode.isVertical) {
-        _pageTurnForVertical(context.height * AppConf().slipFactor);
-      } else {
-        _pageTurnForHorizontal();
-      }
-    },
+    onAction: next,
   );
 
   // 定时翻页
@@ -256,12 +268,8 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   void _startPageTurn() {
     _turnPageTimer?.cancel();
     _turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
-      if (_handler.isLoading) return;
-      if (_readMode.isVertical) {
-        _pageTurnForVertical(context.height * AppConf().slipFactor);
-      } else {
-        _pageTurnForHorizontal();
-      }
+      if (_handler.loading) return;
+      next();
     });
     setState(() {
       _isPageTurning = true;
@@ -288,13 +296,6 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
   @override
   void initState() {
     super.initState();
-
-    _handler.run(
-      FetchChapterImagesPayload(
-        id: context.reader.cid,
-        order: context.reader.currentChapter.order,
-      ),
-    );
 
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -378,10 +379,24 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
         children: [
           Positioned.fill(
             child: BasePage(
-              isLoading: _handler.isLoading,
+              isLoading: _handler.loading,
               onRetry: _handler.refresh,
               error: _handler.error,
-              child: listWidget,
+              child: ReaderKeyboardListener(
+                handlers: {
+                  LogicalKeyboardKey.arrowLeft: prev,
+                  LogicalKeyboardKey.arrowRight: next,
+                  LogicalKeyboardKey.arrowUp: prev,
+                  LogicalKeyboardKey.arrowDown: next,
+                  LogicalKeyboardKey.pageUp: prev,
+                  LogicalKeyboardKey.pageDown: next,
+                  LogicalKeyboardKey.keyA: prev,
+                  LogicalKeyboardKey.keyD: next,
+                  LogicalKeyboardKey.audioVolumeUp: prev,
+                  LogicalKeyboardKey.audioVolumeDown: next,
+                },
+                child: listWidget,
+              ),
             ),
           ),
 
@@ -394,7 +409,7 @@ class _ReaderState extends State<Reader> with AutoRegisterHandlerMixin {
           if (!isLastChapter)
             ReaderNextChapter(
               isShow:
-                  !_handler.isLoading &&
+                  !_handler.loading &&
                   _images.isNotEmpty &&
                   correctPageNo >= total - 2,
               onPressed: goNext,

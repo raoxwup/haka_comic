@@ -44,16 +44,12 @@ class _DownloadExecutor {
   static final Map<String, CancelToken> _cancelTokens = <String, CancelToken>{};
   static late final SendPort mainIsolateSendPort;
   static late final String _downloadPath;
-  static late final SharedPreferencesWithCache prefsWithCache;
+  static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
 
   /// 默认单任务并发数
   static const int defaultConcurrency = 3;
 
   static Future<void> initialize() async {
-    prefsWithCache = await SharedPreferencesWithCache.create(
-      cacheOptions: const SharedPreferencesWithCacheOptions(),
-    );
-
     final path = await getDownloadDirectory();
     _downloadPath = path;
 
@@ -102,12 +98,8 @@ class _DownloadExecutor {
   ) async {
     if (chapter.images.isNotEmpty) return;
 
-    final token = prefsWithCache.getString('token');
-    final api = Api.fromName(prefsWithCache.getString('api'));
-
-    if (token == null) {
-      throw Exception('Token is null');
-    }
+    final token = await asyncPrefs.getString('token') ?? '';
+    final api = Api.fromName(await asyncPrefs.getString('api'));
 
     final response = await _fetchChapterImagesIsolate(
       FetchChapterImagesPayload(id: id, order: chapter.order),
@@ -129,15 +121,19 @@ class _DownloadExecutor {
 
     final cancelToken = _cancelTokens[task.comic.id] ??= CancelToken();
 
-    final api = Api.fromName(prefsWithCache.getString('api'));
+    final api = Api.fromName(await asyncPrefs.getString('api'));
 
     // 构建剩余下载列表
-    final remaining = <MapEntry<DownloadChapter, ImageDetail>>[];
+    final remaining = <MapEntry<DownloadChapter, (ImageDetail, String)>>[];
     int index = 0;
     for (final chapter in task.chapters) {
-      for (final image in chapter.images) {
+      int i = 0;
+      for (var image in chapter.images) {
         if (index++ < task.completed) continue;
-        remaining.add(MapEntry(chapter, image));
+        final paddedIndex = (i + 1).toString().padLeft(4, '0');
+        final ext = p.extension(image.originalName);
+        remaining.add(MapEntry(chapter, (image, '$paddedIndex$ext')));
+        i++;
       }
     }
 
@@ -149,12 +145,12 @@ class _DownloadExecutor {
       if (cancelToken.isCancelled) break;
 
       final chapter = entry.key;
-      final image = entry.value;
+      final (image, fileName) = entry.value;
       final path = p.join(
         _downloadPath,
         task.comic.title.legalized,
         '${chapter.order}_${chapter.title.legalized}',
-        image.originalName,
+        fileName,
       );
 
       final fut = pool.withResource(() async {

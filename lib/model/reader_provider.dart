@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
 
 enum ReadMode {
@@ -41,6 +42,9 @@ enum ReadMode {
 }
 
 class ReaderProvider with ChangeNotifier {
+  ReaderProvider()
+    : _verticalListWidthPercentage = AppConf().verticalListWidthRatio;
+
   /// 漫画id
   late String cid;
 
@@ -92,5 +96,21 @@ class ReaderProvider with ChangeNotifier {
     this.chapters = chapters;
     _currentChapter = currentChapter ?? chapters.first;
     _pageNo = pageNo ?? 0;
+  }
+
+  /// 是否按下了Ctrl
+  bool _isCtrlPressed = false;
+  bool get isCtrlPressed => _isCtrlPressed;
+  set isCtrlPressed(bool value) {
+    _isCtrlPressed = value;
+    notifyListeners();
+  }
+
+  /// 条漫模式宽度
+  late double _verticalListWidthPercentage;
+  double get verticalListWidth => _verticalListWidthPercentage;
+  set verticalListWidth(double width) {
+    _verticalListWidthPercentage = width;
+    notifyListeners();
   }
 }

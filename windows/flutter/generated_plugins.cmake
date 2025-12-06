@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   local_auth_windows
+  permission_handler_windows
   screen_retriever_windows
   share_plus
   sqlite3_flutter_libs

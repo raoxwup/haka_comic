@@ -24,6 +24,27 @@ Future<void> decompress({
   outputFolderPath: outputFolderPath,
 );
 
+Future<Zipper> createZipper({
+  required String zipPath,
+  required CompressionMethod compressionMethod,
+}) => RustLib.instance.api.crateApiCompressCreateZipper(
+  zipPath: zipPath,
+  compressionMethod: compressionMethod,
+);
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Zipper>>
+abstract class Zipper implements RustOpaqueInterface {
+  /// 添加整个目录（递归，所有文件都会被加入）
+  Future<void> addDirectory({required String dirPath});
+
+  Future<void> addEmptyDirectory({required String dirName});
+
+  /// 添加单个文件（会自动保留相对路径结构）
+  Future<void> addFile({required String filePath, String? pathInZip});
+
+  Future<void> close();
+}
+
 enum CompressionMethod {
   stored,
   deflated,

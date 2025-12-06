@@ -334,7 +334,7 @@ class Comic {
 
   final ImageDetail thumb;
 
-  final String author;
+  final String? author;
 
   final List<String> categories;
 

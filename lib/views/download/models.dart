@@ -83,4 +83,18 @@ enum DownloadTaskStatus {
       orElse: () => throw Exception('Unknown status name: $name'),
     );
   }
+
+  bool get isOperable => this == downloading || this == paused || this == error;
+
+  ({IconData icon, void Function(String id) action}) get iconAndAction {
+    return switch (this) {
+      paused => (icon: Icons.pause, action: BackgroundDownloader.resumeTask),
+      downloading => (
+        icon: Icons.pause,
+        action: BackgroundDownloader.pauseTask,
+      ),
+      error => (icon: Icons.refresh, action: BackgroundDownloader.resumeTask),
+      _ => (icon: Icons.error, action: (_) {}),
+    };
+  }
 }
