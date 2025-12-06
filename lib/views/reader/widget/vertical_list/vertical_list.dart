@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -90,45 +92,52 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final physics =
         ScrollPhysicsInherited.of(context) ?? const BouncingScrollPhysics();
 
+    final verticalListWidth = context.select<ReaderProvider, double>(
+      (value) => value.verticalListWidth,
+    );
+
     return GestureWrapper(
       openOrCloseToolbar: widget.openOrCloseToolbar,
       jumpOffset: widget.pageTurn,
-      child: ScrollablePositionedList.builder(
-        initialScrollIndex: context.reader.pageNo,
-        padding: EdgeInsets.zero,
-        physics: physics,
-        itemCount: widget.images.length + 1,
-        itemScrollController: widget.itemScrollController,
-        itemPositionsListener: itemPositionsListener,
-        scrollOffsetController: widget.scrollOffsetController,
-        itemBuilder: (context, index) {
-          if (index == widget.images.length) {
-            return const Padding(
-              padding: EdgeInsetsGeometry.symmetric(vertical: 16.0),
-              child: Text(
-                '本章完',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-              ),
-            );
-          }
-          final item = widget.images[index];
-          final imageSize = _imageSizeCache[item.uid];
-          return ComicImage(
-            url: item.media.url,
-            onImageSizeChanged: (width, height) {
-              final size = ImageSize(
-                width: width,
-                height: height,
-                imageId: item.uid,
-                cid: cid,
+      child: FractionallySizedBox(
+        widthFactor: verticalListWidth.clamp(0.0, 1.0),
+        child: ScrollablePositionedList.builder(
+          initialScrollIndex: context.reader.pageNo,
+          padding: EdgeInsets.zero,
+          physics: physics,
+          itemCount: widget.images.length + 1,
+          itemScrollController: widget.itemScrollController,
+          itemPositionsListener: itemPositionsListener,
+          scrollOffsetController: widget.scrollOffsetController,
+          itemBuilder: (context, index) {
+            if (index == widget.images.length) {
+              return const Padding(
+                padding: EdgeInsetsGeometry.symmetric(vertical: 16.0),
+                child: Text(
+                  '本章完',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                ),
               );
-              insertImageSize(size);
-              _imageSizeCache[item.uid] = size;
-            },
-            imageSize: imageSize,
-          );
-        },
+            }
+            final item = widget.images[index];
+            final imageSize = _imageSizeCache[item.uid];
+            return ComicImage(
+              url: item.media.url,
+              onImageSizeChanged: (width, height) {
+                final size = ImageSize(
+                  width: width,
+                  height: height,
+                  imageId: item.uid,
+                  cid: cid,
+                );
+                insertImageSize(size);
+                _imageSizeCache[item.uid] = size;
+              },
+              imageSize: imageSize,
+            );
+          },
+        ),
       ),
     );
   }

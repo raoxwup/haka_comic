@@ -89,6 +89,9 @@ class AppConf {
   /// 是否需要身份认证
   bool _needAuth = false;
 
+  /// 条漫模式列表宽度占屏幕宽度的百分比
+  double _verticalListWidthRatio = 1.0;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -134,6 +137,8 @@ class AppConf {
     instance._searchHistory =
         prefsWithCache.getStringList('search_history') ?? [];
     instance._needAuth = prefsWithCache.getBool('needAuth') ?? false;
+    instance._verticalListWidthRatio =
+        prefsWithCache.getDouble('verticalListWidthRatio') ?? 1.0;
   }
 
   set email(String value) {
@@ -298,6 +303,14 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setBool('needAuth', value);
   }
 
+  set verticalListWidthRatio(double value) {
+    _verticalListWidthRatio = value;
+    SharedPreferencesUtil.prefsWithCache.setDouble(
+      'verticalListWidthRatio',
+      value,
+    );
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -329,6 +342,7 @@ class AppConf {
   String get primaryColor => _primaryColor;
   List<String> get searchHistory => _searchHistory;
   bool get needAuth => _needAuth;
+  double get verticalListWidthRatio => _verticalListWidthRatio;
 
   /// 清除token
   void clearAuth() {

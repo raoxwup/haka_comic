@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:provider/provider.dart';
 
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
@@ -185,6 +187,43 @@ class ReaderBottom extends StatelessWidget {
                   },
                   tooltip: '滑动距离',
                   icon: const Icon(Icons.straighten_outlined),
+                ),
+              if (isVerticalMode)
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final verticalListWidth = context
+                            .select<ReaderProvider, double>(
+                              (value) => value.verticalListWidth,
+                            );
+                        return SimpleDialog(
+                          contentPadding: const EdgeInsets.all(20),
+                          title: const Text('漫画宽度'),
+                          children: [
+                            const Text('用于调整阅读时漫画的宽度。'),
+                            Slider(
+                              value: verticalListWidth * 10,
+                              min: 2,
+                              max: 10,
+                              divisions: 8,
+                              label: '$verticalListWidth * 屏宽',
+                              onChanged: (double value) {
+                                context
+                                        .read<ReaderProvider>()
+                                        .verticalListWidth =
+                                    value / 10;
+                                AppConf().verticalListWidthRatio = value / 10;
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  tooltip: '漫画宽度',
+                  icon: const Icon(Icons.width_normal_outlined),
                 ),
               IconButton(
                 onPressed: startPageTurn,
