@@ -93,4 +93,12 @@ class ReaderProvider with ChangeNotifier {
     _currentChapter = currentChapter ?? chapters.first;
     _pageNo = pageNo ?? 0;
   }
+
+  /// 是否按下了Ctrl
+  bool _isCtrlPressed = false;
+  bool get isCtrlPressed => _isCtrlPressed;
+  set isCtrlPressed(bool value) {
+    _isCtrlPressed = value;
+    notifyListeners();
+  }
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:provider/provider.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
@@ -46,16 +47,11 @@ class GestureWrapper extends StatefulWidget {
 
 class _GestureWrapperState extends State<GestureWrapper>
     with SingleTickerProviderStateMixin {
-  /// ctrl是否点击
-  bool _isCtrlPressed = false;
-
   /// 当前触摸点个数
   int _activePointers = 0;
 
   /// 滑动控制
   late ScrollPhysics _listPhysics = widget.initialPhysics;
-
-  final _focusNode = FocusNode()..requestFocus();
 
   ///双击缩放相关
   final _transformationController = TransformationController();
@@ -115,35 +111,6 @@ class _GestureWrapperState extends State<GestureWrapper>
     _doubleTapPosition = details.localPosition;
   }
 
-  /// 处理键盘事件
-  /// 返回false允许事件继续传播
-  bool _handleKeyEvent(KeyEvent event) {
-    if (!isDesktop) return false;
-    final key = event.logicalKey;
-    final isControl =
-        key == LogicalKeyboardKey.controlLeft ||
-        key == LogicalKeyboardKey.controlRight;
-
-    // 优化：避免不必要的setState调用
-    if (event is KeyDownEvent && isControl) {
-      if (!_isCtrlPressed) {
-        setState(() {
-          _isCtrlPressed = true;
-          _listPhysics = const NeverScrollableScrollPhysics();
-        });
-      }
-    } else if (event is KeyUpEvent && isControl) {
-      if (_isCtrlPressed) {
-        setState(() {
-          _isCtrlPressed = false;
-          _listPhysics = widget.initialPhysics;
-        });
-      }
-    }
-
-    return false;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -162,8 +129,6 @@ class _GestureWrapperState extends State<GestureWrapper>
     _transformationController.dispose();
 
     _animationController.dispose();
-
-    _focusNode.dispose();
 
     super.dispose();
   }
@@ -193,28 +158,26 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   @override
   Widget build(BuildContext context) {
+    final isCtrlPressed = context.select<ReaderProvider, bool>(
+      (value) => value.isCtrlPressed,
+    );
     return ScrollPhysicsInherited(
       physics: _listPhysics,
       child: Listener(
         onPointerDown: (event) => _updatePointerCount(1),
         onPointerUp: (event) => _updatePointerCount(-1),
         onPointerCancel: (event) => _updatePointerCount(-1),
-        child: KeyboardListener(
-          focusNode: _focusNode,
-          autofocus: true,
-          onKeyEvent: _handleKeyEvent,
-          child: GestureDetector(
-            onTap: _handleTap,
-            onTapDown: (details) => _tapDownDetails = details,
-            onDoubleTapDown: _handleDoubleTapDown,
-            onDoubleTap: _handleDoubleTap,
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              scaleEnabled: isDesktop ? _isCtrlPressed : true,
-              minScale: 1,
-              maxScale: 3.5,
-              child: widget.child,
-            ),
+        child: GestureDetector(
+          onTap: _handleTap,
+          onTapDown: (details) => _tapDownDetails = details,
+          onDoubleTapDown: _handleDoubleTapDown,
+          onDoubleTap: _handleDoubleTap,
+          child: InteractiveViewer(
+            transformationController: _transformationController,
+            scaleEnabled: isDesktop ? isCtrlPressed : true,
+            minScale: 1,
+            maxScale: 3.5,
+            child: widget.child,
           ),
         ),
       ),
