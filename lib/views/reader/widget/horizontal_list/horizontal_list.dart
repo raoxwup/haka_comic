@@ -20,10 +20,8 @@ class HorizontalList extends StatefulWidget {
     required this.onItemVisibleChanged,
     required this.pageController,
     required this.isDoublePage,
-    required this.images,
     required this.isReverse,
     required this.openOrCloseToolbar,
-    required this.multiPageImages,
     required this.action,
     required this.pageTurn,
   });
@@ -36,13 +34,9 @@ class HorizontalList extends StatefulWidget {
 
   final bool isDoublePage;
 
-  final List<ChapterImage> images;
-
   final bool isReverse;
 
   final VoidCallback openOrCloseToolbar;
-
-  final List<List<ChapterImage>> multiPageImages;
 
   /// 上一章或下一章
   final VoidCallback? Function(ReaderBottomActionType) action;
@@ -66,8 +60,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   /// 是否双页模式
   bool get isDoublePage => widget.isDoublePage;
 
-  int get itemCount =>
-      isDoublePage ? widget.multiPageImages.length : widget.images.length;
+  int get itemCount => isDoublePage
+      ? context.reader.multiPageImages.length
+      : context.reader.images.length;
 
   void jumpToPage() {
     final reader = context.reader;
@@ -159,7 +154,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               reverse: isReverse,
               builder: (context, index) {
                 if (!isDoublePage) {
-                  final item = widget.images[index];
+                  final item = context.reader.images[index];
                   return PhotoViewGalleryPageOptions(
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 4.0,
@@ -191,7 +186,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                   );
                 }
 
-                final items = widget.multiPageImages[index];
+                final items = context.reader.multiPageImages[index];
                 final size = Size(constraints.maxWidth, constraints.maxHeight);
                 return PhotoViewGalleryPageOptions.customChild(
                   childSize: size * 2,
@@ -257,13 +252,13 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     if (_visibleFirstIndex > index) {
       final start = i - 1;
       final end = i - maxPreloadCount;
-      preloadImages(start, end, widget.images);
+      preloadImages(start, end, context.reader.images);
     } else {
       int part = i;
       if (isDoublePage) {
         part = part + 1;
       }
-      preloadImages(part + 1, part + maxPreloadCount, widget.images);
+      preloadImages(part + 1, part + maxPreloadCount, context.reader.images);
     }
 
     _visibleFirstIndex = index;

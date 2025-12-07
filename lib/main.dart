@@ -8,7 +8,6 @@ import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/model/theme_provider.dart';
 import 'package:haka_comic/model/user_provider.dart';
@@ -36,7 +35,6 @@ void main(List<String> args) {
                   ChangeNotifierProvider(create: (_) => ThemeProvider()),
                   ChangeNotifierProvider(create: (_) => SearchProvider()),
                   ChangeNotifierProvider(create: (_) => UserProvider()),
-                  ChangeNotifierProvider(create: (_) => ReaderProvider()),
                 ],
                 child: const App(),
               ),

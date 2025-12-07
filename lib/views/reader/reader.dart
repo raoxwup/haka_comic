@@ -5,13 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/model/reader_provider.dart';
-import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart'
     hide UseRequest1Extensions, AsyncRequestHandler;
 import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/reader/app_bar.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/next_chapter.dart';
@@ -27,7 +24,7 @@ import 'package:volume_button_override/volume_button_override.dart';
 
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
-  ReaderProvider get watchReader => watch<ReaderProvider>();
+  ReaderProvider get watcher => watch<ReaderProvider>();
 }
 
 class Reader extends StatefulWidget {
@@ -38,44 +35,13 @@ class Reader extends StatefulWidget {
 }
 
 class _ReaderState extends State<Reader> with UseRequestMixin {
-  /// 章节图片获取
-  late final _handler = fetchChapterImages.useRequest(
-    initParam: FetchChapterImagesPayload(
-      id: context.reader.cid,
-      order: context.reader.currentChapter.order,
-    ),
-    onSuccess: (data, _) {
-      Log.info('Fetch chapter images success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch chapter images error', e);
-    },
-  );
-
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  /// 章节图片
-  List<ChapterImage> get _images => _handler.data ?? [];
-
-  /// 双页章节图片
-  List<List<ChapterImage>> get _multiPageImages => splitList(_images, 2);
+  List<AsyncRequestHandler> registerHandler() => [context.reader.handler];
 
   /// 滚动控制器 - 用于精确控制列表滚动位置
   final _scrollOffsetController = ScrollOffsetController();
   final _itemScrollController = ItemScrollController();
   final _pageController = PageController();
-
-  /// 阅读模式
-  ReadMode _readMode = AppConf().readMode;
-
-  /// 修改阅读模式
-  void _setReadMode(ReadMode mode) {
-    setState(() {
-      _readMode = mode;
-      AppConf().readMode = mode;
-    });
-  }
 
   /// 是否显示顶部/底部工具栏
   bool _showToolbar = false;
@@ -96,7 +62,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
   void go(Chapter chapter) {
     context.reader.currentChapter = chapter;
     context.reader.pageNo = 0;
-    _handler.run(
+    context.reader.handler.run(
       FetchChapterImagesPayload(id: context.reader.cid, order: chapter.order),
     );
   }
@@ -144,7 +110,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
   /// 底部工具栏Slider OnChanged
   void onSliderChanged(int index) {
     context.reader.pageNo = index;
-    if (_readMode.isVertical) {
+    if (context.reader.readMode.isVertical) {
       _itemScrollController.jumpTo(index: index);
     } else {
       _pageController.jumpToPage(index);
@@ -163,7 +129,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
       return;
     }
 
-    if (reader.pageNo == _images.length - 1 && offset > 0) {
+    if (reader.pageNo == reader.images.length - 1 && offset > 0) {
       if (!reader.isLastChapter) {
         goNext();
       } else {
@@ -200,13 +166,11 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
     }
 
     void nextPage() {
-      final correctPageNo = _readMode.isDoublePage
+      final correctPageNo = context.reader.readMode.isDoublePage
           ? toCorrectMultiPageNo(reader.pageNo, 2)
           : reader.pageNo;
 
-      final itemCount = _readMode.isDoublePage
-          ? _multiPageImages.length
-          : _images.length;
+      final itemCount = context.reader.pageCount;
 
       if (correctPageNo == itemCount - 1) {
         if (!reader.isLastChapter) {
@@ -229,7 +193,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
 
   /// 向前翻页
   void prev() {
-    if (_readMode.isVertical) {
+    if (context.reader.readMode.isVertical) {
       _pageTurnForVertical(context.height * AppConf().slipFactor * -1);
     } else {
       _pageTurnForHorizontal(false);
@@ -238,7 +202,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
 
   /// 向后翻页
   void next() {
-    if (_readMode.isVertical) {
+    if (context.reader.readMode.isVertical) {
       _pageTurnForVertical(context.height * AppConf().slipFactor);
     } else {
       _pageTurnForHorizontal();
@@ -268,7 +232,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
   void _startPageTurn() {
     _turnPageTimer?.cancel();
     _turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
-      if (_handler.loading) return;
+      if (context.reader.handler.loading) return;
       next();
     });
     setState(() {
@@ -343,33 +307,28 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
       };
     }
 
-    Widget listWidget = _readMode.isVertical
+    Widget listWidget = context.reader.readMode.isVertical
         ? VerticalList(
             onItemVisibleChanged: onPageNoChanged,
             itemScrollController: _itemScrollController,
             openOrCloseToolbar: openOrCloseToolbar,
             scrollOffsetController: _scrollOffsetController,
-            images: _images,
             action: action,
             pageTurn: _pageTurnForVertical,
           )
         : HorizontalList(
             onItemVisibleChanged: onPageNoChanged,
             pageController: _pageController,
-            isDoublePage: _readMode.isDoublePage,
+            isDoublePage: context.reader.readMode.isDoublePage,
             openOrCloseToolbar: openOrCloseToolbar,
-            images: _images,
-            multiPageImages: _multiPageImages,
-            isReverse: _readMode.isReverse,
+            isReverse: context.reader.readMode.isReverse,
             action: action,
             pageTurn: _pageTurnForHorizontal,
           );
 
-    final total = _readMode.isDoublePage
-        ? _multiPageImages.length
-        : _images.length;
+    final total = context.reader.pageCount;
 
-    final correctPageNo = _readMode.isDoublePage
+    final correctPageNo = context.reader.readMode.isDoublePage
         ? toCorrectMultiPageNo(pageNo, 2)
         : context.reader.pageNo;
 
@@ -379,9 +338,9 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
         children: [
           Positioned.fill(
             child: BasePage(
-              isLoading: _handler.loading,
-              onRetry: _handler.refresh,
-              error: _handler.error,
+              isLoading: context.reader.handler.loading,
+              onRetry: context.reader.handler.refresh,
+              error: context.reader.handler.error,
               child: ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
@@ -409,17 +368,17 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
           if (!isLastChapter)
             ReaderNextChapter(
               isShow:
-                  !_handler.loading &&
-                  _images.isNotEmpty &&
+                  !context.reader.handler.loading &&
+                  context.reader.images.isNotEmpty &&
                   correctPageNo >= total - 2,
               onPressed: goNext,
             ),
 
           ReaderAppBar(
-            readMode: _readMode,
+            readMode: context.reader.readMode,
             showToolbar: _showToolbar,
             onReadModeChanged: (mode) {
-              _setReadMode(mode);
+              context.reader.readMode = mode;
               openOrCloseToolbar();
             },
           ),
@@ -429,7 +388,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
             showToolbar: _showToolbar,
             total: total,
             pageNo: correctPageNo,
-            isVerticalMode: _readMode.isVertical,
+            isVerticalMode: context.reader.readMode.isVertical,
             action: action,
             startPageTurn: () {
               openOrCloseToolbar();

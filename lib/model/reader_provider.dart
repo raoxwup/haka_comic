@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/mixin/request.dart';
+import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/utils/log.dart';
 
 enum ReadMode {
   /// 条漫模式
@@ -42,17 +46,61 @@ enum ReadMode {
 }
 
 class ReaderProvider with ChangeNotifier {
-  ReaderProvider()
-    : _verticalListWidthPercentage = AppConf().verticalListWidthRatio;
+  ReaderProvider({required StartReaderState state})
+    : _verticalListWidthPercentage = AppConf().verticalListWidthRatio {
+    cid = state.id;
+    title = state.title;
+    chapters = state.chapters;
+    _currentChapter = state.currentChapter ?? chapters.first;
+    pageNo = state.pageNo ?? 0;
+    handler = fetchChapterImages.useRequest(
+      initParam: FetchChapterImagesPayload(
+        id: state.id,
+        order: _currentChapter.order,
+      ),
+      onSuccess: (data, _) {
+        Log.info('Fetch chapter images success', data.toString());
+      },
+      onError: (e, _) {
+        Log.error('Fetch chapter images error', e);
+      },
+    );
+  }
+
+  /// 获取图片的handler
+  late final AsyncRequestHandlerWithParam<
+    List<ChapterImage>,
+    FetchChapterImagesPayload
+  >
+  handler;
 
   /// 漫画id
-  late String cid;
+  late final String cid;
 
   /// 漫画名称
-  late String title;
+  late final String title;
 
   /// 漫画所有章节
-  late List<Chapter> chapters;
+  late final List<Chapter> chapters;
+
+  /// 阅读模式
+  ReadMode _readMode = AppConf().readMode;
+  ReadMode get readMode => _readMode;
+  set readMode(ReadMode mode) {
+    _readMode = mode;
+    AppConf().readMode = mode;
+    notifyListeners();
+  }
+
+  /// 章节图片
+  List<ChapterImage> get images => handler.data ?? [];
+
+  ///多页模式下章节图片
+  List<List<ChapterImage>> get multiPageImages => splitList(images, 2);
+
+  /// 章节总页数
+  int get pageCount =>
+      readMode.isDoublePage ? multiPageImages.length : images.length;
 
   /// 漫画当前阅读章节
   late Chapter _currentChapter;
@@ -79,25 +127,6 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// [id] 漫画id
-  /// [title] 漫画标题
-  /// [chapters] 漫画所有章节
-  /// [currentChapter] 从第几章开始
-  /// [pageNo] 从第几张图片开始
-  void initialize({
-    required String id,
-    required String title,
-    required List<Chapter> chapters,
-    Chapter? currentChapter,
-    int? pageNo,
-  }) {
-    cid = id;
-    this.title = title;
-    this.chapters = chapters;
-    _currentChapter = currentChapter ?? chapters.first;
-    _pageNo = pageNo ?? 0;
-  }
-
   /// 是否按下了Ctrl
   bool _isCtrlPressed = false;
   bool get isCtrlPressed => _isCtrlPressed;
@@ -113,4 +142,29 @@ class ReaderProvider with ChangeNotifier {
     _verticalListWidthPercentage = width;
     notifyListeners();
   }
+}
+
+class StartReaderState {
+  /// 漫画id
+  final String id;
+
+  /// 漫画标题
+  final String title;
+
+  /// 漫画所有章节
+  final List<Chapter> chapters;
+
+  /// 当前阅读章节
+  final Chapter? currentChapter;
+
+  /// 当前阅读章节第几张图片
+  final int? pageNo;
+
+  StartReaderState({
+    required this.id,
+    required this.title,
+    required this.chapters,
+    this.currentChapter,
+    this.pageNo,
+  });
 }

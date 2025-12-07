@@ -25,7 +25,6 @@ import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
 
 class ComicDetails extends StatefulWidget {
   const ComicDetails({super.key, required this.id});
@@ -114,19 +113,21 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
 
   /// 进入阅读
   void _startRead({String? chapterId, int? pageNo}) {
-    final data = handler.data?.comic;
+    final data = handler.data!.comic;
     final chapter = _chapters.firstWhere(
       (element) => element.id == chapterId,
       orElse: () => _chapters.first,
     );
-    context.read<ReaderProvider>().initialize(
-      id: widget.id,
-      title: data!.title,
-      chapters: _chapters,
-      currentChapter: chapter,
-      pageNo: pageNo,
+    context.push(
+      '/reader',
+      extra: StartReaderState(
+        id: widget.id,
+        title: data.title,
+        chapters: _chapters,
+        currentChapter: chapter,
+        pageNo: pageNo,
+      ),
     );
-    context.push('/reader');
   }
 
   @override

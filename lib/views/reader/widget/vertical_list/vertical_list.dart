@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/model/reader_provider.dart';
-import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/reader/bottom.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/reader.dart';
@@ -18,7 +17,6 @@ class VerticalList extends StatefulWidget {
     required this.onItemVisibleChanged,
     required this.itemScrollController,
     required this.openOrCloseToolbar,
-    required this.images,
     required this.scrollOffsetController,
     required this.action,
     required this.pageTurn,
@@ -32,9 +30,6 @@ class VerticalList extends StatefulWidget {
 
   /// 打开/关闭工具栏
   final VoidCallback openOrCloseToolbar;
-
-  /// 需要渲染的图片
-  final List<ChapterImage> images;
 
   /// 列表偏移
   final ScrollOffsetController scrollOffsetController;
@@ -105,12 +100,12 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
           initialScrollIndex: context.reader.pageNo,
           padding: EdgeInsets.zero,
           physics: physics,
-          itemCount: widget.images.length + 1,
+          itemCount: context.reader.images.length + 1,
           itemScrollController: widget.itemScrollController,
           itemPositionsListener: itemPositionsListener,
           scrollOffsetController: widget.scrollOffsetController,
           itemBuilder: (context, index) {
-            if (index == widget.images.length) {
+            if (index == context.reader.images.length) {
               return const Padding(
                 padding: EdgeInsetsGeometry.symmetric(vertical: 16.0),
                 child: Text(
@@ -120,7 +115,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
                 ),
               );
             }
-            final item = widget.images[index];
+            final item = context.reader.images[index];
             final imageSize = _imageSizeCache[item.uid];
             return ComicImage(
               url: item.media.url,
@@ -166,15 +161,21 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
       preloadImages(
         firstIndex - 1,
         firstIndex - maxPreloadCount,
-        widget.images,
+        context.reader.images,
       );
     } else {
       // 向下滚动，预加载下方图片
-      preloadImages(lastIndex + 1, lastIndex + maxPreloadCount, widget.images);
+      preloadImages(
+        lastIndex + 1,
+        lastIndex + maxPreloadCount,
+        context.reader.images,
+      );
     }
 
     _visibleFirstIndex = firstIndex;
 
-    widget.onItemVisibleChanged(lastIndex.clamp(0, widget.images.length - 1));
+    widget.onItemVisibleChanged(
+      lastIndex.clamp(0, context.reader.images.length - 1),
+    );
   }
 }

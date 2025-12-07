@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/model/reader_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
 import 'package:haka_comic/views/about/about.dart';
@@ -32,6 +33,7 @@ import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
 import 'package:haka_comic/views/settings/word_block.dart';
+import 'package:provider/provider.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -91,7 +93,16 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) =>
           SearchComics(keyword: state.uri.queryParameters['keyword']!),
     ),
-    GoRoute(path: '/reader', builder: (_, _) => const Reader()),
+    GoRoute(
+      path: '/reader',
+      builder: (_, state) {
+        final startReaderState = state.extra as StartReaderState;
+        return ChangeNotifierProvider(
+          create: (context) => ReaderProvider(state: startReaderState),
+          child: const Reader(),
+        );
+      },
+    ),
     GoRoute(path: '/rank', builder: (_, _) => const Rank()),
     GoRoute(path: '/random', builder: (_, _) => const Random()),
     GoRoute(path: '/favorites', builder: (_, _) => const Favorites()),
