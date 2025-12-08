@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/model/reader_provider.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';

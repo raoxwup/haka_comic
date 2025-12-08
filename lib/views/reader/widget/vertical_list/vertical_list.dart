@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/model/reader_provider.dart';
-import 'package:haka_comic/views/reader/bottom.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
+import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
-import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
 import 'package:provider/provider.dart';
@@ -12,33 +11,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
 class VerticalList extends StatefulWidget {
-  const VerticalList({
-    super.key,
-    required this.onItemVisibleChanged,
-    required this.itemScrollController,
-    required this.openOrCloseToolbar,
-    required this.scrollOffsetController,
-    required this.action,
-    required this.pageTurn,
-  });
-
-  /// 图片可见回调
-  final ValueChanged<int> onItemVisibleChanged;
-
-  /// 列表页码控制
-  final ItemScrollController itemScrollController;
-
-  /// 打开/关闭工具栏
-  final VoidCallback openOrCloseToolbar;
-
-  /// 列表偏移
-  final ScrollOffsetController scrollOffsetController;
-
-  /// 上一章或下一章
-  final VoidCallback? Function(ReaderBottomActionType) action;
-
-  /// 翻页
-  final void Function(double) pageTurn;
+  const VerticalList({super.key});
 
   @override
   State<VerticalList> createState() => _VerticalListState();
@@ -91,21 +64,29 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
       (value) => value.verticalListWidth,
     );
 
+    final pageCount = context.select<ReaderProvider, int>(
+      (value) => value.pageCount,
+    );
+
+    final images = context.select<ReaderProvider, List<ChapterImage>>(
+      (value) => value.images,
+    );
+
     return GestureWrapper(
-      openOrCloseToolbar: widget.openOrCloseToolbar,
-      jumpOffset: widget.pageTurn,
+      openOrCloseToolbar: context.reader.openOrCloseToolbar,
+      jumpOffset: context.reader.pageTurnForVertical,
       child: FractionallySizedBox(
         widthFactor: verticalListWidth.clamp(0.0, 1.0),
         child: ScrollablePositionedList.builder(
           initialScrollIndex: context.reader.pageNo,
           padding: EdgeInsets.zero,
           physics: physics,
-          itemCount: context.reader.images.length + 1,
-          itemScrollController: widget.itemScrollController,
+          itemCount: pageCount + 1,
+          itemScrollController: context.reader.itemScrollController,
           itemPositionsListener: itemPositionsListener,
-          scrollOffsetController: widget.scrollOffsetController,
+          scrollOffsetController: context.reader.scrollOffsetController,
           itemBuilder: (context, index) {
-            if (index == context.reader.images.length) {
+            if (index == pageCount) {
               return const Padding(
                 padding: EdgeInsetsGeometry.symmetric(vertical: 16.0),
                 child: Text(
@@ -115,7 +96,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
                 ),
               );
             }
-            final item = context.reader.images[index];
+            final item = images[index];
             final imageSize = _imageSizeCache[item.uid];
             return ComicImage(
               url: item.media.url,
@@ -174,7 +155,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
     _visibleFirstIndex = firstIndex;
 
-    widget.onItemVisibleChanged(
+    context.reader.onPageNoChanged(
       lastIndex.clamp(0, context.reader.images.length - 1),
     );
   }

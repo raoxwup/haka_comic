@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/model/reader_provider.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
 import 'package:haka_comic/views/about/about.dart';
@@ -98,7 +98,11 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) {
         final startReaderState = state.extra as StartReaderState;
         return ChangeNotifierProvider(
-          create: (context) => ReaderProvider(state: startReaderState),
+          create: (context) {
+            final provider = ReaderProvider(state: startReaderState);
+            provider.initContext(context);
+            return provider;
+          },
           child: const Reader(),
         );
       },

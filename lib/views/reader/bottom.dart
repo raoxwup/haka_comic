@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/model/reader_provider.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
@@ -13,50 +13,17 @@ enum ReaderBottomActionType { previous, next }
 
 /// 底部工具栏
 class ReaderBottom extends StatelessWidget {
-  const ReaderBottom({
-    super.key,
-    required this.onSliderChanged,
-    required this.showToolbar,
-    required this.action,
-    required this.total,
-    required this.pageNo,
-    required this.isVerticalMode,
-    required this.startPageTurn,
-    required this.interval,
-    required this.onIntervalChanged,
-    required this.stopPageTurn,
-    required this.isPageTurning,
-  });
-
-  final ValueChanged<int> onSliderChanged;
-
-  final bool showToolbar;
-
-  final VoidCallback? Function(ReaderBottomActionType) action;
-
-  /// 总页数
-  final int total;
-
-  /// 当前页
-  final int pageNo;
-
-  final bool isVerticalMode;
-
-  final VoidCallback startPageTurn;
-
-  final int interval;
-
-  final ValueChanged<int> onIntervalChanged;
-
-  final VoidCallback stopPageTurn;
-
-  final bool isPageTurning;
+  const ReaderBottom({super.key});
 
   @override
   Widget build(BuildContext context) {
     final bottom = context.bottom;
 
     final isM1 = UiMode.m1(context);
+
+    final showToolbar = context.select<ReaderProvider, bool>(
+      (value) => value.showToolbar,
+    );
 
     if (isM1) {
       return AnimatedPositioned(
@@ -107,17 +74,29 @@ class ReaderBottom extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
+    final isPageTurning = context.select<ReaderProvider, bool>(
+      (value) => value.isPageTurning,
+    );
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: isPageTurning
-          ? _buildPageTurnContent()
+          ? _buildPageTurnContent(context)
           : _buildCommonContent(context),
     );
   }
 
   Widget _buildCommonContent(BuildContext context) {
-    final previousAction = action(ReaderBottomActionType.previous);
-    final nextAction = action(ReaderBottomActionType.next);
+    final previousAction = context.select<ReaderProvider, VoidCallback?>(
+      (p) => p.isFirstChapter ? null : p.goPrevious,
+    );
+
+    final nextAction = context.select<ReaderProvider, VoidCallback?>(
+      (p) => p.isLastChapter ? null : p.goNext,
+    );
+
+    final isVerticalMode = context.select<ReaderProvider, bool>(
+      (value) => value.readMode.isVertical,
+    );
 
     return Column(
       key: const ValueKey('common_toolbar'),
@@ -128,13 +107,7 @@ class ReaderBottom extends StatelessWidget {
               icon: const Icon(Icons.skip_previous),
               onPressed: previousAction,
             ),
-            Expanded(
-              child: PageSlider(
-                onChanged: onSliderChanged,
-                value: pageNo,
-                total: total,
-              ),
-            ),
+            const Expanded(child: PageSlider()),
             IconButton.filledTonal(
               icon: const Icon(Icons.skip_next),
               onPressed: nextAction,
@@ -226,7 +199,7 @@ class ReaderBottom extends StatelessWidget {
                   icon: const Icon(Icons.width_normal_outlined),
                 ),
               IconButton(
-                onPressed: startPageTurn,
+                onPressed: context.reader.startPageTurn,
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),
@@ -237,7 +210,10 @@ class ReaderBottom extends StatelessWidget {
     );
   }
 
-  Widget _buildPageTurnContent() {
+  Widget _buildPageTurnContent(BuildContext context) {
+    final interval = context.select<ReaderProvider, int>(
+      (value) => value.interval,
+    );
     return Column(
       key: const ValueKey('page_turn_toolbar'),
       children: [
@@ -251,7 +227,7 @@ class ReaderBottom extends StatelessWidget {
                 min: 2,
                 max: 60,
                 divisions: 58,
-                onChanged: (v) => onIntervalChanged(v.round()),
+                onChanged: (v) => context.reader.updateInterval(v.round()),
               ),
             ),
             Text('$interval s'),
@@ -261,7 +237,10 @@ class ReaderBottom extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: stopPageTurn, child: const Text('关闭自动翻页')),
+              TextButton(
+                onPressed: context.reader.stopPageTurn,
+                child: const Text('关闭自动翻页'),
+              ),
             ],
           ),
         ),
@@ -272,21 +251,16 @@ class ReaderBottom extends StatelessWidget {
 
 /// Slider
 class PageSlider extends StatelessWidget {
-  final ValueChanged<int> onChanged;
-
-  final int total;
-
-  final int value;
-
-  const PageSlider({
-    super.key,
-    required this.onChanged,
-    required this.value,
-    required this.total,
-  });
+  const PageSlider({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final value = context.select<ReaderProvider, int>(
+      (value) => value.correctPageNo,
+    );
+    final total = context.select<ReaderProvider, int>(
+      (value) => value.pageCount,
+    );
     if (total <= 1) return const SizedBox.shrink();
     return Focus(
       canRequestFocus: false,
@@ -297,7 +271,7 @@ class PageSlider extends StatelessWidget {
         max: (total - 1).toDouble(),
         divisions: total - 1,
         label: '${value + 1}',
-        onChanged: (value) => onChanged(value.round()),
+        onChanged: (value) => context.reader.onSliderChanged(value.round()),
       ),
     );
   }

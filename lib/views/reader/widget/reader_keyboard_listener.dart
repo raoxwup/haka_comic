@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:haka_comic/model/reader_provider.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:provider/provider.dart';
 
 typedef KeyHandler = VoidCallback?;

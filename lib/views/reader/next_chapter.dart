@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:provider/provider.dart';
 
 class ReaderNextChapter extends StatelessWidget {
-  const ReaderNextChapter({
-    super.key,
-    required this.isShow,
-    required this.onPressed,
-  });
-
-  final bool isShow;
-
-  final VoidCallback onPressed;
+  const ReaderNextChapter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // final isShow =
-    //     !loading && images.isNotEmpty && currentImageIndex >= images.length - 2;
+    final isShow = context.select<ReaderProvider, bool>((p) {
+      return !p.handler.loading &&
+          p.images.isNotEmpty &&
+          p.correctPageNo >= p.pageCount - 2;
+    });
+
     return Positioned(
       right: context.right + 16,
       bottom: context.bottom + 16,
@@ -28,7 +26,7 @@ class ReaderNextChapter extends StatelessWidget {
           child: IgnorePointer(
             ignoring: !isShow,
             child: FloatingActionButton(
-              onPressed: onPressed,
+              onPressed: context.reader.goNext,
               child: const Icon(Icons.skip_next),
             ),
           ),

@@ -11,9 +11,6 @@ mixin ComicListMixin<T extends StatefulWidget> on State<T> {
     super.dispose();
   }
 
-  /// 已加载图片索引 - 用于避免重复预加载
-  final Set<int> _loadedImages = {};
-
   // 最大预加载数量限制
   final int maxPreloadCount = 4;
 
@@ -34,13 +31,10 @@ mixin ComicListMixin<T extends StatefulWidget> on State<T> {
       for (int i = start; i <= end; i++) {
         // 检查索引是否有效
         if (i < 0 || i >= images.length) continue;
-        // 避免重复加载
-        if (_loadedImages.contains(i)) continue;
 
         final imageUrl = images[i].media.url;
         final imageProvider = CachedNetworkImageProvider(imageUrl);
         precacheImage(imageProvider, context);
-        _loadedImages.add(i);
       }
     });
   }
