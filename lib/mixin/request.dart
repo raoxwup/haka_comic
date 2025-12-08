@@ -51,23 +51,14 @@ abstract class BaseRequestHandler<T, P> {
   Future<void> refresh();
 
   Future<void> run(P? param);
-
-  ({
-    T? data,
-    Object? error,
-    bool loading,
-    Future<void> Function() refresh,
-    Future<void> Function(P) run,
-    bool hasError,
-    bool hasData,
-  })
-  get deconstruct;
 }
 
 abstract class AsyncRequestHandler<T, P> implements BaseRequestHandler<T, P> {
   T? _data;
   Object? _error;
   bool _loading = false;
+
+  bool _hasRequested = false;
 
   @override
   T? get data => _data;
@@ -116,25 +107,8 @@ abstract class AsyncRequestHandler<T, P> implements BaseRequestHandler<T, P> {
   @override
   bool get hasData => data != null;
 
-  @override
-  ({
-    T? data,
-    Object? error,
-    bool loading,
-    Future<void> Function() refresh,
-    Future<void> Function(P) run,
-    bool hasError,
-    bool hasData,
-  })
-  get deconstruct => (
-    data: data,
-    error: error,
-    loading: loading,
-    refresh: refresh,
-    run: run,
-    hasError: hasError,
-    hasData: hasData,
-  );
+  bool get isIdle =>
+      !_hasRequested && !_loading && _data == null && _error == null;
 }
 
 class AsyncRequestHandlerWithoutParam<T> extends AsyncRequestHandler<T, void> {
@@ -151,6 +125,9 @@ class AsyncRequestHandlerWithoutParam<T> extends AsyncRequestHandler<T, void> {
 
   @override
   Future<void> run(_) async {
+    if (!_hasRequested) {
+      _hasRequested = true;
+    }
     _setup(null);
     try {
       final result = await _fn();
@@ -186,6 +163,9 @@ class AsyncRequestHandlerWithParam<T, P> extends AsyncRequestHandler<T, P> {
   @override
   Future<void> run(P? param) async {
     if (param == null) return;
+    if (!_hasRequested) {
+      _hasRequested = true;
+    }
     _lastParam = param;
     _setup(param);
     try {

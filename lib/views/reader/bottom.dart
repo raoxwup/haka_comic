@@ -9,8 +9,6 @@ import 'package:provider/provider.dart';
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
 
-enum ReaderBottomActionType { previous, next }
-
 /// 底部工具栏
 class ReaderBottom extends StatelessWidget {
   const ReaderBottom({super.key});
@@ -21,9 +19,7 @@ class ReaderBottom extends StatelessWidget {
 
     final isM1 = UiMode.m1(context);
 
-    final showToolbar = context.select<ReaderProvider, bool>(
-      (value) => value.showToolbar,
-    );
+    final showToolbar = context.selector((value) => value.showToolbar);
 
     if (isM1) {
       return AnimatedPositioned(
@@ -74,9 +70,7 @@ class ReaderBottom extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    final isPageTurning = context.select<ReaderProvider, bool>(
-      (value) => value.isPageTurning,
-    );
+    final isPageTurning = context.selector((value) => value.isPageTurning);
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: isPageTurning
@@ -86,15 +80,15 @@ class ReaderBottom extends StatelessWidget {
   }
 
   Widget _buildCommonContent(BuildContext context) {
-    final previousAction = context.select<ReaderProvider, VoidCallback?>(
+    final previousAction = context.selector(
       (p) => p.isFirstChapter ? null : p.goPrevious,
     );
 
-    final nextAction = context.select<ReaderProvider, VoidCallback?>(
+    final nextAction = context.selector(
       (p) => p.isLastChapter ? null : p.goNext,
     );
 
-    final isVerticalMode = context.select<ReaderProvider, bool>(
+    final isVerticalMode = context.selector(
       (value) => value.readMode.isVertical,
     );
 
@@ -211,9 +205,7 @@ class ReaderBottom extends StatelessWidget {
   }
 
   Widget _buildPageTurnContent(BuildContext context) {
-    final interval = context.select<ReaderProvider, int>(
-      (value) => value.interval,
-    );
+    final interval = context.selector((value) => value.interval);
     return Column(
       key: const ValueKey('page_turn_toolbar'),
       children: [
@@ -255,12 +247,8 @@ class PageSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final value = context.select<ReaderProvider, int>(
-      (value) => value.correctPageNo,
-    );
-    final total = context.select<ReaderProvider, int>(
-      (value) => value.pageCount,
-    );
+    final value = context.selector((value) => value.correctPageNo);
+    final total = context.selector((value) => value.pageCount);
     if (total <= 1) return const SizedBox.shrink();
     return Focus(
       canRequestFocus: false,

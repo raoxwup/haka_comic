@@ -14,7 +14,6 @@ import 'package:haka_comic/views/reader/widget/reader_keyboard_listener.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/base_page.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
 
@@ -69,15 +68,11 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
 
   @override
   Widget build(BuildContext context) {
-    final readMode = context.select<ReaderProvider, ReadMode>(
-      (value) => value.readMode,
-    );
+    final readMode = context.selector((value) => value.readMode);
 
-    final isLastChapter = context.select<ReaderProvider, bool>(
-      (value) => value.isLastChapter,
-    );
+    final isLastChapter = context.selector((value) => value.isLastChapter);
 
-    final currentChapterIndex = context.select<ReaderProvider, int>(
+    final currentChapterIndex = context.selector(
       (value) => value.currentChapterIndex,
     );
 
@@ -88,15 +83,17 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
     final prev = context.reader.prev;
     final next = context.reader.next;
 
+    final handler = context.reader.handler;
+
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
           Positioned.fill(
             child: BasePage(
-              isLoading: context.reader.handler.loading,
-              onRetry: context.reader.handler.refresh,
-              error: context.reader.handler.error,
+              isLoading: handler.loading || handler.isIdle,
+              onRetry: handler.refresh,
+              error: handler.error,
               child: ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,

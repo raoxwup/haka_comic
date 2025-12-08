@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:provider/provider.dart';
 
 class ReaderNextChapter extends StatelessWidget {
   const ReaderNextChapter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isShow = context.select<ReaderProvider, bool>((p) {
+    final isShow = context.selector((p) {
       return !p.handler.loading &&
           p.images.isNotEmpty &&
           p.correctPageNo >= p.pageCount - 2;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
-import 'package:provider/provider.dart';
 
 /// 页码
 class ReaderPageNoTag extends StatelessWidget {
@@ -10,11 +9,7 @@ class ReaderPageNoTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (
-      pageNo,
-      title,
-      total,
-    ) = context.select<ReaderProvider, (int, String, int)>(
+    final (pageNo, title, total) = context.selector(
       (value) =>
           (value.correctPageNo, value.currentChapter.title, value.pageCount),
     );

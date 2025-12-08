@@ -16,7 +16,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
   ReaderProvider get watcher => watch<ReaderProvider>();
-  T selector<T>(T Function(ReaderProvider) selector) => select(selector);
+  T selector<T>(T Function(ReaderProvider) s) => select<ReaderProvider, T>(s);
 }
 
 enum ReadMode {
@@ -58,9 +58,11 @@ enum ReadMode {
       this == ReadMode.rightToLeft || this == ReadMode.doubleRightToLeft;
 }
 
+typedef FetchImageHandler =
+    AsyncRequestHandlerWithParam<List<ChapterImage>, FetchChapterImagesPayload>;
+
 class ReaderProvider with ChangeNotifier {
-  ReaderProvider({required StartReaderState state})
-    : _verticalListWidthPercentage = AppConf().verticalListWidthRatio {
+  ReaderProvider({required StartReaderState state}) {
     cid = state.id;
     title = state.title;
     chapters = state.chapters;
@@ -77,6 +79,9 @@ class ReaderProvider with ChangeNotifier {
       onError: (e, _) {
         Log.error('Fetch chapter images error', e);
       },
+      onFinally: (_) {
+        notifyListeners();
+      },
     );
   }
 
@@ -85,11 +90,7 @@ class ReaderProvider with ChangeNotifier {
   void initContext(BuildContext context) => _context = context;
 
   /// 获取图片的handler
-  late final AsyncRequestHandlerWithParam<
-    List<ChapterImage>,
-    FetchChapterImagesPayload
-  >
-  handler;
+  late final FetchImageHandler handler;
 
   /// 漫画id
   late final String cid;
@@ -190,6 +191,7 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 获取正确的页码
   int get correctPageNo =>
       readMode.isDoublePage ? toCorrectMultiPageNo(pageNo, 2) : pageNo;
 
@@ -212,7 +214,6 @@ class ReaderProvider with ChangeNotifier {
 
   /// 底部工具栏Slider OnChanged
   void onSliderChanged(int index) {
-    pageNo = index;
     if (readMode.isVertical) {
       itemScrollController.jumpTo(index: index);
     } else {
@@ -311,8 +312,10 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 定时翻页定时器
   Timer? turnPageTimer;
 
+  /// 定时翻页间隔
   int _interval = AppConf().interval;
   int get interval => _interval;
   set interval(int interval) {
@@ -321,6 +324,7 @@ class ReaderProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 开始定时翻页
   void startPageTurn() {
     turnPageTimer?.cancel();
     turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
@@ -330,11 +334,13 @@ class ReaderProvider with ChangeNotifier {
     isPageTurning = true;
   }
 
+  /// 关闭定时翻页
   void stopPageTurn() {
     turnPageTimer?.cancel();
     isPageTurning = false;
   }
 
+  /// 更新定时翻页间隔
   void updateInterval(int interval) {
     this.interval = interval;
     if (isPageTurning) {
@@ -351,7 +357,7 @@ class ReaderProvider with ChangeNotifier {
   }
 
   /// 条漫模式宽度
-  late double _verticalListWidthPercentage;
+  double _verticalListWidthPercentage = AppConf().verticalListWidthRatio;
   double get verticalListWidth => _verticalListWidthPercentage;
   set verticalListWidth(double width) {
     _verticalListWidthPercentage = width;

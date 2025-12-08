@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
 
@@ -16,24 +15,28 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<Login> with UseRequestMixin {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
 
-  final handler = login.useRequest(
+  late final handler = login.useRequest(
+    manual: true,
     onSuccess: (data, params) {
       Log.info('Sign in success', data.toString());
-      AppConf.instance.email = params.email;
-      AppConf.instance.password = params.password;
-      AppConf.instance.token = data.token;
-      appRouter.go('/');
+      AppConf().email = params.email;
+      AppConf().password = params.password;
+      AppConf().token = data.token;
+      context.go('/');
     },
     onError: (e, _) {
       Log.error('Sign in failed', e);
       showSnackBar(e.toString());
     },
   );
+
+  @override
+  List<AsyncRequestHandler> registerHandler() => [handler];
 
   bool _showPassword = false;
 
@@ -47,17 +50,12 @@ class _LoginState extends State<Login> {
   }
 
   void _update(_) => setState(() {});
-  void _listener() => _update(null);
 
   @override
   void initState() {
-    _emailController.text = AppConf.instance.email;
-    _passwordController.text = AppConf.instance.password;
-
-    handler.addListener(_listener);
-    handler.isLoading = false;
-
     super.initState();
+    _emailController.text = AppConf().email;
+    _passwordController.text = AppConf().password;
   }
 
   @override
@@ -65,10 +63,6 @@ class _LoginState extends State<Login> {
     _emailController.dispose();
     _passwordController.dispose();
     _passwordFocusNode.dispose();
-
-    handler
-      ..removeListener(_listener)
-      ..dispose();
 
     super.dispose();
   }
@@ -125,11 +119,8 @@ class _LoginState extends State<Login> {
                 prefixIcon: const Icon(Icons.lock),
                 suffixIcon: password.isNotEmpty
                     ? IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _showPassword = !_showPassword;
-                          });
-                        },
+                        onPressed: () =>
+                            setState(() => _showPassword = !_showPassword),
                         icon: Icon(
                           _showPassword
                               ? Icons.visibility
@@ -147,7 +138,7 @@ class _LoginState extends State<Login> {
                 Expanded(
                   child: Button.filled(
                     onPressed: enable ? _login : null,
-                    isLoading: handler.isLoading,
+                    isLoading: handler.loading,
                     child: const Text('登录'),
                   ),
                 ),
@@ -159,9 +150,7 @@ class _LoginState extends State<Login> {
               children: [
                 const Text('没有账号？'),
                 TextButton(
-                  onPressed: () {
-                    context.push('/register');
-                  },
+                  onPressed: () => context.push('/register'),
                   child: const Text('注册'),
                 ),
               ],

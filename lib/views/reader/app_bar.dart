@@ -4,7 +4,6 @@ import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
-import 'package:provider/provider.dart';
 
 /// 顶部工具栏
 class ReaderAppBar extends StatelessWidget {
@@ -12,10 +11,9 @@ class ReaderAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (showToolbar, readMode) = context
-        .select<ReaderProvider, (bool, ReadMode)>(
-          (value) => (value.showToolbar, value.readMode),
-        );
+    final (showToolbar, readMode) = context.selector(
+      (value) => (value.showToolbar, value.readMode),
+    );
 
     final top = context.top;
     return AnimatedPositioned(

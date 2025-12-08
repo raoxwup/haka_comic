@@ -180,7 +180,12 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
             ],
           ),
           body: BasePage(
-            isLoading: handler.loading || chaptersHandler.loading || !completed,
+            isLoading:
+                handler.loading ||
+                chaptersHandler.loading ||
+                handler.isIdle ||
+                chaptersHandler.isIdle ||
+                !completed,
             onRetry: () {
               handler.refresh();
               chaptersHandler.refresh();
