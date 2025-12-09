@@ -2,61 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ThemeState {
-  final ThemeMode themeMode;
-  final String primaryColor;
-  ThemeState({required this.themeMode, required this.primaryColor});
+enum ThemeModeOption {
+  system(ThemeMode.system, 'System'),
+  light(ThemeMode.light, 'Light'),
+  dark(ThemeMode.dark, 'Dark');
 
-  ThemeState copyWith({ThemeMode? themeMode, String? primaryColor}) =>
-      ThemeState(
-        themeMode: themeMode ?? this.themeMode,
-        primaryColor: primaryColor ?? this.primaryColor,
-      );
+  final ThemeMode mode;
+  final String title;
+
+  const ThemeModeOption(this.mode, this.title);
+
+  static ThemeModeOption fromTitle(String title) {
+    return ThemeModeOption.values.firstWhere(
+      (x) => x.title == title,
+      orElse: () => ThemeModeOption.system,
+    );
+  }
 }
 
-final themeProvider = NotifierProvider<ThemeNotifier, ThemeState>(
-  ThemeNotifier.new,
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeModeOption>(
+  ThemeModeNotifier.new,
 );
 
-class ThemeNotifier extends Notifier<ThemeState> {
-  static const Map<String, ThemeMode> stringToThemeMode = {
-    'System': ThemeMode.system,
-    'Light': ThemeMode.light,
-    'Dark': ThemeMode.dark,
-  };
-
-  static const Map<ThemeMode, String> themeModeToString = {
-    ThemeMode.system: 'System',
-    ThemeMode.light: 'Light',
-    ThemeMode.dark: 'Dark',
-  };
-
-  static Color stringToColor(String color) {
-    return switch (color) {
-      'Red' => Colors.red,
-      'Pink' => Colors.pink,
-      'Green' => Colors.green,
-      'Blue' => Colors.blue,
-      'Yellow' => Colors.yellow,
-      'Orange' => Colors.orange,
-      'Purple' => Colors.purple,
-      _ => Colors.blue,
-    };
-  }
-
+class ThemeModeNotifier extends Notifier<ThemeModeOption> {
   @override
-  ThemeState build() => ThemeState(
-    themeMode: stringToThemeMode[AppConf().themeMode]!,
-    primaryColor: AppConf().primaryColor,
-  );
+  ThemeModeOption build() => ThemeModeOption.fromTitle(AppConf().themeMode);
 
-  void setThemeMode(ThemeMode mode) {
-    AppConf().themeMode = themeModeToString[mode]!;
-    state = state.copyWith(themeMode: mode);
+  void updateThemeMode(ThemeModeOption mode) {
+    AppConf().themeMode = mode.title;
+    state = mode;
   }
+}
 
-  void setPrimaryColor(String color) {
-    AppConf().primaryColor = color;
-    state = state.copyWith(primaryColor: color);
+enum ThemeColorOption {
+  system(Colors.white, 'System'),
+  red(Colors.red, 'Red'),
+  pink(Colors.pink, 'Pink'),
+  green(Colors.green, 'Green'),
+  blue(Colors.blue, 'Blue'),
+  yellow(Colors.yellow, 'Yellow'),
+  orange(Colors.orange, 'Orange'),
+  purple(Colors.purple, 'Purple');
+
+  final Color color;
+  final String title;
+  const ThemeColorOption(this.color, this.title);
+
+  static ThemeColorOption fromTitle(String title) {
+    return ThemeColorOption.values.firstWhere(
+      (x) => x.title == title,
+      orElse: () => ThemeColorOption.system,
+    );
+  }
+}
+
+final themeColorProvider =
+    NotifierProvider<ThemeColorNotifier, ThemeColorOption>(
+      ThemeColorNotifier.new,
+    );
+
+class ThemeColorNotifier extends Notifier<ThemeColorOption> {
+  @override
+  ThemeColorOption build() =>
+      ThemeColorOption.fromTitle(AppConf().primaryColor);
+
+  void updateThemeColor(ThemeColorOption color) {
+    AppConf().primaryColor = color.title;
+    state = color;
   }
 }

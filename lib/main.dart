@@ -194,15 +194,14 @@ class _AppState extends State<App> with WindowListener {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final themeState = ref.watch(themeProvider);
+        final themeMode = ref.watch(themeModeProvider);
+        final themeColor = ref.watch(themeColorProvider);
         return DynamicColorBuilder(
           builder: (light, dark) {
             final ColorScheme lightScheme, darkScheme;
             final Color primary;
-            if (themeState.primaryColor != 'System' ||
-                light == null ||
-                dark == null) {
-              primary = ThemeNotifier.stringToColor(themeState.primaryColor);
+            if (themeColor.title != 'System' || light == null || dark == null) {
+              primary = themeColor.color;
             } else {
               primary = light.primary;
             }
@@ -213,7 +212,7 @@ class _AppState extends State<App> with WindowListener {
               routerConfig: appRouter,
               theme: getTheme(lightScheme),
               darkTheme: getTheme(darkScheme, Brightness.dark),
-              themeMode: themeState.themeMode,
+              themeMode: themeMode.mode,
               debugShowCheckedModeBanner: false,
               scaffoldMessengerKey: scaffoldMessengerKey,
               builder: (context, child) {

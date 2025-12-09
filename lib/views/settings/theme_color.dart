@@ -8,24 +8,17 @@ class ThemeColor extends StatelessWidget {
   const ThemeColor({super.key});
 
   static final List<String> _colors = [
-    'System',
-    'Red',
-    'Pink',
-    'Green',
-    'Blue',
-    'Yellow',
-    'Orange',
-    'Purple',
+    ...ThemeColorOption.values.map((e) => e.title),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final themeState = ref.watch(themeProvider);
+        final themeColor = ref.watch(themeColorProvider);
         return MenuListTile.withValue(
           title: '主题颜色',
-          value: themeState.primaryColor,
+          value: themeColor.title,
           icon: Icons.color_lens_outlined,
           items: _colors.map((String color) {
             return PopupMenuItem(
@@ -37,15 +30,10 @@ class ThemeColor extends StatelessWidget {
                         height: 20,
                         decoration: BoxDecoration(
                           gradient: SweepGradient(
-                            colors: [
-                              Colors.red,
-                              Colors.pink,
-                              Colors.green,
-                              Colors.blue,
-                              Colors.yellow,
-                              Colors.orange,
-                              Colors.purple,
-                            ],
+                            colors: ThemeColorOption.values
+                                .where((element) => element.title != 'System')
+                                .map((e) => e.color)
+                                .toList(),
                             stops: _generateStops(7),
                             center: Alignment.center,
                             startAngle: 0,
@@ -66,7 +54,7 @@ class ThemeColor extends StatelessWidget {
                         width: 20,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: ThemeNotifier.stringToColor(color),
+                          color: ThemeColorOption.fromTitle(color).color,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -74,8 +62,9 @@ class ThemeColor extends StatelessWidget {
               ),
             );
           }).toList(),
-          onSelected: (value) =>
-              ref.read(themeProvider.notifier).setPrimaryColor(value),
+          onSelected: (value) => ref
+              .read(themeColorProvider.notifier)
+              .updateThemeColor(ThemeColorOption.fromTitle(value)),
         );
       },
     );

@@ -11,13 +11,11 @@ class Theme extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(
-      themeProvider.select((x) => x.themeMode),
-    );
+    final themeMode = ref.watch(themeModeProvider);
     return MenuListTile.withAction(
       icon: Icons.contrast_outlined,
       title: '主题模式',
-      value: ThemeNotifier.themeModeToString[themeMode] ?? 'System',
+      value: themeMode.title,
       onTap: () {
         showModalBottomSheet(
           context: context,

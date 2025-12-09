@@ -17,6 +17,21 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
   double _currentLeft = 0;
   double _targetLeft = 0;
 
+  /// 限制最大宽度为400
+  double get boxWidth => context.width > 400
+      ? 400 - 16 * 2 - 5 * 2
+      : context.width - 16 * 2 - 5 * 2;
+
+  int get newTargetIndex {
+    final themeMode = ref.read(themeModeProvider);
+
+    return switch (themeMode) {
+      ThemeModeOption.system => 0,
+      ThemeModeOption.light => 1,
+      ThemeModeOption.dark => 2,
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,26 +63,14 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
     _springController.animateWith(simulation);
   }
 
-  void _handleTap(ThemeMode mode) {
-    ref.read(themeProvider.notifier).setThemeMode(mode);
+  void _handleTap(ThemeModeOption mode) {
+    ref.read(themeModeProvider.notifier).updateThemeMode(mode);
   }
 
   void _handleThemeChange() {
-    final width = context.width > 400
-        ? 400 - 16 * 2 - 5 * 2
-        : context.width - 16 * 2 - 5 * 2;
-
-    final themeMode = ref.read(themeProvider.select((x) => x.themeMode));
-    int index = switch (themeMode) {
-      ThemeMode.system => 0,
-      ThemeMode.light => 1,
-      ThemeMode.dark => 2,
-    };
-
-    final newTarget = width / 3 * index;
-
-    if ((_targetLeft - newTarget).abs() > 0.1) {
-      _targetLeft = newTarget;
+    final newTargetLeft = boxWidth / 3 * newTargetIndex;
+    if ((_targetLeft - newTargetLeft).abs() > 0.1) {
+      _targetLeft = newTargetLeft;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startSpringAnimation(_targetLeft);
       });
@@ -76,14 +79,8 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
 
   @override
   Widget build(BuildContext context) {
-    // 因为constraints限制，最大宽度为400
-    final width = context.width > 400
-        ? 400 - 16 * 2 - 5 * 2
-        : context.width - 16 * 2 - 5 * 2;
+    _handleThemeChange();
 
-    ref.listen(themeProvider, (prev, next) {
-      _handleThemeChange();
-    });
     return Container(
       width: double.infinity,
       height: 50,
@@ -98,7 +95,7 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
             left: _currentLeft,
             top: 0,
             bottom: 0,
-            width: width / 3,
+            width: boxWidth / 3,
             child: Container(
               decoration: BoxDecoration(
                 color: context.colorScheme.surface,
@@ -108,38 +105,20 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
           ),
           Positioned.fill(
             child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.system),
-                    child: Text(
-                      'System',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
+              children: ThemeModeOption.values
+                  .map(
+                    (x) => Expanded(
+                      child: InkWell(
+                        onTap: () => _handleTap(x),
+                        child: Text(
+                          x.title,
+                          style: context.textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.light),
-                    child: Text(
-                      'Light',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.dark),
-                    child: Text(
-                      'Dark',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
+                  )
+                  .toList(),
             ),
           ),
         ],
