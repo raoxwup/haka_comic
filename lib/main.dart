@@ -4,12 +4,13 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/model/search_provider.dart';
-import 'package:haka_comic/model/theme_provider.dart';
+import 'package:haka_comic/providers/theme_provider.dart';
 import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/app_router.dart';
@@ -19,7 +20,7 @@ import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/widgets/button.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' hide Consumer;
 import 'package:window_manager/window_manager.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -30,13 +31,14 @@ void main(List<String> args) {
       StartupPrepare.prepare()
           .then(
             (_) => runApp(
-              MultiProvider(
-                providers: [
-                  ChangeNotifierProvider(create: (_) => ThemeProvider()),
-                  ChangeNotifierProvider(create: (_) => SearchProvider()),
-                  ChangeNotifierProvider(create: (_) => UserProvider()),
-                ],
-                child: const App(),
+              ProviderScope(
+                child: MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(create: (_) => SearchProvider()),
+                    ChangeNotifierProvider(create: (_) => UserProvider()),
+                  ],
+                  child: const App(),
+                ),
               ),
             ),
           )
@@ -190,57 +192,60 @@ class _AppState extends State<App> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    final (themeMode, color) = context
-        .select<ThemeProvider, (ThemeMode, String)>(
-          (data) => (data.themeMode, data.primaryColor),
-        );
-    return DynamicColorBuilder(
-      builder: (light, dark) {
-        final ColorScheme lightScheme, darkScheme;
-        final Color primary;
-        if (color != 'System' || light == null || dark == null) {
-          primary = ThemeProvider.stringToColor(color);
-        } else {
-          primary = light.primary;
-        }
-        lightScheme = _generateColorScheme(primary);
-        darkScheme = _generateColorScheme(primary, Brightness.dark);
-        return MaterialApp.router(
-          title: "HaKa Comic",
-          routerConfig: appRouter,
-          theme: getTheme(lightScheme),
-          darkTheme: getTheme(darkScheme, Brightness.dark),
-          themeMode: themeMode,
-          debugShowCheckedModeBanner: false,
-          scaffoldMessengerKey: scaffoldMessengerKey,
-          builder: (context, child) {
-            return Stack(
-              children: [
-                Positioned.fill(child: _SystemUiProvider(child!)),
-                if (AppConf().needAuth && !isAuthorized)
-                  Positioned.fill(
-                    child: Material(
-                      child: Container(
-                        color: context.colorScheme.surface,
-                        child: Column(
-                          spacing: 20,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              '需要进行身份验证以访问应用程序',
-                              style: TextStyle(fontSize: 18),
+    return Consumer(
+      builder: (context, ref, child) {
+        final themeState = ref.watch(themeProvider);
+        return DynamicColorBuilder(
+          builder: (light, dark) {
+            final ColorScheme lightScheme, darkScheme;
+            final Color primary;
+            if (themeState.primaryColor != 'System' ||
+                light == null ||
+                dark == null) {
+              primary = ThemeNotifier.stringToColor(themeState.primaryColor);
+            } else {
+              primary = light.primary;
+            }
+            lightScheme = _generateColorScheme(primary);
+            darkScheme = _generateColorScheme(primary, Brightness.dark);
+            return MaterialApp.router(
+              title: "HaKa Comic",
+              routerConfig: appRouter,
+              theme: getTheme(lightScheme),
+              darkTheme: getTheme(darkScheme, Brightness.dark),
+              themeMode: themeState.themeMode,
+              debugShowCheckedModeBanner: false,
+              scaffoldMessengerKey: scaffoldMessengerKey,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    Positioned.fill(child: _SystemUiProvider(child!)),
+                    if (AppConf().needAuth && !isAuthorized)
+                      Positioned.fill(
+                        child: Material(
+                          child: Container(
+                            color: context.colorScheme.surface,
+                            child: Column(
+                              spacing: 20,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '需要进行身份验证以访问应用程序',
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                                Button.filled(
+                                  isLoading: isVerifying,
+                                  onPressed: auth,
+                                  child: const Text('验证'),
+                                ),
+                              ],
                             ),
-                            Button.filled(
-                              isLoading: isVerifying,
-                              onPressed: auth,
-                              child: const Text('验证'),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
+                  ],
+                );
+              },
             );
           },
         );

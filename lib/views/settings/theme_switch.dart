@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:haka_comic/model/theme_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haka_comic/providers/theme_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:provider/provider.dart';
 
-class ThemeSwitch extends StatefulWidget {
+class ThemeSwitch extends ConsumerStatefulWidget {
   const ThemeSwitch({super.key});
 
   @override
-  State<ThemeSwitch> createState() => _ThemeSwitchState();
+  ConsumerState<ThemeSwitch> createState() => _ThemeSwitchState();
 }
 
-class _ThemeSwitchState extends State<ThemeSwitch>
+class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
     with SingleTickerProviderStateMixin {
   late AnimationController _springController;
   double _currentLeft = 0;
@@ -49,24 +49,15 @@ class _ThemeSwitchState extends State<ThemeSwitch>
   }
 
   void _handleTap(ThemeMode mode) {
-    context.read<ThemeProvider>().setThemeMode(mode);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _handleThemeChange();
+    ref.read(themeProvider.notifier).setThemeMode(mode);
   }
 
   void _handleThemeChange() {
     final width = context.width > 400
         ? 400 - 16 * 2 - 5 * 2
         : context.width - 16 * 2 - 5 * 2;
-    // ThemeMode themeMode = context.select<AppData, ThemeMode>(
-    //   (data) => data.themeMode,
-    // );
 
-    final themeMode = context.watch<ThemeProvider>().themeMode;
+    final themeMode = ref.read(themeProvider.select((x) => x.themeMode));
     int index = switch (themeMode) {
       ThemeMode.system => 0,
       ThemeMode.light => 1,
@@ -89,6 +80,10 @@ class _ThemeSwitchState extends State<ThemeSwitch>
     final width = context.width > 400
         ? 400 - 16 * 2 - 5 * 2
         : context.width - 16 * 2 - 5 * 2;
+
+    ref.listen(themeProvider, (prev, next) {
+      _handleThemeChange();
+    });
     return Container(
       width: double.infinity,
       height: 50,
