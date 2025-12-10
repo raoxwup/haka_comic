@@ -196,6 +196,7 @@ class _AppState extends State<App> with WindowListener {
       builder: (context, ref, child) {
         final themeMode = ref.watch(themeModeProvider);
         final themeColor = ref.watch(themeColorProvider);
+
         return DynamicColorBuilder(
           builder: (light, dark) {
             final ColorScheme lightScheme, darkScheme;
@@ -260,7 +261,7 @@ class _SystemUiProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var brightness = Theme.of(context).brightness;
+    var brightness = Theme.brightnessOf(context);
     SystemUiOverlayStyle systemUiStyle;
     if (brightness == Brightness.light) {
       systemUiStyle = SystemUiOverlayStyle.dark.copyWith(
