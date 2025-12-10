@@ -132,7 +132,7 @@ class _CommentsState extends ConsumerState<Comments>
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                user?.avatar == null
+                user.avatar == null
                     ? Card(
                         clipBehavior: Clip.hardEdge,
                         elevation: 0,
@@ -145,7 +145,7 @@ class _CommentsState extends ConsumerState<Comments>
                         ),
                       )
                     : BaseImage(
-                        url: user!.avatar!.url,
+                        url: user.avatar!.url,
                         width: 64,
                         height: 64,
                         shape: const CircleBorder(),
@@ -159,7 +159,7 @@ class _CommentsState extends ConsumerState<Comments>
                       Row(
                         children: [
                           Text(
-                            user?.name ?? '',
+                            user.name,
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -193,9 +193,7 @@ class _CommentsState extends ConsumerState<Comments>
                               '/personal_sub_comments',
                               extra: {'comment': item, 'user': user},
                             ),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(99),
-                            ),
+                            borderRadius: BorderRadius.circular(99),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,

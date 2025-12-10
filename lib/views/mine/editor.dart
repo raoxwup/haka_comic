@@ -2,58 +2,46 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
 
-class Editor extends StatefulWidget {
+class Editor extends ConsumerStatefulWidget {
   const Editor({super.key});
 
   @override
-  State<Editor> createState() => _EditorState();
+  ConsumerState<Editor> createState() => _EditorState();
 }
 
-class _EditorState extends State<Editor> {
+class _EditorState extends ConsumerState<Editor> {
   late final _avatarUpdateHandler = updateAvatar.useRequest(
-    onBefore: (_) {
-      Loader.show(context);
-    },
     onSuccess: (data, _) {
       Toast.show(message: '头像更新成功');
       Log.info('Update avatar success', 'avatar');
-      context.read<UserProvider>().refresh();
+      ref.invalidate(userProvider);
     },
     onError: (e, _) {
       Toast.show(message: '头像更新失败');
       Log.error('Update avatar error', e);
     },
-    onFinally: (_) {
-      Loader.hide(context);
-    },
   );
 
   late final _sloganUpdateHandler = updateProfile.useRequest(
-    onBefore: (_) {
-      Loader.show(context);
-    },
     onSuccess: (data, _) {
       Toast.show(message: '自我介绍更新成功');
       Log.info('Update slogan success', 'slogan');
-      context.read<UserProvider>().refresh();
+      ref.invalidate(userProvider);
     },
     onError: (e, _) {
       Toast.show(message: '自我介绍更新失败');
       Log.error('Update slogan error', e);
-    },
-    onFinally: (_) {
-      Loader.hide(context);
     },
   );
 
@@ -62,7 +50,7 @@ class _EditorState extends State<Editor> {
       final pickedFile = await FilePicker.platform.pickFiles(
         type: FileType.image,
       );
-      // TODO 图片尺寸太大会上传不成功
+      // TODO 图片不能大于5MB
       if (pickedFile != null) {
         // 读取文件字节
         final bytes = await File(pickedFile.files.single.path!).readAsBytes();
@@ -132,52 +120,68 @@ class _EditorState extends State<Editor> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.select<UserProvider, User?>((value) => value.user);
+    final user = ref.watch(userProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('编辑')),
-      body: ListView(
+      body: Stack(
         children: [
-          ListItem(
-            onTap: _pickImage,
-            title: Text('头像', style: context.textTheme.titleMedium),
-            trailing: BaseImage(
-              url: user?.avatar?.url ?? '',
-              width: 64,
-              height: 64,
-              shape: const CircleBorder(),
+          if (user.isRefreshing)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(),
             ),
-          ),
-          ListItem(
-            title: Text('昵称', style: context.textTheme.titleMedium),
-            trailing: Text(user?.name ?? '--'),
-          ),
-          ListItem(
-            title: Text('哔咔账号', style: context.textTheme.titleMedium),
-            trailing: Text(user?.email ?? '--'),
-          ),
-          ListItem(
-            title: Text('出生日期', style: context.textTheme.titleMedium),
-            trailing: Text(
-              user?.birthday != null ? getFormattedDate(user!.birthday) : '--',
+          switch (user) {
+            AsyncValue(:final value?) => ListView(
+              children: [
+                ListItem(
+                  onTap: _pickImage,
+                  title: Text('头像', style: context.textTheme.titleMedium),
+                  trailing: BaseImage(
+                    url: value.avatar?.url ?? '',
+                    width: 64,
+                    height: 64,
+                    shape: const CircleBorder(),
+                  ),
+                ),
+                ListItem(
+                  title: Text('昵称', style: context.textTheme.titleMedium),
+                  trailing: Text(value.name),
+                ),
+                ListItem(
+                  title: Text('哔咔账号', style: context.textTheme.titleMedium),
+                  trailing: Text(value.email),
+                ),
+                ListItem(
+                  title: Text('出生日期', style: context.textTheme.titleMedium),
+                  trailing: Text(getFormattedDate(value.birthday)),
+                ),
+                ListItem(
+                  title: Text('类别', style: context.textTheme.titleMedium),
+                  trailing: Text(
+                    (value.characters.isNotEmpty)
+                        ? value.characters.join(', ')
+                        : '--',
+                  ),
+                ),
+                ListItem(
+                  title: Text('自我介绍', style: context.textTheme.titleMedium),
+                  subtitle: Text(
+                    value.slogan,
+                    style: context.textTheme.bodySmall,
+                  ),
+                  trailing: const Icon(Icons.edit_outlined),
+                  onTap: showSloganEditor,
+                ),
+              ],
             ),
-          ),
-          ListItem(
-            title: Text('类别', style: context.textTheme.titleMedium),
-            trailing: Text(
-              (user?.characters != null && user!.characters.isNotEmpty)
-                  ? user.characters.join(', ')
-                  : '--',
+            AsyncValue(:final error?) => ErrorPage(
+              errorMessage: error.toString(),
+              onRetry: () => ref.invalidate(userProvider),
             ),
-          ),
-          ListItem(
-            title: Text('自我介绍', style: context.textTheme.titleMedium),
-            subtitle: Text(
-              user?.slogan ?? '',
-              style: context.textTheme.bodySmall,
-            ),
-            trailing: const Icon(Icons.edit_outlined),
-            onTap: showSloganEditor,
-          ),
+            AsyncValue() => const Center(child: CircularProgressIndicator()),
+          },
         ],
       ),
     );

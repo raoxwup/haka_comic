@@ -115,6 +115,7 @@ class ReaderBottom extends StatelessWidget {
               IconButton(
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
+                  context.read<ReaderProvider>().openOrCloseToolbar();
                 },
                 tooltip: '章节',
                 icon: const Icon(Icons.menu_outlined),
@@ -122,6 +123,7 @@ class ReaderBottom extends StatelessWidget {
               if (isVerticalMode)
                 IconButton(
                   onPressed: () {
+                    context.read<ReaderProvider>().openOrCloseToolbar();
                     final slipFactor = ValueNotifier(AppConf().slipFactor);
                     showDialog(
                       context: context,
@@ -158,6 +160,7 @@ class ReaderBottom extends StatelessWidget {
               if (isVerticalMode)
                 IconButton(
                   onPressed: () {
+                    context.read<ReaderProvider>().openOrCloseToolbar();
                     showDialog(
                       context: context,
                       builder: (context) {
@@ -193,7 +196,10 @@ class ReaderBottom extends StatelessWidget {
                   icon: const Icon(Icons.width_normal_outlined),
                 ),
               IconButton(
-                onPressed: context.reader.startPageTurn,
+                onPressed: () {
+                  context.reader.startPageTurn();
+                  context.read<ReaderProvider>().openOrCloseToolbar();
+                },
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),
@@ -230,7 +236,10 @@ class ReaderBottom extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: context.reader.stopPageTurn,
+                onPressed: () {
+                  context.reader.stopPageTurn();
+                  context.read<ReaderProvider>().openOrCloseToolbar();
+                },
                 child: const Text('关闭自动翻页'),
               ),
             ],
