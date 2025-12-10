@@ -2,78 +2,31 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
-import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
 
-class Mine extends StatefulWidget {
+class Mine extends ConsumerWidget {
   const Mine({super.key});
 
   @override
-  State<Mine> createState() => _MineState();
-}
-
-class _MineState extends State<Mine> with AutoRegisterHandlerMixin {
-  late final _userProfileHandler = fetchUserProfile.useRequest(
-    onSuccess: (data, _) {
-      Log.info('Fetch user profile success', data.toString());
-      context.read<UserProvider>().user = data.user;
-      if (!data.user.isPunched) {
-        _punchInHandler.run();
-      }
-    },
-    onError: (e, _) => Log.error('Fetch user profile error', e),
-  );
-
-  late final _punchInHandler = punchIn.useRequest(
-    onSuccess: (_, _) {
-      Log.info('Punch in success', '');
-      Toast.show(message: '打卡成功');
-    },
-    onError: (e, _) => Log.error('Punch in error', e),
-  );
-
-  @override
-  List<AsyncRequestHandler> registerHandler() => [
-    _userProfileHandler,
-    _punchInHandler,
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-
-    context.read<UserProvider>().refresh = () => _userProfileHandler.run();
-
-    _userProfileHandler.run();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = _userProfileHandler.data?.user;
-    return BasePage(
-      isLoading: _userProfileHandler.isLoading,
-      onRetry: _userProfileHandler.refresh,
-      error: _userProfileHandler.error,
-      indicatorBuilder: (_) => Padding(
-        padding: EdgeInsets.only(top: context.top),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      child: ListView(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
+    return switch (user) {
+      AsyncValue(:final value?) => ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [
-          ProFile(user: user),
+          ProFile(user: value),
           const HistoryComics(),
           const Favorites(),
           const _MenuItem(
@@ -88,7 +41,15 @@ class _MineState extends State<Mine> with AutoRegisterHandlerMixin {
           ),
         ],
       ),
-    );
+      AsyncValue(:final error?) => ErrorPage(
+        errorMessage: error.toString(),
+        onRetry: () => ref.invalidate(userProvider),
+      ),
+      AsyncValue() => Padding(
+        padding: EdgeInsets.only(top: context.top),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+    };
   }
 }
 

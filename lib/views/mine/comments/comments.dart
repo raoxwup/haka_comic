@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -13,16 +14,16 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
 
-class Comments extends StatefulWidget {
+class Comments extends ConsumerStatefulWidget {
   const Comments({super.key});
 
   @override
-  State<Comments> createState() => _CommentsState();
+  ConsumerState<Comments> createState() => _CommentsState();
 }
 
-class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
+class _CommentsState extends ConsumerState<Comments>
+    with AutoRegisterHandlerMixin {
   late final _handler = fetchPersonalComments.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch personal comments success', data.toString());
@@ -110,7 +111,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
   }
 
   Widget _buildList() {
-    final user = context.watch<UserProvider>().user;
+    final user = ref.watch(userProvider).requireValue;
     return ListView.separated(
       controller: _scrollController,
       itemBuilder: (_, index) {

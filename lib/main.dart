@@ -11,7 +11,6 @@ import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/model/search_provider.dart';
 import 'package:haka_comic/providers/theme_provider.dart';
-import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -35,7 +34,6 @@ void main(List<String> args) {
                 child: MultiProvider(
                   providers: [
                     ChangeNotifierProvider(create: (_) => SearchProvider()),
-                    ChangeNotifierProvider(create: (_) => UserProvider()),
                   ],
                   child: const App(),
                 ),
