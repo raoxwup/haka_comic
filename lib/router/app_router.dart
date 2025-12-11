@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
 import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
@@ -13,7 +13,7 @@ import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
-import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
+import 'package:haka_comic/views/reader/state/comic_reader_state.dart';
 import 'package:haka_comic/views/search/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
@@ -99,14 +99,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/reader',
       builder: (_, state) {
-        final initializeState = state.extra as InitializeReaderState;
+        final comicReaderState = state.extra as ComicReaderState;
         return ProviderScope(
           overrides: [
-            initializeReaderStateProvider.overrideWithValue(initializeState),
+            comicReaderStateProvider.overrideWithBuild(
+              (_, _) => comicReaderState,
+            ),
           ],
           child: ChangeNotifierProvider(
             create: (context) {
-              final provider = ReaderProvider(state: initializeState);
+              final provider = ReaderProvider(state: comicReaderState);
               provider.initContext(context);
               return provider;
             },

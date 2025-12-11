@@ -9,8 +9,9 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
+import 'package:haka_comic/views/reader/state/comic_reader_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
+import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -25,12 +26,12 @@ typedef FetchImageHandler =
     AsyncRequestHandlerWithParam<List<ChapterImage>, FetchChapterImagesPayload>;
 
 class ReaderProvider with ChangeNotifier {
-  ReaderProvider({required InitializeReaderState state}) {
+  ReaderProvider({required ComicReaderState state}) {
     cid = state.id;
     title = state.title;
     chapters = state.chapters;
-    _currentChapter = state.currentChapter ?? chapters.first;
-    pageNo = state.pageNo ?? 0;
+    _currentChapter = state.chapter;
+    pageNo = state.pageNo;
     handler = fetchChapterImages.useRequest(
       initParam: FetchChapterImagesPayload(
         id: state.id,
@@ -358,19 +359,4 @@ class StartReaderState {
     this.currentChapter,
     this.pageNo,
   });
-}
-
-/// 单页页码转换为正确的多页页码
-int toCorrectMultiPageNo(int pageNo, int pageSize) {
-  return pageNo ~/ pageSize;
-}
-
-/// 多页页码转换为正确的单页页码
-int toCorrectSinglePageNo(int pageNo, int pageSize) {
-  return pageNo * pageSize;
-}
-
-/// [pageSize]页页码转换为[anotherPageSize]页页码
-int toAnotherMultiPageNo(int pageNo, int pageSize, int anotherPageSize) {
-  return (pageNo * pageSize) ~/ anotherPageSize;
 }

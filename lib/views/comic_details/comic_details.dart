@@ -21,7 +21,7 @@ import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
-import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
+import 'package:haka_comic/views/reader/state/comic_reader_state.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -120,12 +120,12 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
     );
     context.push(
       '/reader',
-      extra: InitializeReaderState(
+      extra: ComicReaderState(
         id: widget.id,
         title: data.title,
         chapters: _chapters,
-        currentChapter: chapter,
-        pageNo: pageNo,
+        chapter: chapter,
+        pageNo: pageNo ?? 0,
       ),
     );
   }

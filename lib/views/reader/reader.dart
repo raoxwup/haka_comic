@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/request.dart';
@@ -17,14 +18,14 @@ import 'package:haka_comic/widgets/base_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
 
-class Reader extends StatefulWidget {
+class Reader extends ConsumerStatefulWidget {
   const Reader({super.key});
 
   @override
-  State<Reader> createState() => _ReaderState();
+  ConsumerState<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> with UseRequestMixin {
+class _ReaderState extends ConsumerState<Reader> with UseRequestMixin {
   @override
   List<AsyncRequestHandler> registerHandler() => [context.reader.handler];
 
