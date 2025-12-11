@@ -1,6 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
@@ -11,6 +13,7 @@ import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
+import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
 import 'package:haka_comic/views/search/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
@@ -96,14 +99,19 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/reader',
       builder: (_, state) {
-        final startReaderState = state.extra as StartReaderState;
-        return ChangeNotifierProvider(
-          create: (context) {
-            final provider = ReaderProvider(state: startReaderState);
-            provider.initContext(context);
-            return provider;
-          },
-          child: const Reader(),
+        final initializeState = state.extra as InitializeReaderState;
+        return ProviderScope(
+          overrides: [
+            initializeReaderStateProvider.overrideWithValue(initializeState),
+          ],
+          child: ChangeNotifierProvider(
+            create: (context) {
+              final provider = ReaderProvider(state: initializeState);
+              provider.initContext(context);
+              return provider;
+            },
+            child: const Reader(),
+          ),
         );
       },
     ),

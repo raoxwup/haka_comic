@@ -9,6 +9,8 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
+import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -19,50 +21,11 @@ extension BuildContextReader on BuildContext {
   T selector<T>(T Function(ReaderProvider) s) => select<ReaderProvider, T>(s);
 }
 
-enum ReadMode {
-  /// 条漫模式
-  vertical('连续从上到下'),
-
-  /// 单页横向从左到右
-  leftToRight('单页从左到右'),
-
-  /// 单页横向从右到左
-  rightToLeft('单页从右到左'),
-
-  /// 双页横向从左到右
-  doubleLeftToRight('双页从左到右'),
-
-  /// 双页横向从右到左
-  doubleRightToLeft('双页从右到左');
-
-  final String displayName;
-
-  const ReadMode(this.displayName);
-
-  static ReadMode fromName(String? name) {
-    return ReadMode.values.firstWhere(
-      (mode) => mode.name == name,
-      orElse: () => vertical,
-    );
-  }
-
-  /// 是否为条漫阅读模式
-  bool get isVertical => this == vertical;
-
-  /// 是否为双页阅读模式
-  bool get isDoublePage =>
-      this == doubleLeftToRight || this == doubleRightToLeft;
-
-  /// 是否是从右到左阅读模式
-  bool get isReverse =>
-      this == ReadMode.rightToLeft || this == ReadMode.doubleRightToLeft;
-}
-
 typedef FetchImageHandler =
     AsyncRequestHandlerWithParam<List<ChapterImage>, FetchChapterImagesPayload>;
 
 class ReaderProvider with ChangeNotifier {
-  ReaderProvider({required StartReaderState state}) {
+  ReaderProvider({required InitializeReaderState state}) {
     cid = state.id;
     title = state.title;
     chapters = state.chapters;

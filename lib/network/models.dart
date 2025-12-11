@@ -1,8 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
+part 'models.freezed.dart';
 
 class BaseResponse<T> {
   final int code;
@@ -936,9 +938,12 @@ class ExtraRecommendComic {
       AppConf().api == Api.app ? pic : pic.replaceFirst('picacomic', 'go2778');
 }
 
-class FetchChapterImagesPayload {
+@freezed
+class FetchChapterImagesPayload with _$FetchChapterImagesPayload {
+  @override
   final String id;
 
+  @override
   final int order;
 
   FetchChapterImagesPayload({required this.id, required this.order});

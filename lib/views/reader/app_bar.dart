@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 
 /// 顶部工具栏

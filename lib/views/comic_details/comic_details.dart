@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -22,6 +21,7 @@ import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/reader/state/initialize_reader_state.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -120,7 +120,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
     );
     context.push(
       '/reader',
-      extra: StartReaderState(
+      extra: InitializeReaderState(
         id: widget.id,
         title: data.title,
         chapters: _chapters,

@@ -1,6 +1,6 @@
-import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 
 class AppConf {
