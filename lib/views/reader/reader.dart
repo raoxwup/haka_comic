@@ -3,8 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
+import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
+import 'package:haka_comic/views/reader/providers/controller_provider.dart';
+import 'package:haka_comic/views/reader/providers/images_provider.dart';
+import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
+import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
 import 'package:haka_comic/utils/extension.dart'
     hide UseRequest1Extensions, AsyncRequestHandler;
 import 'package:haka_comic/views/reader/app_bar.dart';
@@ -14,7 +18,7 @@ import 'package:haka_comic/views/reader/page_no_tag.dart';
 import 'package:haka_comic/views/reader/widget/reader_keyboard_listener.dart';
 import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
 
@@ -25,23 +29,20 @@ class Reader extends ConsumerStatefulWidget {
   ConsumerState<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends ConsumerState<Reader> with UseRequestMixin {
-  @override
-  List<AsyncRequestHandler> registerHandler() => [context.reader.handler];
-
+class _ReaderState extends ConsumerState<Reader> {
   /// 音量键控制器
   final volumeController = VolumeButtonController();
 
   /// 音量+事件
   late final volumeUpAction = ButtonAction(
     id: ButtonActionId.volumeUp,
-    onAction: context.reader.prev,
+    onAction: () => ref.read(listControllersProvider.notifier).prev(context),
   );
 
   /// 音量-事件
   late final volumeDownAction = ButtonAction(
     id: ButtonActionId.volumeDown,
-    onAction: context.reader.next,
+    onAction: () => ref.read(listControllersProvider.notifier).next(context),
   );
 
   @override
@@ -69,33 +70,52 @@ class _ReaderState extends ConsumerState<Reader> with UseRequestMixin {
 
   @override
   Widget build(BuildContext context) {
-    final readMode = context.selector((value) => value.readMode);
+    final readMode = ref.watch(readModeProvider);
 
-    final isLastChapter = context.selector((value) => value.isLastChapter);
+    final isLastChapter = ref.watch(
+      comicReaderStateProvider(
+        routerPayloadCache,
+      ).select((value) => value.isLastChapter),
+    );
 
-    final currentChapterIndex = context.selector(
-      (value) => value.currentChapterIndex,
+    final currentChapterIndex = ref.watch(
+      comicReaderStateProvider(
+        routerPayloadCache,
+      ).select((value) => value.chapterIndex),
     );
 
     Widget listWidget = readMode.isVertical
         ? const VerticalList()
         : const HorizontalList();
 
-    final prev = context.reader.prev;
-    final next = context.reader.next;
+    final listControllersNotifier = ref.read(listControllersProvider.notifier);
+    void prev() => listControllersNotifier.prev(context);
+    void next() => listControllersNotifier.next(context);
 
-    final handler = context.reader.handler;
+    final id = ref.watch(
+      comicReaderStateProvider(routerPayloadCache).select((s) => s.id),
+    );
+    final order = ref.watch(
+      comicReaderStateProvider(
+        routerPayloadCache,
+      ).select((s) => s.chapter.order),
+    );
+
+    final imagesAsyncValue = ref.watch(
+      imagesProvider(FetchChapterImagesPayload(id: id, order: order)),
+    );
+
+    final chapters = ref.watch(
+      comicReaderStateProvider(routerPayloadCache).select((s) => s.chapters),
+    );
 
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
           Positioned.fill(
-            child: BasePage(
-              isLoading: handler.loading || handler.isIdle,
-              onRetry: handler.refresh,
-              error: handler.error,
-              child: ReaderKeyboardListener(
+            child: switch (imagesAsyncValue) {
+              AsyncValue(value: final _?) => ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
                   LogicalKeyboardKey.arrowRight: next,
@@ -110,8 +130,25 @@ class _ReaderState extends ConsumerState<Reader> with UseRequestMixin {
                 },
                 child: listWidget,
               ),
-            ),
+              AsyncValue(:final error?) => ErrorPage(
+                errorMessage: error.toString(),
+                onRetry: () => ref.invalidate(
+                  imagesProvider(
+                    FetchChapterImagesPayload(id: id, order: order),
+                  ),
+                ),
+              ),
+              AsyncValue() => const Center(child: CircularProgressIndicator()),
+            },
           ),
+
+          if (imagesAsyncValue.isRefreshing)
+            Positioned.fill(
+              child: Container(
+                color: context.colorScheme.surfaceContainerLowest,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
 
           const ReaderPageNoTag(),
 
@@ -137,18 +174,24 @@ class _ReaderState extends ConsumerState<Reader> with UseRequestMixin {
               child: ScrollablePositionedList.builder(
                 initialScrollIndex: currentChapterIndex,
                 itemBuilder: (context, index) {
-                  final chapter = context.reader.chapters[index];
+                  final chapter = chapters[index];
                   return ListTile(
                     enabled: index != currentChapterIndex,
                     title: Text(chapter.title),
                     onTap: () {
                       context.pop();
-                      context.reader.openOrCloseToolbar();
-                      context.reader.go(chapter);
+                      ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                      ref
+                          .read(
+                            comicReaderStateProvider(
+                              routerPayloadCache,
+                            ).notifier,
+                          )
+                          .go(chapter);
                     },
                   );
                 },
-                itemCount: context.reader.chapters.length,
+                itemCount: chapters.length,
               ),
             ),
           ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:provider/provider.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 class ScrollPhysicsInherited extends InheritedWidget {
@@ -27,7 +27,7 @@ class ScrollPhysicsInherited extends InheritedWidget {
   }
 }
 
-class GestureWrapper extends StatefulWidget {
+class GestureWrapper extends ConsumerStatefulWidget {
   const GestureWrapper({
     super.key,
     required this.child,
@@ -42,10 +42,10 @@ class GestureWrapper extends StatefulWidget {
   final VoidCallback openOrCloseToolbar;
 
   @override
-  State<GestureWrapper> createState() => _GestureWrapperState();
+  ConsumerState<GestureWrapper> createState() => _GestureWrapperState();
 }
 
-class _GestureWrapperState extends State<GestureWrapper>
+class _GestureWrapperState extends ConsumerState<GestureWrapper>
     with SingleTickerProviderStateMixin {
   /// 当前触摸点个数
   int _activePointers = 0;
@@ -158,8 +158,8 @@ class _GestureWrapperState extends State<GestureWrapper>
 
   @override
   Widget build(BuildContext context) {
-    final isCtrlPressed = context.select<ReaderProvider, bool>(
-      (value) => value.isCtrlPressed,
+    final isCtrlPressed = ref.watch(
+      listStateProvider.select((value) => value.isCtrlPressed),
     );
     return ScrollPhysicsInherited(
       physics: _listPhysics,

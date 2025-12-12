@@ -14,7 +14,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ComicReaderState {
 
- String get id; String get title; List<Chapter> get chapters; Chapter get chapter; int get pageNo;
+/// 漫画id
+ String get id;/// 漫画标题
+ String get title;/// 漫画章节
+ List<Chapter> get chapters;/// 当前章节
+ Chapter get chapter;/// 当前页码
+ int get pageNo; WidgetRef get ref;
 /// Create a copy of ComicReaderState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +30,16 @@ $ComicReaderStateCopyWith<ComicReaderState> get copyWith => _$ComicReaderStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicReaderState&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.chapters, chapters)&&(identical(other.chapter, chapter) || other.chapter == chapter)&&(identical(other.pageNo, pageNo) || other.pageNo == pageNo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicReaderState&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.chapters, chapters)&&(identical(other.chapter, chapter) || other.chapter == chapter)&&(identical(other.pageNo, pageNo) || other.pageNo == pageNo)&&(identical(other.ref, ref) || other.ref == ref));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(chapters),chapter,pageNo);
+int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(chapters),chapter,pageNo,ref);
 
 @override
 String toString() {
-  return 'ComicReaderState(id: $id, title: $title, chapters: $chapters, chapter: $chapter, pageNo: $pageNo)';
+  return 'ComicReaderState(id: $id, title: $title, chapters: $chapters, chapter: $chapter, pageNo: $pageNo, ref: $ref)';
 }
 
 
@@ -45,7 +50,7 @@ abstract mixin class $ComicReaderStateCopyWith<$Res>  {
   factory $ComicReaderStateCopyWith(ComicReaderState value, $Res Function(ComicReaderState) _then) = _$ComicReaderStateCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, List<Chapter> chapters, Chapter chapter, int pageNo
+ String id, String title, List<Chapter> chapters, Chapter chapter, int pageNo, WidgetRef ref
 });
 
 
@@ -62,14 +67,15 @@ class _$ComicReaderStateCopyWithImpl<$Res>
 
 /// Create a copy of ComicReaderState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? chapters = null,Object? chapter = null,Object? pageNo = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? chapters = null,Object? chapter = null,Object? pageNo = null,Object? ref = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,chapters: null == chapters ? _self.chapters : chapters // ignore: cast_nullable_to_non_nullable
 as List<Chapter>,chapter: null == chapter ? _self.chapter : chapter // ignore: cast_nullable_to_non_nullable
 as Chapter,pageNo: null == pageNo ? _self.pageNo : pageNo // ignore: cast_nullable_to_non_nullable
-as int,
+as int,ref: null == ref ? _self.ref : ref // ignore: cast_nullable_to_non_nullable
+as WidgetRef,
   ));
 }
 
@@ -154,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo,  WidgetRef ref)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ComicReaderState() when $default != null:
-return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);case _:
+return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo,_that.ref);case _:
   return orElse();
 
 }
@@ -175,10 +181,10 @@ return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo,  WidgetRef ref)  $default,) {final _that = this;
 switch (_that) {
 case _ComicReaderState():
-return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);case _:
+return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo,_that.ref);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +201,10 @@ return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  List<Chapter> chapters,  Chapter chapter,  int pageNo,  WidgetRef ref)?  $default,) {final _that = this;
 switch (_that) {
 case _ComicReaderState() when $default != null:
-return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);case _:
+return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo,_that.ref);case _:
   return null;
 
 }
@@ -210,20 +216,27 @@ return $default(_that.id,_that.title,_that.chapters,_that.chapter,_that.pageNo);
 
 
 class _ComicReaderState extends ComicReaderState {
-  const _ComicReaderState({required this.id, required this.title, required final  List<Chapter> chapters, required this.chapter, required this.pageNo}): _chapters = chapters,super._();
+  const _ComicReaderState({required this.id, required this.title, required final  List<Chapter> chapters, required this.chapter, required this.pageNo, required this.ref}): _chapters = chapters,super._();
   
 
+/// 漫画id
 @override final  String id;
+/// 漫画标题
 @override final  String title;
+/// 漫画章节
  final  List<Chapter> _chapters;
+/// 漫画章节
 @override List<Chapter> get chapters {
   if (_chapters is EqualUnmodifiableListView) return _chapters;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_chapters);
 }
 
+/// 当前章节
 @override final  Chapter chapter;
+/// 当前页码
 @override final  int pageNo;
+@override final  WidgetRef ref;
 
 /// Create a copy of ComicReaderState
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +248,16 @@ _$ComicReaderStateCopyWith<_ComicReaderState> get copyWith => __$ComicReaderStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicReaderState&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._chapters, _chapters)&&(identical(other.chapter, chapter) || other.chapter == chapter)&&(identical(other.pageNo, pageNo) || other.pageNo == pageNo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicReaderState&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._chapters, _chapters)&&(identical(other.chapter, chapter) || other.chapter == chapter)&&(identical(other.pageNo, pageNo) || other.pageNo == pageNo)&&(identical(other.ref, ref) || other.ref == ref));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(_chapters),chapter,pageNo);
+int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(_chapters),chapter,pageNo,ref);
 
 @override
 String toString() {
-  return 'ComicReaderState(id: $id, title: $title, chapters: $chapters, chapter: $chapter, pageNo: $pageNo)';
+  return 'ComicReaderState(id: $id, title: $title, chapters: $chapters, chapter: $chapter, pageNo: $pageNo, ref: $ref)';
 }
 
 
@@ -255,7 +268,7 @@ abstract mixin class _$ComicReaderStateCopyWith<$Res> implements $ComicReaderSta
   factory _$ComicReaderStateCopyWith(_ComicReaderState value, $Res Function(_ComicReaderState) _then) = __$ComicReaderStateCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, List<Chapter> chapters, Chapter chapter, int pageNo
+ String id, String title, List<Chapter> chapters, Chapter chapter, int pageNo, WidgetRef ref
 });
 
 
@@ -272,14 +285,15 @@ class __$ComicReaderStateCopyWithImpl<$Res>
 
 /// Create a copy of ComicReaderState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? chapters = null,Object? chapter = null,Object? pageNo = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? chapters = null,Object? chapter = null,Object? pageNo = null,Object? ref = null,}) {
   return _then(_ComicReaderState(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,chapters: null == chapters ? _self._chapters : chapters // ignore: cast_nullable_to_non_nullable
 as List<Chapter>,chapter: null == chapter ? _self.chapter : chapter // ignore: cast_nullable_to_non_nullable
 as Chapter,pageNo: null == pageNo ? _self.pageNo : pageNo // ignore: cast_nullable_to_non_nullable
-as int,
+as int,ref: null == ref ? _self.ref : ref // ignore: cast_nullable_to_non_nullable
+as WidgetRef,
   ));
 }
 

@@ -1,9 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
 import 'package:haka_comic/views/about/about.dart';
@@ -36,7 +34,6 @@ import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
 import 'package:haka_comic/views/settings/word_block.dart';
-import 'package:provider/provider.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -100,21 +97,8 @@ final GoRouter appRouter = GoRouter(
       path: '/reader',
       builder: (_, state) {
         final comicReaderState = state.extra as ComicReaderState;
-        return ProviderScope(
-          overrides: [
-            comicReaderStateProvider.overrideWithBuild(
-              (_, _) => comicReaderState,
-            ),
-          ],
-          child: ChangeNotifierProvider(
-            create: (context) {
-              final provider = ReaderProvider(state: comicReaderState);
-              provider.initContext(context);
-              return provider;
-            },
-            child: const Reader(),
-          ),
-        );
+        routerPayloadCache = comicReaderState;
+        return const Reader();
       },
     ),
     GoRoute(path: '/rank', builder: (_, _) => const Rank()),

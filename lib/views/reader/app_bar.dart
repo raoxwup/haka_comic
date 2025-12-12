@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
+import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
+import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
+import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 
 /// 顶部工具栏
-class ReaderAppBar extends StatelessWidget {
+class ReaderAppBar extends ConsumerWidget {
   const ReaderAppBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final (showToolbar, readMode) = context.selector(
-      (value) => (value.showToolbar, value.readMode),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showToolbar = ref.watch(toolbarProvider);
+
+    final readMode = ref.watch(readModeProvider);
+
+    final title = ref.watch(
+      comicReaderStateProvider(routerPayloadCache).select((p) => p.title),
     );
 
     final top = context.top;
@@ -36,8 +43,8 @@ class ReaderAppBar extends StatelessWidget {
               menuChildren: ReadMode.values.map((mode) {
                 return MenuItemButton(
                   onPressed: () {
-                    context.reader.readMode = mode;
-                    context.reader.openOrCloseToolbar();
+                    ref.read(readModeProvider.notifier).readMode = mode;
+                    ref.read(toolbarProvider.notifier).openOrCloseToolbar();
                   },
                   child: Row(
                     spacing: 5,
@@ -67,7 +74,7 @@ class ReaderAppBar extends StatelessWidget {
               },
             ),
           ],
-          title: Text(context.reader.title),
+          title: Text(title),
           backgroundColor: context.colorScheme.secondaryContainer.withValues(
             alpha: 0.6,
           ),

@@ -1,23 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
-import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
+import 'package:haka_comic/views/reader/providers/controller_provider.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/comic_list_mixin.dart';
+import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
 import 'package:haka_comic/views/reader/widget/vertical_list/gesture.dart';
 import 'package:haka_comic/views/reader/widget/comic_image.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
-class VerticalList extends StatefulWidget {
+class VerticalList extends ConsumerStatefulWidget {
   const VerticalList({super.key});
 
   @override
-  State<VerticalList> createState() => _VerticalListState();
+  ConsumerState<VerticalList> createState() => _VerticalListState();
 }
 
-class _VerticalListState extends State<VerticalList> with ComicListMixin {
+class _VerticalListState extends ConsumerState<VerticalList>
+    with ComicListMixin {
   /// 列表控制
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
@@ -26,7 +29,9 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
   int _visibleFirstIndex = 0;
 
   /// 获取当前漫画ID
-  String get cid => context.reader.cid;
+  String get cid => ref.watch(
+    comicReaderStateProvider(routerPayloadCache).select((p) => p.id),
+  );
 
   /// 图片尺寸缓存 - 避免重复查询数据库
   final Map<String, ImageSize> _imageSizeCache = {};
@@ -60,31 +65,45 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final physics =
         ScrollPhysicsInherited.of(context) ?? const BouncingScrollPhysics();
 
-    final verticalListWidth = context.select<ReaderProvider, double>(
-      (value) => value.verticalListWidth,
+    final verticalListWidth = ref.watch(
+      listStateProvider.select((p) => p.verticalListWidthRatio),
     );
 
-    final pageCount = context.select<ReaderProvider, int>(
-      (value) => value.pageCount,
+    final pageCount = ref.watch(
+      comicReaderStateProvider(
+        routerPayloadCache,
+      ).select((p) => p.correctPageCount),
     );
 
-    final images = context.select<ReaderProvider, List<ChapterImage>>(
-      (value) => value.images,
+    final images = ref.watch(
+      comicReaderStateProvider(routerPayloadCache).select((p) => p.images),
     );
+
+    final pageNo = ref.watch(
+      comicReaderStateProvider(
+        routerPayloadCache,
+      ).select((p) => p.correctPageNo),
+    );
+
+    final toolbarNotifier = ref.read(toolbarProvider.notifier);
+
+    final controllers = ref.read(listControllersProvider);
 
     return GestureWrapper(
-      openOrCloseToolbar: context.reader.openOrCloseToolbar,
-      jumpOffset: context.reader.pageTurnForVertical,
+      openOrCloseToolbar: toolbarNotifier.openOrCloseToolbar,
+      jumpOffset: ref
+          .watch(listControllersProvider.notifier)
+          .pageTurnForVertical,
       child: FractionallySizedBox(
         widthFactor: verticalListWidth.clamp(0.0, 1.0),
         child: ScrollablePositionedList.builder(
-          initialScrollIndex: context.reader.pageNo,
+          initialScrollIndex: pageNo,
           padding: EdgeInsets.zero,
           physics: physics,
           itemCount: pageCount + 1,
-          itemScrollController: context.reader.itemScrollController,
+          itemScrollController: controllers.itemScrollController,
           itemPositionsListener: itemPositionsListener,
-          scrollOffsetController: context.reader.scrollOffsetController,
+          scrollOffsetController: controllers.scrollOffsetController,
           itemBuilder: (context, index) {
             if (index == pageCount) {
               return const Padding(
@@ -136,27 +155,25 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     int lastIndex = visibleIndices.last;
     int firstIndex = visibleIndices.first;
 
+    final notifier = ref.read(
+      comicReaderStateProvider(routerPayloadCache).notifier,
+    );
+
+    final images = ref.watch(
+      comicReaderStateProvider(routerPayloadCache).select((p) => p.images),
+    );
+
     // 根据滚动方向预加载不同方向的图片
     if (_visibleFirstIndex > lastIndex) {
       // 向上滚动，预加载上方图片
-      preloadImages(
-        firstIndex - 1,
-        firstIndex - maxPreloadCount,
-        context.reader.images,
-      );
+      preloadImages(firstIndex - 1, firstIndex - maxPreloadCount, images);
     } else {
       // 向下滚动，预加载下方图片
-      preloadImages(
-        lastIndex + 1,
-        lastIndex + maxPreloadCount,
-        context.reader.images,
-      );
+      preloadImages(lastIndex + 1, lastIndex + maxPreloadCount, images);
     }
 
     _visibleFirstIndex = firstIndex;
 
-    context.reader.onPageNoChanged(
-      lastIndex.clamp(0, context.reader.images.length - 1),
-    );
+    notifier.onPageNoChanged(lastIndex.clamp(0, images.length - 1));
   }
 }

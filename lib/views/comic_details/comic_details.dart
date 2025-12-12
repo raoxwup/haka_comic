@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
@@ -26,16 +27,17 @@ import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
-class ComicDetails extends StatefulWidget {
+class ComicDetails extends ConsumerStatefulWidget {
   const ComicDetails({super.key, required this.id});
 
   final String id;
 
   @override
-  State<ComicDetails> createState() => _ComicDetailsState();
+  ConsumerState<ComicDetails> createState() => _ComicDetailsState();
 }
 
-class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
+class _ComicDetailsState extends ConsumerState<ComicDetails>
+    with UseRequestMixin {
   /// 漫画详情
   late final handler = fetchComicDetails.useRequest(
     initParam: widget.id,
@@ -126,6 +128,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
         chapters: _chapters,
         chapter: chapter,
         pageNo: pageNo ?? 0,
+        ref: ref,
       ),
     );
   }

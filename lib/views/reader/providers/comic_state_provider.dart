@@ -3,17 +3,20 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/reader/state/comic_reader_state.dart';
 
-final comicReaderStateProvider =
-    NotifierProvider.autoDispose<ComicReaderStateNotifier, ComicReaderState>(
+late ComicReaderState routerPayloadCache;
+
+final comicReaderStateProvider = NotifierProvider.autoDispose
+    .family<ComicReaderStateNotifier, ComicReaderState, ComicReaderState>(
       ComicReaderStateNotifier.new,
     );
 
 class ComicReaderStateNotifier extends Notifier<ComicReaderState> {
+  final ComicReaderState comicState;
+
+  ComicReaderStateNotifier(this.comicState);
+
   @override
-  build() {
-    // 占位符 真正的实现在overrideWithBuild
-    throw UnimplementedError('ComicReaderStateNotifier not implemented');
-  }
+  build() => comicState;
 
   set chapter(Chapter chapter) {
     state = state.copyWith(chapter: chapter);

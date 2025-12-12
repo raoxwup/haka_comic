@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:haka_comic/views/reader/reader_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 
 typedef KeyHandler = VoidCallback?;
 
-class ReaderKeyboardListener extends StatelessWidget {
+class ReaderKeyboardListener extends ConsumerWidget {
   final Widget child;
   final Map<LogicalKeyboardKey, KeyHandler> handlers;
 
@@ -22,7 +22,8 @@ class ReaderKeyboardListener extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(listStateProvider.notifier);
     return Focus(
       focusNode: FocusNode()..requestFocus(),
       autofocus: true,
@@ -30,9 +31,9 @@ class ReaderKeyboardListener extends StatelessWidget {
       onKeyEvent: (FocusNode node, KeyEvent event) {
         if (_ctrlKeys.contains(event.logicalKey)) {
           if (event is KeyUpEvent) {
-            context.read<ReaderProvider>().isCtrlPressed = false;
+            notifier.isCtrlPressed = false;
           } else if (event is KeyDownEvent) {
-            context.read<ReaderProvider>().isCtrlPressed = true;
+            notifier.isCtrlPressed = true;
           }
           return KeyEventResult.handled;
         }
