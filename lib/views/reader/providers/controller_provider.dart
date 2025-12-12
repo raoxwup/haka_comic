@@ -4,32 +4,27 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
-import 'package:haka_comic/views/reader/state/list_controllers_state.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-final listControllersProvider =
-    NotifierProvider.autoDispose<ListControllersNotifier, ListControllersState>(
-      ListControllersNotifier.new,
-    );
+final listControllersProvider = Provider.autoDispose<ListControllersState>(
+  (ref) => ListControllersState(ref),
+);
 
-class ListControllersNotifier extends Notifier<ListControllersState> {
-  @override
-  ListControllersState build() {
-    return ListControllersState(
-      ref: ref,
-      scrollOffsetController: ScrollOffsetController(),
-      itemScrollController: ItemScrollController(),
-      pageController: PageController(),
-    );
-  }
+class ListControllersState {
+  final Ref ref;
+  ListControllersState(this.ref);
+
+  final itemScrollController = ItemScrollController();
+  final scrollOffsetController = ScrollOffsetController();
+  final pageController = PageController();
 
   /// 底部工具栏Slider OnChanged
   void onSliderChanged(int index) {
     if (ref.watch(readModeProvider).isVertical) {
-      state.itemScrollController.jumpTo(index: index);
+      itemScrollController.jumpTo(index: index);
     } else {
-      state.pageController.jumpToPage(index);
+      pageController.jumpToPage(index);
     }
   }
 
@@ -58,7 +53,7 @@ class ListControllersNotifier extends Notifier<ListControllersState> {
       return;
     }
 
-    state.scrollOffsetController.animateScroll(
+    scrollOffsetController.animateScroll(
       offset: offset,
       duration: const Duration(milliseconds: 200),
     );
@@ -79,7 +74,7 @@ class ListControllersNotifier extends Notifier<ListControllersState> {
         return;
       }
 
-      state.pageController.previousPage(
+      pageController.previousPage(
         duration: const Duration(milliseconds: 200),
         curve: Curves.linear,
       );
@@ -96,7 +91,7 @@ class ListControllersNotifier extends Notifier<ListControllersState> {
         return;
       }
 
-      state.pageController.nextPage(
+      pageController.nextPage(
         duration: const Duration(milliseconds: 200),
         curve: Curves.linear,
       );
