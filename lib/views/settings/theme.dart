@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haka_comic/providers/theme_provider.dart';
+import 'package:haka_comic/providers/theme_mode_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
 import 'package:haka_comic/views/settings/theme_switch.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
-class Theme extends ConsumerWidget {
+class Theme extends StatelessWidget {
   const Theme({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+  Widget build(BuildContext context) {
+    final themeMode = context.themeModeSelector((p) => p.themeMode);
     return MenuListTile.withAction(
       icon: Icons.contrast_outlined,
       title: '主题模式',

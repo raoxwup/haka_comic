@@ -1,31 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/views/reader/state/list_state.dart';
+import 'package:provider/provider.dart';
 
-final listStateProvider =
-    NotifierProvider.autoDispose<ListStateNotifier, ListState>(
-      ListStateNotifier.new,
-    );
+extension BuildContextListState on BuildContext {
+  ListStateProvider get stateReader => read<ListStateProvider>();
+  ListStateProvider get stateWatcher => watch<ListStateProvider>();
+  T stateSelector<T>(T Function(ListStateProvider) s) =>
+      select<ListStateProvider, T>(s);
+}
 
-class ListStateNotifier extends Notifier<ListState> {
-  @override
-  ListState build() {
-    return ListState(
-      isCtrlPressed: false,
-      physics: const BouncingScrollPhysics(),
-      verticalListWidthRatio: AppConf().verticalListWidthRatio,
-    );
+class ListStateProvider extends ChangeNotifier {
+  /// 是否按下了Ctrl
+  bool _isCtrlPressed = false;
+  bool get isCtrlPressed => _isCtrlPressed;
+  set isCtrlPressed(bool value) {
+    _isCtrlPressed = value;
+    notifyListeners();
   }
 
-  set physics(ScrollPhysics physics) =>
-      state = state.copyWith(physics: physics);
+  /// 列表ScrollPhysics
+  ScrollPhysics _physics = const BouncingScrollPhysics();
+  ScrollPhysics get physics => _physics;
+  set physics(ScrollPhysics physics) {
+    _physics = physics;
+    notifyListeners();
+  }
 
-  set isCtrlPressed(bool isCtrlPressed) =>
-      state = state.copyWith(isCtrlPressed: isCtrlPressed);
-
-  set verticalListWidthRatio(double ratio) {
-    state = state.copyWith(verticalListWidthRatio: ratio);
-    AppConf().verticalListWidthRatio = ratio;
+  /// 条漫模式宽度
+  double _verticalListWidthRatio = AppConf().verticalListWidthRatio;
+  double get verticalListWidthRatio => _verticalListWidthRatio;
+  set verticalListWidthRatio(double width) {
+    _verticalListWidthRatio = width;
+    AppConf().verticalListWidthRatio = width;
+    notifyListeners();
   }
 }

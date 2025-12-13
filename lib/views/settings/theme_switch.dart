@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haka_comic/providers/theme_provider.dart';
+import 'package:haka_comic/providers/theme_mode_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 
-class ThemeSwitch extends ConsumerStatefulWidget {
+class ThemeSwitch extends StatefulWidget {
   const ThemeSwitch({super.key});
 
   @override
-  ConsumerState<ThemeSwitch> createState() => _ThemeSwitchState();
+  State<ThemeSwitch> createState() => _ThemeSwitchState();
 }
 
-class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
+class _ThemeSwitchState extends State<ThemeSwitch>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -44,12 +43,12 @@ class _ThemeSwitchState extends ConsumerState<ThemeSwitch>
   }
 
   void _handleTap(ThemeModeOption mode) {
-    ref.read(themeModeProvider.notifier).updateThemeMode(mode);
+    context.themeModeReader.themeMode = mode;
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = context.themeModeSelector((p) => p.themeMode);
 
     final currentIndex = switch (themeMode) {
       ThemeModeOption.system => 0,

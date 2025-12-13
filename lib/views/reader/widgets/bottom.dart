@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/views/reader/providers/auto_page_turn_provider.dart';
-import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
-import 'package:haka_comic/views/reader/providers/controller_provider.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
-import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
-import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:provider/provider.dart';
 
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
 
 /// 底部工具栏
-class ReaderBottom extends ConsumerWidget {
+class ReaderBottom extends StatelessWidget {
   const ReaderBottom({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final bottom = context.bottom;
 
     final isM1 = UiMode.m1(context);
 
-    final showToolbar = ref.watch(toolbarProvider);
+    final showToolbar = context.selector((p) => p.showToolbar);
 
     if (isM1) {
       return AnimatedPositioned(
@@ -41,7 +37,7 @@ class ReaderBottom extends ConsumerWidget {
                 alpha: 0.6,
               ),
             ),
-            child: _buildContent(context, ref),
+            child: _buildContent(context),
           ),
         ),
       );
@@ -67,38 +63,32 @@ class ReaderBottom extends ConsumerWidget {
                 alpha: 0.6,
               ),
             ),
-            child: _buildContent(context, ref),
+            child: _buildContent(context),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref) {
-    final isPageTurning = ref.watch(
-      autoPageTurnProvider.select((p) => p.isPageTurning),
-    );
+  Widget _buildContent(BuildContext context) {
+    final isPageTurning = context.selector((p) => p.isPageTurning);
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: isPageTurning
-          ? _buildPageTurnContent(context, ref)
-          : _buildCommonContent(context, ref),
+          ? _buildPageTurnContent(context)
+          : _buildCommonContent(context),
     );
   }
 
-  Widget _buildCommonContent(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(comicReaderStateProvider(routerPayloadCache));
-    final notifier = ref.read(
-      comicReaderStateProvider(routerPayloadCache).notifier,
-    );
+  Widget _buildCommonContent(BuildContext context) {
+    final isFirstChapter = context.selector((p) => p.isFirstChapter);
+    final isLastChapter = context.selector((p) => p.isLastChapter);
 
-    final previousAction = state.isFirstChapter ? null : notifier.goPrevious;
+    final previousAction = isFirstChapter ? null : context.reader.goPrevious;
 
-    final nextAction = state.isLastChapter ? null : notifier.goNext;
+    final nextAction = isLastChapter ? null : context.reader.goNext;
 
-    final isVerticalMode = ref.watch(
-      readModeProvider.select((value) => value.isVertical),
-    );
+    final isVerticalMode = context.selector((p) => p.readMode.isVertical);
 
     return Column(
       key: const ValueKey('common_toolbar'),
@@ -123,7 +113,7 @@ class ReaderBottom extends ConsumerWidget {
               IconButton(
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
-                  ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                  context.reader.openOrCloseToolbar();
                 },
                 tooltip: '章节',
                 icon: const Icon(Icons.menu_outlined),
@@ -131,7 +121,7 @@ class ReaderBottom extends ConsumerWidget {
               if (isVerticalMode)
                 IconButton(
                   onPressed: () {
-                    ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                    context.reader.openOrCloseToolbar();
                     final slipFactor = ValueNotifier(AppConf().slipFactor);
                     showDialog(
                       context: context,
@@ -168,34 +158,38 @@ class ReaderBottom extends ConsumerWidget {
               if (isVerticalMode)
                 IconButton(
                   onPressed: () {
-                    ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                    context.reader.openOrCloseToolbar();
+                    final stateReader = context.stateReader;
                     showDialog(
                       context: context,
                       builder: (context) {
-                        final verticalListWidth = ref.watch(
-                          listStateProvider.select(
-                            (value) => value.verticalListWidthRatio,
+                        return ChangeNotifierProvider.value(
+                          value: stateReader,
+                          child: SimpleDialog(
+                            contentPadding: const EdgeInsets.all(20),
+                            title: const Text('漫画宽度'),
+                            children: [
+                              const Text('用于调整阅读时漫画的宽度。'),
+                              Builder(
+                                builder: (c) {
+                                  final widthRatio = c.stateSelector(
+                                    (p) => p.verticalListWidthRatio,
+                                  );
+                                  return Slider(
+                                    value: widthRatio * 10,
+                                    min: 2,
+                                    max: 10,
+                                    divisions: 8,
+                                    label: '$widthRatio * 屏宽',
+                                    onChanged: (double v) {
+                                      c.stateReader.verticalListWidthRatio =
+                                          v / 10;
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                        );
-                        return SimpleDialog(
-                          contentPadding: const EdgeInsets.all(20),
-                          title: const Text('漫画宽度'),
-                          children: [
-                            const Text('用于调整阅读时漫画的宽度。'),
-                            Slider(
-                              value: verticalListWidth * 10,
-                              min: 2,
-                              max: 10,
-                              divisions: 8,
-                              label: '$verticalListWidth * 屏宽',
-                              onChanged: (double value) {
-                                ref
-                                        .read(listStateProvider.notifier)
-                                        .verticalListWidthRatio =
-                                    value / 10;
-                              },
-                            ),
-                          ],
                         );
                       },
                     );
@@ -205,10 +199,8 @@ class ReaderBottom extends ConsumerWidget {
                 ),
               IconButton(
                 onPressed: () {
-                  ref
-                      .read(autoPageTurnProvider.notifier)
-                      .startPageTurn(context);
-                  ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                  context.reader.startPageTurn();
+                  context.reader.openOrCloseToolbar();
                 },
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
@@ -220,9 +212,8 @@ class ReaderBottom extends ConsumerWidget {
     );
   }
 
-  Widget _buildPageTurnContent(BuildContext context, WidgetRef ref) {
-    final interval = ref.watch(autoPageTurnProvider.select((p) => p.interval));
-    final notifier = ref.read(autoPageTurnProvider.notifier);
+  Widget _buildPageTurnContent(BuildContext context) {
+    final interval = context.selector((p) => p.interval);
     return Column(
       key: const ValueKey('page_turn_toolbar'),
       children: [
@@ -236,7 +227,7 @@ class ReaderBottom extends ConsumerWidget {
                 min: 2,
                 max: 60,
                 divisions: 58,
-                onChanged: (v) => notifier.updateInterval(v.round(), context),
+                onChanged: (v) => context.reader.updateInterval(v.round()),
               ),
             ),
             Text('$interval s'),
@@ -248,8 +239,8 @@ class ReaderBottom extends ConsumerWidget {
             children: [
               TextButton(
                 onPressed: () {
-                  notifier.stopPageTurn();
-                  ref.read(toolbarProvider.notifier).openOrCloseToolbar();
+                  context.reader.stopPageTurn();
+                  context.reader.openOrCloseToolbar();
                 },
                 child: const Text('关闭自动翻页'),
               ),
@@ -262,22 +253,14 @@ class ReaderBottom extends ConsumerWidget {
 }
 
 /// Slider
-class PageSlider extends ConsumerWidget {
+class PageSlider extends StatelessWidget {
   const PageSlider({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final value = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((p) => p.correctPageNo),
-    );
+  Widget build(BuildContext context) {
+    final value = context.selector((p) => p.pageNo);
 
-    final total = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((p) => p.correctPageCount),
-    );
+    final total = context.selector((p) => p.pageCount);
 
     if (total <= 1) return const SizedBox.shrink();
     return Focus(
@@ -289,9 +272,7 @@ class PageSlider extends ConsumerWidget {
         max: (total - 1).toDouble(),
         divisions: total - 1,
         label: '${value + 1}',
-        onChanged: (value) => ref
-            .read(listControllersProvider.notifier)
-            .onSliderChanged(value.round()),
+        onChanged: (value) => context.reader.onSliderChanged(value.round()),
       ),
     );
   }

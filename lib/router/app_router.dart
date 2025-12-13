@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
 import 'package:haka_comic/views/about/about.dart';
@@ -11,7 +10,9 @@ import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
-import 'package:haka_comic/views/reader/state/comic_reader_state.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/search/search_comics.dart';
 import 'package:haka_comic/views/comments/comments.dart';
 import 'package:haka_comic/views/comments/sub_comments.dart';
@@ -34,6 +35,7 @@ import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
 import 'package:haka_comic/views/settings/word_block.dart';
+import 'package:provider/provider.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -95,10 +97,15 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/reader',
-      builder: (_, state) {
-        final comicReaderState = state.extra as ComicReaderState;
-        routerPayloadCache = comicReaderState;
-        return const Reader();
+      builder: (_, s) {
+        final state = s.extra as ComicState;
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ReaderProvider(state: state)),
+            ChangeNotifierProvider(create: (_) => ListStateProvider()),
+          ],
+          child: const Reader(),
+        );
       },
     ),
     GoRoute(path: '/rank', builder: (_, _) => const Rank()),

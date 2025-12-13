@@ -1,48 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
-import 'package:haka_comic/views/reader/providers/controller_provider.dart';
-import 'package:haka_comic/views/reader/providers/images_provider.dart';
-import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
-import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
+import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/utils/extension.dart'
     hide UseRequest1Extensions, AsyncRequestHandler;
-import 'package:haka_comic/views/reader/app_bar.dart';
-import 'package:haka_comic/views/reader/bottom.dart';
-import 'package:haka_comic/views/reader/next_chapter.dart';
-import 'package:haka_comic/views/reader/page_no_tag.dart';
-import 'package:haka_comic/views/reader/widget/reader_keyboard_listener.dart';
-import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
-import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
-import 'package:haka_comic/widgets/error_page.dart';
+import 'package:haka_comic/views/reader/widgets/app_bar.dart';
+import 'package:haka_comic/views/reader/widgets/bottom.dart';
+import 'package:haka_comic/views/reader/widgets/next_chapter.dart';
+import 'package:haka_comic/views/reader/widgets/page_no_tag.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/widgets/reader_keyboard_listener.dart';
+import 'package:haka_comic/views/reader/widgets/horizontal_list/horizontal_list.dart';
+import 'package:haka_comic/views/reader/widgets/vertical_list/vertical_list.dart';
+import 'package:haka_comic/widgets/base_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
 
-class Reader extends ConsumerStatefulWidget {
+class Reader extends StatefulWidget {
   const Reader({super.key});
 
   @override
-  ConsumerState<Reader> createState() => _ReaderState();
+  State<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends ConsumerState<Reader> {
+class _ReaderState extends State<Reader> with UseRequestMixin {
+  @override
+  List<AsyncRequestHandler> registerHandler() => [context.reader.handler];
+
   /// 音量键控制器
   final volumeController = VolumeButtonController();
 
   /// 音量+事件
   late final volumeUpAction = ButtonAction(
     id: ButtonActionId.volumeUp,
-    onAction: () => ref.read(listControllersProvider.notifier).prev(context),
+    onAction: context.reader.prev,
   );
 
   /// 音量-事件
   late final volumeDownAction = ButtonAction(
     id: ButtonActionId.volumeDown,
-    onAction: () => ref.read(listControllersProvider.notifier).next(context),
+    onAction: context.reader.next,
   );
 
   @override
@@ -70,52 +68,31 @@ class _ReaderState extends ConsumerState<Reader> {
 
   @override
   Widget build(BuildContext context) {
-    final readMode = ref.watch(readModeProvider);
+    final readMode = context.selector((state) => state.readMode);
 
-    final isLastChapter = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((value) => value.isLastChapter),
-    );
+    final chapterIndex = context.selector((state) => state.chapterIndex);
 
-    final currentChapterIndex = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((value) => value.chapterIndex),
-    );
+    final handler = context.selector((state) => state.handler);
+
+    final prev = context.reader.prev;
+    final next = context.reader.next;
+
+    final chapters = context.selector((state) => state.chapters);
 
     Widget listWidget = readMode.isVertical
         ? const VerticalList()
         : const HorizontalList();
-
-    final listControllersNotifier = ref.read(listControllersProvider.notifier);
-    void prev() => listControllersNotifier.prev(context);
-    void next() => listControllersNotifier.next(context);
-
-    final id = ref.watch(
-      comicReaderStateProvider(routerPayloadCache).select((s) => s.id),
-    );
-    final order = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((s) => s.chapter.order),
-    );
-
-    final imagesAsyncValue = ref.watch(
-      imagesProvider(FetchChapterImagesPayload(id: id, order: order)),
-    );
-
-    final chapters = ref.watch(
-      comicReaderStateProvider(routerPayloadCache).select((s) => s.chapters),
-    );
 
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
           Positioned.fill(
-            child: switch (imagesAsyncValue) {
-              AsyncValue(value: final _?) => ReaderKeyboardListener(
+            child: BasePage(
+              isLoading: handler.loading || handler.isIdle,
+              onRetry: handler.refresh,
+              error: handler.error,
+              child: ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
                   LogicalKeyboardKey.arrowRight: next,
@@ -130,29 +107,12 @@ class _ReaderState extends ConsumerState<Reader> {
                 },
                 child: listWidget,
               ),
-              AsyncValue(:final error?) => ErrorPage(
-                errorMessage: error.toString(),
-                onRetry: () => ref.invalidate(
-                  imagesProvider(
-                    FetchChapterImagesPayload(id: id, order: order),
-                  ),
-                ),
-              ),
-              AsyncValue() => const Center(child: CircularProgressIndicator()),
-            },
-          ),
-
-          if (imagesAsyncValue.isRefreshing)
-            Positioned.fill(
-              child: Container(
-                color: context.colorScheme.surfaceContainerLowest,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
             ),
+          ),
 
           const ReaderPageNoTag(),
 
-          if (!isLastChapter) const ReaderNextChapter(),
+          const ReaderNextChapter(),
 
           const ReaderAppBar(),
 
@@ -172,22 +132,16 @@ class _ReaderState extends ConsumerState<Reader> {
             ),
             Expanded(
               child: ScrollablePositionedList.builder(
-                initialScrollIndex: currentChapterIndex,
+                initialScrollIndex: chapterIndex,
                 itemBuilder: (context, index) {
                   final chapter = chapters[index];
                   return ListTile(
-                    enabled: index != currentChapterIndex,
+                    enabled: index != chapterIndex,
                     title: Text(chapter.title),
                     onTap: () {
                       context.pop();
-                      ref.read(toolbarProvider.notifier).openOrCloseToolbar();
-                      ref
-                          .read(
-                            comicReaderStateProvider(
-                              routerPayloadCache,
-                            ).notifier,
-                          )
-                          .go(chapter);
+                      context.reader.openOrCloseToolbar();
+                      context.reader.go(chapter);
                     },
                   );
                 },

@@ -56,8 +56,6 @@ dependencies:
   flutter_context_menu: ^0.4.1
   permission_handler: ^12.0.1
   save_to_folder_ios: ^1.0.4
-  flutter_riverpod: ^3.0.3
-  freezed_annotation: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -70,8 +68,6 @@ dev_dependencies:
   freezed: ^3.2.3
   integration_test:
     sdk: flutter
-  custom_lint: ^0.8.1
-  riverpod_lint: ^3.0.3
 
 flutter:
   uses-material-design: true

@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/widgets/shadow_text.dart';
 
 /// 页码
-class ReaderPageNoTag extends ConsumerWidget {
+class ReaderPageNoTag extends StatelessWidget {
   const ReaderPageNoTag({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(comicReaderStateProvider(routerPayloadCache));
-    final title = state.chapter.title;
-    final pageNo = state.correctPageNo;
-    final total = state.correctPageCount;
+  Widget build(BuildContext context) {
+    final title = context.selector((p) => p.chapter.title);
+    final pageNo = context.selector((p) => p.pageNo);
+    final total = context.selector((p) => p.pageCount);
 
     return Positioned(
       left: context.left + 12,

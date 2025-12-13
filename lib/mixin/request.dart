@@ -1,6 +1,51 @@
 import 'dart:async' show scheduleMicrotask;
 import 'package:flutter/material.dart';
 
+abstract class RequestProvider extends ChangeNotifier {
+  bool _scheduled = false;
+  bool _dirty = false;
+  bool _disposed = false;
+
+  void _scheduleNotify() {
+    if (_scheduled) return;
+
+    _scheduled = true;
+
+    scheduleMicrotask(() {
+      if (_disposed) return;
+
+      if (_dirty) {
+        notifyListeners();
+      }
+
+      _dirty = false;
+      _scheduled = false;
+    });
+  }
+
+  /// 注册 RequestHandler
+  /// 在子类的构造函数中调用此方法来绑定 handler
+  R register<R extends AsyncRequestHandler>(R handler) {
+    handler.bind(() {
+      _dirty = true;
+      _scheduleNotify();
+    });
+
+    // 如果不是手动触发，则自动运行
+    if (!handler.manual) {
+      handler.run(handler.initParam);
+    }
+
+    return handler;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+}
+
 mixin UseRequestMixin<T extends StatefulWidget> on State<T> {
   List<AsyncRequestHandler> registerHandler();
 
@@ -50,7 +95,7 @@ abstract class BaseRequestHandler<T, P> {
 
   Future<void> refresh();
 
-  Future<void> run(P? param);
+  Future<void> run([P param]);
 }
 
 abstract class AsyncRequestHandler<T, P> implements BaseRequestHandler<T, P> {
@@ -124,7 +169,7 @@ class AsyncRequestHandlerWithoutParam<T> extends AsyncRequestHandler<T, void> {
   });
 
   @override
-  Future<void> run(_) async {
+  Future<void> run([_]) async {
     if (!_hasRequested) {
       _hasRequested = true;
     }
@@ -142,7 +187,7 @@ class AsyncRequestHandlerWithoutParam<T> extends AsyncRequestHandler<T, void> {
   }
 
   @override
-  Future<void> refresh() => run(null);
+  Future<void> refresh() => run();
 }
 
 class AsyncRequestHandlerWithParam<T, P> extends AsyncRequestHandler<T, P> {
@@ -161,7 +206,7 @@ class AsyncRequestHandlerWithParam<T, P> extends AsyncRequestHandler<T, P> {
   });
 
   @override
-  Future<void> run(P? param) async {
+  Future<void> run([P? param]) async {
     if (param == null) return;
     if (!_hasRequested) {
       _hasRequested = true;

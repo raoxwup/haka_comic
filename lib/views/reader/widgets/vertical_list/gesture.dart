@@ -1,33 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:vector_math/vector_math_64.dart';
 
-class ScrollPhysicsInherited extends InheritedWidget {
-  final ScrollPhysics physics;
-
-  const ScrollPhysicsInherited({
-    super.key,
-    required this.physics,
-    required super.child,
-  });
-
-  static ScrollPhysics? of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<ScrollPhysicsInherited>()
-        ?.physics;
-  }
-
-  @override
-  bool updateShouldNotify(ScrollPhysicsInherited oldWidget) {
-    return physics != oldWidget.physics;
-  }
-}
-
-class GestureWrapper extends ConsumerStatefulWidget {
+class GestureWrapper extends StatefulWidget {
   const GestureWrapper({
     super.key,
     required this.child,
@@ -42,16 +20,31 @@ class GestureWrapper extends ConsumerStatefulWidget {
   final VoidCallback openOrCloseToolbar;
 
   @override
-  ConsumerState<GestureWrapper> createState() => _GestureWrapperState();
+  State<GestureWrapper> createState() => _GestureWrapperState();
 }
 
-class _GestureWrapperState extends ConsumerState<GestureWrapper>
+class _GestureWrapperState extends State<GestureWrapper>
     with SingleTickerProviderStateMixin {
-  /// 当前触摸点个数
-  int _activePointers = 0;
+  final Set<int> _activePointerIds = {};
 
-  /// 滑动控制
-  late ScrollPhysics _listPhysics = widget.initialPhysics;
+  bool _isScrollable = true;
+
+  void _handlePointerChange(PointerEvent event, bool isAdding) {
+    if (isAdding) {
+      _activePointerIds.add(event.pointer);
+    } else {
+      _activePointerIds.remove(event.pointer);
+    }
+
+    final bool shouldBeScrollable = _activePointerIds.length < 2;
+
+    if (_isScrollable != shouldBeScrollable) {
+      _isScrollable = shouldBeScrollable;
+      context.stateReader.physics = _isScrollable
+          ? const BouncingScrollPhysics()
+          : const NeverScrollableScrollPhysics();
+    }
+  }
 
   ///双击缩放相关
   final _transformationController = TransformationController();
@@ -59,34 +52,13 @@ class _GestureWrapperState extends ConsumerState<GestureWrapper>
   late AnimationController _animationController;
   late Animation<Matrix4> _animation;
 
-  /// 更新触摸点数量并相应地更新滚动物理效果
-  void _updatePointerCount(int delta) {
-    final newCount = _activePointers + delta;
-    // 确保计数不会为负
-    final clampedCount = newCount.clamp(0, double.maxFinite.toInt());
-
-    if (clampedCount == _activePointers) return;
-
-    final newPhysics = clampedCount >= 2
-        ? const NeverScrollableScrollPhysics()
-        : widget.initialPhysics;
-
-    // 优化：只在物理效果类型变化时才调用setState
-    if (newPhysics.runtimeType != _listPhysics.runtimeType) {
-      setState(() {
-        _activePointers = clampedCount;
-        _listPhysics = newPhysics;
-      });
-    } else {
-      // 仅更新内部状态不触发重建
-      _activePointers = clampedCount;
-    }
-  }
-
   /// 双击放大/恢复
   void _handleDoubleTap() {
     Matrix4 endMatrix;
-    if (_transformationController.value != Matrix4.identity()) {
+
+    double currentScale = _transformationController.value.getMaxScaleOnAxis();
+
+    if (currentScale > 1.05) {
       endMatrix = Matrix4.identity();
     } else {
       endMatrix = Matrix4.identity()
@@ -158,27 +130,22 @@ class _GestureWrapperState extends ConsumerState<GestureWrapper>
 
   @override
   Widget build(BuildContext context) {
-    final isCtrlPressed = ref.watch(
-      listStateProvider.select((value) => value.isCtrlPressed),
-    );
-    return ScrollPhysicsInherited(
-      physics: _listPhysics,
-      child: Listener(
-        onPointerDown: (event) => _updatePointerCount(1),
-        onPointerUp: (event) => _updatePointerCount(-1),
-        onPointerCancel: (event) => _updatePointerCount(-1),
-        child: GestureDetector(
-          onTap: _handleTap,
-          onTapDown: (details) => _tapDownDetails = details,
-          onDoubleTapDown: _handleDoubleTapDown,
-          onDoubleTap: _handleDoubleTap,
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            scaleEnabled: isDesktop ? isCtrlPressed : true,
-            minScale: 1,
-            maxScale: 3.5,
-            child: widget.child,
-          ),
+    final isCtrlPressed = context.stateSelector((p) => p.isCtrlPressed);
+    return Listener(
+      onPointerDown: (event) => _handlePointerChange(event, true),
+      onPointerUp: (event) => _handlePointerChange(event, false),
+      onPointerCancel: (event) => _handlePointerChange(event, false),
+      child: GestureDetector(
+        onTap: _handleTap,
+        onTapDown: (details) => _tapDownDetails = details,
+        onDoubleTapDown: _handleDoubleTapDown,
+        onDoubleTap: _handleDoubleTap,
+        child: InteractiveViewer(
+          transformationController: _transformationController,
+          scaleEnabled: isDesktop ? isCtrlPressed : true,
+          minScale: 1.0,
+          maxScale: 3.5,
+          child: widget.child,
         ),
       ),
     );

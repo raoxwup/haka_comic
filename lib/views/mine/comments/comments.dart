@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
@@ -15,15 +14,14 @@ import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
-class Comments extends ConsumerStatefulWidget {
+class Comments extends StatefulWidget {
   const Comments({super.key});
 
   @override
-  ConsumerState<Comments> createState() => _CommentsState();
+  State<Comments> createState() => _CommentsState();
 }
 
-class _CommentsState extends ConsumerState<Comments>
-    with AutoRegisterHandlerMixin {
+class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
   late final _handler = fetchPersonalComments.useRequest(
     onSuccess: (data, _) {
       Log.info('Fetch personal comments success', data.toString());
@@ -91,27 +89,27 @@ class _CommentsState extends ConsumerState<Comments>
 
   @override
   Widget build(BuildContext context) {
+    final user = context.userSelector((p) => p.userHandler.data!.user);
     return RouteAwarePageWrapper(
       shouldRebuildOnCompleted: false,
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(title: const Text('我的评论')),
-          body: _handler.error != null ? _buildError() : _buildPage(),
+          body: _handler.error != null ? _buildError() : _buildPage(user),
         );
       },
     );
   }
 
-  Widget _buildPage() {
+  Widget _buildPage(User user) {
     if (!_handler.isLoading && _comments.isEmpty) {
       return _buildEmpty();
     } else {
-      return _buildList();
+      return _buildList(user);
     }
   }
 
-  Widget _buildList() {
-    final user = ref.watch(userProvider).requireValue;
+  Widget _buildList(User user) {
     return ListView.separated(
       controller: _scrollController,
       itemBuilder: (_, index) {

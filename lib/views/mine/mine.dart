@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -13,20 +12,26 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
-import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
-class Mine extends ConsumerWidget {
+class Mine extends StatelessWidget {
   const Mine({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider);
-    return switch (user) {
-      AsyncValue(:final value?) => ListView(
+  Widget build(BuildContext context) {
+    final handler = context.userSelector((p) => p.userHandler);
+    return BasePage(
+      isLoading: handler.loading || handler.isIdle,
+      onRetry: handler.refresh,
+      error: handler.error,
+      indicatorBuilder: (_) => Padding(
+        padding: .only(top: context.top),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [
-          ProFile(user: value),
+          ProFile(user: handler.data?.user),
           const HistoryComics(),
           const Favorites(),
           const _MenuItem(
@@ -41,15 +46,7 @@ class Mine extends ConsumerWidget {
           ),
         ],
       ),
-      AsyncValue(:final error?) => ErrorPage(
-        errorMessage: error.toString(),
-        onRetry: () => ref.invalidate(userProvider),
-      ),
-      AsyncValue() => Padding(
-        padding: EdgeInsets.only(top: context.top),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-    };
+    );
   }
 }
 

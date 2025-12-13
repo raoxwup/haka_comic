@@ -2,57 +2,35 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/reader/comic_list_mixin.dart';
-import 'package:haka_comic/views/reader/providers/comic_state_provider.dart';
-import 'package:haka_comic/views/reader/providers/controller_provider.dart';
-import 'package:haka_comic/views/reader/providers/read_mode_provider.dart';
-import 'package:haka_comic/views/reader/providers/toolbar_provider.dart';
-import 'package:haka_comic/views/reader/state/list_controllers_state.dart';
-import 'package:haka_comic/views/reader/state/read_mode.dart';
+import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
-import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:haka_comic/views/reader/widgets/comic_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 /// 条漫模式
-class HorizontalList extends ConsumerStatefulWidget {
+class HorizontalList extends StatefulWidget {
   const HorizontalList({super.key});
 
   @override
-  ConsumerState<HorizontalList> createState() => _HorizontalListState();
+  State<HorizontalList> createState() => _HorizontalListState();
 }
 
-class _HorizontalListState extends ConsumerState<HorizontalList>
-    with ComicListMixin {
+class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   /// 可见的第一项图片索引 - 用于判断滚动方向
   int _visibleFirstIndex = 0;
 
   /// 获取当前章节ID
-  String get cid => ref.watch(
-    comicReaderStateProvider(routerPayloadCache).select((p) => p.id),
-  );
-
-  ReadMode get readMode => ref.watch(readModeProvider);
-
-  ListControllersState get controllers => ref.watch(listControllersProvider);
-  ListControllersNotifier get controllersNotifier =>
-      ref.read(listControllersProvider.notifier);
-
-  ComicReaderStateNotifier get stateNotifier =>
-      ref.read(comicReaderStateProvider(routerPayloadCache).notifier);
+  String get cid => context.reader.id;
 
   void jumpToPage() {
-    final initialIndex = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((p) => p.correctPageNo),
-    );
-    controllers.pageController.jumpToPage(initialIndex);
+    final initialIndex = context.reader.pageNo;
+    context.reader.pageController.jumpToPage(initialIndex);
     _onPageChanged(initialIndex);
   }
 
@@ -69,15 +47,14 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
 
     final dx = _tapDetails!.localPosition.dx;
 
-    final isReverse = readMode.isReverse;
+    final isReverse = context.reader.readMode.isReverse;
 
     if (dx < leftWidth) {
-      controllersNotifier.pageTurnForHorizontal(isReverse);
+      context.reader.pageTurnForHorizontal(isReverse);
     } else if (dx < (leftWidth + centerWidth)) {
-      final notifier = ref.read(toolbarProvider.notifier);
-      notifier.openOrCloseToolbar();
+      context.reader.openOrCloseToolbar();
     } else {
-      controllersNotifier.pageTurnForHorizontal(!isReverse);
+      context.reader.pageTurnForHorizontal(!isReverse);
     }
   }
 
@@ -87,9 +64,9 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
     _lock = true;
 
     if (event.scrollDelta.dy > 0) {
-      controllersNotifier.pageTurnForHorizontal();
+      context.reader.pageTurnForHorizontal();
     } else if (event.scrollDelta.dy < 0) {
-      controllersNotifier.pageTurnForHorizontal(false);
+      context.reader.pageTurnForHorizontal(false);
     }
 
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -97,24 +74,20 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
     });
   }
 
+  bool? _lastIsDoublePage;
+
   @override
   Widget build(BuildContext context) {
-    final pageCount = ref.watch(
-      comicReaderStateProvider(
-        routerPayloadCache,
-      ).select((p) => p.correctPageCount),
-    );
+    final pageCount = context.selector((p) => p.pageCount);
 
-    final images = ref.watch(
-      comicReaderStateProvider(routerPayloadCache).select((p) => p.images),
-    );
+    final images = context.selector((p) => p.images);
 
-    final multiPageImages = ref.watch(
-      comicReaderStateProvider(routerPayloadCache).select((p) => p.multiImages),
-    );
+    final multiPageImages = context.selector((p) => p.multiPageImages);
 
-    ref.listen(readModeProvider, (prev, next) {
-      if (prev?.isDoublePage != next.isDoublePage) {
+    final readMode = context.selector((p) => p.readMode);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_lastIsDoublePage != readMode.isDoublePage) {
         jumpToPage();
       }
     });
@@ -139,7 +112,7 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
               ),
               scrollPhysics: const BouncingScrollPhysics(),
               itemCount: pageCount,
-              pageController: controllers.pageController,
+              pageController: context.reader.pageController,
               onPageChanged: _onPageChanged,
               reverse: readMode.isReverse,
               builder: (context, index) {
@@ -237,11 +210,9 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
   }
 
   void _onPageChanged(int index) {
-    final isDoublePage = readMode.isDoublePage;
+    final isDoublePage = context.reader.readMode.isDoublePage;
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
-    final images = ref.watch(
-      comicReaderStateProvider(routerPayloadCache).select((p) => p.images),
-    );
+    final images = context.reader.images;
 
     if (_visibleFirstIndex > index) {
       final start = i - 1;
@@ -257,6 +228,6 @@ class _HorizontalListState extends ConsumerState<HorizontalList>
 
     _visibleFirstIndex = index;
 
-    stateNotifier.onPageNoChanged(i);
+    context.reader.onPageNoChanged(i);
   }
 }
