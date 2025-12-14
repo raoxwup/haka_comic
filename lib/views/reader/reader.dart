@@ -43,6 +43,8 @@ class _ReaderState extends State<Reader> {
   void initState() {
     super.initState();
 
+    context.reader.initPreloadController(context);
+
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 

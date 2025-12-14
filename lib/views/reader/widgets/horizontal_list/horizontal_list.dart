@@ -22,9 +22,6 @@ class HorizontalList extends StatefulWidget {
 }
 
 class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
-  /// 可见的第一项图片索引 - 用于判断滚动方向
-  int _visibleFirstIndex = 0;
-
   /// 获取当前章节ID
   String get cid => context.reader.id;
 
@@ -212,21 +209,8 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   void _onPageChanged(int index) {
     final isDoublePage = context.reader.readMode.isDoublePage;
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
-    final images = context.reader.images;
 
-    if (_visibleFirstIndex > index) {
-      final start = i - 1;
-      final end = i - maxPreloadCount;
-      preloadImages(start, end, images);
-    } else {
-      int part = i;
-      if (isDoublePage) {
-        part = part + 1;
-      }
-      preloadImages(part + 1, part + maxPreloadCount, images);
-    }
-
-    _visibleFirstIndex = index;
+    context.reader.preloadController.onAnchorChanged(i);
 
     context.reader.onPageNoChanged(i);
   }

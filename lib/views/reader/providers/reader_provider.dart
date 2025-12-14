@@ -10,6 +10,7 @@ import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
+import 'package:haka_comic/views/reader/utils/image_preload_controller.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,8 @@ class ReaderProvider extends RequestProvider {
       ),
       onSuccess: (data, _) {
         Log.info('Fetch chapter images success', data.toString());
+        preloadController.replaceItems(data);
+        preloadController.onAnchorChanged(0);
       },
       onError: (e, _) {
         Log.error('Fetch chapter images error', e);
@@ -301,10 +304,22 @@ class ReaderProvider extends RequestProvider {
     }
   }
 
+  late final ImagePreloadController<ChapterImage> preloadController;
+
+  /// 初始化图片预加载控制器
+  void initPreloadController(BuildContext context) {
+    preloadController = ImagePreloadController<ChapterImage>(
+      items: images,
+      urlResolver: (image) => image.media.url,
+      context: context,
+    );
+  }
+
   @override
   void dispose() {
     pageController.dispose();
     turnPageTimer?.cancel();
+    preloadController.dispose();
     super.dispose();
   }
 }

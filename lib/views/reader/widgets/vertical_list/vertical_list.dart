@@ -18,11 +18,7 @@ class VerticalList extends StatefulWidget {
 
 class _VerticalListState extends State<VerticalList> with ComicListMixin {
   /// 列表控制
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
-
-  /// 可见的第一项图片索引 - 用于判断滚动方向
-  int _visibleFirstIndex = 0;
+  final itemPositionsListener = ItemPositionsListener.create();
 
   /// 获取当前漫画ID
   String get cid => context.reader.id;
@@ -127,22 +123,12 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     if (visibleIndices.isEmpty) return;
 
     visibleIndices.sort();
-    int lastIndex = visibleIndices.last;
-    int firstIndex = visibleIndices.first;
+    int last = visibleIndices.last;
 
-    final images = context.reader.images;
+    context.reader.preloadController.onAnchorChanged(last);
 
-    // 根据滚动方向预加载不同方向的图片
-    if (_visibleFirstIndex > lastIndex) {
-      // 向上滚动，预加载上方图片
-      preloadImages(firstIndex - 1, firstIndex - maxPreloadCount, images);
-    } else {
-      // 向下滚动，预加载下方图片
-      preloadImages(lastIndex + 1, lastIndex + maxPreloadCount, images);
-    }
-
-    _visibleFirstIndex = firstIndex;
-
-    context.reader.onPageNoChanged(lastIndex.clamp(0, images.length - 1));
+    context.reader.onPageNoChanged(
+      last.clamp(0, context.reader.images.length - 1),
+    );
   }
 }
