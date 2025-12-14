@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart'
     hide UseRequest1Extensions, AsyncRequestHandler;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -20,7 +20,7 @@ class Editor extends StatefulWidget {
   State<Editor> createState() => _EditorState();
 }
 
-class _EditorState extends State<Editor> with UseRequestMixin {
+class _EditorState extends State<Editor> with RequestMixin {
   @override
   registerHandler() => [_avatarUpdateHandler, _sloganUpdateHandler];
 
@@ -122,14 +122,14 @@ class _EditorState extends State<Editor> with UseRequestMixin {
   @override
   Widget build(BuildContext context) {
     final handler = context.userWatcher.userHandler;
-    final value = handler.data!.user;
+    final value = handler.state.data!.user;
     return Scaffold(
       appBar: AppBar(title: const Text('编辑')),
       body: Stack(
         children: [
-          if (handler.loading ||
-              _avatarUpdateHandler.loading ||
-              _sloganUpdateHandler.loading)
+          if (handler.state.loading ||
+              _avatarUpdateHandler.state.loading ||
+              _sloganUpdateHandler.state.loading)
             const Positioned(
               top: 0,
               left: 0,

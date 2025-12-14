@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/utils/extension.dart'
-    hide UseRequest1Extensions, AsyncRequestHandler;
+import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/reader/widgets/app_bar.dart';
 import 'package:haka_comic/views/reader/widgets/bottom.dart';
 import 'package:haka_comic/views/reader/widgets/next_chapter.dart';
@@ -13,7 +12,7 @@ import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/widgets/reader_keyboard_listener.dart';
 import 'package:haka_comic/views/reader/widgets/horizontal_list/horizontal_list.dart';
 import 'package:haka_comic/views/reader/widgets/vertical_list/vertical_list.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
 
@@ -24,10 +23,7 @@ class Reader extends StatefulWidget {
   State<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> with UseRequestMixin {
-  @override
-  List<AsyncRequestHandler> registerHandler() => [context.reader.handler];
-
+class _ReaderState extends State<Reader> {
   /// 音量键控制器
   final volumeController = VolumeButtonController();
 
@@ -72,7 +68,7 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
 
     final chapterIndex = context.selector((state) => state.chapterIndex);
 
-    final handler = context.selector((state) => state.handler);
+    final state = context.selector((state) => state.handler.state);
 
     final prev = context.reader.prev;
     final next = context.reader.next;
@@ -88,11 +84,8 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
       body: Stack(
         children: [
           Positioned.fill(
-            child: BasePage(
-              isLoading: handler.loading || handler.isIdle,
-              onRetry: handler.refresh,
-              error: handler.error,
-              child: ReaderKeyboardListener(
+            child: switch (state) {
+              RequestSuccess() => ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
                   LogicalKeyboardKey.arrowRight: next,
@@ -107,7 +100,12 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
                 },
                 child: listWidget,
               ),
-            ),
+              RequestError(:final error) => ErrorPage(
+                errorMessage: error.toString(),
+                onRetry: context.reader.handler.refresh,
+              ),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
           ),
 
           const ReaderPageNoTag(),

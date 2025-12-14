@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/network/http.dart';
+import 'package:haka_comic/network/http.dart' hide register;
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
@@ -22,9 +22,9 @@ extension BuildContextReader on BuildContext {
 }
 
 typedef FetchImageHandler =
-    AsyncRequestHandlerWithParam<List<ChapterImage>, FetchChapterImagesPayload>;
+    RequestHandlerWithParams<List<ChapterImage>, FetchChapterImagesPayload>;
 
-class ReaderProvider with ChangeNotifier {
+class ReaderProvider extends RequestProvider {
   ReaderProvider({required ComicState state}) {
     id = state.id;
     title = state.title;
@@ -33,17 +33,19 @@ class ReaderProvider with ChangeNotifier {
     pageNo = state.pageNo;
 
     handler = fetchChapterImages.useRequest(
-      initParam: FetchChapterImagesPayload(id: state.id, order: chapter.order),
+      defaultParams: FetchChapterImagesPayload(
+        id: state.id,
+        order: chapter.order,
+      ),
       onSuccess: (data, _) {
         Log.info('Fetch chapter images success', data.toString());
       },
       onError: (e, _) {
         Log.error('Fetch chapter images error', e);
       },
-      onFinally: (_) {
-        notifyListeners();
-      },
     );
+
+    register(handler);
   }
 
   /// 获取图片的handler
@@ -87,7 +89,8 @@ class ReaderProvider with ChangeNotifier {
   final pageController = PageController();
 
   /// 章节图片
-  List<ChapterImage> get images => handler.data ?? [];
+  List<ChapterImage> get images =>
+      handler.state.maybeWhen(success: (data) => data, orElse: () => []);
 
   ///多页模式下章节图片
   List<List<ChapterImage>> get multiPageImages => splitList(images, 2);
@@ -163,6 +166,7 @@ class ReaderProvider with ChangeNotifier {
 
   /// 底部工具栏Slider OnChanged
   void onSliderChanged(int index) {
+    pageNo = index;
     if (readMode.isVertical) {
       itemScrollController.jumpTo(index: index);
     } else {
@@ -277,7 +281,7 @@ class ReaderProvider with ChangeNotifier {
   void startPageTurn() {
     turnPageTimer?.cancel();
     turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
-      if (handler.loading) return;
+      if (handler.state case RequestState.loading) return;
       next();
     });
     isPageTurning = true;

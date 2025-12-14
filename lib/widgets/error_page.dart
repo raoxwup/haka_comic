@@ -27,6 +27,9 @@ class _ErrorPageState extends State<ErrorPage> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               widget.errorMessage,
+              maxLines: 3,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
               style: context.textTheme.bodyMedium,
             ),
           ),

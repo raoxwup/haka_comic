@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
-import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
@@ -13,6 +12,7 @@ import 'package:haka_comic/utils/extension.dart'
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/chapters_list.dart';
 import 'package:haka_comic/views/comic_details/collect_action.dart';
@@ -23,7 +23,7 @@ import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/base_image.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class ComicDetails extends StatefulWidget {
@@ -35,10 +35,10 @@ class ComicDetails extends StatefulWidget {
   State<ComicDetails> createState() => _ComicDetailsState();
 }
 
-class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
+class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   /// 漫画详情
   late final handler = fetchComicDetails.useRequest(
-    initParam: widget.id,
+    defaultParams: widget.id,
     onSuccess: (data, _) {
       Log.info('Fetch comic details', data.toString());
       HistoryHelper().insert(data.comic);
@@ -50,7 +50,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
 
   /// 漫画章节
   late final chaptersHandler = fetchChapters.useRequest(
-    initParam: widget.id,
+    defaultParams: widget.id,
     onSuccess: (data, _) {
       Log.info('Fetch chapters success', data.toString());
       // 哔咔最新的排在最前面
@@ -62,7 +62,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler, chaptersHandler];
+  List<RequestHandler> registerHandler() => [handler, chaptersHandler];
 
   final _showTitleNotifier = ValueNotifier(false);
   final _scrollController = ScrollController();
@@ -113,7 +113,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
 
   /// 进入阅读
   void _startRead({String? chapterId, int? pageNo}) {
-    final data = handler.data!.comic;
+    final data = handler.state.data!.comic;
     final chapter = _chapters.firstWhere(
       (element) => element.id == chapterId,
       orElse: () => _chapters.first,
@@ -132,7 +132,7 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
 
   @override
   Widget build(BuildContext context) {
-    final data = handler.data?.comic;
+    final data = handler.state.data?.comic;
     final bottom = context.bottom;
 
     return RouteAwarePageWrapper(
@@ -179,93 +179,92 @@ class _ComicDetailsState extends State<ComicDetails> with UseRequestMixin {
               ),
             ],
           ),
-          body: BasePage(
-            isLoading:
-                handler.loading ||
-                chaptersHandler.loading ||
-                handler.isIdle ||
-                chaptersHandler.isIdle ||
-                !completed,
-            onRetry: () {
-              handler.refresh();
-              chaptersHandler.refresh();
-            },
-            error: handler.error ?? chaptersHandler.error,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
-              child: Column(
-                spacing: 15,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTitle(data),
-                  if (data?.categories != null && data!.categories.isNotEmpty)
-                    _buildTags(data, '分类'),
-                  if (data?.tags != null && data!.tags.isNotEmpty)
-                    _buildTags(data, '标签'),
-                  _buildActions(data),
-                  if (UiMode.m1(context))
-                    ValueListenableBuilder(
-                      valueListenable: _readRecordNotifier,
-                      builder: (context, value, child) {
-                        return Row(
-                          spacing: 10,
-                          children: [
-                            Expanded(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  minHeight: 40,
-                                ),
-                                child: value != null
-                                    ? FilledButton.tonalIcon(
-                                        onPressed: () => _startRead(),
-                                        label: const Text('从头开始'),
-                                      )
-                                    : FilledButton(
-                                        onPressed: () => _startRead(),
-                                        child: const Text('开始阅读'),
-                                      ),
-                              ),
-                            ),
-                            if (value != null)
+          body: switch ((handler.state, chaptersHandler.state)) {
+            (
+              RequestSuccess(:final data),
+              RequestSuccess(data: final chapters),
+            ) =>
+              SingleChildScrollView(
+                controller: _scrollController,
+                padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
+                child: Column(
+                  spacing: 15,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTitle(data.comic),
+                    if (data.comic.categories.isNotEmpty)
+                      _buildTags(data.comic, '分类'),
+                    if (data.comic.tags.isNotEmpty)
+                      _buildTags(data.comic, '标签'),
+                    _buildActions(data.comic),
+                    if (UiMode.m1(context))
+                      ValueListenableBuilder(
+                        valueListenable: _readRecordNotifier,
+                        builder: (context, value, child) {
+                          return Row(
+                            spacing: 10,
+                            children: [
                               Expanded(
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(
                                     minHeight: 40,
                                   ),
-                                  child: FilledButton(
-                                    onPressed: () => _startRead(
-                                      chapterId: value.chapterId,
-                                      pageNo: value.pageNo,
-                                    ),
-                                    child: const Text('继续阅读'),
-                                  ),
+                                  child: value != null
+                                      ? FilledButton.tonalIcon(
+                                          onPressed: () => _startRead(),
+                                          label: const Text('从头开始'),
+                                        )
+                                      : FilledButton(
+                                          onPressed: () => _startRead(),
+                                          child: const Text('开始阅读'),
+                                        ),
                                 ),
                               ),
-                          ],
-                        );
-                      },
+                              if (value != null)
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 40,
+                                    ),
+                                    child: FilledButton(
+                                      onPressed: () => _startRead(
+                                        chapterId: value.chapterId,
+                                        pageNo: value.pageNo,
+                                      ),
+                                      child: const Text('继续阅读'),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    _buildReadRecord(),
+                    // SizedBox(height: 8),
+                    const Divider(),
+                    ComicCreator(
+                      creator: data.comic.creator,
+                      updatedAt: data.comic.updated_at,
                     ),
-                  _buildReadRecord(),
-                  // SizedBox(height: 8),
-                  const Divider(),
-                  ComicCreator(
-                    creator: data?.creator,
-                    updatedAt: data?.updated_at,
-                  ),
-                  const SizedBox(height: 5),
-                  _buildDescription(data),
-                  const SizedBox(height: 5),
-                  ChaptersList(
-                    chapters: chaptersHandler.data ?? [],
-                    startRead: _startRead,
-                  ),
-                  const SizedBox(height: 5),
-                  _buildRecommendation(data),
-                ],
+                    const SizedBox(height: 5),
+                    _buildDescription(data.comic),
+                    const SizedBox(height: 5),
+                    ChaptersList(chapters: chapters, startRead: _startRead),
+                    const SizedBox(height: 5),
+                    _buildRecommendation(data.comic),
+                  ],
+                ),
               ),
-            ),
-          ),
+            (RequestError(:final error), RequestError(error: final err)) =>
+              ErrorPage(
+                errorMessage: error.toString() + err.toString(),
+                onRetry: () {
+                  handler.refresh();
+                  chaptersHandler.refresh();
+                },
+              ),
+            _ => const Center(child: CircularProgressIndicator()),
+          },
         );
       },
     );

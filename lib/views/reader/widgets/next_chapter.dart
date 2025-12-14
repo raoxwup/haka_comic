@@ -7,7 +7,7 @@ class ReaderNextChapter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final handler = context.selector((p) => p.handler);
+    final state = context.selector((p) => p.handler.state);
     final images = context.selector((p) => p.images);
     final pageNo = context.selector((p) => p.pageNo);
     final total = context.selector((p) => p.pageCount);
@@ -15,7 +15,7 @@ class ReaderNextChapter extends StatelessWidget {
 
     final isShow =
         !isLastChapter &&
-        !handler.loading &&
+        !state.loading &&
         images.isNotEmpty &&
         pageNo >= total - 2;
 

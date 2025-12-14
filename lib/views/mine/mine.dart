@@ -9,9 +9,11 @@ import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request_state.dart';
 import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
 class Mine extends StatelessWidget {
@@ -19,19 +21,12 @@ class Mine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final handler = context.userSelector((p) => p.userHandler);
-    return BasePage(
-      isLoading: handler.loading || handler.isIdle,
-      onRetry: handler.refresh,
-      error: handler.error,
-      indicatorBuilder: (_) => Padding(
-        padding: .only(top: context.top),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      child: ListView(
+    final state = context.userSelector((p) => p.userHandler.state);
+    return switch (state) {
+      RequestSuccess(:final data) => ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [
-          ProFile(user: handler.data?.user),
+          ProFile(user: data.user),
           const HistoryComics(),
           const Favorites(),
           const _MenuItem(
@@ -46,7 +41,15 @@ class Mine extends StatelessWidget {
           ),
         ],
       ),
-    );
+      RequestError(:final error) => ErrorPage(
+        errorMessage: error.toString(),
+        onRetry: context.userReader.userHandler.refresh,
+      ),
+      _ => Padding(
+        padding: .only(top: context.top),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+    };
   }
 }
 

@@ -89,7 +89,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.userSelector((p) => p.userHandler.data!.user);
+    final user = context.userSelector((p) => p.userHandler.state.data!.user);
     return RouteAwarePageWrapper(
       shouldRebuildOnCompleted: false,
       builder: (context, completed) {

@@ -8,7 +8,7 @@ import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/model/search_provider.dart';
+import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/providers/theme_color_provider.dart';
 import 'package:haka_comic/providers/theme_mode_provider.dart';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/request.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/button.dart';
 
 class Login extends StatefulWidget {
@@ -15,7 +15,7 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> with UseRequestMixin {
+class _LoginState extends State<Login> with RequestMixin {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
@@ -36,7 +36,7 @@ class _LoginState extends State<Login> with UseRequestMixin {
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler];
+  List<RequestHandler> registerHandler() => [handler];
 
   bool _showPassword = false;
 
@@ -138,7 +138,7 @@ class _LoginState extends State<Login> with UseRequestMixin {
                 Expanded(
                   child: Button.filled(
                     onPressed: enable ? _login : null,
-                    isLoading: handler.loading,
+                    isLoading: handler.state.loading,
                     child: const Text('登录'),
                   ),
                 ),
