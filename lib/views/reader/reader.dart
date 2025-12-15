@@ -87,7 +87,7 @@ class _ReaderState extends State<Reader> {
         children: [
           Positioned.fill(
             child: switch (state) {
-              RequestSuccess() => ReaderKeyboardListener(
+              Success() => ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
                   LogicalKeyboardKey.arrowRight: next,
@@ -102,7 +102,7 @@ class _ReaderState extends State<Reader> {
                 },
                 child: listWidget,
               ),
-              RequestError(:final error) => ErrorPage(
+              Error(:final error) => ErrorPage(
                 errorMessage: error.toString(),
                 onRetry: context.reader.handler.refresh,
               ),

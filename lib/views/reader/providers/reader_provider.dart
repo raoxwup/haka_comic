@@ -92,8 +92,7 @@ class ReaderProvider extends RequestProvider {
   final pageController = PageController();
 
   /// 章节图片
-  List<ChapterImage> get images =>
-      handler.state.maybeWhen(success: (data) => data, orElse: () => []);
+  List<ChapterImage> get images => handler.state.data ?? [];
 
   ///多页模式下章节图片
   List<List<ChapterImage>> get multiPageImages => splitList(images, 2);
@@ -284,7 +283,7 @@ class ReaderProvider extends RequestProvider {
   void startPageTurn() {
     turnPageTimer?.cancel();
     turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
-      if (handler.state case RequestState.loading) return;
+      if (handler.state case Loading()) return;
       next();
     });
     isPageTurning = true;

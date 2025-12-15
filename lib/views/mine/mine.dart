@@ -23,7 +23,7 @@ class Mine extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.userSelector((p) => p.userHandler.state);
     return switch (state) {
-      RequestSuccess(:final data) => ListView(
+      Success(:final data) => ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
         children: [
           ProFile(user: data.user),
@@ -41,7 +41,7 @@ class Mine extends StatelessWidget {
           ),
         ],
       ),
-      RequestError(:final error) => ErrorPage(
+      Error(:final error) => ErrorPage(
         errorMessage: error.toString(),
         onRetry: context.userReader.userHandler.refresh,
       ),

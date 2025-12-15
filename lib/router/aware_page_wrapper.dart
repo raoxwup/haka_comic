@@ -18,25 +18,24 @@ class RouteAwarePageWrapper extends StatefulWidget {
 }
 
 class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
-  late bool _completed;
-  Animation? _routeAnimation;
+  bool _completed = false;
+  Animation<double>? _routeAnimation;
 
   @override
-  void initState() {
-    super.initState();
-    _completed = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _setupRouteListener());
-  }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeAnimation == null) {
+      final route = ModalRoute.of(context);
+      if (route != null && route.animation != null) {
+        _routeAnimation = route.animation;
 
-  void _setupRouteListener() {
-    final route = ModalRoute.of(context);
-    if (route != null) {
-      _routeAnimation = route.animation;
-      // 检查初始状态
-      if (_routeAnimation?.status == AnimationStatus.completed) {
-        _markCompleted();
+        if (_routeAnimation!.status == AnimationStatus.completed) {
+          _markCompleted();
+        } else {
+          _routeAnimation!.addStatusListener(_handleRouteAnimationStatus);
+        }
       } else {
-        _routeAnimation?.addStatusListener(_handleRouteAnimationStatus);
+        _markCompleted();
       }
     }
   }
@@ -49,10 +48,14 @@ class _RouteAwarePageWrapperState extends State<RouteAwarePageWrapper> {
   }
 
   void _markCompleted() {
-    if (!_completed && widget.shouldRebuildOnCompleted) {
-      setState(() => _completed = true);
-    } else {
-      _completed = true;
+    if (_completed) return;
+
+    if (mounted) {
+      if (widget.shouldRebuildOnCompleted) {
+        setState(() => _completed = true);
+      } else {
+        _completed = true;
+      }
     }
   }
 

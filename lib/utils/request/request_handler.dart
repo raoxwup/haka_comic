@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/utils/request/request_state.dart';
 
 abstract class RequestHandler<T, P> {
-  RequestState<T> _state = RequestState.initial();
+  RequestState<T> _state = const Initial();
 
   RequestState<T> get state => _state;
 
@@ -31,17 +31,17 @@ abstract class RequestHandler<T, P> {
 
   void setup(P params) {
     onBefore?.call(params);
-    _setState((_) => const RequestState.loading());
+    _setState((_) => const Loading());
   }
 
   void success(T data, P params) {
     onSuccess?.call(data, params);
-    _setState((s) => RequestState.success(data));
+    _setState((s) => Success(data));
   }
 
   void fail(Object error, P params) {
     onError?.call(error, params);
-    _setState((s) => RequestState.error(error));
+    _setState((s) => Error(error));
   }
 
   void apply([P? params]);
