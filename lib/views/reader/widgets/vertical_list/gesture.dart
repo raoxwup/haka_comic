@@ -40,9 +40,11 @@ class _GestureWrapperState extends State<GestureWrapper>
 
     if (_isScrollable != shouldBeScrollable) {
       _isScrollable = shouldBeScrollable;
-      context.stateReader.physics = _isScrollable
-          ? const BouncingScrollPhysics()
-          : const NeverScrollableScrollPhysics();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.stateReader.physics = _isScrollable
+            ? const BouncingScrollPhysics()
+            : const NeverScrollableScrollPhysics();
+      });
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
@@ -91,14 +92,16 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
             return ComicImage(
               url: item.media.url,
               onImageSizeChanged: (width, height) {
-                final size = ImageSize(
-                  width: width,
-                  height: height,
-                  imageId: item.uid,
-                  cid: cid,
-                );
-                insertImageSize(size);
-                _imageSizeCache[item.uid] = size;
+                if (_imageSizeCache[item.uid] == null) {
+                  final size = ImageSize(
+                    width: width,
+                    height: height,
+                    imageId: item.uid,
+                    cid: cid,
+                  );
+                  insertImageSize(size);
+                  _imageSizeCache[item.uid] = size;
+                }
               },
               imageSize: imageSize,
             );
@@ -113,22 +116,20 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    final visibleIndices = positions
-        .where(
-          (pos) => pos.itemTrailingEdge > 0.0 && pos.itemTrailingEdge <= 1.0,
-        )
-        .map((position) => position.index)
-        .toList();
+    int? maxVisible;
+    for (final pos in positions) {
+      if (pos.itemTrailingEdge > 0 && pos.itemTrailingEdge <= 1) {
+        maxVisible = maxVisible == null
+            ? pos.index
+            : max(maxVisible, pos.index);
+      }
+    }
+    if (maxVisible == null) return;
 
-    if (visibleIndices.isEmpty) return;
-
-    visibleIndices.sort();
-    int last = visibleIndices.last;
-
-    context.reader.preloadController.onAnchorChanged(last);
+    context.reader.preloadController.onAnchorChanged(maxVisible);
 
     context.reader.onPageNoChanged(
-      last.clamp(0, context.reader.images.length - 1),
+      maxVisible.clamp(0, context.reader.images.length - 1),
     );
   }
 }

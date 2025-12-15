@@ -20,19 +20,19 @@ class ComicImage extends StatefulWidget {
   }) : useCacheSize = false,
        imageSize = null;
 
-  /// 图片url
+  /// 图片 url
   final String url;
 
   /// 图片尺寸回调
-  final Function(int, int) onImageSizeChanged;
+  final void Function(int width, int height) onImageSizeChanged;
 
-  /// 缓存的图片尺寸
+  /// 缓存的图片尺寸（用于条漫预占位）
   final ImageSize? imageSize;
 
-  /// 是否需要使用缓存的图片尺寸，只有条漫模式需要
+  /// 是否使用缓存尺寸（条漫模式）
   final bool useCacheSize;
 
-  /// 图片fit
+  /// 图片 fit
   final BoxFit fit;
 
   @override
@@ -40,26 +40,26 @@ class ComicImage extends StatefulWidget {
 }
 
 class _ComicImageState extends State<ComicImage> {
+  static const double _fallbackAspectRatio = 3 / 4;
+
   int _version = 0;
   ImageStream? _imageStream;
   ImageStreamListener? _listener;
+  Size? _reportedSize;
 
-  /// 刷新图片，清除缓存并重新加载
   Future<void> _refreshImage() async {
-    final provider = CachedNetworkImageProvider(widget.url);
-    await provider.evict();
+    await CachedNetworkImage.evictFromCache(widget.url);
     if (mounted) {
       setState(() => _version++);
     }
   }
 
-  /// 移除图片流监听器
   void _removeListener() {
     if (_imageStream != null && _listener != null) {
       _imageStream!.removeListener(_listener!);
-      _imageStream = null;
-      _listener = null;
     }
+    _imageStream = null;
+    _listener = null;
   }
 
   @override
@@ -68,31 +68,57 @@ class _ComicImageState extends State<ComicImage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // 创建占位容器
-    Widget createPlaceholder({required Widget child}) {
-      if (!widget.useCacheSize) return Center(child: child);
-      final width = context.width;
-      final height = widget.imageSize != null
-          ? (widget.imageSize!.height * width) / widget.imageSize!.width
-          : context.height * 0.6;
-      return SizedBox(
-        height: height,
-        width: width,
-        child: Center(child: child),
-      );
+  Widget _buildPlaceholder(Widget child) {
+    if (!widget.useCacheSize) {
+      return Center(child: child);
     }
 
+    final aspectRatio = widget.imageSize != null
+        ? widget.imageSize!.width / widget.imageSize!.height
+        : _fallbackAspectRatio;
+
+    return AspectRatio(
+      aspectRatio: aspectRatio,
+      child: Center(child: child),
+    );
+  }
+
+  void _listenImageSize(ImageProvider provider) {
+    final stream = provider.resolve(createLocalImageConfiguration(context));
+
+    if (stream == _imageStream) return;
+
+    _removeListener();
+    _imageStream = stream;
+
+    _listener = ImageStreamListener((info, _) {
+      final size = Size(
+        info.image.width.toDouble(),
+        info.image.height.toDouble(),
+      );
+
+      if (_reportedSize == size) return;
+      _reportedSize = size;
+
+      widget.onImageSizeChanged(info.image.width, info.image.height);
+
+      _removeListener();
+    });
+
+    stream.addListener(_listener!);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return CachedNetworkImage(
       key: ValueKey('${widget.url}_$_version'),
       imageUrl: widget.url,
       fit: widget.fit,
       fadeOutDuration: Duration.zero,
-      progressIndicatorBuilder: (context, url, downloadProgress) {
-        return createPlaceholder(
-          child: CircularProgressIndicator(
-            value: downloadProgress.progress ?? 0,
+      progressIndicatorBuilder: (_, _, progress) {
+        return _buildPlaceholder(
+          CircularProgressIndicator(
+            value: progress.progress ?? 0,
             strokeWidth: 3,
             constraints: BoxConstraints.tight(const Size(28, 28)),
             backgroundColor: Colors.grey.shade300,
@@ -101,34 +127,14 @@ class _ComicImageState extends State<ComicImage> {
           ),
         );
       },
-      errorWidget: (context, url, error) => createPlaceholder(
-        child: IconButton(
-          onPressed: _refreshImage,
-          icon: const Icon(Icons.refresh),
-        ),
-      ),
-      imageBuilder: (context, imageProvider) {
-        final resolve = imageProvider.resolve(const ImageConfiguration());
-
-        // 只在图片流变化时更新监听器
-        if (resolve != _imageStream) {
-          _removeListener();
-          _imageStream = resolve;
-
-          _listener = ImageStreamListener((imageInfo, _) {
-            if (!mounted) return;
-            widget.onImageSizeChanged(
-              imageInfo.image.width,
-              imageInfo.image.height,
-            );
-            // 获取尺寸后移除监听器，避免内存泄漏
-            _removeListener();
-          });
-
-          _imageStream!.addListener(_listener!);
-        }
-
-        return Image(image: imageProvider);
+      errorWidget: (_, _, _) {
+        return _buildPlaceholder(
+          IconButton(onPressed: _refreshImage, icon: const Icon(Icons.refresh)),
+        );
+      },
+      imageBuilder: (_, provider) {
+        _listenImageSize(provider);
+        return Image(image: provider, fit: widget.fit);
       },
     );
   }
