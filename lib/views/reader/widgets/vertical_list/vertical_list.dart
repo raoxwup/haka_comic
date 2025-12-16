@@ -4,8 +4,9 @@ import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/widgets/reader_image.dart';
 import 'package:haka_comic/views/reader/widgets/vertical_list/gesture.dart';
-import 'package:haka_comic/views/reader/widgets/comic_image.dart';
+// import 'package:haka_comic/views/reader/widgets/comic_image.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 条漫模式
@@ -88,7 +89,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
             }
             final item = images[index];
             final imageSize = _imageSizeCache[item.uid];
-            return ComicImage(
+            return ReaderImage(
               url: item.media.url,
               onImageSizeChanged: (width, height) {
                 if (_imageSizeCache[item.uid] == null) {
