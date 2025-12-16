@@ -41,7 +41,7 @@ class ReaderProvider extends RequestProvider {
       onSuccess: (data, _) {
         Log.info('Fetch chapter images success', data.toString());
         preloadController.replaceItems(data);
-        preloadController.onAnchorChanged(0);
+        preloadController.onAnchorChanged([0]);
       },
       onError: (e, _) {
         Log.error('Fetch chapter images error', e);

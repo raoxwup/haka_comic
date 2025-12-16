@@ -37,24 +37,26 @@ class ImagePreloadController<T> {
   int _lastAnchorIndex = 0;
 
   /// 对外：在锚点变化时调用（PageView page / ListView firstVisible）
-  void onAnchorChanged(int currentIndex) {
-    final isBackward = currentIndex < _lastAnchorIndex;
+  void onAnchorChanged(List<int> indexes) {
+    final first = indexes.first;
+    final last = indexes.last;
+    final isBackward = first < _lastAnchorIndex;
 
     if (isBackward) {
       _schedulePreload(
-        start: currentIndex - 1,
-        end: currentIndex - maxPreloadCount,
-        anchor: currentIndex,
+        start: first - 1,
+        end: first - maxPreloadCount,
+        anchor: first,
       );
     } else {
       _schedulePreload(
-        start: currentIndex + 1,
-        end: currentIndex + maxPreloadCount,
-        anchor: currentIndex,
+        start: last + 1,
+        end: last + maxPreloadCount,
+        anchor: last,
       );
     }
 
-    _lastAnchorIndex = currentIndex;
+    _lastAnchorIndex = first;
   }
 
   /// 主调度逻辑（带 debounce）

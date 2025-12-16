@@ -210,7 +210,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final isDoublePage = context.reader.readMode.isDoublePage;
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
 
-    context.reader.preloadController.onAnchorChanged(i);
+    context.reader.preloadController.onAnchorChanged([i]);
 
     context.reader.onPageNoChanged(i);
   }
