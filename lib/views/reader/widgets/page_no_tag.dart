@@ -17,12 +17,14 @@ class ReaderPageNoTag extends StatelessWidget {
       left: context.left + 12,
       bottom: context.bottom + 12,
       width: context.width / 2,
-      child: Row(
-        spacing: 5,
-        children: [
-          Flexible(child: ShadowText(text: title)),
-          ShadowText(text: '${pageNo + 1} / $total'),
-        ],
+      child: RepaintBoundary(
+        child: Row(
+          spacing: 5,
+          children: [
+            Flexible(child: ShadowText(text: title)),
+            ShadowText(text: '${pageNo + 1} / $total'),
+          ],
+        ),
       ),
     );
   }

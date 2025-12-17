@@ -71,6 +71,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
           initialScrollIndex: pageNo,
           padding: EdgeInsets.zero,
           physics: physics,
+          minCacheExtent: 1000,
           itemCount: pageCount + 1,
           itemScrollController: context.reader.itemScrollController,
           itemPositionsListener: itemPositionsListener,
@@ -89,6 +90,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
             final item = images[index];
             final imageSize = _imageSizeCache[item.uid];
             return ReaderImage(
+              key: ValueKey(item.uid),
               url: item.media.url,
               onImageSizeChanged: (width, height) {
                 if (_imageSizeCache[item.uid] == null) {

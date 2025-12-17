@@ -42,9 +42,9 @@ class _ReaderImageState extends State<ReaderImage> {
   static const double _fallbackAspectRatio = 3 / 4;
   bool _isReported = false;
 
-  Widget _buildPlaceholder(Widget child) {
+  Widget _buildPlaceholder(Widget child, [Key? key]) {
     if (!widget.enableCache) {
-      return Center(child: child);
+      return Center(key: key, child: child);
     }
 
     final aspectRatio = widget.imageSize != null
@@ -52,6 +52,7 @@ class _ReaderImageState extends State<ReaderImage> {
         : _fallbackAspectRatio;
 
     return AspectRatio(
+      key: key,
       aspectRatio: aspectRatio,
       child: Center(child: child),
     );
@@ -68,40 +69,54 @@ class _ReaderImageState extends State<ReaderImage> {
       handleLoadingProgress: true,
       timeRetry: widget.timeRetry,
       loadStateChanged: (state) {
-        if (state.extendedImageLoadState == LoadState.loading) {
+        final loadState =
+            state.extendedImageLoadState == LoadState.loading ||
+            state.extendedImageLoadState == LoadState.completed;
+        if (loadState) {
           final progress = state.loadingProgress;
           final bytes = progress?.cumulativeBytesLoaded ?? 0;
 
           final value = computeProgress(bytes);
 
-          return _buildPlaceholder(
-            CircularProgressIndicator(
-              value: value,
-              strokeWidth: 3,
-              constraints: BoxConstraints.tight(const Size(28, 28)),
-              backgroundColor: Colors.grey.shade300,
-              color: context.colorScheme.primary,
-              strokeCap: StrokeCap.round,
-            ),
-          );
-        }
-
-        if (state.extendedImageLoadState == LoadState.completed) {
-          final info = state.extendedImageInfo;
-          if (info != null) {
-            if (!_isReported) {
-              widget.onImageSizeChanged(info.image.width, info.image.height);
-              _isReported = true;
+          if (state.extendedImageLoadState == LoadState.completed) {
+            final info = state.extendedImageInfo;
+            if (info != null) {
+              if (!_isReported) {
+                widget.onImageSizeChanged(info.image.width, info.image.height);
+                _isReported = true;
+              }
             }
           }
-          return TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              return Opacity(opacity: value, child: child);
-            },
-            child: state.completedWidget,
+
+          return Stack(
+            fit: StackFit.passthrough,
+            children: [
+              // 图片
+              RepaintBoundary(
+                child: AnimatedOpacity(
+                  opacity: state.extendedImageLoadState == LoadState.completed
+                      ? 1
+                      : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: state.completedWidget,
+                ),
+              ),
+
+              // loading
+              if (state.extendedImageLoadState != LoadState.completed)
+                _buildPlaceholder(
+                  RepaintBoundary(
+                    child: CircularProgressIndicator(
+                      value: value,
+                      strokeWidth: 3,
+                      constraints: BoxConstraints.tight(const Size(28, 28)),
+                      backgroundColor: Colors.grey.shade300,
+                      color: context.colorScheme.primary,
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ),
+                ),
+            ],
           );
         }
 
