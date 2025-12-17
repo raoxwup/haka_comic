@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
+import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/widgets/reader_image.dart';
@@ -71,8 +72,9 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
           initialScrollIndex: pageNo,
           padding: EdgeInsets.zero,
           physics: physics,
-          minCacheExtent: 1000,
           itemCount: pageCount + 1,
+          addAutomaticKeepAlives: false,
+          minCacheExtent: screenHeight * 1.5,
           itemScrollController: context.reader.itemScrollController,
           itemPositionsListener: itemPositionsListener,
           scrollOffsetController: context.reader.scrollOffsetController,

@@ -131,7 +131,11 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
         child: Column(
           spacing: 5,
           children: [
-            BaseImage(url: item.thumb.url, aspectRatio: 1),
+            BaseImage(
+              url: item.thumb.url,
+              aspectRatio: 1,
+              filterQuality: .medium,
+            ),
             Text(item.title, style: context.textTheme.labelLarge),
           ],
         ),

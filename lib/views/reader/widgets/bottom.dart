@@ -84,9 +84,19 @@ class ReaderBottom extends StatelessWidget {
     final isFirstChapter = context.selector((p) => p.isFirstChapter);
     final isLastChapter = context.selector((p) => p.isLastChapter);
 
-    final previousAction = isFirstChapter ? null : context.reader.goPrevious;
+    final previousAction = isFirstChapter
+        ? null
+        : () {
+            context.reader.goPrevious();
+            context.reader.openOrCloseToolbar();
+          };
 
-    final nextAction = isLastChapter ? null : context.reader.goNext;
+    final nextAction = isLastChapter
+        ? null
+        : () {
+            context.reader.goNext();
+            context.reader.openOrCloseToolbar();
+          };
 
     final isVerticalMode = context.selector((p) => p.readMode.isVertical);
 

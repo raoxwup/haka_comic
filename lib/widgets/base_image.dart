@@ -10,6 +10,7 @@ class BaseImage extends StatelessWidget {
     this.width,
     this.height,
     this.shape,
+    this.filterQuality = FilterQuality.low,
   });
 
   final String url;
@@ -23,6 +24,8 @@ class BaseImage extends StatelessWidget {
   final double? height;
 
   final ShapeBorder? shape;
+
+  final FilterQuality filterQuality;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +55,7 @@ class BaseImage extends StatelessWidget {
               height: height,
               enableLoadState: true,
               timeRetry: const Duration(microseconds: 300),
-              filterQuality: FilterQuality.medium,
+              filterQuality: filterQuality,
               loadStateChanged: (state) {
                 if (state.extendedImageLoadState == LoadState.failed) {
                   return Center(

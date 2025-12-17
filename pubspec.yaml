@@ -57,7 +57,6 @@ dependencies:
   save_to_folder_ios: ^1.0.4
   freezed_annotation: ^3.1.0
   extended_image: ^10.0.1
-  skeletonizer: ^2.1.2
 
 dev_dependencies:
   flutter_test:

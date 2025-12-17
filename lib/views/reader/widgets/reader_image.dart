@@ -92,28 +92,24 @@ class _ReaderImageState extends State<ReaderImage> {
             fit: StackFit.passthrough,
             children: [
               // 图片
-              RepaintBoundary(
-                child: AnimatedOpacity(
-                  opacity: state.extendedImageLoadState == LoadState.completed
-                      ? 1
-                      : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: state.completedWidget,
-                ),
+              AnimatedOpacity(
+                opacity: state.extendedImageLoadState == LoadState.completed
+                    ? 1
+                    : 0,
+                duration: const Duration(milliseconds: 200),
+                child: state.completedWidget,
               ),
 
               // loading
               if (state.extendedImageLoadState != LoadState.completed)
                 _buildPlaceholder(
-                  RepaintBoundary(
-                    child: CircularProgressIndicator(
-                      value: value,
-                      strokeWidth: 3,
-                      constraints: BoxConstraints.tight(const Size(28, 28)),
-                      backgroundColor: Colors.grey.shade300,
-                      color: context.colorScheme.primary,
-                      strokeCap: StrokeCap.round,
-                    ),
+                  CircularProgressIndicator(
+                    value: value,
+                    strokeWidth: 3,
+                    constraints: BoxConstraints.tight(const Size(28, 28)),
+                    backgroundColor: Colors.grey.shade300,
+                    color: context.colorScheme.primary,
+                    strokeCap: StrokeCap.round,
                   ),
                 ),
             ],
