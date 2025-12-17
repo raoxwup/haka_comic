@@ -42,14 +42,14 @@ class BaseImage extends StatelessWidget {
           ? Image.asset(
               'assets/images/login.png',
               fit: fit,
-              width: width ?? double.infinity,
-              height: height ?? double.infinity,
+              width: width,
+              height: height,
             )
           : ExtendedImage.network(
               url,
               fit: fit,
-              width: width ?? double.infinity,
-              height: height ?? double.infinity,
+              width: width,
+              height: height,
               enableLoadState: true,
               timeRetry: const Duration(microseconds: 300),
               filterQuality: FilterQuality.medium,
@@ -73,6 +73,10 @@ class BaseImage extends StatelessWidget {
                     },
                     child: state.completedWidget,
                   );
+                }
+
+                if (state.extendedImageLoadState == LoadState.loading) {
+                  return const Card(elevation: 0);
                 }
 
                 return null;
