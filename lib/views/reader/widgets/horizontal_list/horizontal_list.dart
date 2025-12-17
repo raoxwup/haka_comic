@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +9,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
-import 'package:haka_comic/views/reader/widgets/comic_image.dart';
+import 'package:haka_comic/views/reader/widgets/reader_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -118,16 +118,17 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                   return PhotoViewGalleryPageOptions(
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 4.0,
-                    imageProvider: CachedNetworkImageProvider(item.media.url),
+                    imageProvider: ExtendedNetworkImageProvider(
+                      item.media.url,
+                      timeRetry: const Duration(milliseconds: 300),
+                      cache: true,
+                    ),
                     filterQuality: FilterQuality.medium,
                     errorBuilder: (context, error, stackTrace, retry) {
                       return Center(
                         child: IconButton(
-                          onPressed: () async {
-                            final provider = CachedNetworkImageProvider(
-                              item.media.url,
-                            );
-                            provider.evict();
+                          onPressed: () {
+                            clearMemoryImageCache(item.media.url);
                             retry();
                           },
                           icon: const Icon(Icons.refresh),
@@ -156,12 +157,11 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                 );
               },
               loadingBuilder: (context, event) {
+                final bytes = event?.cumulativeBytesLoaded ?? 0;
+                final value = computeProgress(bytes);
                 return Center(
                   child: CircularProgressIndicator(
-                    value: event?.expectedTotalBytes == null
-                        ? 0
-                        : event!.cumulativeBytesLoaded /
-                              event.expectedTotalBytes!,
+                    value: value,
                     strokeWidth: 3,
                     constraints: BoxConstraints.tight(const Size(28, 28)),
                     backgroundColor: Colors.grey.shade300,
@@ -188,8 +188,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
           alignment: size == 1
               ? Alignment.center
               : (index == 0 ? Alignment.centerRight : Alignment.centerLeft),
-          child: ComicImage.noUseCache(
+          child: ReaderImage(
             url: item.media.url,
+            enableCache: false,
             onImageSizeChanged: (width, height) {
               final size = ImageSize(
                 width: width,

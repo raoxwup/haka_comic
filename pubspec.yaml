@@ -17,7 +17,7 @@ dependencies:
   dio: ^5.8.0+1
   crypto: ^3.0.6
   json_annotation: ^4.9.0
-  cached_network_image: ^3.4.1
+  # cached_network_image: ^3.4.1
   scrollable_positioned_list: ^0.3.8
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.39
@@ -34,7 +34,7 @@ dependencies:
   photo_view:
     git:
       url: https://github.com/raoxwup/photo_view.git
-      ref: d2b008b9f94f9c531e8f6e99be6f894e84de456a
+      ref: d951ef08d4461a778ac3c95da2e4d1fe7a2e6881
   # photo_view:
   #   path: D:/Projects/practice/Flutter/photo_view
   file_picker: ^10.3.6

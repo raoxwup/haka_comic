@@ -1,15 +1,18 @@
-import 'dart:math' as math show log;
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/utils/utils.dart';
 
 class ReaderImage extends StatefulWidget {
   const ReaderImage({
     super.key,
     required this.url,
     this.imageSize,
+    this.enableCache = true,
     this.fit = BoxFit.contain,
+    this.filterQuality = FilterQuality.medium,
+    this.timeRetry = const Duration(milliseconds: 300),
     required this.onImageSizeChanged,
   });
 
@@ -22,7 +25,11 @@ class ReaderImage extends StatefulWidget {
   final BoxFit fit;
 
   // 是否使用缓存的尺寸
-  final bool enableCache = true;
+  final bool enableCache;
+
+  final FilterQuality filterQuality;
+
+  final Duration timeRetry;
 
   // 尺寸回调
   final void Function(int width, int height) onImageSizeChanged;
@@ -55,24 +62,15 @@ class _ReaderImageState extends State<ReaderImage> {
     return ExtendedImage.network(
       widget.url,
       fit: widget.fit,
+      filterQuality: widget.filterQuality,
       cache: true,
       enableLoadState: true,
       handleLoadingProgress: true,
-      headers: const {'Accept-Encoding': 'identity'},
+      timeRetry: widget.timeRetry,
       loadStateChanged: (state) {
         if (state.extendedImageLoadState == LoadState.loading) {
           final progress = state.loadingProgress;
           final bytes = progress?.cumulativeBytesLoaded ?? 0;
-
-          double computeProgress(int bytes) {
-            const double maxProgress = 0.9;
-            const double scale = 50 * 1024;
-
-            final p = math.log(bytes / scale + 1);
-            final normalized = p / (p + 1);
-
-            return (normalized * maxProgress).clamp(0.0, maxProgress);
-          }
 
           final value = computeProgress(bytes);
 

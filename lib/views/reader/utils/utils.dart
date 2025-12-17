@@ -1,3 +1,4 @@
+import 'dart:math' as math show log;
 import 'dart:ui';
 
 /// 单页页码转换为正确的多页页码
@@ -31,4 +32,15 @@ double get screenHeight {
   final logicalHeight = physicalHeight / devicePixelRatio;
 
   return logicalHeight;
+}
+
+// 计算下载进度
+double computeProgress(int bytes) {
+  const double maxProgress = 0.95;
+  const double scale = 35 * 1024;
+
+  final p = math.log(bytes / scale + 1);
+  final normalized = p / (p + 1);
+
+  return (normalized * maxProgress).clamp(0.0, maxProgress);
 }

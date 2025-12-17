@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 
-class BaseImage extends StatefulWidget {
+class BaseImage extends StatelessWidget {
   const BaseImage({
     super.key,
     this.url = '',
@@ -9,10 +9,7 @@ class BaseImage extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.width,
     this.height,
-    this.progressIndicatorBuilder,
-    this.errorBuilder,
     this.shape,
-    this.imageBuilder,
   });
 
   final String url;
@@ -27,65 +24,60 @@ class BaseImage extends StatefulWidget {
 
   final ShapeBorder? shape;
 
-  final Widget Function(BuildContext, String, DownloadProgress)?
-  progressIndicatorBuilder;
-
-  final Widget Function(BuildContext, String, Object)? errorBuilder;
-
-  final Widget Function(BuildContext, ImageProvider)? imageBuilder;
-
-  @override
-  State<BaseImage> createState() => _BaseImageState();
-}
-
-class _BaseImageState extends State<BaseImage> {
-  final ValueNotifier<UniqueKey> keyNotifier = ValueNotifier<UniqueKey>(
-    UniqueKey(),
-  );
-
   @override
   Widget build(BuildContext context) {
-    return widget.aspectRatio == null ? _buildImage() : _buildAspectRatio();
+    return aspectRatio == null ? _buildImage() : _buildAspectRatio();
   }
 
   Widget _buildAspectRatio() {
-    return AspectRatio(aspectRatio: widget.aspectRatio!, child: _buildImage());
+    return AspectRatio(aspectRatio: aspectRatio!, child: _buildImage());
   }
 
   Widget _buildImage() {
     return Card(
       clipBehavior: Clip.hardEdge,
-      shape: widget.shape,
+      shape: shape,
       elevation: 0,
-      child: ValueListenableBuilder(
-        valueListenable: keyNotifier,
-        builder: (context, value, child) => widget.url.isEmpty
-            ? Image.asset(
-                'assets/images/login.png',
-                fit: widget.fit,
-                width: widget.width ?? double.infinity,
-                height: widget.height ?? double.infinity,
-              )
-            : CachedNetworkImage(
-                key: value,
-                imageUrl: widget.url,
-                fit: widget.fit,
-                width: widget.width ?? double.infinity,
-                height: widget.height ?? double.infinity,
-                progressIndicatorBuilder: widget.progressIndicatorBuilder,
-                errorWidget:
-                    widget.errorBuilder ??
-                    (context, url, error) => Center(
-                      child: IconButton(
-                        onPressed: () {
-                          keyNotifier.value = UniqueKey();
-                        },
-                        icon: const Icon(Icons.refresh),
-                      ),
+      child: url.isEmpty
+          ? Image.asset(
+              'assets/images/login.png',
+              fit: fit,
+              width: width ?? double.infinity,
+              height: height ?? double.infinity,
+            )
+          : ExtendedImage.network(
+              url,
+              fit: fit,
+              width: width ?? double.infinity,
+              height: height ?? double.infinity,
+              enableLoadState: true,
+              timeRetry: const Duration(microseconds: 300),
+              filterQuality: FilterQuality.medium,
+              loadStateChanged: (state) {
+                if (state.extendedImageLoadState == LoadState.failed) {
+                  return Center(
+                    child: IconButton(
+                      onPressed: state.reLoadImage,
+                      icon: const Icon(Icons.refresh),
                     ),
-                imageBuilder: widget.imageBuilder,
-              ),
-      ),
+                  );
+                }
+
+                if (state.extendedImageLoadState == LoadState.completed) {
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    builder: (context, value, child) {
+                      return Opacity(opacity: value, child: child);
+                    },
+                    child: state.completedWidget,
+                  );
+                }
+
+                return null;
+              },
+            ),
     );
   }
 }

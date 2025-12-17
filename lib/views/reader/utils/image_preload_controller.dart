@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/widgets.dart';
 
 /// 图片预加载控制器
@@ -88,7 +88,7 @@ class ImagePreloadController<T> {
         count++;
 
         final url = urlResolver(items[i]);
-        precacheImage(CachedNetworkImageProvider(url), context);
+        precacheImage(ExtendedNetworkImageProvider(url, cache: true), context);
       }
     });
   }
