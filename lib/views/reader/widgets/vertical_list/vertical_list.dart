@@ -61,7 +61,8 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
 
     final images = context.selector((p) => p.images);
 
-    final pageNo = context.selector((p) => p.pageNo);
+    // 这里不用监听pageNo变化 因为只在initialScrollIndex使用一次
+    final pageNo = context.reader.pageNo;
 
     return GestureWrapper(
       openOrCloseToolbar: context.reader.openOrCloseToolbar,
@@ -74,7 +75,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
           physics: physics,
           itemCount: pageCount + 1,
           addAutomaticKeepAlives: false,
-          minCacheExtent: screenHeight * 1.5,
+          minCacheExtent: screenHeight * 2,
           itemScrollController: context.reader.itemScrollController,
           itemPositionsListener: itemPositionsListener,
           scrollOffsetController: context.reader.scrollOffsetController,

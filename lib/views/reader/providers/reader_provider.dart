@@ -152,18 +152,23 @@ class ReaderProvider extends RequestProvider {
   /// 阅读记录数据库助手
   final _helper = ReadRecordHelper();
 
+  Timer? _pageNoTimer;
+
   /// 更新当前页码并保存阅读记录，[index]始终保持为单页页码方便计算
   void onPageNoChanged(int index) {
     if (index == pageNo) return;
-    pageNo = index;
-    _helper.insert(
-      ComicReadRecord(
-        cid: id,
-        chapterId: chapter.id,
-        pageNo: index,
-        chapterTitle: chapter.title,
-      ),
-    );
+    _pageNoTimer?.cancel();
+    _pageNoTimer = Timer(const Duration(milliseconds: 100), () async {
+      pageNo = index;
+      _helper.insert(
+        ComicReadRecord(
+          cid: id,
+          chapterId: chapter.id,
+          pageNo: index,
+          chapterTitle: chapter.title,
+        ),
+      );
+    });
   }
 
   /// 底部工具栏Slider OnChanged
@@ -319,6 +324,7 @@ class ReaderProvider extends RequestProvider {
     pageController.dispose();
     turnPageTimer?.cancel();
     preloadController.dispose();
+    _pageNoTimer?.cancel();
     super.dispose();
   }
 }
