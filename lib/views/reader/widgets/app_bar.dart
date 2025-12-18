@@ -25,53 +25,57 @@ class ReaderAppBar extends StatelessWidget {
       left: 0,
       right: 0,
       height: kToolbarHeight + top,
-      child: WithBlur(
-        child: AppBar(
-          leading: IconButton(
-            icon: Icon(
-              (isIos || isMacOS) ? Icons.arrow_back_ios_new : Icons.arrow_back,
+      child: RepaintBoundary(
+        child: WithBlur(
+          child: AppBar(
+            leading: IconButton(
+              icon: Icon(
+                (isIos || isMacOS)
+                    ? Icons.arrow_back_ios_new
+                    : Icons.arrow_back,
+              ),
+              onPressed: () => context.pop(),
             ),
-            onPressed: () => context.pop(),
-          ),
-          actions: [
-            MenuAnchor(
-              menuChildren: ReadMode.values.map((mode) {
-                return MenuItemButton(
-                  onPressed: () {
-                    context.reader.readMode = mode;
-                    context.reader.openOrCloseToolbar();
-                  },
-                  child: Row(
-                    spacing: 5,
-                    children: [
-                      Text(mode.displayName),
-                      if (mode == readMode)
-                        Icon(
-                          Icons.done,
-                          size: 16,
-                          color: context.colorScheme.primary,
-                        ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              builder: (context, controller, child) {
-                return IconButton(
-                  icon: const Icon(Icons.chrome_reader_mode_outlined),
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                );
-              },
+            actions: [
+              MenuAnchor(
+                menuChildren: ReadMode.values.map((mode) {
+                  return MenuItemButton(
+                    onPressed: () {
+                      context.reader.readMode = mode;
+                      context.reader.openOrCloseToolbar();
+                    },
+                    child: Row(
+                      spacing: 5,
+                      children: [
+                        Text(mode.displayName),
+                        if (mode == readMode)
+                          Icon(
+                            Icons.done,
+                            size: 16,
+                            color: context.colorScheme.primary,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                builder: (context, controller, child) {
+                  return IconButton(
+                    icon: const Icon(Icons.chrome_reader_mode_outlined),
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                  );
+                },
+              ),
+            ],
+            title: Text(title),
+            backgroundColor: context.colorScheme.secondaryContainer.withValues(
+              alpha: 0.6,
             ),
-          ],
-          title: Text(title),
-          backgroundColor: context.colorScheme.secondaryContainer.withValues(
-            alpha: 0.6,
           ),
         ),
       ),

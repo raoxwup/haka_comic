@@ -158,7 +158,7 @@ class ReaderProvider extends RequestProvider {
   void onPageNoChanged(int index) {
     if (index == pageNo) return;
     _pageNoTimer?.cancel();
-    _pageNoTimer = Timer(const Duration(milliseconds: 100), () async {
+    _pageNoTimer = Timer(const Duration(milliseconds: 50), () async {
       pageNo = index;
       _helper.insert(
         ComicReadRecord(

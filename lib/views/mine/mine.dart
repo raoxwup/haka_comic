@@ -16,8 +16,19 @@ import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
 
-class Mine extends StatelessWidget {
+class Mine extends StatefulWidget {
   const Mine({super.key});
+
+  @override
+  State<Mine> createState() => _MineState();
+}
+
+class _MineState extends State<Mine> {
+  @override
+  void initState() {
+    super.initState();
+    context.userReader.userHandler.run();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +52,12 @@ class Mine extends StatelessWidget {
           ),
         ],
       ),
-      Error(:final error) => ErrorPage(
-        errorMessage: error.toString(),
-        onRetry: context.userReader.userHandler.refresh,
+      Error(:final error) => Padding(
+        padding: .only(top: context.top),
+        child: ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: context.userReader.userHandler.refresh,
+        ),
       ),
       _ => Padding(
         padding: .only(top: context.top),

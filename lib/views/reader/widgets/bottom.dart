@@ -51,19 +51,21 @@ class ReaderBottom extends StatelessWidget {
       right: 0,
       height: kBottomBarHeight,
       duration: const Duration(milliseconds: 250),
-      child: Align(
-        alignment: Alignment.center,
-        child: WithBlur(
-          borderRadius: BorderRadius.circular(32),
-          child: Container(
-            width: 550,
-            padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 8),
-            decoration: BoxDecoration(
-              color: context.colorScheme.secondaryContainer.withValues(
-                alpha: 0.6,
+      child: RepaintBoundary(
+        child: Align(
+          alignment: Alignment.center,
+          child: WithBlur(
+            borderRadius: BorderRadius.circular(32),
+            child: Container(
+              width: 550,
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 8),
+              decoration: BoxDecoration(
+                color: context.colorScheme.secondaryContainer.withValues(
+                  alpha: 0.6,
+                ),
               ),
+              child: _buildContent(context),
             ),
-            child: _buildContent(context),
           ),
         ),
       ),

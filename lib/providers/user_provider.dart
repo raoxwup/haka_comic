@@ -13,6 +13,7 @@ extension BuildContextUserExt on BuildContext {
 
 class UserProvider extends RequestProvider {
   late final userHandler = fetchUserProfile.useRequest(
+    manual: true,
     onSuccess: (data) {
       Log.info('Fetched user profile successfully', data.toString());
       if (!data.user.isPunched) {

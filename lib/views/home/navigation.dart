@@ -106,38 +106,15 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.search),
           tooltip: '搜索',
         ),
-        MenuAnchor(
-          menuChildren: [
-            MenuItemButton(
-              style: MenuItemButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              leadingIcon: const Icon(Icons.settings, size: 17.0),
-              onPressed: () => context.push('/settings'),
-              child: const Text('设置'),
-            ),
-            MenuItemButton(
-              style: MenuItemButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              leadingIcon: const Icon(Icons.notifications, size: 17.0),
-              onPressed: () => context.push('/notifications'),
-              child: const Text('通知'),
-            ),
-          ],
-          builder: (context, controller, child) {
-            return IconButton(
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              icon: const Icon(Icons.more_horiz),
-              tooltip: '更多',
-            );
-          },
+        IconButton(
+          onPressed: () => context.push('/notifications'),
+          icon: const Icon(Icons.notifications),
+          tooltip: '通知',
+        ),
+        IconButton(
+          onPressed: () => context.push('/settings'),
+          icon: const Icon(Icons.settings),
+          tooltip: '设置',
         ),
       ],
     );
