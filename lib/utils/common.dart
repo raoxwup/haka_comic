@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -67,11 +67,11 @@ void showCreator(BuildContext context, Creator? creator) {
                           child: Image.asset('assets/images/user.png'),
                         ),
                       )
-                    : BaseImage(
-                        url: creator?.avatar?.url ?? '',
+                    : UiImage(
+                        url: creator?.avatar!.url ?? '',
                         width: 110,
                         height: 110,
-                        shape: const CircleBorder(),
+                        shape: .circle,
                       ),
                 Text(creator?.slogan ?? '暂无简介'),
                 const SizedBox(height: 10),

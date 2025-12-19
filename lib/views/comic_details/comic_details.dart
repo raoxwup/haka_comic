@@ -22,9 +22,9 @@ import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class ComicDetails extends StatefulWidget {
   const ComicDetails({super.key, required this.id});
@@ -301,7 +301,12 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
-        BaseImage(url: data?.thumb.url ?? '', height: 170, width: 115),
+        UiImage(
+          url: data?.thumb.url ?? '',
+          height: 170,
+          width: 115,
+          cacheWidth: 115,
+        ),
         Expanded(
           child: Column(
             spacing: 8,

@@ -5,8 +5,8 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Notifications extends StatefulWidget {
   const Notifications({super.key});
@@ -104,11 +104,11 @@ class _NotificationsState extends State<Notifications>
               child: Row(
                 spacing: 8,
                 children: [
-                  BaseImage(
+                  UiImage(
                     url: item.sender.avatar!.url,
                     width: 48,
                     height: 48,
-                    shape: const CircleBorder(),
+                    shape: .circle,
                   ),
                   Expanded(
                     child: Column(

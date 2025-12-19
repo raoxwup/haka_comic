@@ -9,10 +9,10 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Comments extends StatefulWidget {
   const Comments({super.key});
@@ -142,11 +142,11 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
                           child: Image.asset('assets/images/user.png'),
                         ),
                       )
-                    : BaseImage(
+                    : UiImage(
                         url: user.avatar!.url,
                         width: 64,
                         height: 64,
-                        shape: const CircleBorder(),
+                        shape: .circle,
                       ),
                 Expanded(
                   child: Column(

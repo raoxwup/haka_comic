@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class ComicCreator extends StatelessWidget {
   const ComicCreator({
@@ -32,8 +32,8 @@ class ComicCreator extends StatelessWidget {
         child: Row(
           spacing: 8,
           children: [
-            BaseImage(
-              shape: const CircleBorder(),
+            UiImage(
+              shape: .circle,
               url: creator?.avatar?.url ?? '',
               width: 40,
               height: 40,

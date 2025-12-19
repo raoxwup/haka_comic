@@ -8,8 +8,8 @@ import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Rank extends StatefulWidget {
   const Rank({super.key});
@@ -166,11 +166,11 @@ class _KnightRankState extends State<KnightRank> with AutoRegisterHandlerMixin {
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BaseImage(
+                  UiImage(
                     url: user.avatar?.url ?? '',
                     width: 48,
                     height: 48,
-                    shape: const CircleBorder(),
+                    shape: .circle,
                   ),
                   Expanded(
                     child: Column(

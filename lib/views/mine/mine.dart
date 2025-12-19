@@ -10,11 +10,11 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request_state.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Mine extends StatefulWidget {
   const Mine({super.key});
@@ -145,11 +145,11 @@ class ProFile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: context.top),
-              BaseImage(
+              UiImage(
                 url: user?.avatar?.url ?? '',
                 width: 80,
                 height: 80,
-                shape: const CircleBorder(),
+                shape: .circle,
               ),
               Text(
                 user?.name ?? '',
@@ -369,7 +369,7 @@ class _ComicSection extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       itemBuilder: itemBuilder,
-      separatorBuilder: (_, __) => const SizedBox(width: 5),
+      separatorBuilder: (_, _) => const SizedBox(width: 5),
       itemCount: itemCount,
     );
   }
@@ -388,10 +388,10 @@ class _ComicItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
         width: 100,
-        child: BaseImage(
-          url: url,
-          width: double.infinity,
-          height: double.infinity,
+        child: Card(
+          clipBehavior: .hardEdge,
+          elevation: 0,
+          child: UiImage(url: url, cacheWidth: 150),
         ),
       ),
     );

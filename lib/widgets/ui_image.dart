@@ -1,5 +1,6 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/utils/extension.dart';
 
 class UiImage extends StatelessWidget {
   const UiImage({
@@ -48,7 +49,7 @@ class UiImage extends StatelessWidget {
       fit: fit,
       width: width,
       height: height,
-      cacheWidth: (cacheWidth * devicePixelRatio).round(),
+      cacheWidth: ((width ?? cacheWidth) * devicePixelRatio).round(),
       cacheHeight: cacheHeight,
       shape: shape,
       border: border,
@@ -57,11 +58,31 @@ class UiImage extends StatelessWidget {
       timeRetry: const Duration(microseconds: 300),
       filterQuality: filterQuality,
       loadStateChanged: (state) {
+        if (state.extendedImageLoadState != LoadState.failed) {
+          return Stack(
+            fit: .passthrough,
+            children: [
+              AnimatedOpacity(
+                opacity: state.extendedImageLoadState == LoadState.completed
+                    ? 1
+                    : 0,
+                duration: const Duration(milliseconds: 300),
+                child: state.completedWidget,
+              ),
+              if (state.extendedImageLoadState == LoadState.loading)
+                Container(color: context.colorScheme.secondaryContainer),
+            ],
+          );
+        }
+
         if (state.extendedImageLoadState == LoadState.failed) {
-          return Center(
-            child: IconButton(
-              onPressed: state.reLoadImage,
-              icon: const Icon(Icons.refresh),
+          return Container(
+            color: context.colorScheme.secondaryContainer,
+            child: Center(
+              child: IconButton(
+                onPressed: state.reLoadImage,
+                icon: const Icon(Icons.refresh),
+              ),
             ),
           );
         }
@@ -79,7 +100,7 @@ class UiImage extends StatelessWidget {
         }
 
         if (state.extendedImageLoadState == LoadState.loading) {
-          return const SizedBox.expand();
+          return Container(color: context.colorScheme.secondaryContainer);
         }
 
         return null;
