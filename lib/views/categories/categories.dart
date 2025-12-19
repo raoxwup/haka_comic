@@ -7,8 +7,8 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Categories extends StatefulWidget {
   const Categories({super.key, required this.isRouteAnimationCompleted});
@@ -79,7 +79,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
             : 140,
         mainAxisSpacing: 5,
         crossAxisSpacing: 3,
-        childAspectRatio: 1 / 1.3,
+        childAspectRatio: 1 / 1.4,
       ),
       padding: const EdgeInsets.all(8.0),
       itemCount: visibleExtraMenus.length + visibleCategories.length,
@@ -96,9 +96,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
   Widget _buildMenuItem(Map<String, String> item) {
     return InkWell(
       key: ValueKey(item['title']),
-      onTap: () {
-        context.push(item['path']!);
-      },
+      onTap: () => context.push(item['path']!),
       borderRadius: BorderRadius.circular(6),
       child: SingleChildScrollView(
         child: Column(
@@ -107,7 +105,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
             AspectRatio(
               aspectRatio: 1,
               child: Card(
-                clipBehavior: Clip.hardEdge,
+                clipBehavior: .hardEdge,
                 elevation: 0,
                 child: Image.asset(item['icon']!),
               ),
@@ -131,10 +129,17 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
         child: Column(
           spacing: 5,
           children: [
-            BaseImage(
-              url: item.thumb.url,
+            AspectRatio(
               aspectRatio: 1,
-              filterQuality: .medium,
+              child: Card(
+                clipBehavior: .hardEdge,
+                elevation: 0,
+                child: UiImage(
+                  url: item.thumb.url,
+                  filterQuality: .medium,
+                  cacheWidth: 150,
+                ),
+              ),
             ),
             Text(item.title, style: context.textTheme.labelLarge),
           ],

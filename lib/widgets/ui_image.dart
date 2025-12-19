@@ -8,10 +8,13 @@ class UiImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.width,
     this.height,
+    this.cacheWidth = 300,
+    this.cacheHeight,
     this.shape,
     this.border,
     this.borderRadius,
     this.clipBehavior = Clip.antiAlias,
+    this.filterQuality = FilterQuality.low,
   });
 
   final String url;
@@ -22,6 +25,10 @@ class UiImage extends StatelessWidget {
 
   final double? height;
 
+  final int cacheWidth;
+
+  final int? cacheHeight;
+
   final BoxShape? shape;
 
   final BoxBorder? border;
@@ -30,20 +37,25 @@ class UiImage extends StatelessWidget {
 
   final Clip clipBehavior;
 
+  final FilterQuality filterQuality;
+
   @override
   Widget build(BuildContext context) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     return ExtendedImage.network(
       url,
       cache: true,
       fit: fit,
       width: width,
       height: height,
+      cacheWidth: (cacheWidth * devicePixelRatio).round(),
+      cacheHeight: cacheHeight,
       shape: shape,
       border: border,
       borderRadius: borderRadius,
       clipBehavior: clipBehavior,
       timeRetry: const Duration(microseconds: 300),
-      filterQuality: FilterQuality.medium,
+      filterQuality: filterQuality,
       loadStateChanged: (state) {
         if (state.extendedImageLoadState == LoadState.failed) {
           return Center(
@@ -67,7 +79,7 @@ class UiImage extends StatelessWidget {
         }
 
         if (state.extendedImageLoadState == LoadState.loading) {
-          return const Card(elevation: 0);
+          return const SizedBox.expand();
         }
 
         return null;
