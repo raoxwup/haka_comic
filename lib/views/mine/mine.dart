@@ -6,10 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/providers/user_provider.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/utils/request/request_state.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
@@ -92,7 +92,7 @@ class _MenuItem extends StatelessWidget {
 class ProFile extends StatelessWidget {
   const ProFile({super.key, required this.user});
 
-  final User? user;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -127,12 +127,14 @@ class ProFile extends StatelessWidget {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         fit: BoxFit.cover,
-                        image: user?.avatar?.url != null
+                        image: user.avatar != null
                             ? ExtendedNetworkImageProvider(
-                                user?.avatar?.url ?? '',
+                                user.avatar!.url,
                                 cache: true,
                               )
-                            : const AssetImage('assets/images/login.png'),
+                            : const AssetImage(
+                                'assets/images/default_avatar.jpg',
+                              ),
                       ),
                     ),
                   ),
@@ -145,20 +147,28 @@ class ProFile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: context.top),
-              UiImage(
-                url: user?.avatar?.url ?? '',
-                width: 80,
-                height: 80,
-                shape: .circle,
-              ),
+              user.avatar != null
+                  ? UiImage(
+                      url: user.avatar!.url,
+                      width: 80,
+                      height: 80,
+                      shape: .circle,
+                    )
+                  : CircleAvatar(
+                      radius: 40,
+                      backgroundColor: context.colorScheme.surface,
+                      backgroundImage: const AssetImage(
+                        'assets/images/default_avatar.jpg',
+                      ),
+                    ),
               Text(
-                user?.name ?? '',
+                user.name,
                 style: context.textTheme.titleMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                'Lv.${user?.level}  Exp: ${user?.exp}',
+                'Lv.${user.level}  Exp: ${user.exp}',
                 style: context.textTheme.bodySmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -167,7 +177,7 @@ class ProFile extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Text(
-                  user?.slogan ?? '~~',
+                  user.slogan,
                   style: context.textTheme.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -248,40 +258,30 @@ class Favorites extends StatefulWidget {
   State<Favorites> createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites> {
+class _FavoritesState extends State<Favorites> with RequestMixin {
   late final _handler = fetchFavoriteComics.useRequest(
+    defaultParams: UserFavoritePayload(page: 1, sort: ComicSortType.dd),
     onSuccess: (data, _) =>
         Log.info('Fetch favorite comics success', data.toString()),
     onError: (e, _) => Log.error('Fetch favorite comics error', e),
   );
 
   @override
-  void initState() {
-    super.initState();
-    _handler
-      ..addListener(() => setState(() {}))
-      ..run(UserFavoritePayload(page: 1, sort: ComicSortType.dd));
-  }
-
-  @override
-  void dispose() {
-    _handler.dispose();
-    super.dispose();
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Widget build(BuildContext context) {
-    final comics = _handler.data?.comics.docs ?? [];
+    final comics = _handler.state.data?.comics.docs ?? [];
     return _ComicSection(
       title: '收藏漫画',
       icon: Icons.star,
       route: '/favorites',
       isEmpty: comics.isEmpty,
-      isLoading: _handler.isLoading,
-      error: _handler.error,
+      isLoading: _handler.state.loading,
+      error: _handler.state.error,
       onRetry: _handler.refresh,
       itemCount: comics.length,
-      count: _handler.data?.comics.total,
+      count: _handler.state.data?.comics.total,
       itemBuilder: (context, index) {
         final item = comics[index];
         return _ComicItem(url: item.thumb.url, uid: item.uid);

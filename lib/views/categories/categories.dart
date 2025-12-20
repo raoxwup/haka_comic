@@ -67,6 +67,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
       );
     }
     return GridView.builder(
+      cacheExtent: context.height * 1.5,
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: UiMode.m1(context)
             ? 130

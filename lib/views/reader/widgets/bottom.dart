@@ -217,6 +217,14 @@ class ReaderBottom extends StatelessWidget {
                 tooltip: '定时翻页',
                 icon: const Icon(Icons.timer_outlined),
               ),
+              IconButton(
+                onPressed: () {
+                  context.stateReader.toggleLockMenu();
+                  context.reader.openOrCloseToolbar();
+                },
+                tooltip: '锁定菜单',
+                icon: const Icon(Icons.lock_outlined),
+              ),
             ],
           ),
         ),

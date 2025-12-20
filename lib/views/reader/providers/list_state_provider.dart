@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 extension BuildContextListState on BuildContext {
@@ -33,5 +34,14 @@ class ListStateProvider extends ChangeNotifier {
     _verticalListWidthRatio = width;
     AppConf().verticalListWidthRatio = width;
     notifyListeners();
+  }
+
+  /// 锁定菜单
+  bool _lockMenu = false;
+  bool get lockMenu => _lockMenu;
+  void toggleLockMenu() {
+    _lockMenu = !_lockMenu;
+    notifyListeners();
+    Toast.show(message: _lockMenu ? '菜单已锁定' : '菜单已解锁');
   }
 }

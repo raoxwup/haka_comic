@@ -6,6 +6,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
@@ -31,10 +32,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     _onPageChanged(initialIndex);
   }
 
-  TapDownDetails? _tapDetails;
+  late TapDownDetails _tapDetails;
 
   void _handleTap() {
-    if (_tapDetails == null) return;
     final width = context.width;
     double centerFraction = AppConf().horizontalCenterFraction;
     double leftFraction = (1 - centerFraction) / 2;
@@ -42,7 +42,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final leftWidth = width * leftFraction;
     final centerWidth = width * centerFraction;
 
-    final dx = _tapDetails!.localPosition.dx;
+    final dx = _tapDetails.localPosition.dx;
 
     final isReverse = context.reader.readMode.isReverse;
 
@@ -50,6 +50,18 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       context.reader.pageTurnForHorizontal(isReverse);
     } else if (dx < (leftWidth + centerWidth)) {
       context.reader.openOrCloseToolbar();
+    } else {
+      context.reader.pageTurnForHorizontal(!isReverse);
+    }
+  }
+
+  void _handleLockTap() {
+    final width = context.width;
+    final halfWidth = width / 2;
+    final dx = _tapDetails.localPosition.dx;
+    final isReverse = context.reader.readMode.isReverse;
+    if (dx < halfWidth) {
+      context.reader.pageTurnForHorizontal(isReverse);
     } else {
       context.reader.pageTurnForHorizontal(!isReverse);
     }
@@ -93,7 +105,10 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       onTapDown: (details) {
         _tapDetails = details;
       },
-      onTap: _handleTap,
+      onTap: () {
+        context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+      },
+      onLongPress: context.stateReader.toggleLockMenu,
       child: Listener(
         onPointerSignal: (event) {
           if (HardwareKeyboard.instance.isControlPressed) return;

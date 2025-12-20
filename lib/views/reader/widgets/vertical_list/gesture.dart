@@ -130,6 +130,18 @@ class _GestureWrapperState extends State<GestureWrapper>
     }
   }
 
+  void _handleLockTap() {
+    final height = context.height;
+    final halfHeight = height / 2;
+    final dy = _tapDownDetails.localPosition.dy;
+    final slipFactor = AppConf().slipFactor;
+    if (dy < halfHeight) {
+      widget.jumpOffset(height * slipFactor * -1);
+    } else {
+      widget.jumpOffset(height * slipFactor);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isCtrlPressed = context.stateSelector((p) => p.isCtrlPressed);
@@ -138,10 +150,13 @@ class _GestureWrapperState extends State<GestureWrapper>
       onPointerUp: (event) => _handlePointerChange(event, false),
       onPointerCancel: (event) => _handlePointerChange(event, false),
       child: GestureDetector(
-        onTap: _handleTap,
+        onTap: () {
+          context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+        },
         onTapDown: (details) => _tapDownDetails = details,
         onDoubleTapDown: _handleDoubleTapDown,
         onDoubleTap: _handleDoubleTap,
+        onLongPress: context.stateReader.toggleLockMenu,
         child: InteractiveViewer(
           transformationController: _transformationController,
           scaleEnabled: isDesktop ? isCtrlPressed : true,

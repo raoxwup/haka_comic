@@ -57,6 +57,7 @@ dependencies:
   save_to_folder_ios: ^1.0.4
   freezed_annotation: ^3.1.0
   extended_image: ^10.0.1
+  flutter_displaymode: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -84,5 +85,6 @@ flutter:
     - assets/images/forum.jpg
     - assets/images/latest.jpg
     - assets/images/random.jpg
+    - assets/images/default_avatar.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png

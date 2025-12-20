@@ -15,16 +15,7 @@ void showSnackBar(String message) {
   if (currentState == null) return;
   // 显示SnackBar
   currentState.showSnackBar(
-    SnackBar(
-      content: Text(message),
-      behavior: SnackBarBehavior.floating, // 可选样式调整
-      action: SnackBarAction(
-        label: '取消',
-        onPressed: () {
-          currentState.removeCurrentSnackBar();
-        },
-      ),
-    ),
+    SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
   );
 }
 
