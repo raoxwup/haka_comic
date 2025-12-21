@@ -119,7 +119,7 @@ class ProFile extends StatelessWidget {
                         context.colorScheme.surface,
                         context.colorScheme.surface.withValues(alpha: 0.3),
                       ],
-                      stops: [0.02, 0.5, 0.8],
+                      stops: [0.02, 0.5, 0.85],
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,

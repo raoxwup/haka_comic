@@ -19,9 +19,11 @@ abstract class RequestHandler<T, P> {
   final void Function(T, P)? onSuccess;
   final void Function(Object, P)? onError;
   final void Function(P)? onFinally;
+  final T Function(T)? reducer;
 
   RequestHandler({
     this.manual = false,
+    this.reducer,
     this.defaultParams,
     this.onBefore,
     this.onSuccess,
@@ -36,6 +38,7 @@ abstract class RequestHandler<T, P> {
 
   void success(T data, P params) {
     onSuccess?.call(data, params);
+    if (reducer != null) data = reducer!(data);
     _setState((s) => Success(data));
   }
 

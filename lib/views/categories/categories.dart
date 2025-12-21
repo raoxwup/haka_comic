@@ -76,7 +76,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
             : 140,
         mainAxisSpacing: 5,
         crossAxisSpacing: 3,
-        childAspectRatio: 1 / 1.4,
+        childAspectRatio: 1 / 1.35,
       ),
       padding: const EdgeInsets.all(8.0),
       itemCount: visibleExtraMenus.length + visibleCategories.length,
