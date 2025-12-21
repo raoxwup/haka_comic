@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/tag.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class ListItem extends StatelessWidget {
   const ListItem({
@@ -59,7 +59,14 @@ class ListItem extends StatelessWidget {
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BaseImage(url: doc.thumb.url, aspectRatio: 90 / 130),
+                  AspectRatio(
+                    aspectRatio: 90 / 130,
+                    child: Card(
+                      clipBehavior: .hardEdge,
+                      elevation: 0,
+                      child: UiImage(url: doc.thumb.url, cacheWidth: 180),
+                    ),
+                  ),
                   Expanded(
                     child: Column(
                       spacing: 3,

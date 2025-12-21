@@ -5,7 +5,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Recommendation extends StatefulWidget {
   const Recommendation({super.key, required this.id});
@@ -106,7 +106,15 @@ class _RecommendationState extends State<Recommendation>
                     width: 100,
                     child: Column(
                       children: [
-                        BaseImage(url: item.url, width: 100, height: 130),
+                        Card(
+                          clipBehavior: .hardEdge,
+                          elevation: 0,
+                          child: UiImage(
+                            url: item.url,
+                            width: 100,
+                            height: 130,
+                          ),
+                        ),
                         Text(
                           item.title,
                           maxLines: 2,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -16,7 +16,7 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
+class _RegisterState extends State<Register> with RequestMixin {
   final _nicknameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -25,6 +25,7 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
   final targetYear = DateTime.now().year - 18;
 
   late final _handler = register.useRequest(
+    manual: true,
     onSuccess: (data, _) {
       Log.info('Register success', '');
       Toast.show(message: '注册成功');
@@ -90,13 +91,7 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
   }
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  void initState() {
-    super.initState();
-    _handler.isLoading = false;
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   void dispose() {
@@ -178,7 +173,7 @@ class _RegisterState extends State<Register> with AutoRegisterHandlerMixin {
               const SizedBox(height: 20),
               Button.filled(
                 onPressed: submit,
-                isLoading: _handler.isLoading,
+                isLoading: _handler.state.loading,
                 child: const Text('注册'),
               ),
             ],

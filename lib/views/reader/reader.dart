@@ -1,34 +1,20 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/request.dart';
-import 'package:haka_comic/model/reader_provider.dart';
-import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart'
-    hide UseRequest1Extensions, AsyncRequestHandler;
-import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/utils/log.dart';
-import 'package:haka_comic/views/reader/app_bar.dart';
-import 'package:haka_comic/views/reader/bottom.dart';
-import 'package:haka_comic/views/reader/next_chapter.dart';
-import 'package:haka_comic/views/reader/page_no_tag.dart';
-import 'package:haka_comic/views/reader/widget/reader_keyboard_listener.dart';
-import 'package:haka_comic/views/reader/widget/horizontal_list/horizontal_list.dart';
-import 'package:haka_comic/views/reader/widget/vertical_list/vertical_list.dart';
-import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
+import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/reader/widgets/app_bar.dart';
+import 'package:haka_comic/views/reader/widgets/bottom.dart';
+import 'package:haka_comic/views/reader/widgets/next_chapter.dart';
+import 'package:haka_comic/views/reader/widgets/page_no_tag.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/widgets/reader_keyboard_listener.dart';
+import 'package:haka_comic/views/reader/widgets/horizontal_list/horizontal_list.dart';
+import 'package:haka_comic/views/reader/widgets/vertical_list/vertical_list.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:volume_button_override/volume_button_override.dart';
-
-extension BuildContextReader on BuildContext {
-  ReaderProvider get reader => read<ReaderProvider>();
-  ReaderProvider get watchReader => watch<ReaderProvider>();
-}
 
 class Reader extends StatefulWidget {
   const Reader({super.key});
@@ -37,265 +23,27 @@ class Reader extends StatefulWidget {
   State<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> with UseRequestMixin {
-  /// 章节图片获取
-  late final _handler = fetchChapterImages.useRequest(
-    initParam: FetchChapterImagesPayload(
-      id: context.reader.cid,
-      order: context.reader.currentChapter.order,
-    ),
-    onSuccess: (data, _) {
-      Log.info('Fetch chapter images success', data.toString());
-    },
-    onError: (e, _) {
-      Log.error('Fetch chapter images error', e);
-    },
-  );
-
-  @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  /// 章节图片
-  List<ChapterImage> get _images => _handler.data ?? [];
-
-  /// 双页章节图片
-  List<List<ChapterImage>> get _multiPageImages => splitList(_images, 2);
-
-  /// 滚动控制器 - 用于精确控制列表滚动位置
-  final _scrollOffsetController = ScrollOffsetController();
-  final _itemScrollController = ItemScrollController();
-  final _pageController = PageController();
-
-  /// 阅读模式
-  ReadMode _readMode = AppConf().readMode;
-
-  /// 修改阅读模式
-  void _setReadMode(ReadMode mode) {
-    setState(() {
-      _readMode = mode;
-      AppConf().readMode = mode;
-    });
-  }
-
-  /// 是否显示顶部/底部工具栏
-  bool _showToolbar = false;
-
-  /// 切换工具栏显示状态
-  void openOrCloseToolbar() {
-    Future.microtask(() {
-      setState(() {
-        _showToolbar = !_showToolbar;
-        SystemChrome.setEnabledSystemUIMode(
-          _showToolbar ? SystemUiMode.edgeToEdge : SystemUiMode.immersive,
-        );
-      });
-    });
-  }
-
-  /// 跳转到指定章节
-  void go(Chapter chapter) {
-    context.reader.currentChapter = chapter;
-    context.reader.pageNo = 0;
-    _handler.run(
-      FetchChapterImagesPayload(id: context.reader.cid, order: chapter.order),
-    );
-  }
-
-  /// 下一章
-  void goNext() {
-    final reader = context.reader;
-    if (reader.isLastChapter) return;
-    final currentIndex = reader.chapters.indexWhere(
-      (chapter) => chapter.uid == reader.currentChapter.uid,
-    );
-    final nextChapter = reader.chapters[currentIndex + 1];
-    go(nextChapter);
-  }
-
-  /// 上一章
-  void goPrevious() {
-    final reader = context.reader;
-    if (reader.isFirstChapter) return;
-    final currentIndex = reader.chapters.indexWhere(
-      (chapter) => chapter.uid == reader.currentChapter.uid,
-    );
-    final previousChapter = reader.chapters[currentIndex - 1];
-    go(previousChapter);
-  }
-
-  /// 阅读记录数据库助手
-  final _helper = ReadRecordHelper();
-
-  /// 更新当前页码并保存阅读记录，[index]始终保持为单页页码方便计算
-  void onPageNoChanged(int index) {
-    final reader = context.reader;
-    if (index == reader.pageNo) return;
-    reader.pageNo = index;
-    _helper.insert(
-      ComicReadRecord(
-        cid: reader.cid,
-        chapterId: reader.currentChapter.id,
-        pageNo: index,
-        chapterTitle: reader.currentChapter.title,
-      ),
-    );
-  }
-
-  /// 底部工具栏Slider OnChanged
-  void onSliderChanged(int index) {
-    context.reader.pageNo = index;
-    if (_readMode.isVertical) {
-      _itemScrollController.jumpTo(index: index);
-    } else {
-      _pageController.jumpToPage(index);
-    }
-  }
-
-  /// VerticalList 跳转 offset
-  void _pageTurnForVertical(double offset) {
-    final reader = context.reader;
-    if (reader.pageNo == 0 && offset < 0) {
-      if (!reader.isFirstChapter) {
-        goPrevious();
-      } else {
-        Toast.show(message: '没有上一章了');
-      }
-      return;
-    }
-
-    if (reader.pageNo == _images.length - 1 && offset > 0) {
-      if (!reader.isLastChapter) {
-        goNext();
-      } else {
-        _stopPageTurn();
-        Toast.show(message: '没有下一章了');
-      }
-      return;
-    }
-
-    _scrollOffsetController.animateScroll(
-      offset: offset,
-      duration: const Duration(milliseconds: 200),
-    );
-  }
-
-  /// HorizontalList 翻页
-  void _pageTurnForHorizontal([bool isTurnNext = true]) {
-    final reader = context.reader;
-
-    void previousPage() {
-      if (reader.pageNo == 0) {
-        if (!reader.isFirstChapter) {
-          goPrevious();
-        } else {
-          Toast.show(message: '没有上一章了');
-        }
-        return;
-      }
-
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
-    }
-
-    void nextPage() {
-      final correctPageNo = _readMode.isDoublePage
-          ? toCorrectMultiPageNo(reader.pageNo, 2)
-          : reader.pageNo;
-
-      final itemCount = _readMode.isDoublePage
-          ? _multiPageImages.length
-          : _images.length;
-
-      if (correctPageNo == itemCount - 1) {
-        if (!reader.isLastChapter) {
-          goNext();
-        } else {
-          _stopPageTurn();
-          Toast.show(message: '没有下一章了');
-        }
-        return;
-      }
-
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
-    }
-
-    isTurnNext ? nextPage() : previousPage();
-  }
-
-  /// 向前翻页
-  void prev() {
-    if (_readMode.isVertical) {
-      _pageTurnForVertical(context.height * AppConf().slipFactor * -1);
-    } else {
-      _pageTurnForHorizontal(false);
-    }
-  }
-
-  /// 向后翻页
-  void next() {
-    if (_readMode.isVertical) {
-      _pageTurnForVertical(context.height * AppConf().slipFactor);
-    } else {
-      _pageTurnForHorizontal();
-    }
-  }
-
+class _ReaderState extends State<Reader> {
   /// 音量键控制器
   final volumeController = VolumeButtonController();
 
   /// 音量+事件
   late final volumeUpAction = ButtonAction(
     id: ButtonActionId.volumeUp,
-    onAction: prev,
+    onAction: context.reader.prev,
   );
 
   /// 音量-事件
   late final volumeDownAction = ButtonAction(
     id: ButtonActionId.volumeDown,
-    onAction: next,
+    onAction: context.reader.next,
   );
-
-  // 定时翻页
-  bool _isPageTurning = false;
-  Timer? _turnPageTimer;
-  int _interval = AppConf().interval;
-
-  void _startPageTurn() {
-    _turnPageTimer?.cancel();
-    _turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
-      if (_handler.loading) return;
-      next();
-    });
-    setState(() {
-      _isPageTurning = true;
-    });
-  }
-
-  void _stopPageTurn() {
-    _turnPageTimer?.cancel();
-    setState(() {
-      _isPageTurning = false;
-    });
-  }
-
-  void _updateInterval(int interval) {
-    setState(() {
-      _interval = interval;
-      AppConf().interval = interval;
-    });
-    if (_isPageTurning) {
-      _startPageTurn();
-    }
-  }
 
   @override
   void initState() {
     super.initState();
+
+    context.reader.initPreloadController(context);
 
     // 设置沉浸式阅读模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -312,77 +60,34 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
   void dispose() {
     // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _pageController.dispose();
     volumeController.stopListening();
-    _turnPageTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final (
-      isLastChapter,
-      isFirstChapter,
-      currentChapter,
-      currentChapterIndex,
-      pageNo,
-    ) = context.select<ReaderProvider, (bool, bool, Chapter, int, int)>(
-      (value) => (
-        value.isLastChapter,
-        value.isFirstChapter,
-        value.currentChapter,
-        value.currentChapterIndex,
-        value.pageNo,
-      ),
-    );
+    final readMode = context.selector((state) => state.readMode);
 
-    VoidCallback? action(ReaderBottomActionType type) {
-      return switch (type) {
-        ReaderBottomActionType.previous => isFirstChapter ? null : goPrevious,
-        ReaderBottomActionType.next => isLastChapter ? null : goNext,
-      };
-    }
+    final chapterIndex = context.selector((state) => state.chapterIndex);
 
-    Widget listWidget = _readMode.isVertical
-        ? VerticalList(
-            onItemVisibleChanged: onPageNoChanged,
-            itemScrollController: _itemScrollController,
-            openOrCloseToolbar: openOrCloseToolbar,
-            scrollOffsetController: _scrollOffsetController,
-            images: _images,
-            action: action,
-            pageTurn: _pageTurnForVertical,
-          )
-        : HorizontalList(
-            onItemVisibleChanged: onPageNoChanged,
-            pageController: _pageController,
-            isDoublePage: _readMode.isDoublePage,
-            openOrCloseToolbar: openOrCloseToolbar,
-            images: _images,
-            multiPageImages: _multiPageImages,
-            isReverse: _readMode.isReverse,
-            action: action,
-            pageTurn: _pageTurnForHorizontal,
-          );
+    final state = context.selector((state) => state.handler.state);
 
-    final total = _readMode.isDoublePage
-        ? _multiPageImages.length
-        : _images.length;
+    final prev = context.reader.prev;
+    final next = context.reader.next;
 
-    final correctPageNo = _readMode.isDoublePage
-        ? toCorrectMultiPageNo(pageNo, 2)
-        : context.reader.pageNo;
+    final chapters = context.selector((state) => state.chapters);
+
+    Widget listWidget = readMode.isVertical
+        ? const VerticalList()
+        : const HorizontalList();
 
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
           Positioned.fill(
-            child: BasePage(
-              isLoading: _handler.loading,
-              onRetry: _handler.refresh,
-              error: _handler.error,
-              child: ReaderKeyboardListener(
+            child: switch (state) {
+              Success() => ReaderKeyboardListener(
                 handlers: {
                   LogicalKeyboardKey.arrowLeft: prev,
                   LogicalKeyboardKey.arrowRight: next,
@@ -397,52 +102,21 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
                 },
                 child: listWidget,
               ),
-            ),
-          ),
-
-          ReaderPageNoTag(
-            pageNo: correctPageNo,
-            total: total,
-            title: currentChapter.title,
-          ),
-
-          if (!isLastChapter)
-            ReaderNextChapter(
-              isShow:
-                  !_handler.loading &&
-                  _images.isNotEmpty &&
-                  correctPageNo >= total - 2,
-              onPressed: goNext,
-            ),
-
-          ReaderAppBar(
-            readMode: _readMode,
-            showToolbar: _showToolbar,
-            onReadModeChanged: (mode) {
-              _setReadMode(mode);
-              openOrCloseToolbar();
+              Error(:final error) => ErrorPage(
+                errorMessage: error.toString(),
+                onRetry: context.reader.handler.refresh,
+              ),
+              _ => const Center(child: CircularProgressIndicator()),
             },
           ),
 
-          ReaderBottom(
-            onSliderChanged: onSliderChanged,
-            showToolbar: _showToolbar,
-            total: total,
-            pageNo: correctPageNo,
-            isVerticalMode: _readMode.isVertical,
-            action: action,
-            startPageTurn: () {
-              openOrCloseToolbar();
-              _startPageTurn();
-            },
-            stopPageTurn: () {
-              openOrCloseToolbar();
-              _stopPageTurn();
-            },
-            interval: _interval,
-            onIntervalChanged: _updateInterval,
-            isPageTurning: _isPageTurning,
-          ),
+          const ReaderPageNoTag(),
+
+          const ReaderNextChapter(),
+
+          const ReaderAppBar(),
+
+          const ReaderBottom(),
         ],
       ),
       drawer: Drawer(
@@ -458,20 +132,20 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
             ),
             Expanded(
               child: ScrollablePositionedList.builder(
-                initialScrollIndex: currentChapterIndex,
+                initialScrollIndex: chapterIndex,
                 itemBuilder: (context, index) {
-                  final chapter = context.reader.chapters[index];
+                  final chapter = chapters[index];
                   return ListTile(
-                    enabled: index != currentChapterIndex,
+                    enabled: index != chapterIndex,
                     title: Text(chapter.title),
                     onTap: () {
                       context.pop();
-                      openOrCloseToolbar();
-                      go(chapter);
+                      context.reader.openOrCloseToolbar();
+                      context.reader.go(chapter);
                     },
                   );
                 },
-                itemCount: context.reader.chapters.length,
+                itemCount: chapters.length,
               ),
             ),
           ],
@@ -479,19 +153,4 @@ class _ReaderState extends State<Reader> with UseRequestMixin {
       ),
     );
   }
-}
-
-/// 单页页码转换为正确的多页页码
-int toCorrectMultiPageNo(int pageNo, int pageSize) {
-  return pageNo ~/ pageSize;
-}
-
-/// 多页页码转换为正确的单页页码
-int toCorrectSinglePageNo(int pageNo, int pageSize) {
-  return pageNo * pageSize;
-}
-
-/// [pageSize]页页码转换为[anotherPageSize]页页码
-int toAnotherMultiPageNo(int pageNo, int pageSize, int anotherPageSize) {
-  return (pageNo * pageSize) ~/ anotherPageSize;
 }

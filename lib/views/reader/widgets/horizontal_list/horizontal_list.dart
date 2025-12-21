@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,98 +6,35 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/reader/bottom.dart';
-import 'package:haka_comic/views/reader/comic_list_mixin.dart';
-import 'package:haka_comic/views/reader/reader.dart';
-import 'package:haka_comic/views/reader/widget/comic_image.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
+import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
+import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/utils/utils.dart';
+import 'package:haka_comic/views/reader/widgets/reader_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 /// 条漫模式
 class HorizontalList extends StatefulWidget {
-  const HorizontalList({
-    super.key,
-    required this.onItemVisibleChanged,
-    required this.pageController,
-    required this.isDoublePage,
-    required this.images,
-    required this.isReverse,
-    required this.openOrCloseToolbar,
-    required this.multiPageImages,
-    required this.action,
-    required this.pageTurn,
-  });
-
-  /// 图片可见回调
-  final ValueChanged<int> onItemVisibleChanged;
-
-  /// 页码控制器
-  final PageController pageController;
-
-  final bool isDoublePage;
-
-  final List<ChapterImage> images;
-
-  final bool isReverse;
-
-  final VoidCallback openOrCloseToolbar;
-
-  final List<List<ChapterImage>> multiPageImages;
-
-  /// 上一章或下一章
-  final VoidCallback? Function(ReaderBottomActionType) action;
-
-  final void Function([bool]) pageTurn;
+  const HorizontalList({super.key});
 
   @override
   State<HorizontalList> createState() => _HorizontalListState();
 }
 
 class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
-  /// 可见的第一项图片索引 - 用于判断滚动方向
-  int _visibleFirstIndex = 0;
-
   /// 获取当前章节ID
-  String get cid => context.reader.cid;
-
-  /// 是否需要翻转
-  bool get isReverse => widget.isReverse;
-
-  /// 是否双页模式
-  bool get isDoublePage => widget.isDoublePage;
-
-  int get itemCount =>
-      isDoublePage ? widget.multiPageImages.length : widget.images.length;
+  String get cid => context.reader.id;
 
   void jumpToPage() {
-    final reader = context.reader;
-    final initialIndex = isDoublePage
-        ? toCorrectMultiPageNo(reader.pageNo, 2)
-        : reader.pageNo;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.pageController.jumpToPage(initialIndex);
-      _onPageChanged(initialIndex);
-    });
+    final initialIndex = context.reader.pageNo;
+    context.reader.pageController.jumpToPage(initialIndex);
+    _onPageChanged(initialIndex);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    jumpToPage();
-  }
-
-  @override
-  void didUpdateWidget(covariant oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isDoublePage != oldWidget.isDoublePage) {
-      jumpToPage();
-    }
-  }
-
-  TapDownDetails? _tapDetails;
+  late TapDownDetails _tapDetails;
 
   void _handleTap() {
-    if (_tapDetails == null) return;
     final width = context.width;
     double centerFraction = AppConf().horizontalCenterFraction;
     double leftFraction = (1 - centerFraction) / 2;
@@ -105,14 +42,28 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     final leftWidth = width * leftFraction;
     final centerWidth = width * centerFraction;
 
-    final dx = _tapDetails!.localPosition.dx;
+    final dx = _tapDetails.localPosition.dx;
+
+    final isReverse = context.reader.readMode.isReverse;
 
     if (dx < leftWidth) {
-      widget.pageTurn(isReverse);
+      context.reader.pageTurnForHorizontal(isReverse);
     } else if (dx < (leftWidth + centerWidth)) {
-      widget.openOrCloseToolbar();
+      context.reader.openOrCloseToolbar();
     } else {
-      widget.pageTurn(!isReverse);
+      context.reader.pageTurnForHorizontal(!isReverse);
+    }
+  }
+
+  void _handleLockTap() {
+    final width = context.width;
+    final halfWidth = width / 2;
+    final dx = _tapDetails.localPosition.dx;
+    final isReverse = context.reader.readMode.isReverse;
+    if (dx < halfWidth) {
+      context.reader.pageTurnForHorizontal(isReverse);
+    } else {
+      context.reader.pageTurnForHorizontal(!isReverse);
     }
   }
 
@@ -122,9 +73,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     _lock = true;
 
     if (event.scrollDelta.dy > 0) {
-      widget.pageTurn();
+      context.reader.pageTurnForHorizontal();
     } else if (event.scrollDelta.dy < 0) {
-      widget.pageTurn(false);
+      context.reader.pageTurnForHorizontal(false);
     }
 
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -132,13 +83,32 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     });
   }
 
+  bool? _lastIsDoublePage;
+
   @override
   Widget build(BuildContext context) {
+    final pageCount = context.selector((p) => p.pageCount);
+
+    final images = context.selector((p) => p.images);
+
+    final multiPageImages = context.selector((p) => p.multiPageImages);
+
+    final readMode = context.selector((p) => p.readMode);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_lastIsDoublePage != readMode.isDoublePage) {
+        jumpToPage();
+      }
+    });
+
     return GestureDetector(
       onTapDown: (details) {
         _tapDetails = details;
       },
-      onTap: _handleTap,
+      onTap: () {
+        context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+      },
+      onLongPress: context.stateReader.toggleLockMenu,
       child: Listener(
         onPointerSignal: (event) {
           if (HardwareKeyboard.instance.isControlPressed) return;
@@ -153,26 +123,27 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                 color: context.colorScheme.surfaceContainerLowest,
               ),
               scrollPhysics: const BouncingScrollPhysics(),
-              itemCount: itemCount,
-              pageController: widget.pageController,
+              itemCount: pageCount,
+              pageController: context.reader.pageController,
               onPageChanged: _onPageChanged,
-              reverse: isReverse,
+              reverse: readMode.isReverse,
               builder: (context, index) {
-                if (!isDoublePage) {
-                  final item = widget.images[index];
+                if (!readMode.isDoublePage) {
+                  final item = images[index];
                   return PhotoViewGalleryPageOptions(
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 4.0,
-                    imageProvider: CachedNetworkImageProvider(item.media.url),
+                    imageProvider: ExtendedNetworkImageProvider(
+                      item.media.url,
+                      timeRetry: const Duration(milliseconds: 300),
+                      cache: true,
+                    ),
                     filterQuality: FilterQuality.medium,
                     errorBuilder: (context, error, stackTrace, retry) {
                       return Center(
                         child: IconButton(
-                          onPressed: () async {
-                            final provider = CachedNetworkImageProvider(
-                              item.media.url,
-                            );
-                            provider.evict();
+                          onPressed: () {
+                            clearMemoryImageCache(item.media.url);
                             retry();
                           },
                           icon: const Icon(Icons.refresh),
@@ -191,22 +162,21 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                   );
                 }
 
-                final items = widget.multiPageImages[index];
+                final items = multiPageImages[index];
                 final size = Size(constraints.maxWidth, constraints.maxHeight);
                 return PhotoViewGalleryPageOptions.customChild(
                   childSize: size * 2,
                   minScale: PhotoViewComputedScale.contained * 1.0,
                   maxScale: PhotoViewComputedScale.covered * 10.0,
-                  child: buildPageImages(items),
+                  child: buildPageImages(items, readMode.isReverse),
                 );
               },
               loadingBuilder: (context, event) {
+                final bytes = event?.cumulativeBytesLoaded ?? 0;
+                final value = computeProgress(bytes);
                 return Center(
                   child: CircularProgressIndicator(
-                    value: event?.expectedTotalBytes == null
-                        ? 0
-                        : event!.cumulativeBytesLoaded /
-                              event.expectedTotalBytes!,
+                    value: value,
                     strokeWidth: 3,
                     constraints: BoxConstraints.tight(const Size(28, 28)),
                     backgroundColor: Colors.grey.shade300,
@@ -222,7 +192,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     );
   }
 
-  Widget buildPageImages(List<ChapterImage> images) {
+  Widget buildPageImages(List<ChapterImage> images, bool isReverse) {
     final correctImages = isReverse ? images.reversed.toList() : images;
     final children = correctImages.asMap().entries.map((entry) {
       final index = entry.key;
@@ -233,8 +203,9 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
           alignment: size == 1
               ? Alignment.center
               : (index == 0 ? Alignment.centerRight : Alignment.centerLeft),
-          child: ComicImage.noUseCache(
+          child: ReaderImage(
             url: item.media.url,
+            enableCache: false,
             onImageSizeChanged: (width, height) {
               final size = ImageSize(
                 width: width,
@@ -251,23 +222,12 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     return Row(children: children);
   }
 
-  void _onPageChanged(index) {
+  void _onPageChanged(int index) {
+    final isDoublePage = context.reader.readMode.isDoublePage;
     var i = isDoublePage ? toCorrectSinglePageNo(index, 2) : index;
 
-    if (_visibleFirstIndex > index) {
-      final start = i - 1;
-      final end = i - maxPreloadCount;
-      preloadImages(start, end, widget.images);
-    } else {
-      int part = i;
-      if (isDoublePage) {
-        part = part + 1;
-      }
-      preloadImages(part + 1, part + maxPreloadCount, widget.images);
-    }
+    context.reader.preloadController.onAnchorChanged([i]);
 
-    _visibleFirstIndex = index;
-
-    widget.onItemVisibleChanged(i);
+    context.reader.onPageNoChanged(i);
   }
 }

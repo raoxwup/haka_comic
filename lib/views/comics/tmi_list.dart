@@ -59,6 +59,7 @@ class TMIList extends StatelessWidget {
 
     return CustomScrollView(
       controller: controller,
+      cacheExtent: context.height * 2,
       slivers: [
         if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
         SliverGrid.builder(

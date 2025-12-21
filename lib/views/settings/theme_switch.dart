@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:haka_comic/model/theme_provider.dart';
+import 'package:haka_comic/providers/theme_mode_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:provider/provider.dart';
 
 class ThemeSwitch extends StatefulWidget {
   const ThemeSwitch({super.key});
@@ -13,142 +12,110 @@ class ThemeSwitch extends StatefulWidget {
 
 class _ThemeSwitchState extends State<ThemeSwitch>
     with SingleTickerProviderStateMixin {
-  late AnimationController _springController;
-  double _currentLeft = 0;
-  double _targetLeft = 0;
+  late AnimationController _controller;
+
+  double _start = 0;
+  double _end = 0;
+
+  static const int itemCount = 3;
 
   @override
   void initState() {
     super.initState();
-    _springController = AnimationController.unbounded(vsync: this)
-      ..addListener(_handleSpringUpdate);
+    _controller = AnimationController.unbounded(vsync: this);
   }
 
   @override
   void dispose() {
-    _springController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _handleSpringUpdate() {
-    setState(() => _currentLeft = _springController.value);
+  void _animateTo(double target) {
+    _start = _controller.value;
+    _end = target;
+
+    const spring = SpringDescription(mass: 1, stiffness: 550, damping: 15);
+
+    final simulation = SpringSimulation(spring, _start, _end, 0);
+
+    _controller.animateWith(simulation);
   }
 
-  void _startSpringAnimation(double target) {
-    final simulation = SpringSimulation(
-      SpringDescription.withDampingRatio(
-        mass: 1.0,
-        stiffness: 500.0,
-        ratio: 0.5,
-      ),
-      _currentLeft,
-      target,
-      0.0, // 初始速度
-    );
-    _springController.animateWith(simulation);
-  }
-
-  void _handleTap(ThemeMode mode) {
-    context.read<ThemeProvider>().setThemeMode(mode);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _handleThemeChange();
-  }
-
-  void _handleThemeChange() {
-    final width = context.width > 400
-        ? 400 - 16 * 2 - 5 * 2
-        : context.width - 16 * 2 - 5 * 2;
-    // ThemeMode themeMode = context.select<AppData, ThemeMode>(
-    //   (data) => data.themeMode,
-    // );
-
-    final themeMode = context.watch<ThemeProvider>().themeMode;
-    int index = switch (themeMode) {
-      ThemeMode.system => 0,
-      ThemeMode.light => 1,
-      ThemeMode.dark => 2,
-    };
-
-    final newTarget = width / 3 * index;
-
-    if ((_targetLeft - newTarget).abs() > 0.1) {
-      _targetLeft = newTarget;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startSpringAnimation(_targetLeft);
-      });
-    }
+  void _handleTap(ThemeModeOption mode) {
+    context.themeModeReader.themeMode = mode;
   }
 
   @override
   Widget build(BuildContext context) {
-    // 因为constraints限制，最大宽度为400
-    final width = context.width > 400
-        ? 400 - 16 * 2 - 5 * 2
-        : context.width - 16 * 2 - 5 * 2;
-    return Container(
-      width: double.infinity,
-      height: 50,
-      padding: const EdgeInsets.all(5.0),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: _currentLeft,
-            top: 0,
-            bottom: 0,
-            width: width / 3,
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.colorScheme.surface,
-                borderRadius: BorderRadius.circular(99),
+    final themeMode = context.themeModeSelector((p) => p.themeMode);
+
+    final currentIndex = switch (themeMode) {
+      ThemeModeOption.system => 0,
+      ThemeModeOption.light => 1,
+      ThemeModeOption.dark => 2,
+    };
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final itemWidth = (totalWidth - 10) / itemCount;
+
+        // 正向计算目标位置
+        final targetX = currentIndex * itemWidth;
+
+        // 当状态变化时触发物理动画
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_end != targetX) {
+            _animateTo(targetX);
+          }
+        });
+
+        return Container(
+          height: 50,
+          padding: const EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(99),
+          ),
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (_, _) {
+                  return Positioned(
+                    left: _controller.value,
+                    top: 0,
+                    bottom: 0,
+                    width: itemWidth,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
+              Row(
+                children: ThemeModeOption.values.map((x) {
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () => _handleTap(x),
+                      child: Center(
+                        child: Text(
+                          x.title,
+                          style: context.textTheme.titleMedium,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          Positioned.fill(
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.system),
-                    child: Text(
-                      'System',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.light),
-                    child: Text(
-                      'Light',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _handleTap(ThemeMode.dark),
-                    child: Text(
-                      'Dark',
-                      style: context.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

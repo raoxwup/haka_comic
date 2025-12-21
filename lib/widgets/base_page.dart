@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 
 class BasePage extends StatelessWidget {
@@ -27,10 +26,7 @@ class BasePage extends StatelessWidget {
       if (builder != null) {
         return builder(context);
       }
-      return ErrorPage(
-        errorMessage: getTextBeforeNewLine(error.toString()),
-        onRetry: onRetry,
-      );
+      return ErrorPage(errorMessage: error.toString(), onRetry: onRetry);
     }
 
     if (isLoading) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:haka_comic/model/reader_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 
 typedef KeyHandler = VoidCallback?;
 
@@ -30,9 +29,11 @@ class ReaderKeyboardListener extends StatelessWidget {
       onKeyEvent: (FocusNode node, KeyEvent event) {
         if (_ctrlKeys.contains(event.logicalKey)) {
           if (event is KeyUpEvent) {
-            context.read<ReaderProvider>().isCtrlPressed = false;
+            context.stateReader.isCtrlPressed = false;
+            context.stateReader.physics = const BouncingScrollPhysics();
           } else if (event is KeyDownEvent) {
-            context.read<ReaderProvider>().isCtrlPressed = true;
+            context.stateReader.isCtrlPressed = true;
+            context.stateReader.physics = const NeverScrollableScrollPhysics();
           }
           return KeyEventResult.handled;
         }

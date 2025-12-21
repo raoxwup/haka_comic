@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:extended_image/extended_image.dart';
 
 class ClearCache extends StatefulWidget {
   const ClearCache({super.key});
@@ -21,25 +21,37 @@ class _ClearCacheState extends State<ClearCache> {
   bool _isClearing = false;
   bool _isCalculating = false;
 
+  // 获取缓存目录
+  Future<List<String>> _getCacheDirs() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = p.join(tempDir.path, cacheImageFolderName);
+    final cacheDir = await getApplicationCacheDirectory();
+    return [path, cacheDir.path];
+  }
+
   // 计算缓存大小
-  static int _calculateCacheSizeIsolate(String dirPath) {
-    final cacheDir = Directory(dirPath);
+  static int _calculateCacheSizeIsolate(List<String> dirPaths) {
     int totalSize = 0;
-    if (cacheDir.existsSync()) {
-      final files = cacheDir.listSync(recursive: true);
-      for (var file in files) {
-        if (file is File) {
-          totalSize += file.lengthSync();
+    for (var dirPath in dirPaths) {
+      final dir = Directory(dirPath);
+      if (dir.existsSync()) {
+        final files = dir.listSync(recursive: true);
+        for (var file in files) {
+          if (file is File) {
+            totalSize += file.lengthSync();
+          }
         }
       }
     }
     return totalSize;
   }
 
-  static void _clearCache(String dirPath) {
-    final cacheDir = Directory(dirPath);
-    if (cacheDir.existsSync()) {
-      cacheDir.deleteSync(recursive: true);
+  static void _clearCache(List<String> dirPaths) {
+    for (var dirPath in dirPaths) {
+      final cacheDir = Directory(dirPath);
+      if (cacheDir.existsSync()) {
+        cacheDir.deleteSync(recursive: true);
+      }
     }
   }
 
@@ -55,9 +67,8 @@ class _ClearCacheState extends State<ClearCache> {
   Future<void> _handleClearCache() async {
     setState(() => _isClearing = true);
     try {
-      final cacheDir = await getTemporaryDirectory();
-      final path = p.join(cacheDir.path, DefaultCacheManager.key);
-      await compute(_clearCache, path);
+      final paths = await _getCacheDirs();
+      await compute(_clearCache, paths);
       _loadCacheSize(); // 重新加载大小
       Toast.show(message: '缓存已清理');
     } catch (e) {
@@ -75,9 +86,8 @@ class _ClearCacheState extends State<ClearCache> {
 
   void _loadCacheSize() async {
     setState(() => _isCalculating = true);
-    final cacheDir = await getTemporaryDirectory();
-    final path = p.join(cacheDir.path, DefaultCacheManager.key);
-    final size = await compute(_calculateCacheSizeIsolate, path);
+    final paths = await _getCacheDirs();
+    final size = await compute(_calculateCacheSizeIsolate, paths);
     setState(() {
       _cacheSize = size;
       _isCalculating = false;

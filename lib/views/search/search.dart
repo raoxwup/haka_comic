@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/model/search_provider.dart';
+import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/views/search/hot_search_words.dart';
 import 'package:haka_comic/views/search/search_history.dart';

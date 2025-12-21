@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequestExtensions;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/widgets/base_page.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/widgets/error_page.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Categories extends StatefulWidget {
   const Categories({super.key, required this.isRouteAnimationCompleted});
@@ -30,38 +30,34 @@ const extraMenus = [
   {"title": "随机本子", "path": "/random", "icon": "assets/images/random.jpg"},
 ];
 
-class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
+class _CategoriesState extends State<Categories> with RequestMixin {
   final handler = fetchCategories.useRequest(
-    onSuccess: (data, _) {
+    onSuccess: (data) {
       Log.info('Fetch categories success', data.toString());
     },
-    onError: (e, _) {
+    onError: (e) {
       Log.error('Fetch categories failed', e);
     },
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler];
-
-  @override
-  void initState() {
-    super.initState();
-    handler.run();
-  }
+  List<RequestHandler> registerHandler() => [handler];
 
   @override
   Widget build(BuildContext context) {
-    return BasePage(
-      isLoading: handler.isLoading || !widget.isRouteAnimationCompleted,
-      onRetry: handler.refresh,
-      error: handler.error,
-      child: _buildCategoryList(),
-    );
+    return switch (handler.state) {
+      Success(:final data) => _buildCategoryList(data.categories),
+      Error(:final error) => ErrorPage(
+        errorMessage: error.toString(),
+        onRetry: handler.refresh,
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    };
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(List<Category> categories) {
     final visibleExtraMenus = List.of(extraMenus);
-    final visibleCategories = List<Category>.of(handler.data?.categories ?? []);
+    final visibleCategories = List<Category>.of(categories);
     if (AppConf().visibleCategories.isNotEmpty) {
       visibleExtraMenus.removeWhere(
         (item) => !AppConf().visibleCategories.contains(item['title']),
@@ -71,6 +67,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
       );
     }
     return GridView.builder(
+      cacheExtent: context.height * 1.5,
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: UiMode.m1(context)
             ? 130
@@ -79,7 +76,7 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
             : 140,
         mainAxisSpacing: 5,
         crossAxisSpacing: 3,
-        childAspectRatio: 1 / 1.3,
+        childAspectRatio: 1 / 1.35,
       ),
       padding: const EdgeInsets.all(8.0),
       itemCount: visibleExtraMenus.length + visibleCategories.length,
@@ -96,25 +93,21 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
   Widget _buildMenuItem(Map<String, String> item) {
     return InkWell(
       key: ValueKey(item['title']),
-      onTap: () {
-        context.push(item['path']!);
-      },
+      onTap: () => context.push(item['path']!),
       borderRadius: BorderRadius.circular(6),
-      child: SingleChildScrollView(
-        child: Column(
-          spacing: 5,
-          children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: Card(
-                clipBehavior: Clip.hardEdge,
-                elevation: 0,
-                child: Image.asset(item['icon']!),
-              ),
+      child: Column(
+        spacing: 5,
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: Card(
+              clipBehavior: .hardEdge,
+              elevation: 0,
+              child: Image.asset(item['icon']!),
             ),
-            Text(item['title']!, style: context.textTheme.labelLarge),
-          ],
-        ),
+          ),
+          Text(item['title']!, style: context.textTheme.labelLarge),
+        ],
       ),
     );
   }
@@ -127,14 +120,23 @@ class _CategoriesState extends State<Categories> with AutoRegisterHandlerMixin {
         context.push('/comics?c=${item.title}');
       },
       borderRadius: BorderRadius.circular(6),
-      child: SingleChildScrollView(
-        child: Column(
-          spacing: 5,
-          children: [
-            BaseImage(url: item.thumb.url, aspectRatio: 1),
-            Text(item.title, style: context.textTheme.labelLarge),
-          ],
-        ),
+      child: Column(
+        spacing: 5,
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: Card(
+              clipBehavior: .hardEdge,
+              elevation: 0,
+              child: UiImage(
+                url: item.thumb.url,
+                filterQuality: .medium,
+                cacheWidth: 150,
+              ),
+            ),
+          ),
+          Text(item.title, style: context.textTheme.labelLarge),
+        ],
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/mixin/pagination_handler.dart';
-import 'package:haka_comic/model/search_provider.dart';
+import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';

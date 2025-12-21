@@ -7,7 +7,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SetupConf {
   static late String dataPath;
-  static String appVersion = "1.0.7";
+  static String appVersion = "1.0.8";
 
   static Future<void> initialize() async {
     await Future.wait([initPath()]);

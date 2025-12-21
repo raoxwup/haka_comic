@@ -938,10 +938,9 @@ class ExtraRecommendComic {
 
 class FetchChapterImagesPayload {
   final String id;
-
   final int order;
 
-  FetchChapterImagesPayload({required this.id, required this.order});
+  const FetchChapterImagesPayload({required this.id, required this.order});
 }
 
 @JsonSerializable()

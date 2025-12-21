@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/widgets/base_image.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class SimpleListItem extends StatelessWidget {
   const SimpleListItem({
@@ -57,7 +57,14 @@ class SimpleListItem extends StatelessWidget {
                 child: Column(
                   spacing: 3,
                   children: [
-                    BaseImage(url: doc.thumb.url, aspectRatio: 1 / 1.4),
+                    AspectRatio(
+                      aspectRatio: 1 / 1.4,
+                      child: Card(
+                        elevation: 0,
+                        clipBehavior: .hardEdge,
+                        child: UiImage(url: doc.thumb.url, cacheWidth: 140),
+                      ),
+                    ),
                     Text(
                       item.title,
                       style: context.textTheme.titleSmall,

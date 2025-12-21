@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/model/user_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:provider/provider.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class Comments extends StatefulWidget {
   const Comments({super.key});
@@ -90,27 +89,27 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.userSelector((p) => p.userHandler.state.data!.user);
     return RouteAwarePageWrapper(
       shouldRebuildOnCompleted: false,
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(title: const Text('我的评论')),
-          body: _handler.error != null ? _buildError() : _buildPage(),
+          body: _handler.error != null ? _buildError() : _buildPage(user),
         );
       },
     );
   }
 
-  Widget _buildPage() {
+  Widget _buildPage(User user) {
     if (!_handler.isLoading && _comments.isEmpty) {
       return _buildEmpty();
     } else {
-      return _buildList();
+      return _buildList(user);
     }
   }
 
-  Widget _buildList() {
-    final user = context.watch<UserProvider>().user;
+  Widget _buildList(User user) {
     return ListView.separated(
       controller: _scrollController,
       itemBuilder: (_, index) {
@@ -131,7 +130,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                user?.avatar == null
+                user.avatar == null
                     ? Card(
                         clipBehavior: Clip.hardEdge,
                         elevation: 0,
@@ -143,11 +142,11 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
                           child: Image.asset('assets/images/user.png'),
                         ),
                       )
-                    : BaseImage(
-                        url: user!.avatar!.url,
+                    : UiImage(
+                        url: user.avatar!.url,
                         width: 64,
                         height: 64,
-                        shape: const CircleBorder(),
+                        shape: .circle,
                       ),
                 Expanded(
                   child: Column(
@@ -158,7 +157,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
                       Row(
                         children: [
                           Text(
-                            user?.name ?? '',
+                            user.name,
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -192,9 +191,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
                               '/personal_sub_comments',
                               extra: {'comment': item, 'user': user},
                             ),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(99),
-                            ),
+                            borderRadius: BorderRadius.circular(99),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,

@@ -1,38 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/model/theme_provider.dart';
+import 'package:haka_comic/providers/theme_mode_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/theme_icon.dart';
 import 'package:haka_comic/views/settings/theme_switch.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
-import 'package:provider/provider.dart';
 
 class Theme extends StatelessWidget {
   const Theme({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final ThemeMode themeMode = context.select<ThemeProvider, ThemeMode>(
-      (data) => data.themeMode,
-    );
+    final themeMode = context.themeModeSelector((p) => p.themeMode);
     return MenuListTile.withAction(
       icon: Icons.contrast_outlined,
       title: '主题模式',
-      value: ThemeProvider.themeModeToString[themeMode] ?? 'System',
+      value: themeMode.title,
       onTap: () {
         showModalBottomSheet(
           context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-          ),
+          backgroundColor: Colors.transparent,
           useSafeArea: true,
           constraints: const BoxConstraints(maxWidth: 400),
           isScrollControlled: true,
           builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+            return Container(
+              margin: const .only(bottom: 10.0),
+              padding: const .symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: context.colorScheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Container(
+                    height: 4,
+                    width: 36,
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.onSurface,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   const ThemeIcon(),
                   const SizedBox(height: 20),
                   Text('选择主题模式', style: context.textTheme.titleMedium),

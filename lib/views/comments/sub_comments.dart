@@ -9,9 +9,9 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/views/comments/comment_input.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
-import 'package:haka_comic/widgets/base_image.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:haka_comic/widgets/ui_image.dart';
 
 class SubCommentsPage extends StatefulWidget {
   const SubCommentsPage({super.key, required this.comment});
@@ -189,11 +189,11 @@ class _SubCommentsPageState extends State<SubCommentsPage>
                                     ),
                                   ),
                                 )
-                              : BaseImage(
+                              : UiImage(
                                   url: item.user.avatar!.url,
                                   width: 40,
                                   height: 40,
-                                  shape: const CircleBorder(),
+                                  shape: .circle,
                                 ),
                         ),
                       ),
@@ -291,11 +291,11 @@ class _SubCommentsPageState extends State<SubCommentsPage>
                               child: Image.asset('assets/images/user.png'),
                             ),
                           )
-                        : BaseImage(
+                        : UiImage(
                             url: comment.user.avatar!.url,
                             width: 40,
                             height: 40,
-                            shape: const CircleBorder(),
+                            shape: .circle,
                           ),
                   ),
                 ),

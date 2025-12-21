@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/router/app_router.dart';
-import 'package:haka_comic/utils/common.dart';
 
 class Client {
   static const _maxRetries = 3;
@@ -133,9 +132,9 @@ class Client {
       if (e.type == DioExceptionType.connectionTimeout) {
         message = "连接超时";
       } else if (e.type != DioExceptionType.unknown) {
-        message = getTextBeforeNewLine(e.message ?? '未知错误');
+        message = e.message ?? '未知错误';
       } else {
-        message = e.toString().split("\n")[1];
+        message = e.toString();
       }
       throw Exception(message);
     } catch (e) {
