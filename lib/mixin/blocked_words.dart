@@ -60,6 +60,25 @@ mixin BlockedWordsMixin<T extends StatefulWidget> on State<T> {
     super.dispose();
   }
 
+  /// 过滤屏蔽的tag、关键词、分类
+  Iterable<K> filterBlockedWords<K extends ComicBase>(List<K> list) {
+    return list.where((comic) {
+      // 屏蔽的tag
+      final tag = comic.tags.firstWhereOrNull(
+        (item) => blockedTags.contains(item),
+      );
+      // 屏蔽的分类
+      final category = comic.categories.firstWhereOrNull(
+        (item) => AppConf().blacklist.contains(item),
+      );
+      // 屏蔽的标题关键词
+      final word = blockedWords.firstWhereOrNull(
+        (word) => comic.title.contains(word),
+      );
+      return (tag ?? category ?? word) == null;
+    });
+  }
+
   void filterComics() {
     filteredComics = comics.where((comic) {
       // 屏蔽的tag
