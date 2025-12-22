@@ -57,19 +57,21 @@ class TMIList extends StatelessWidget {
             childAspectRatio: 2.5,
           );
 
-    return CustomScrollView(
-      controller: controller,
-      cacheExtent: context.height * 2,
-      slivers: [
-        if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
-        SliverGrid.builder(
-          gridDelegate: gridDelegate,
-          itemBuilder: itemBuilder,
-          itemCount: itemCount,
-        ),
-        if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
-        if (footerBuilder != null) footerBuilder!(context),
-      ],
+    return SafeArea(
+      child: CustomScrollView(
+        controller: controller,
+        cacheExtent: context.height * 2,
+        slivers: [
+          if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
+          SliverGrid.builder(
+            gridDelegate: gridDelegate,
+            itemBuilder: itemBuilder,
+            itemCount: itemCount,
+          ),
+          if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
+          if (footerBuilder != null) footerBuilder!(context),
+        ],
+      ),
     );
   }
 }
