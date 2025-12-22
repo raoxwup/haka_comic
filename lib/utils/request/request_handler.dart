@@ -19,7 +19,9 @@ abstract class RequestHandler<T, P> {
   final void Function(T, P)? onSuccess;
   final void Function(Object, P)? onError;
   final void Function(P)? onFinally;
-  final T Function(T)? reducer;
+  final T Function(T? prev, T current)? reducer;
+
+  bool get keepData => reducer != null;
 
   RequestHandler({
     this.manual = false,
@@ -33,12 +35,12 @@ abstract class RequestHandler<T, P> {
 
   void setup(P params) {
     onBefore?.call(params);
-    _setState((_) => const Loading());
+    _setState((s) => Loading(keepData ? s.data : null));
   }
 
   void success(T data, P params) {
     onSuccess?.call(data, params);
-    if (reducer != null) data = reducer!(data);
+    if (keepData) data = reducer!(_state.data, data);
     _setState((s) => Success(data));
   }
 

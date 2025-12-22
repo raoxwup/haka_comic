@@ -20,7 +20,7 @@ import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/widgets/button.dart';
-import 'package:provider/provider.dart' hide Consumer;
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:local_auth/local_auth.dart';
 

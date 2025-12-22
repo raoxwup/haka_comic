@@ -90,32 +90,6 @@ Map<String, dynamic> _$DocToJson(Doc instance) => <String, dynamic>{
   'tags': instance.tags,
 };
 
-Comics _$ComicsFromJson(Map<String, dynamic> json) => Comics(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  limit: (json['limit'] as num).toInt(),
-  page: (json['page'] as num).toInt(),
-  pages: (json['pages'] as num).toInt(),
-  total: (json['total'] as num).toInt(),
-);
-
-Map<String, dynamic> _$ComicsToJson(Comics instance) => <String, dynamic>{
-  'docs': instance.docs,
-  'total': instance.total,
-  'limit': instance.limit,
-  'page': instance.page,
-  'pages': instance.pages,
-};
-
-ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
-    ComicsResponse(
-      comics: Comics.fromJson(json['comics'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$ComicsResponseToJson(ComicsResponse instance) =>
-    <String, dynamic>{'comics': instance.comics};
-
 Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   id: json['_id'] as String,
   avatar: json['avatar'] == null
@@ -822,3 +796,29 @@ Map<String, dynamic> _$InitResponseToJson(InitResponse instance) =>
       'waka': instance.waka,
       'adKeyword': instance.adKeyword,
     };
+
+_Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  limit: (json['limit'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
+  total: (json['total'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicsToJson(_Comics instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+  'total': instance.total,
+};
+
+_ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
+    _ComicsResponse(
+      comics: Comics.fromJson(json['comics'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ComicsResponseToJson(_ComicsResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};

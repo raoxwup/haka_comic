@@ -1,8 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
+part 'models.freezed.dart';
 
 class BaseResponse<T> {
   final int code;
@@ -238,41 +239,25 @@ class Doc extends ComicBase {
   Map<String, dynamic> toJson() => _$DocToJson(this);
 }
 
-@JsonSerializable()
-class Comics {
-  final List<Doc> docs;
-
-  final int total;
-
-  final int limit;
-
-  final int page;
-
-  final int pages;
-
-  Comics({
-    required this.docs,
-    required this.limit,
-    required this.page,
-    required this.pages,
-    required this.total,
-  });
+@freezed
+abstract class Comics with _$Comics {
+  const factory Comics({
+    required List<Doc> docs,
+    required int limit,
+    required int page,
+    required int pages,
+    required int total,
+  }) = _Comics;
 
   factory Comics.fromJson(Map<String, dynamic> json) => _$ComicsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ComicsToJson(this);
 }
 
-@JsonSerializable()
-class ComicsResponse {
-  final Comics comics;
-
-  ComicsResponse({required this.comics});
+@freezed
+abstract class ComicsResponse with _$ComicsResponse {
+  const factory ComicsResponse({required Comics comics}) = _ComicsResponse;
 
   factory ComicsResponse.fromJson(Map<String, dynamic> json) =>
       _$ComicsResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ComicsResponseToJson(this);
 }
 
 @JsonSerializable()
