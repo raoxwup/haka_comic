@@ -5,6 +5,7 @@ import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/ui_image.dart';
 
 class Recommendation extends StatefulWidget {
@@ -85,14 +86,7 @@ class _RecommendationState extends State<Recommendation>
       height: 190,
       width: double.infinity,
       child: _comics.isEmpty
-          ? Column(
-              spacing: 5,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/icon_empty.png', height: 160),
-                const Text('暂无推荐'),
-              ],
-            )
+          ? const Empty(height: 190)
           : ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _comics.length,
@@ -106,19 +100,18 @@ class _RecommendationState extends State<Recommendation>
                     width: 100,
                     child: Column(
                       children: [
-                        Card(
-                          clipBehavior: .hardEdge,
-                          elevation: 0,
-                          child: UiImage(
-                            url: item.url,
-                            width: 100,
-                            height: 130,
-                          ),
+                        UiImage(
+                          borderRadius: BorderRadius.circular(8),
+                          shape: .rectangle,
+                          url: item.url,
+                          width: 100,
+                          height: 135,
                         ),
                         Text(
                           item.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ],
                     ),

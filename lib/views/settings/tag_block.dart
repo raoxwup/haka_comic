@@ -1,25 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
-class TagBlock extends StatefulWidget {
+class TagBlock extends StatelessWidget {
   const TagBlock({super.key});
 
   @override
-  State<TagBlock> createState() => _TagBlockState();
-}
-
-class _TagBlockState extends State<TagBlock> {
-  @override
   Widget build(BuildContext context) {
     final blockedTags = context.select<BlockProvider, List<String>>(
-      (p) => p.blockedTags.toList(),
+      (p) => p.blockedTags,
     );
-    final provider = context.read<TagBlockHelper>();
+    final provider = context.read<BlockProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text('Tag屏蔽')),
       body: blockedTags.isEmpty
@@ -38,8 +32,8 @@ class _TagBlockState extends State<TagBlock> {
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      await provider.delete(tag);
+                    onPressed: () {
+                      provider.deleteTag(tag);
                     },
                   ),
                 );
@@ -87,7 +81,7 @@ class _TagBlockState extends State<TagBlock> {
               Toast.show(message: '「$t」已存在');
               return;
             }
-            await provider.insert(t);
+            provider.insertTag(t);
             return;
           }
           Toast.show(message: 'Tag长度应为2~20个字符');

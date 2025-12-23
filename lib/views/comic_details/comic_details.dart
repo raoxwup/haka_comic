@@ -301,16 +301,14 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
-        Card(
-          clipBehavior: .hardEdge,
-          elevation: 0,
-          child: UiImage(
-            url: data?.thumb.url ?? '',
-            height: 170,
-            width: 115,
-            cacheWidth: 115,
-            filterQuality: .medium,
-          ),
+        UiImage(
+          borderRadius: BorderRadius.circular(12.0),
+          shape: .rectangle,
+          url: data?.thumb.url ?? '',
+          height: 170,
+          width: 115,
+          cacheWidth: 115,
+          filterQuality: .medium,
         ),
         Expanded(
           child: Column(

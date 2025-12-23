@@ -428,33 +428,6 @@ Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
       'likesCount': instance.likesCount,
     };
 
-SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) => SearchComics(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  total: (json['total'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
-  page: (json['page'] as num).toInt(),
-  pages: (json['pages'] as num).toInt(),
-);
-
-Map<String, dynamic> _$SearchComicsToJson(SearchComics instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-    };
-
-SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
-    SearchResponse(
-      comics: SearchComics.fromJson(json['comics'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
-    <String, dynamic>{'comics': instance.comics};
-
 ChapterImage _$ChapterImageFromJson(Map<String, dynamic> json) => ChapterImage(
   uid: json['_id'] as String,
   id: json['id'] as String?,
@@ -821,4 +794,32 @@ _ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ComicsResponseToJson(_ComicsResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};
+
+_SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) =>
+    _SearchComics(
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SearchComicsToJson(_SearchComics instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+_SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
+    _SearchResponse(
+      comics: SearchComics.fromJson(json['comics'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SearchResponseToJson(_SearchResponse instance) =>
     <String, dynamic>{'comics': instance.comics};

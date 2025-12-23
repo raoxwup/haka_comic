@@ -847,42 +847,27 @@ class SearchComic extends ComicBase {
   Map<String, dynamic> toJson() => _$SearchComicToJson(this);
 }
 
-@JsonSerializable()
-class SearchComics {
-  final List<SearchComic> docs;
-
-  final int total;
-
-  final int limit;
-
-  final int page;
-
-  final int pages;
-
-  SearchComics({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
+@freezed
+abstract class SearchComics with _$SearchComics {
+  const factory SearchComics({
+    required List<SearchComic> docs,
+    required int total,
+    required int limit,
+    required int page,
+    required int pages,
+  }) = _SearchComics;
 
   factory SearchComics.fromJson(Map<String, dynamic> json) =>
       _$SearchComicsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SearchComicsToJson(this);
 }
 
-@JsonSerializable()
-class SearchResponse {
-  final SearchComics comics;
-
-  SearchResponse({required this.comics});
+@freezed
+abstract class SearchResponse with _$SearchResponse {
+  const factory SearchResponse({required SearchComics comics}) =
+      _SearchResponse;
 
   factory SearchResponse.fromJson(Map<String, dynamic> json) =>
       _$SearchResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SearchResponseToJson(this);
 }
 
 class UserFavoritePayload {

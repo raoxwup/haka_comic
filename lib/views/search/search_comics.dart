@@ -46,7 +46,9 @@ class _SearchComicsState extends State<SearchComics>
         ? null
         : (prev, current) {
             if (prev == null) return current;
-            return current..comics.docs.addAll(prev.comics.docs);
+            return current.copyWith.comics(
+              docs: [...prev.comics.docs, ...current.comics.docs],
+            );
           },
   );
 

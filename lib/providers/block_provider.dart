@@ -18,6 +18,7 @@ class BlockProvider extends ChangeNotifier {
   Future<void> _sync() async {
     blockedTags = await tagHelper.query();
     blockedWords = await wordHelper.query();
+    notifyListeners();
   }
 
   bool containsTag(String tag) => blockedTags.contains(tag);
@@ -26,25 +27,25 @@ class BlockProvider extends ChangeNotifier {
 
   Future<void> insertTag(String tag) async {
     await tagHelper.insert(tag);
-    blockedTags.add(tag);
+    blockedTags = [...blockedTags, tag];
     notifyListeners();
   }
 
   Future<void> deleteTag(String tag) async {
     await tagHelper.delete(tag);
-    blockedTags.remove(tag);
+    blockedTags = [...blockedTags]..remove(tag);
     notifyListeners();
   }
 
   Future<void> insertWord(String word) async {
     await wordHelper.insert(word);
-    blockedWords.add(word);
+    blockedWords = [...blockedWords, word];
     notifyListeners();
   }
 
   Future<void> deleteWord(String word) async {
     await wordHelper.delete(word);
-    blockedWords.remove(word);
+    blockedWords = [...blockedWords]..remove(word);
     notifyListeners();
   }
 

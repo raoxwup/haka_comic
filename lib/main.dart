@@ -38,7 +38,10 @@ void main(List<String> args) {
                   ChangeNotifierProvider(create: (_) => ThemeColorProvider()),
                   ChangeNotifierProvider(create: (_) => SearchProvider()),
                   ChangeNotifierProvider(create: (_) => UserProvider()),
-                  ChangeNotifierProvider(create: (_) => BlockProvider()),
+                  ChangeNotifierProvider(
+                    create: (_) => BlockProvider(),
+                    lazy: false,
+                  ),
                 ],
                 child: const App(),
               ),
