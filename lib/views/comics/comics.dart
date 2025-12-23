@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
-import 'package:haka_comic/mixin/pagination_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
@@ -34,11 +34,9 @@ class Comics extends StatefulWidget {
   State<Comics> createState() => _ComicsState();
 }
 
-class _ComicsState extends State<Comics>
-    with RequestMixin, PaginationHandlerMixin, BlockedWordsMixin {
+class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
   ComicSortType sortType = ComicSortType.dd;
   int page = 1;
-  List<Doc> _comics = [];
 
   late final handler = fetchComics.useRequest(
     defaultParams: ComicsPayload(
@@ -68,9 +66,6 @@ class _ComicsState extends State<Comics>
 
   @override
   List<RequestHandler> registerHandler() => [handler];
-
-  @override
-  List<ComicBase> get comics => _comics;
 
   @override
   Future<void> loadMore() async {
@@ -121,7 +116,7 @@ class _ComicsState extends State<Comics>
           body: switch (handler.state) {
             RequestState(:final data) when data != null => CommonTMIList(
               controller: pagination ? null : scrollController,
-              comics: data.comics.docs,
+              comics: context.filtered(data.comics.docs),
               pageSelectorBuilder: pagination
                   ? (context) {
                       return PageSelector(
@@ -154,8 +149,6 @@ class _ComicsState extends State<Comics>
     setState(() {
       sortType = type;
       page = 1;
-      _comics = [];
-      filterComics();
     });
     handler.run(
       ComicsPayload(

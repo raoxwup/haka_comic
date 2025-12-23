@@ -49,6 +49,8 @@ abstract class RequestHandler<T, P> {
     _setState((s) => Error(error));
   }
 
+  void mutate(T data) => _setState((s) => Success(data));
+
   void apply([P? params]);
 
   void refresh();

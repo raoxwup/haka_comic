@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
-import 'package:path/path.dart' as p;
 
 final migrations = SqliteMigrations()
   ..add(
@@ -64,28 +61,5 @@ class WordBlockHelper with ChangeNotifier {
   Future<void> clear() async {
     await _db.execute('DELETE FROM word_block');
     notifyListeners();
-  }
-
-  Future<File> backup() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = p.join(tempDir.path, 'word_block.db');
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await _db.execute('VACUUM INTO ?', [path]);
-    return File(path);
-  }
-
-  Future<void> restore(File file) async {
-    await _db.close();
-    final files = [File(dbPath), File('$dbPath-wal'), File('$dbPath-shm')];
-    for (var f in files) {
-      if (await f.exists()) {
-        await f.delete();
-      }
-    }
-    await file.copy(dbPath);
-    await initialize();
   }
 }

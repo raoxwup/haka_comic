@@ -125,7 +125,6 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
 
   Future<void> delete(String id) async {
     await db.execute('DELETE FROM history WHERE cid = ?', [id]);
-    notifyListeners();
   }
 
   Future<void> deleteAll() async {

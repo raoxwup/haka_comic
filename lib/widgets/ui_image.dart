@@ -60,7 +60,7 @@ class UiImage extends StatelessWidget {
       loadStateChanged: (state) {
         if (state.extendedImageLoadState == LoadState.failed) {
           return Container(
-            color: context.colorScheme.secondaryContainer,
+            color: context.colorScheme.surfaceContainerHigh,
             child: Center(
               child: IconButton(
                 onPressed: state.reLoadImage,

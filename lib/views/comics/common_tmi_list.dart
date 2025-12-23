@@ -20,7 +20,7 @@ class CommonTMIList extends StatelessWidget {
     this.footerBuilder,
   });
 
-  final List<Doc> comics;
+  final List<ComicBase> comics;
 
   final bool isSelected;
 

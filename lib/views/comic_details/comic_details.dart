@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/database/tag_block_helper.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart'
@@ -25,6 +24,7 @@ import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:haka_comic/widgets/ui_image.dart';
+import 'package:provider/provider.dart';
 
 class ComicDetails extends StatefulWidget {
   const ComicDetails({super.key, required this.id});
@@ -301,11 +301,16 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
-        UiImage(
-          url: data?.thumb.url ?? '',
-          height: 170,
-          width: 115,
-          cacheWidth: 115,
+        Card(
+          clipBehavior: .hardEdge,
+          elevation: 0,
+          child: UiImage(
+            url: data?.thumb.url ?? '',
+            height: 170,
+            width: 115,
+            cacheWidth: 115,
+            filterQuality: .medium,
+          ),
         ),
         Expanded(
           child: Column(
@@ -450,29 +455,24 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   }
 
   Future<void> _onTagLongPress(String tag) async {
-    final helper = TagBlockHelper();
-    final contains = await helper.contains(tag);
+    final provider = context.read<BlockProvider>();
+    final contains = provider.containsTag(tag);
     if (mounted) {
       showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: Text(contains ? '取消屏蔽' : '屏蔽'),
-            content: Text(
-              contains ? '「$tag」已被屏蔽，确定要取消对它的屏蔽吗？' : '确定要屏蔽「$tag」吗？',
-            ),
+            content: Text(contains ? '确定要取消对「$tag」的屏蔽吗？' : '确定要屏蔽「$tag」吗？'),
             actions: [
               TextButton(
                 onPressed: () => context.pop(),
                 child: const Text('取消'),
               ),
               TextButton(
-                onPressed: () async {
+                onPressed: () {
                   context.pop();
-                  contains
-                      ? await helper.delete(tag)
-                      : await helper.insert(tag);
-                  BlockedStream.notify();
+                  contains ? provider.deleteTag(tag) : provider.insertTag(tag);
                   Toast.show(message: contains ? '已取消屏蔽「$tag」' : '已屏蔽「$tag」');
                 },
                 child: const Text('确定'),

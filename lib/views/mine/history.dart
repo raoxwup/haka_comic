@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/database/history_helper.dart';
+import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
+
+class ComicsWithTotal<T> {
+  final List<T> comics;
+  final int total;
+  final int page;
+
+  const ComicsWithTotal({
+    required this.comics,
+    required this.total,
+    required this.page,
+  });
+}
+
+Future<ComicsWithTotal<HistoryDoc>> getComicsWithTotal(int page) async {
+  final helper = HistoryHelper();
+  final total = await helper.count();
+  final comics = await helper.query(page);
+  return ComicsWithTotal(comics: comics, total: total, page: page);
+}
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -15,82 +37,58 @@ class History extends StatefulWidget {
   State<History> createState() => _HistoryState();
 }
 
-class _HistoryState extends State<History> with BlockedWordsMixin {
-  final HistoryHelper _helper = HistoryHelper();
-  final ScrollController _scrollController = ScrollController();
-
-  List<HistoryDoc> _comics = [];
-  int _comicsCount = 0;
-  int _page = 1;
-
-  bool _isLoading = false;
-
-  bool get hasMore => _comics.length < _comicsCount;
+class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
+  final _helper = HistoryHelper();
 
   @override
-  List<ComicBase> get comics => _comics;
+  bool get pagination => false;
+
+  late final _handler = getComicsWithTotal.useRequest(
+    defaultParams: 1,
+    onSuccess: (data, _) {
+      Log.info('Get history success', data.toString());
+    },
+    onError: (e, _) {
+      Log.error('Get history error', e);
+    },
+    reducer: (prev, current) {
+      if (prev == null) return current;
+      return ComicsWithTotal(
+        comics: [...prev.comics, ...current.comics],
+        total: current.total,
+        page: current.page,
+      );
+    },
+  );
+
+  @override
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   void initState() {
     super.initState();
-
-    _getComics(_page);
-    _getComicsCount();
     _helper.addListener(_update);
-
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _helper.removeListener(_update);
-
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
-
     super.dispose();
   }
 
-  Future<void> _update() async {
-    _scrollController.jumpTo(0.0);
-    final comics = await _helper.query(1);
-    setState(() {
-      _comics = comics;
-      _page = 1;
-      filterComics();
-    });
+  void _update() {
+    scrollController.jumpTo(0.0);
+    _handler.mutate(const ComicsWithTotal(comics: [], total: 0, page: 1));
+    _handler.run(1);
   }
 
-  Future<void> _getComics(int page) async {
-    final comics = await _helper.query(page);
-    setState(() {
-      _comics.addAll(comics);
-      filterComics();
-    });
-  }
-
-  Future<void> _getComicsCount() async {
-    final count = await _helper.count();
-    setState(() {
-      _comicsCount = count;
-    });
-  }
-
-  void _onScroll() {
-    final position = _scrollController.position;
-    if (position.maxScrollExtent <= 0) return;
-
-    const threshold = 200.0;
-    final distanceToBottom = position.maxScrollExtent - position.pixels;
-
-    if (distanceToBottom < threshold) {
-      if (hasMore && !_isLoading) {
-        _isLoading = true;
-        _page = _page + 1;
-        _getComics(_page).whenComplete(() => _isLoading = false);
-      }
-    }
+  @override
+  Future<void> loadMore() async {
+    final total = _handler.state.data?.total ?? 0;
+    final length = _handler.state.data?.comics.length ?? 0;
+    if (length >= total) return;
+    final page = _handler.state.data?.page ?? 1;
+    await _handler.run(page + 1);
   }
 
   @override
@@ -115,7 +113,6 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
                       TextButton(
                         onPressed: () {
                           _helper.deleteAll();
-                          _page = 1;
                           context.pop();
                         },
                         child: const Text('确定'),
@@ -130,14 +127,21 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
           ),
         ],
       ),
-      body: CommonTMIList(
-        controller: _scrollController,
-        comics: filteredComics.cast<Doc>(),
-        onTapDown: (details) => _details = details,
-        onLongPress: (item) {
-          _showContextMenu(context, _details.globalPosition, item);
-        },
-      ),
+      body: switch (_handler.state) {
+        RequestState(:final data) when data != null => CommonTMIList(
+          controller: scrollController,
+          comics: data.comics,
+          onTapDown: (details) => _details = details,
+          onLongPress: (item) {
+            _showContextMenu(context, _details.globalPosition, item);
+          },
+        ),
+        Error(:final error) => ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: _update,
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 
@@ -186,14 +190,16 @@ class _HistoryState extends State<History> with BlockedWordsMixin {
         break;
       case 'delete':
         _helper.delete(item.uid);
-        setState(() {
-          _comics.removeWhere((comic) => comic.uid == item.uid);
-          _comicsCount--;
-          filterComics();
-          if (filteredComics.isEmpty) {
-            _page = 1; // 重置页码
-          }
-        });
+        final comics =
+            _handler.state.data?.comics
+                .where((c) => c.uid != item.uid)
+                .toList() ??
+            [];
+        final total = _handler.state.data?.total ?? 0;
+        final page = comics.isEmpty ? 1 : _handler.state.data?.page ?? 1;
+        _handler.mutate(
+          ComicsWithTotal(comics: comics, total: total - 1, page: page),
+        );
         break;
     }
   }
