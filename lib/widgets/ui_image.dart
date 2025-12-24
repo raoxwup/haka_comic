@@ -57,6 +57,7 @@ class UiImage extends StatelessWidget {
       clipBehavior: clipBehavior,
       timeRetry: const Duration(microseconds: 300),
       filterQuality: filterQuality,
+      clearMemoryCacheWhenDispose: true,
       loadStateChanged: (state) {
         if (state.extendedImageLoadState == LoadState.failed) {
           return Container(

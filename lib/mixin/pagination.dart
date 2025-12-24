@@ -18,7 +18,9 @@ mixin PaginationMixin<T extends StatefulWidget> on State<T> {
     if (distanceToBottom <= threshold) {
       if (_loading) return;
       _loading = true;
-      loadMore().whenComplete(() => _loading = false);
+      loadMore().whenComplete(() {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _loading = false);
+      });
     }
   }
 
