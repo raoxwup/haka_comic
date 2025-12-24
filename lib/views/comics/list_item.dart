@@ -61,10 +61,11 @@ class ListItem extends StatelessWidget {
                 children: [
                   AspectRatio(
                     aspectRatio: 90 / 130,
-                    child: Card(
-                      clipBehavior: .hardEdge,
-                      elevation: 0,
-                      child: UiImage(url: doc.thumb.url, cacheWidth: 180),
+                    child: UiImage(
+                      url: doc.thumb.url,
+                      cacheWidth: 180,
+                      shape: .rectangle,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   Expanded(

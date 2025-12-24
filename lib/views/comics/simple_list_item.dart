@@ -59,10 +59,11 @@ class SimpleListItem extends StatelessWidget {
                   children: [
                     AspectRatio(
                       aspectRatio: 1 / 1.4,
-                      child: Card(
-                        elevation: 0,
-                        clipBehavior: .hardEdge,
-                        child: UiImage(url: doc.thumb.url, cacheWidth: 140),
+                      child: UiImage(
+                        url: doc.thumb.url,
+                        cacheWidth: 140,
+                        shape: .rectangle,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     Text(

@@ -170,6 +170,7 @@ class _SearchComicsState extends State<SearchComics>
       _sortType = type;
       _page = 1;
     });
+    _handler.mutate(SearchResponse.empty);
     _handler.run(
       SearchPayload(keyword: _searchController.text, page: 1, sort: type),
     );

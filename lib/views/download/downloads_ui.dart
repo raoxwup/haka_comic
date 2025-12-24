@@ -586,10 +586,11 @@ class _DownloadTaskItem extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 90 / 130,
-                child: Card(
-                  elevation: 0,
-                  clipBehavior: .hardEdge,
-                  child: UiImage(url: task.comic.cover, cacheWidth: 180),
+                child: UiImage(
+                  url: task.comic.cover,
+                  cacheWidth: 180,
+                  shape: .rectangle,
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               const SizedBox(width: 12),

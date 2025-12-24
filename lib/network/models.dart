@@ -258,6 +258,10 @@ abstract class ComicsResponse with _$ComicsResponse {
 
   factory ComicsResponse.fromJson(Map<String, dynamic> json) =>
       _$ComicsResponseFromJson(json);
+
+  static ComicsResponse get empty => const ComicsResponse(
+    comics: Comics(docs: [], limit: 0, page: 0, pages: 0, total: 0),
+  );
 }
 
 @JsonSerializable()
@@ -868,6 +872,10 @@ abstract class SearchResponse with _$SearchResponse {
 
   factory SearchResponse.fromJson(Map<String, dynamic> json) =>
       _$SearchResponseFromJson(json);
+
+  static SearchResponse get empty => const SearchResponse(
+    comics: SearchComics(docs: [], total: 0, limit: 0, page: 0, pages: 0),
+  );
 }
 
 class UserFavoritePayload {

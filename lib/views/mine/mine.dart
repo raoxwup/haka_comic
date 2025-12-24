@@ -388,10 +388,11 @@ class _ComicItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
         width: 100,
-        child: Card(
-          clipBehavior: .hardEdge,
-          elevation: 0,
-          child: UiImage(url: url, cacheWidth: 150),
+        child: UiImage(
+          url: url,
+          cacheWidth: 150,
+          shape: .rectangle,
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );

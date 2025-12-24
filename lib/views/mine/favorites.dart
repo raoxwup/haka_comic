@@ -64,6 +64,7 @@ class _FavoritesState extends State<Favorites>
       _page = 1;
       _sortType = sortType;
     });
+    _handler.mutate(ComicsResponse.empty);
     _handler.run(UserFavoritePayload(page: 1, sort: sortType));
   }
 

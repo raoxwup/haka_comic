@@ -21,6 +21,12 @@ class ComicsWithTotal<T> {
     required this.total,
     required this.page,
   });
+
+  static ComicsWithTotal<HistoryDoc> empty = const ComicsWithTotal(
+    comics: [],
+    total: 0,
+    page: 0,
+  );
 }
 
 Future<ComicsWithTotal<HistoryDoc>> getComicsWithTotal(int page) async {
@@ -64,21 +70,34 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
   @override
   List<RequestHandler> registerHandler() => [_handler];
 
+  void _listener() {
+    final event = _helper.lastEvent;
+    if (event == null) return;
+    switch (event) {
+      case DeleteAllEvent():
+        _update();
+      case InsertEvent(comic: final _):
+        _update();
+      default:
+        Log.info('Unknown event', event.toString());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _helper.addListener(_update);
+    _helper.addListener(_listener);
   }
 
   @override
   void dispose() {
-    _helper.removeListener(_update);
+    _helper.removeListener(_listener);
     super.dispose();
   }
 
   void _update() {
     scrollController.jumpTo(0.0);
-    _handler.mutate(const ComicsWithTotal(comics: [], total: 0, page: 1));
+    _handler.mutate(ComicsWithTotal.empty);
     _handler.run(1);
   }
 

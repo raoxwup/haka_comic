@@ -3,7 +3,6 @@ import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/providers/block_provider.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_pagination_footer.dart';
@@ -93,53 +92,44 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
 
   @override
   Widget build(BuildContext context) {
-    return RouteAwarePageWrapper(
-      builder: (context, completed) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              widget.c ??
-                  widget.t ??
-                  widget.a ??
-                  widget.ct ??
-                  widget.ca ??
-                  '最近更新',
-            ),
-            actions: [
-              IconButton(
-                tooltip: '排序',
-                icon: const Icon(Icons.sort),
-                onPressed: _buildSortTypeSelector,
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '最近更新',
+        ),
+        actions: [
+          IconButton(
+            tooltip: '排序',
+            icon: const Icon(Icons.sort),
+            onPressed: _buildSortTypeSelector,
           ),
-          body: switch (handler.state) {
-            RequestState(:final data) when data != null => CommonTMIList(
-              controller: pagination ? null : scrollController,
-              comics: context.filtered(data.comics.docs),
-              pageSelectorBuilder: pagination
-                  ? (context) {
-                      return PageSelector(
-                        pages: data.comics.pages,
-                        onPageChange: _onPageChange,
-                        currentPage: page,
-                      );
-                    }
-                  : null,
-              footerBuilder: pagination
-                  ? null
-                  : (context) {
-                      final loading = handler.state.loading;
-                      return CommonPaginationFooter(loading: loading);
-                    },
-            ),
-            Error(:final error) => ErrorPage(
-              errorMessage: error.toString(),
-              onRetry: handler.refresh,
-            ),
-            _ => const Center(child: CircularProgressIndicator()),
-          },
-        );
+        ],
+      ),
+      body: switch (handler.state) {
+        RequestState(:final data) when data != null => CommonTMIList(
+          controller: pagination ? null : scrollController,
+          comics: context.filtered(data.comics.docs),
+          pageSelectorBuilder: pagination
+              ? (context) {
+                  return PageSelector(
+                    pages: data.comics.pages,
+                    onPageChange: _onPageChange,
+                    currentPage: page,
+                  );
+                }
+              : null,
+          footerBuilder: pagination
+              ? null
+              : (context) {
+                  final loading = handler.state.loading;
+                  return CommonPaginationFooter(loading: loading);
+                },
+        ),
+        Error(:final error) => ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: handler.refresh,
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
       },
     );
   }
@@ -150,6 +140,7 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
       sortType = type;
       page = 1;
     });
+    handler.mutate(ComicsResponse.empty);
     handler.run(
       ComicsPayload(
         c: widget.c,
