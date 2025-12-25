@@ -14,6 +14,7 @@ import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -443,6 +444,20 @@ class _DownloadsState extends State<Downloads> {
                           _selectedTaskIds.add(task.comic.id);
                         }
                       });
+                    } else {
+                      final chapters = task.chapters
+                          .map((e) => e.toChapter())
+                          .toList();
+                      context.push(
+                        '/reader',
+                        extra: ComicState(
+                          id: task.comic.id,
+                          title: task.comic.title,
+                          chapters: chapters,
+                          pageNo: 0,
+                          chapter: chapters.first,
+                        ),
+                      );
                     }
                   },
                   onItemSelected: _onContextMenuItemPress,

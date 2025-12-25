@@ -48,6 +48,9 @@ class DownloadChapter {
   final int order;
 
   DownloadChapter({required this.id, required this.title, required this.order});
+
+  Chapter toChapter() =>
+      Chapter(id: id, title: title, order: order, uid: id, updated_at: '');
 }
 
 /// 漫画下载任务

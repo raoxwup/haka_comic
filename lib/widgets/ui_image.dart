@@ -153,11 +153,13 @@ class _UiImageState extends State<UiImage> {
   }
 
   Future<void> _acquire() async {
-    _resource = await _imageLoadPool.request();
+    final resource = await _imageLoadPool.request();
     if (!mounted) {
-      _safeRelease();
+      // 确保资源一定能够被释放
+      resource.release();
       return;
     }
+    _resource = resource;
     setState(() => _ready = true);
   }
 
@@ -171,6 +173,7 @@ class _UiImageState extends State<UiImage> {
     if (_released) return;
     _released = true;
     _resource?.release();
+    _resource = null;
   }
 
   @override
