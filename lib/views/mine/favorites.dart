@@ -76,11 +76,6 @@ class _FavoritesState extends State<Favorites>
           appBar: AppBar(
             title: const Text('收藏漫画'),
             actions: [
-              IconButton(
-                tooltip: '刷新',
-                onPressed: () => _onPageChange(1),
-                icon: const Icon(Icons.refresh),
-              ),
               MenuAnchor(
                 menuChildren: <Widget>[
                   ...[
