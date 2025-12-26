@@ -69,50 +69,44 @@ class _ReaderImageState extends State<ReaderImage> {
       handleLoadingProgress: true,
       timeRetry: widget.timeRetry,
       loadStateChanged: (state) {
-        final loadState =
-            state.extendedImageLoadState == LoadState.loading ||
-            state.extendedImageLoadState == LoadState.completed;
-        if (loadState) {
+        final loadState = state.extendedImageLoadState;
+
+        if (loadState == LoadState.loading) {
           final progress = state.loadingProgress;
           final bytes = progress?.cumulativeBytesLoaded ?? 0;
 
           final value = computeProgress(bytes);
 
-          if (state.extendedImageLoadState == LoadState.completed) {
-            final info = state.extendedImageInfo;
-            if (info != null) {
-              if (!_isReported) {
-                widget.onImageSizeChanged(info.image.width, info.image.height);
-                _isReported = true;
-              }
+          return _buildPlaceholder(
+            CircularProgressIndicator(
+              value: value,
+              strokeWidth: 3,
+              constraints: BoxConstraints.tight(const Size(28, 28)),
+              backgroundColor: Colors.grey.shade300,
+              color: context.colorScheme.primary,
+              strokeCap: StrokeCap.round,
+            ),
+          );
+        }
+
+        if (loadState == LoadState.completed) {
+          final info = state.extendedImageInfo;
+          if (info != null) {
+            if (!_isReported) {
+              widget.onImageSizeChanged(info.image.width, info.image.height);
+              _isReported = true;
             }
           }
 
-          return Stack(
-            fit: StackFit.passthrough,
-            children: [
-              // 图片
-              AnimatedOpacity(
-                opacity: state.extendedImageLoadState == LoadState.completed
-                    ? 1
-                    : 0,
-                duration: const Duration(milliseconds: 200),
-                child: state.completedWidget,
-              ),
-
-              // loading
-              if (state.extendedImageLoadState != LoadState.completed)
-                _buildPlaceholder(
-                  CircularProgressIndicator(
-                    value: value,
-                    strokeWidth: 3,
-                    constraints: BoxConstraints.tight(const Size(28, 28)),
-                    backgroundColor: Colors.grey.shade300,
-                    color: context.colorScheme.primary,
-                    strokeCap: StrokeCap.round,
-                  ),
-                ),
-            ],
+          return TweenAnimationBuilder(
+            key: ValueKey(info),
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutQuad,
+            builder: (context, value, child) {
+              return Opacity(opacity: value, child: child);
+            },
+            child: state.completedWidget,
           );
         }
 

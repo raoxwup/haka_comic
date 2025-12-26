@@ -1,5 +1,6 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:pool/pool.dart';
 
@@ -80,7 +81,19 @@ class _UiImage extends StatelessWidget {
         }
 
         if (loadState == LoadState.completed) {
-          return null;
+          return Container(
+            color: context.colorScheme.surfaceContainerHigh,
+            child: TweenAnimationBuilder<double>(
+              key: ValueKey(state.extendedImageInfo),
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOutQuad,
+              builder: (context, value, child) {
+                return Opacity(opacity: value, child: child);
+              },
+              child: state.completedWidget,
+            ),
+          );
         }
 
         if (loadState == LoadState.loading) {
@@ -94,7 +107,7 @@ class _UiImage extends StatelessWidget {
 }
 
 // 同时加载的图片数量
-final _imageLoadPool = Pool(3);
+final _imageLoadPool = Pool(5);
 
 class UiImage extends StatefulWidget {
   const UiImage({
@@ -141,10 +154,10 @@ class UiImage extends StatefulWidget {
   State<UiImage> createState() => _UiImageState();
 }
 
-class _UiImageState extends State<UiImage> {
+class _UiImageState extends State<UiImage> with RouteAware {
   PoolResource? _resource;
   bool _ready = false;
-  bool _released = false;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -152,28 +165,69 @@ class _UiImageState extends State<UiImage> {
     _acquire();
   }
 
-  Future<void> _acquire() async {
-    final resource = await _imageLoadPool.request();
-    if (!mounted) {
-      // 确保资源一定能够被释放
-      resource.release();
-      return;
+  // 订阅路由监听
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
     }
-    _resource = resource;
-    setState(() => _ready = true);
   }
 
   @override
   void dispose() {
-    _safeRelease();
+    routeObserver.unsubscribe(this);
+    _isDisposed = true;
+    _releaseCurrentResource();
     super.dispose();
   }
 
-  void _safeRelease() {
-    if (_released) return;
-    _released = true;
-    _resource?.release();
+  @override
+  void didPushNext() {
+    _releaseCurrentResource();
+  }
+
+  @override
+  void didPopNext() {
+    if (_resource == null) {
+      // setState(() => _ready = false);
+      _acquire();
+    }
+  }
+
+  Future<void> _acquire() async {
+    if (_resource != null) return;
+
+    final resource = await _imageLoadPool.request();
+
+    if (!mounted || _isDisposed) {
+      resource.release();
+      return;
+    }
+
+    // 双重保险：检查当前页面是否可见
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) {
+      resource.release();
+      return;
+    }
+
+    _resource = resource;
+    if (mounted) {
+      setState(() => _ready = true);
+    }
+  }
+
+  void _releaseCurrentResource() {
+    final target = _resource;
     _resource = null;
+    target?.release();
+  }
+
+  void _onImageLoadFinally() {
+    if (_isDisposed) return;
+    _releaseCurrentResource();
   }
 
   @override
@@ -204,7 +258,7 @@ class _UiImageState extends State<UiImage> {
       borderRadius: widget.borderRadius,
       clipBehavior: widget.clipBehavior,
       filterQuality: widget.filterQuality,
-      onFinally: _safeRelease,
+      onFinally: _onImageLoadFinally,
     );
   }
 }

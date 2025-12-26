@@ -3,6 +3,7 @@ import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart'
     show Comment, PersonalComment, User, Chapter;
+import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comic_details/downloader.dart';
@@ -39,6 +40,7 @@ import 'package:provider/provider.dart';
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
+  observers: [routeObserver],
   navigatorKey: navigatorKey,
   redirect: (context, state) {
     final isLoggedIn = AppConf.instance.isLogged;
