@@ -23,7 +23,7 @@ extension BuildContextReader on BuildContext {
 }
 
 typedef FetchImageHandler =
-    RequestHandlerWithParams<List<ChapterImage>, FetchChapterImagesPayload>;
+    RequestHandlerWithParams<List<ImageBase>, FetchChapterImagesPayload>;
 
 class ReaderProvider extends RequestProvider {
   ReaderProvider({required ComicState state}) {
@@ -92,10 +92,10 @@ class ReaderProvider extends RequestProvider {
   final pageController = PageController();
 
   /// 章节图片
-  List<ChapterImage> get images => handler.state.data ?? [];
+  List<ImageBase> get images => handler.state.data ?? [];
 
   ///多页模式下章节图片
-  List<List<ChapterImage>> get multiPageImages => splitList(images, 2);
+  List<List<ImageBase>> get multiPageImages => splitList(images, 2);
 
   /// 章节总页数
   int get pageCount =>
@@ -308,13 +308,13 @@ class ReaderProvider extends RequestProvider {
     }
   }
 
-  late final ImagePreloadController<ChapterImage> preloadController;
+  late final ImagePreloadController<ImageBase> preloadController;
 
   /// 初始化图片预加载控制器
   void initPreloadController(BuildContext context) {
-    preloadController = ImagePreloadController<ChapterImage>(
+    preloadController = ImagePreloadController<ImageBase>(
       items: images,
-      urlResolver: (image) => image.media.url,
+      urlResolver: (image) => image.url,
       context: context,
     );
   }

@@ -134,7 +134,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 4.0,
                     imageProvider: ExtendedNetworkImageProvider(
-                      item.media.url,
+                      item.url,
                       timeRetry: const Duration(milliseconds: 300),
                       cache: true,
                     ),
@@ -143,7 +143,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                       return Center(
                         child: IconButton(
                           onPressed: () {
-                            clearMemoryImageCache(item.media.url);
+                            clearMemoryImageCache(item.url);
                             retry();
                           },
                           icon: const Icon(Icons.refresh),
@@ -192,7 +192,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     );
   }
 
-  Widget buildPageImages(List<ChapterImage> images, bool isReverse) {
+  Widget buildPageImages(List<ImageBase> images, bool isReverse) {
     final correctImages = isReverse ? images.reversed.toList() : images;
     final children = correctImages.asMap().entries.map((entry) {
       final index = entry.key;
@@ -204,7 +204,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
               ? Alignment.center
               : (index == 0 ? Alignment.centerRight : Alignment.centerLeft),
           child: ReaderImage(
-            url: item.media.url,
+            url: item.url,
             enableCache: false,
             onImageSizeChanged: (width, height) {
               final size = ImageSize(

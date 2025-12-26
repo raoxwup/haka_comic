@@ -921,11 +921,19 @@ class FetchChapterImagesPayload {
   const FetchChapterImagesPayload({required this.id, required this.order});
 }
 
+abstract class ImageBase {
+  String get url;
+  String? get id;
+  String get uid;
+}
+
 @JsonSerializable()
-class ChapterImage {
+class ChapterImage extends ImageBase {
+  @override
   @JsonKey(name: '_id')
   final String uid;
 
+  @override
   final String? id;
 
   final ImageDetail media;
@@ -936,6 +944,9 @@ class ChapterImage {
       _$ChapterImageFromJson(json);
 
   Map<String, dynamic> toJson() => _$ChapterImageToJson(this);
+
+  @override
+  String get url => media.url;
 }
 
 @JsonSerializable()
