@@ -927,6 +927,19 @@ abstract class ImageBase {
   String get uid;
 }
 
+class LocalImage extends ImageBase {
+  @override
+  final String uid;
+
+  @override
+  final String? id;
+
+  @override
+  final String url;
+
+  LocalImage({required this.uid, required this.id, required this.url});
+}
+
 @JsonSerializable()
 class ChapterImage extends ImageBase {
   @override
