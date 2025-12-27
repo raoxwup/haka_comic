@@ -8,6 +8,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/download/fetch_local_images.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/utils/image_preload_controller.dart';
@@ -32,8 +33,12 @@ class ReaderProvider extends RequestProvider {
     chapters = state.chapters;
     chapter = state.chapter;
     pageNo = state.pageNo;
+    type = state.type;
 
-    handler = fetchChapterImages.useRequest(
+    final Future<List<ImageBase>> Function(FetchChapterImagesPayload) request =
+        type == ReaderType.network ? fetchChapterImages : fetchLocalImages;
+
+    handler = request.useRequest(
       defaultParams: FetchChapterImagesPayload(
         id: state.id,
         order: chapter.order,
@@ -50,6 +55,9 @@ class ReaderProvider extends RequestProvider {
 
     register(handler);
   }
+
+  /// 读取的是本地图片还是网络图片
+  late final ReaderType type;
 
   /// 获取图片的handler
   late final FetchImageHandler handler;
@@ -308,7 +316,7 @@ class ReaderProvider extends RequestProvider {
     }
   }
 
-  late final ImagePreloadController<ImageBase> preloadController;
+  late ImagePreloadController<ImageBase> preloadController;
 
   /// 初始化图片预加载控制器
   void initPreloadController(BuildContext context) {
@@ -316,6 +324,7 @@ class ReaderProvider extends RequestProvider {
       items: images,
       urlResolver: (image) => image.url,
       context: context,
+      type: type,
     );
   }
 

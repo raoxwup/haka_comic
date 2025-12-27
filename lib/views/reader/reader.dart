@@ -140,7 +140,6 @@ class _ReaderState extends State<Reader> {
                     title: Text(chapter.title),
                     onTap: () {
                       context.pop();
-                      context.reader.openOrCloseToolbar();
                       context.reader.go(chapter);
                     },
                   );

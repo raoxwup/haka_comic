@@ -456,6 +456,7 @@ class _DownloadsState extends State<Downloads> {
                           chapters: chapters,
                           pageNo: 0,
                           chapter: chapters.first,
+                          type: ReaderType.local,
                         ),
                       );
                     }

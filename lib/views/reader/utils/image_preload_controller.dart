@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/widgets.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 
 /// 图片预加载控制器
 class ImagePreloadController<T> {
@@ -8,6 +10,7 @@ class ImagePreloadController<T> {
     required this.context,
     required this.items,
     required this.urlResolver,
+    required this.type,
     this.maxPreloadCount = 4,
     this.keepWindow = 10,
     this.debounceDuration = const Duration(milliseconds: 50),
@@ -16,6 +19,7 @@ class ImagePreloadController<T> {
   final BuildContext context;
   List<T> items;
   final String Function(T item) urlResolver;
+  final ReaderType type;
 
   /// 单次最大预加载数量
   final int maxPreloadCount;
@@ -88,7 +92,10 @@ class ImagePreloadController<T> {
         count++;
 
         final url = urlResolver(items[i]);
-        precacheImage(ExtendedNetworkImageProvider(url, cache: true), context);
+        final ImageProvider provider = type == ReaderType.network
+            ? ExtendedNetworkImageProvider(url, cache: true)
+            : ExtendedFileImageProvider(File(url));
+        precacheImage(provider, context);
       }
     });
   }

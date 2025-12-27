@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
@@ -133,11 +136,13 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                   return PhotoViewGalleryPageOptions(
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 4.0,
-                    imageProvider: ExtendedNetworkImageProvider(
-                      item.url,
-                      timeRetry: const Duration(milliseconds: 300),
-                      cache: true,
-                    ),
+                    imageProvider: context.reader.type == ReaderType.network
+                        ? ExtendedNetworkImageProvider(
+                            item.url,
+                            timeRetry: const Duration(milliseconds: 300),
+                            cache: true,
+                          )
+                        : ExtendedFileImageProvider(File(item.url)),
                     filterQuality: FilterQuality.medium,
                     errorBuilder: (context, error, stackTrace, retry) {
                       return Center(

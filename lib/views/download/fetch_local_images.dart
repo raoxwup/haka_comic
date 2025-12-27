@@ -25,10 +25,10 @@ Future<List<ImageBase>> fetchLocalImages(
   final chapterPath = p.join(comicPath, chapter.title.legalized);
   final chapterDir = Directory(chapterPath);
   if (!await chapterDir.exists()) {
-    throw Exception('漫画不存在，检查是否已被删除');
+    throw Exception('章节不存在，检查是否已被删除');
   }
 
-  const imageExts = {'.jpg', '.jpeg', '.png', '.webp', '.gif'};
+  const imageExts = {'.jpg', '.jpeg', '.png', '.webp'};
 
   final files = await chapterDir
       .list()
@@ -42,6 +42,8 @@ Future<List<ImageBase>> fetchLocalImages(
 
   // 可选：按文件名排序（很常见）
   files.sort((a, b) => a.path.compareTo(b.path));
+
+  await Future.delayed(const Duration(milliseconds: 150));
 
   return files
       .map(

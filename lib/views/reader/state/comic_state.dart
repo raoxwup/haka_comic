@@ -1,5 +1,7 @@
 import 'package:haka_comic/network/models.dart';
 
+enum ReaderType { network, local }
+
 class ComicState {
   /// 漫画id
   final String id;
@@ -16,11 +18,14 @@ class ComicState {
   /// 当前页码
   final int pageNo;
 
+  final ReaderType type;
+
   const ComicState({
     required this.id,
     required this.title,
     required this.chapters,
     required this.chapter,
     required this.pageNo,
+    this.type = ReaderType.network,
   });
 }
