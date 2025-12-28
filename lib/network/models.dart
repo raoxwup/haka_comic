@@ -1342,36 +1342,38 @@ class RegisterPayload {
   };
 }
 
-@JsonSerializable()
-class NotificationsResponse {
-  final NotificationsData notifications;
-
-  NotificationsResponse({required this.notifications});
+@freezed
+abstract class NotificationsResponse with _$NotificationsResponse {
+  const factory NotificationsResponse({
+    required NotificationsData notifications,
+  }) = _NotificationsResponse;
 
   factory NotificationsResponse.fromJson(Map<String, dynamic> json) =>
       _$NotificationsResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$NotificationsResponseToJson(this);
+
+  static NotificationsResponse get empty => const NotificationsResponse(
+    notifications: NotificationsData(
+      docs: [],
+      limit: 0,
+      page: 0,
+      pages: 0,
+      total: 0,
+    ),
+  );
 }
 
-@JsonSerializable()
-class NotificationsData {
-  final List<NotificationDoc> docs;
-  final int limit;
-  final int page;
-  final int pages;
-  final int total;
-
-  NotificationsData({
-    required this.docs,
-    required this.limit,
-    required this.page,
-    required this.pages,
-    required this.total,
-  });
+@freezed
+abstract class NotificationsData with _$NotificationsData {
+  const factory NotificationsData({
+    required List<NotificationDoc> docs,
+    required int limit,
+    required int page,
+    required int pages,
+    required int total,
+  }) = _NotificationsData;
 
   factory NotificationsData.fromJson(Map<String, dynamic> json) =>
       _$NotificationsDataFromJson(json);
-  Map<String, dynamic> toJson() => _$NotificationsDataToJson(this);
 }
 
 @JsonSerializable()

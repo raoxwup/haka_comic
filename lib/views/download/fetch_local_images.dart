@@ -40,6 +40,10 @@ Future<List<ImageBase>> fetchLocalImages(
       .cast<File>()
       .toList();
 
+  if (files.isEmpty) {
+    throw Exception('章节下不存在漫画图片，检查是否已被删除');
+  }
+
   // 可选：按文件名排序（很常见）
   files.sort((a, b) => a.path.compareTo(b.path));
 

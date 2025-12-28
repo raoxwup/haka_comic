@@ -687,38 +687,6 @@ Map<String, dynamic> _$HotSearchWordsResponseToJson(
   HotSearchWordsResponse instance,
 ) => <String, dynamic>{'keywords': instance.keywords};
 
-NotificationsResponse _$NotificationsResponseFromJson(
-  Map<String, dynamic> json,
-) => NotificationsResponse(
-  notifications: NotificationsData.fromJson(
-    json['notifications'] as Map<String, dynamic>,
-  ),
-);
-
-Map<String, dynamic> _$NotificationsResponseToJson(
-  NotificationsResponse instance,
-) => <String, dynamic>{'notifications': instance.notifications};
-
-NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
-    NotificationsData(
-      docs: (json['docs'] as List<dynamic>)
-          .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      limit: (json['limit'] as num).toInt(),
-      page: (json['page'] as num).toInt(),
-      pages: (json['pages'] as num).toInt(),
-      total: (json['total'] as num).toInt(),
-    );
-
-Map<String, dynamic> _$NotificationsDataToJson(NotificationsData instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-      'total': instance.total,
-    };
-
 NotificationDoc _$NotificationDocFromJson(Map<String, dynamic> json) =>
     NotificationDoc(
       content: json['content'] as String,
@@ -823,3 +791,35 @@ _SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SearchResponseToJson(_SearchResponse instance) =>
     <String, dynamic>{'comics': instance.comics};
+
+_NotificationsResponse _$NotificationsResponseFromJson(
+  Map<String, dynamic> json,
+) => _NotificationsResponse(
+  notifications: NotificationsData.fromJson(
+    json['notifications'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$NotificationsResponseToJson(
+  _NotificationsResponse instance,
+) => <String, dynamic>{'notifications': instance.notifications};
+
+_NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
+    _NotificationsData(
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$NotificationsDataToJson(_NotificationsData instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+      'total': instance.total,
+    };

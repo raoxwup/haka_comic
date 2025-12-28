@@ -12,7 +12,7 @@ import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:haka_comic/widgets/ui_image.dart';
+import 'package:haka_comic/widgets/ui_avatar.dart';
 
 class CommentsPage extends StatefulWidget {
   const CommentsPage({super.key, required this.id});
@@ -183,24 +183,7 @@ class _CommentsPageState extends State<CommentsPage>
                 child: InkWell(
                   onTap: () => showCreator(context, item.user),
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child: item.user.avatar == null
-                      ? Card(
-                          clipBehavior: Clip.hardEdge,
-                          elevation: 0,
-                          shape: const CircleBorder(),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            padding: const EdgeInsets.all(5),
-                            child: Image.asset('assets/images/user.png'),
-                          ),
-                        )
-                      : UiImage(
-                          url: item.user.avatar!.url,
-                          width: 40,
-                          height: 40,
-                          shape: .circle,
-                        ),
+                  child: UiAvatar(source: item.user.avatar, size: 40),
                 ),
               ),
               Expanded(
