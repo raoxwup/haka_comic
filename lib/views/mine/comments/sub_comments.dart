@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comments/comment_input.dart';
+import 'package:haka_comic/views/comments/comment_list_footer.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:haka_comic/widgets/ui_image.dart';
+import 'package:haka_comic/widgets/ui_avatar.dart';
 
 class PersonalSubComment extends StatefulWidget {
   const PersonalSubComment({
@@ -29,90 +30,71 @@ class PersonalSubComment extends StatefulWidget {
 }
 
 class _PersonalSubCommentState extends State<PersonalSubComment>
-    with AutoRegisterHandlerMixin {
+    with RequestMixin, PaginationMixin {
+  int _page = 1;
   late final handler = fetchSubComments.useRequest(
+    defaultParams: SubCommentsPayload(id: widget.comment.uid, page: _page),
     onSuccess: (data, _) {
       Log.info('Fetch comic comments success', data.toString());
-      setState(() {
-        _comments.addAll(data.comments.docs);
-        _hasMore = data.comments.pages > _page;
-      });
     },
     onError: (e, _) {
       Log.error('Fetch comic comments error', e);
     },
+    reducer: (prev, current) {
+      if (prev == null) return current;
+      return current.copyWith.comments(
+        docs: [...prev.comments.docs, ...current.comments.docs],
+      );
+    },
   );
-  final ScrollController _scrollController = ScrollController();
-  final List<SubComment> _comments = [];
-  bool _hasMore = true;
-  int _page = 1;
 
   final double bottomBoxHeight = 40;
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler];
+  List<RequestHandler> registerHandler() => [handler];
 
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _loadMore();
-    }
-  }
-
-  void _loadMore() {
-    if (handler.isLoading || !_hasMore) return;
-    handler.run(SubCommentsPayload(id: widget.comment.uid, page: ++_page));
+  @override
+  Future<void> loadMore() async {
+    final pages = handler.state.data?.comments.pages ?? 1;
+    if (_page >= pages) return;
+    await handler.run(
+      SubCommentsPayload(id: widget.comment.uid, page: ++_page),
+    );
   }
 
   void _refresh() {
-    setState(() {
-      _comments.clear();
-      _hasMore = true;
-      _page = 1;
-    });
+    _page = 1;
+    handler.mutate(SubCommentsResponse.empty);
     handler.run(SubCommentsPayload(id: widget.comment.uid, page: 1));
   }
 
   @override
-  void initState() {
-    super.initState();
-    handler.run(SubCommentsPayload(id: widget.comment.uid, page: _page));
-
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return RouteAwarePageWrapper(
-      shouldRebuildOnCompleted: false,
-      builder: (context, completed) {
-        return Scaffold(
-          appBar: AppBar(title: const Text('子评论')),
-          body: handler.error != null
-              ? _buildError()
-              : Stack(children: [_buildList(_comments), _buildBottom()]),
-        );
-      },
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(title: const Text('子评论')),
+        body: switch (handler.state) {
+          RequestState(:final data) when data != null => Stack(
+            children: [_buildList(data.comments.docs), _buildBottom()],
+          ),
+          Error(:final error) => ErrorPage(
+            errorMessage: error.toString(),
+            onRetry: _refresh,
+          ),
+          _ => const Center(child: CircularProgressIndicator()),
+        },
+      ),
     );
   }
 
   Widget _buildBottom() {
-    final bottom = context.bottom;
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+        padding: const .symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
@@ -123,9 +105,9 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
           onTap: _showCommentInput,
           child: Container(
             height: bottomBoxHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const .symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(99)),
+              borderRadius: .circular(99),
               color: context.colorScheme.surfaceContainerHighest,
             ),
             child: Row(
@@ -141,26 +123,18 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
     );
   }
 
-  Widget _buildError() {
-    return ErrorPage(
-      errorMessage: getTextBeforeNewLine(handler.error.toString()),
-      onRetry: handler.refresh,
-    );
-  }
-
   Widget _buildList(List<SubComment> data) {
-    final bottom = context.bottom;
     return CustomScrollView(
-      controller: _scrollController,
+      controller: scrollController,
       slivers: [
         _buildSliverToBoxAdapter(),
         SliverPadding(
-          padding: EdgeInsets.only(bottom: 8 + 8 + bottom + bottomBoxHeight),
+          padding: EdgeInsets.only(bottom: 8 + 8 + bottomBoxHeight),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               Widget content;
               if (index >= data.length) {
-                content = _buildLoader();
+                content = CommentListFooter(loading: handler.state.loading);
               } else {
                 final item = data[index];
                 final time = getFormattedTime(item.created_at);
@@ -181,26 +155,7 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
                           borderRadius: const BorderRadius.all(
                             Radius.circular(8),
                           ),
-                          child: item.user.avatar == null
-                              ? Card(
-                                  clipBehavior: Clip.hardEdge,
-                                  elevation: 0,
-                                  shape: const CircleBorder(),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    padding: const EdgeInsets.all(5),
-                                    child: Image.asset(
-                                      'assets/images/user.png',
-                                    ),
-                                  ),
-                                )
-                              : UiImage(
-                                  url: item.user.avatar!.url,
-                                  width: 40,
-                                  height: 40,
-                                  shape: .circle,
-                                ),
+                          child: UiAvatar(source: item.user.avatar, size: 40),
                         ),
                       ),
                       Expanded(
@@ -253,20 +208,6 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
     );
   }
 
-  Widget _buildLoader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: _hasMore
-            ? CircularProgressIndicator(
-                constraints: BoxConstraints.tight(const Size(28, 28)),
-                strokeWidth: 3,
-              )
-            : Text('没有更多数据了', style: context.textTheme.bodySmall),
-      ),
-    );
-  }
-
   Widget _buildSliverToBoxAdapter() {
     final comment = widget.comment;
     return SliverToBoxAdapter(
@@ -282,24 +223,7 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
               children: [
                 Align(
                   alignment: Alignment.topCenter,
-                  child: widget.user.avatar == null
-                      ? Card(
-                          clipBehavior: Clip.hardEdge,
-                          elevation: 0,
-                          shape: const CircleBorder(),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            padding: const EdgeInsets.all(5),
-                            child: Image.asset('assets/images/user.png'),
-                          ),
-                        )
-                      : UiImage(
-                          url: widget.user.avatar!.url,
-                          width: 40,
-                          height: 40,
-                          shape: .circle,
-                        ),
+                  child: UiAvatar(size: 40, source: widget.user.avatar),
                 ),
                 Expanded(
                   child: Column(
@@ -340,9 +264,11 @@ class _PersonalSubCommentState extends State<PersonalSubComment>
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(),
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       builder: (context) => CommentInput(
         id: widget.comment.uid,
         handler: sendReply.useRequest(
+          manual: true,
           onSuccess: (data, _) {
             Log.info('Send reply success', 'reply');
             _refresh();

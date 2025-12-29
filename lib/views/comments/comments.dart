@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comments/comment_input.dart';
+import 'package:haka_comic/views/comments/comment_list_footer.dart';
 import 'package:haka_comic/views/comments/thumb_up.dart';
-import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:haka_comic/widgets/ui_avatar.dart';
@@ -24,99 +24,70 @@ class CommentsPage extends StatefulWidget {
 }
 
 class _CommentsPageState extends State<CommentsPage>
-    with AutoRegisterHandlerMixin {
+    with RequestMixin, PaginationMixin {
+  int _page = 1;
+
   late final handler = fetchComicComments.useRequest(
+    defaultParams: CommentsPayload(id: widget.id, page: _page),
     onSuccess: (data, _) {
       Log.info('Fetch comic comments success', data.toString());
-      setState(() {
-        _comments.addAll(data.comments.docs);
-        _hasMore = data.comments.pages > _page;
-      });
     },
     onError: (e, _) {
       Log.error('Fetch comic comments error', e);
     },
+    reducer: (prev, current) {
+      if (prev == null) return current;
+      return current.copyWith.comments(
+        docs: [...prev.comments.docs, ...current.comments.docs],
+      );
+    },
   );
-
-  final ScrollController _scrollController = ScrollController();
-  final List<Comment> _comments = [];
-  bool _hasMore = true;
-  int _page = 1;
 
   final double bottomBoxHeight = 40;
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler];
+  List<RequestHandler> registerHandler() => [handler];
 
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _loadMore();
-    }
-  }
-
-  void _loadMore() {
-    if (handler.isLoading || !_hasMore) return;
-    handler.run(CommentsPayload(id: widget.id, page: ++_page));
+  @override
+  Future<void> loadMore() async {
+    final pages = handler.state.data?.comments.pages ?? 1;
+    if (_page >= pages) return;
+    await handler.run(CommentsPayload(id: widget.id, page: ++_page));
   }
 
   void _refresh() {
-    setState(() {
-      _comments.clear();
-      _hasMore = true;
-      _page = 1;
-    });
+    _page = 1;
+    handler.mutate(CommentsResponse.empty);
     handler.run(CommentsPayload(id: widget.id, page: 1));
   }
 
   @override
-  void initState() {
-    super.initState();
-    handler.run(CommentsPayload(id: widget.id, page: _page));
-
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return RouteAwarePageWrapper(
-      shouldRebuildOnCompleted: false,
-      builder: (context, completed) {
-        return Scaffold(
-          appBar: AppBar(title: const Text('评论')),
-          body: handler.error != null
-              ? _buildError()
-              : Stack(children: [_buildPage(), _buildBottom()]),
-        );
-      },
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(title: const Text('评论')),
+        body: switch (handler.state) {
+          RequestState(:final data) when data != null => Stack(
+            children: [_buildList(data.comments.docs), _buildBottom()],
+          ),
+          Error(:final error) => ErrorPage(
+            errorMessage: error.toString(),
+            onRetry: _refresh,
+          ),
+          _ => const Center(child: CircularProgressIndicator()),
+        },
+      ),
     );
   }
 
-  Widget _buildPage() {
-    if (!handler.isLoading && _comments.isEmpty) {
-      return _buildEmpty();
-    } else {
-      return _buildList(_comments);
-    }
-  }
-
   Widget _buildBottom() {
-    final bottom = context.bottom;
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+        padding: const .symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
@@ -127,9 +98,9 @@ class _CommentsPageState extends State<CommentsPage>
           onTap: _showCommentInput,
           child: Container(
             height: bottomBoxHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const .symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(99)),
+              borderRadius: .circular(99),
               color: context.colorScheme.surfaceContainerHighest,
             ),
             child: Row(
@@ -145,29 +116,15 @@ class _CommentsPageState extends State<CommentsPage>
     );
   }
 
-  Widget _buildError() {
-    return ErrorPage(
-      errorMessage: getTextBeforeNewLine(handler.error.toString()),
-      onRetry: _refresh,
-    );
-  }
-
-  Widget _buildEmpty() {
-    return const Center(
-      child: Column(
-        children: [Empty(imageUrl: 'assets/images/icon_no_comment.png')],
-      ),
-    );
-  }
-
   Widget _buildList(List<Comment> data) {
-    final bottom = context.bottom;
     return ListView.separated(
-      padding: EdgeInsets.only(bottom: 8 + 8 + bottom + bottomBoxHeight),
-      controller: _scrollController,
+      padding: EdgeInsets.only(bottom: 8 + 8 + bottomBoxHeight),
+      controller: scrollController,
       separatorBuilder: (context, index) => const SizedBox(height: 5),
       itemBuilder: (context, index) {
-        if (index >= data.length) return _buildLoader();
+        if (index >= data.length) {
+          return CommentListFooter(loading: handler.state.loading);
+        }
 
         final item = data[index];
         final time = getFormattedTime(item.created_at);
@@ -182,7 +139,7 @@ class _CommentsPageState extends State<CommentsPage>
                 alignment: Alignment.topCenter,
                 child: InkWell(
                   onTap: () => showCreator(context, item.user),
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  borderRadius: .circular(8),
                   child: UiAvatar(source: item.user.avatar, size: 40),
                 ),
               ),
@@ -251,28 +208,16 @@ class _CommentsPageState extends State<CommentsPage>
     );
   }
 
-  Widget _buildLoader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: _hasMore
-            ? CircularProgressIndicator(
-                constraints: BoxConstraints.tight(const Size(28, 28)),
-                strokeWidth: 3,
-              )
-            : Text('没有更多数据了', style: context.textTheme.bodySmall),
-      ),
-    );
-  }
-
   void _showCommentInput() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(),
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       builder: (context) => CommentInput(
         id: widget.id,
         handler: sendComment.useRequest(
+          manual: true,
           onSuccess: (data, _) {
             Log.info('Send comment success', 'comment');
             _refresh();

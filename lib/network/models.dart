@@ -599,47 +599,33 @@ class Comment {
   Map<String, dynamic> toJson() => _$CommentToJson(this);
 }
 
-@JsonSerializable()
-class Comments {
-  final List<Comment> docs;
+int pageFormat(dynamic value) => int.tryParse(value.toString()) ?? 1;
 
-  final int total;
-
-  @JsonKey(defaultValue: 20)
-  final int limit;
-
-  /// 极端情况下又返回的不是字符串....
-  @JsonKey(fromJson: _pageFormat)
-  final String page;
-
-  final int pages;
-
-  Comments({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
-
-  static String _pageFormat(dynamic value) => value.toString();
+@freezed
+abstract class Comments with _$Comments {
+  const factory Comments({
+    required List<Comment> docs,
+    required int total,
+    @Default(20) int limit,
+    @JsonKey(fromJson: pageFormat) required int page,
+    required int pages,
+  }) = _Comments;
 
   factory Comments.fromJson(Map<String, dynamic> json) =>
       _$CommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$CommentsToJson(this);
 }
 
-@JsonSerializable()
-class CommentsResponse {
-  final Comments comments;
-
-  CommentsResponse({required this.comments});
+@freezed
+abstract class CommentsResponse with _$CommentsResponse {
+  const factory CommentsResponse({required Comments comments}) =
+      _CommentsResponse;
 
   factory CommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$CommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CommentsResponseToJson(this);
+  static CommentsResponse get empty => const CommentsResponse(
+    comments: Comments(docs: [], total: 0, limit: 0, page: 0, pages: 0),
+  );
 }
 
 class SendCommentPayload {
@@ -707,42 +693,31 @@ class SubComment {
   Map<String, dynamic> toJson() => _$SubCommentToJson(this);
 }
 
-@JsonSerializable()
-class SubComments {
-  final List<SubComment> docs;
-
-  final int total;
-
-  final int limit;
-
-  final String page;
-
-  final int pages;
-
-  SubComments({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
+@freezed
+abstract class SubComments with _$SubComments {
+  const factory SubComments({
+    required List<SubComment> docs,
+    required int total,
+    required int limit,
+    required String page,
+    required int pages,
+  }) = _SubComments;
 
   factory SubComments.fromJson(Map<String, dynamic> json) =>
       _$SubCommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SubCommentsToJson(this);
 }
 
-@JsonSerializable()
-class SubCommentsResponse {
-  final SubComments comments;
-
-  SubCommentsResponse({required this.comments});
+@freezed
+abstract class SubCommentsResponse with _$SubCommentsResponse {
+  const factory SubCommentsResponse({required SubComments comments}) =
+      _SubCommentsResponse;
 
   factory SubCommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$SubCommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SubCommentsResponseToJson(this);
+  static SubCommentsResponse get empty => const SubCommentsResponse(
+    comments: SubComments(docs: [], total: 0, limit: 0, page: '', pages: 0),
+  );
 }
 
 class SubCommentsPayload {

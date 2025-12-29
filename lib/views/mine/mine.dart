@@ -14,6 +14,7 @@ import 'package:haka_comic/widgets/base_page.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/tag.dart';
+import 'package:haka_comic/widgets/ui_avatar.dart';
 import 'package:haka_comic/widgets/ui_image.dart';
 
 class Mine extends StatefulWidget {
@@ -142,25 +143,11 @@ class ProFile extends StatelessWidget {
               ),
             ),
           ),
-          // 模糊背景层
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: context.top),
-              user.avatar != null
-                  ? UiImage(
-                      url: user.avatar!.url,
-                      width: 80,
-                      height: 80,
-                      shape: .circle,
-                    )
-                  : CircleAvatar(
-                      radius: 40,
-                      backgroundColor: context.colorScheme.surface,
-                      backgroundImage: const AssetImage(
-                        'assets/images/default_avatar.jpg',
-                      ),
-                    ),
+              UiAvatar(source: user.avatar, size: 80),
               Text(
                 user.name,
                 style: context.textTheme.titleMedium,

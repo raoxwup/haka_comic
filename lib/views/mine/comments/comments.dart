@@ -12,7 +12,7 @@ import 'package:haka_comic/views/comments/thumb_up.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:haka_comic/widgets/ui_image.dart';
+import 'package:haka_comic/widgets/ui_avatar.dart';
 
 class Comments extends StatefulWidget {
   const Comments({super.key});
@@ -130,24 +130,7 @@ class _CommentsState extends State<Comments> with AutoRegisterHandlerMixin {
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                user.avatar == null
-                    ? Card(
-                        clipBehavior: Clip.hardEdge,
-                        elevation: 0,
-                        shape: const CircleBorder(),
-                        child: Container(
-                          width: 64,
-                          height: 64,
-                          padding: const EdgeInsets.all(5),
-                          child: Image.asset('assets/images/user.png'),
-                        ),
-                      )
-                    : UiImage(
-                        url: user.avatar!.url,
-                        width: 64,
-                        height: 64,
-                        shape: .circle,
-                      ),
+                UiAvatar(source: user.avatar, size: 64),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
