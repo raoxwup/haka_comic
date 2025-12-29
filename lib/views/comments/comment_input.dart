@@ -34,48 +34,50 @@ class _CommentInputState extends State<CommentInput> with RequestMixin {
     final content = _commentController.text;
     final bottom = context.viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(15, 15, 15, 5 + bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 5,
-        children: [
-          TextField(
-            minLines: 3,
-            maxLines: 10,
-            keyboardType: TextInputType.multiline,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: '评论',
-              border: const OutlineInputBorder(borderSide: BorderSide.none),
-              filled: true,
-              fillColor: context.colorScheme.surfaceContainerHighest,
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(15, 15, 15, 5 + bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 5,
+          children: [
+            TextField(
+              minLines: 3,
+              maxLines: 10,
+              keyboardType: TextInputType.multiline,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: '评论',
+                border: const OutlineInputBorder(borderSide: BorderSide.none),
+                filled: true,
+                fillColor: context.colorScheme.surfaceContainerHighest,
+              ),
+              controller: _commentController,
+              onChanged: (_) => setState(() {}),
             ),
-            controller: _commentController,
-            onChanged: (_) => setState(() {}),
-          ),
-          Row(
-            spacing: 5,
-            children: [
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: Text('取消', style: context.textTheme.bodyMedium),
-              ),
-              Button.text(
-                isLoading: _handler.state.loading,
-                onPressed: content.isEmpty
-                    ? null
-                    : () {
-                        _handler.run(
-                          SendCommentPayload(id: widget.id, content: content),
-                        );
-                      },
-                child: const Text('发送'),
-              ),
-            ],
-          ),
-        ],
+            Row(
+              spacing: 5,
+              children: [
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: Text('取消', style: context.textTheme.bodyMedium),
+                ),
+                Button.text(
+                  isLoading: _handler.state.loading,
+                  onPressed: content.isEmpty
+                      ? null
+                      : () {
+                          _handler.run(
+                            SendCommentPayload(id: widget.id, content: content),
+                          );
+                        },
+                  child: const Text('发送'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

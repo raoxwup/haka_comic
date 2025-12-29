@@ -8,8 +8,7 @@ import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comments/comment_input.dart';
-import 'package:haka_comic/views/comments/comment_list_footer.dart';
-import 'package:haka_comic/views/comments/thumb_up.dart';
+import 'package:haka_comic/views/comments/comment_list.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:haka_comic/widgets/ui_avatar.dart';
@@ -42,8 +41,6 @@ class _SubCommentsPageState extends State<SubCommentsPage>
     },
   );
 
-  final double bottomBoxHeight = 40;
-
   @override
   List<RequestHandler> registerHandler() => [handler];
 
@@ -62,192 +59,86 @@ class _SubCommentsPageState extends State<SubCommentsPage>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(title: const Text('子评论')),
-        body: switch (handler.state) {
-          RequestState(:final data) when data != null => Stack(
-            children: [_buildList(data.comments.docs), _buildBottom()],
-          ),
-          Error(:final error) => ErrorPage(
-            errorMessage: error.toString(),
-            onRetry: _refresh,
-          ),
-          _ => const Center(child: CircularProgressIndicator()),
-        },
-      ),
-    );
-  }
-
-  Widget _buildBottom() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const .symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
-          ),
-          color: context.colorScheme.surface,
-        ),
-        child: InkWell(
-          onTap: _showCommentInput,
-          child: Container(
-            height: bottomBoxHeight,
-            padding: const .symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: .circular(99),
-              color: context.colorScheme.surfaceContainerHighest,
-            ),
-            child: Row(
-              children: [
-                Text('评论', style: context.textTheme.bodySmall),
-                const Spacer(),
-                const Icon(Icons.send, size: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildList(List<SubComment> data) {
-    return CustomScrollView(
-      controller: scrollController,
-      slivers: [
-        _buildSliverToBoxAdapter(),
-        SliverPadding(
-          padding: .only(bottom: 8 + 8 + bottomBoxHeight),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              Widget content;
-              if (index >= data.length) {
-                content = CommentListFooter(loading: handler.state.loading);
-              } else {
-                final item = data[index];
-                final time = getFormattedTime(item.created_at);
-
-                content = Padding(
-                  padding: const .symmetric(vertical: 8, horizontal: 15),
-                  child: Row(
-                    spacing: 8,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: InkWell(
-                          onTap: () => showCreator(context, item.user),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
-                          ),
-                          child: UiAvatar(source: item.user.avatar, size: 40),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 5,
-                          children: [
-                            Text(
-                              item.user.name,
-                              style: context.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(time, style: context.textTheme.bodySmall),
-                            Text(
-                              item.content,
-                              style: context.textTheme.bodyMedium,
-                            ),
-                            Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ThumbUp(
-                                  isLiked: item.isLiked,
-                                  likesCount: item.likesCount,
-                                  id: item.id,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(title: const Text('子评论')),
+      body: switch (handler.state) {
+        RequestState(:final data) when data != null => SafeArea(
+          child: CommentList(
+            scrollController: scrollController,
+            data: data.comments.docs
+                .map(
+                  (e) => SourceItem(
+                    createdAt: e.created_at,
+                    content: e.content,
+                    user: e.user,
+                    id: e.uid,
+                    isLiked: e.isLiked,
+                    likesCount: e.likesCount,
+                    commentsCount: e.totalComments,
                   ),
-                );
-              }
-              return Column(
-                children: [
-                  content,
-                  if (index < data.length) const SizedBox(height: 5),
-                ],
-              );
-            }, childCount: data.length + 1),
+                )
+                .toList(),
+            loading: handler.state.loading,
+            onBottomBoxTap: _showCommentInput,
+            topBuilder: (context) => _buildTop(),
           ),
         ),
-      ],
+        Error(:final error) => ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: _refresh,
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 
-  Widget _buildSliverToBoxAdapter() {
+  Widget _buildTop() {
     final comment = widget.comment;
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-        child: Column(
-          spacing: 8,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              spacing: 8,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: InkWell(
-                    onTap: () => showCreator(context, comment.user),
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    child: UiAvatar(size: 40, source: comment.user.avatar),
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+      child: Column(
+        spacing: 8,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.topCenter,
+                child: InkWell(
+                  onTap: () => showCreator(context, comment.user),
+                  borderRadius: .circular(8),
+                  child: UiAvatar(size: 40, source: comment.user.avatar),
                 ),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 5,
-                    children: [
-                      Text(
-                        comment.user.name,
-                        style: context.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 5,
+                  children: [
+                    Text(
+                      comment.user.name,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        getFormattedTime(comment.created_at),
-                        style: context.textTheme.bodySmall,
-                      ),
-                      Text(
-                        comment.content,
-                        style: context.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      getFormattedTime(comment.created_at),
+                      style: context.textTheme.bodySmall,
+                    ),
+                    Text(comment.content, style: context.textTheme.bodyMedium),
+                  ],
                 ),
-              ],
-            ),
-            const Divider(),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const Divider(),
+        ],
       ),
     );
   }
