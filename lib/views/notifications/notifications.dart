@@ -39,7 +39,7 @@ class _NotificationsState extends State<Notifications>
   Future<void> loadMore() async {
     final pages = _handler.state.data?.notifications.pages ?? 1;
     if (_page >= pages) return;
-    await _handler.run(_page + 1);
+    await _handler.run(++_page);
   }
 
   void _refresh() {
@@ -53,50 +53,60 @@ class _NotificationsState extends State<Notifications>
     return Scaffold(
       appBar: AppBar(title: const Text('通知')),
       body: switch (_handler.state) {
-        RequestState(:final data) when data != null => ListView.builder(
-          controller: scrollController,
-          itemBuilder: (context, index) {
-            if (index == data.notifications.docs.length) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: _handler.state.loading
-                      ? CircularProgressIndicator(
-                          constraints: BoxConstraints.tight(const Size(28, 28)),
-                          strokeWidth: 3,
-                        )
-                      : Text('没有更多数据了', style: context.textTheme.bodySmall),
+        RequestState(:final data) when data != null => SafeArea(
+          child: ListView.builder(
+            controller: scrollController,
+            itemBuilder: (context, index) {
+              if (index == data.notifications.docs.length) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: _handler.state.loading
+                        ? CircularProgressIndicator(
+                            constraints: BoxConstraints.tight(
+                              const Size(28, 28),
+                            ),
+                            strokeWidth: 3,
+                          )
+                        : Text('没有更多数据了', style: context.textTheme.bodySmall),
+                  ),
+                );
+              }
+              final item = data.notifications.docs[index];
+              final key = ValueKey(item.uid);
+              return Container(
+                key: key,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    UiAvatar(size: 48, source: item.sender.avatar),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: .min,
+                        crossAxisAlignment: .start,
+                        spacing: 5,
+                        children: [
+                          Text(
+                            item.content,
+                            style: context.textTheme.labelLarge,
+                          ),
+                          Text(
+                            getFormattedTime(item.updatedAt),
+                            style: context.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
-            }
-            final item = data.notifications.docs[index];
-            final key = ValueKey(item.uid);
-            return Container(
-              key: key,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                spacing: 8,
-                children: [
-                  UiAvatar(size: 48, source: item.sender.avatar),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: .min,
-                      crossAxisAlignment: .start,
-                      spacing: 5,
-                      children: [
-                        Text(item.content, style: context.textTheme.labelLarge),
-                        Text(
-                          getFormattedTime(item.updatedAt),
-                          style: context.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          itemCount: data.notifications.docs.length + 1,
+            },
+            itemCount: data.notifications.docs.length + 1,
+          ),
         ),
         Error(:final error) => ErrorPage(
           errorMessage: error.toString(),

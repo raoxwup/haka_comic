@@ -1205,7 +1205,7 @@ class PersonalComment {
 
   final bool isLiked;
 
-  PersonalComment({
+  const PersonalComment({
     required this.uid,
     required this.content,
     required this.comic,
@@ -1223,44 +1223,64 @@ class PersonalComment {
       _$PersonalCommentFromJson(json);
 
   Map<String, dynamic> toJson() => _$PersonalCommentToJson(this);
+
+  Comment toComment(User user) => Comment(
+    uid: uid,
+    content: content,
+    user: Creator(
+      id: user.id,
+      characters: user.characters,
+      exp: user.exp,
+      gender: user.gender,
+      level: user.level,
+      name: user.name,
+      role: '',
+      title: user.title,
+      avatar: user.avatar,
+    ),
+    comic: comic?.title ?? '',
+    totalComments: totalComments,
+    isTop: false,
+    hide: hide,
+    created_at: created_at,
+    id: uid,
+    likesCount: likesCount,
+    commentsCount: commentsCount,
+    isLiked: isLiked,
+  );
 }
 
-@JsonSerializable()
-class PersonalComments {
-  final List<PersonalComment> docs;
-
-  final int pages;
-
-  final int total;
-
-  final int limit;
-
-  final String page;
-
-  PersonalComments({
-    required this.docs,
-    required this.pages,
-    required this.total,
-    required this.limit,
-    required this.page,
-  });
+@freezed
+abstract class PersonalComments with _$PersonalComments {
+  const factory PersonalComments({
+    required List<PersonalComment> docs,
+    required int pages,
+    required int total,
+    required int limit,
+    required String page,
+  }) = _PersonalComments;
 
   factory PersonalComments.fromJson(Map<String, dynamic> json) =>
       _$PersonalCommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PersonalCommentsToJson(this);
 }
 
-@JsonSerializable()
-class PersonalCommentsResponse {
-  final PersonalComments comments;
-
-  PersonalCommentsResponse({required this.comments});
+@freezed
+abstract class PersonalCommentsResponse with _$PersonalCommentsResponse {
+  const factory PersonalCommentsResponse({required PersonalComments comments}) =
+      _PersonalCommentsResponse;
 
   factory PersonalCommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$PersonalCommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PersonalCommentsResponseToJson(this);
+  static PersonalCommentsResponse get empty => const PersonalCommentsResponse(
+    comments: PersonalComments(
+      docs: [],
+      pages: 0,
+      total: 0,
+      limit: 0,
+      page: '0',
+    ),
+  );
 }
 
 @JsonSerializable()

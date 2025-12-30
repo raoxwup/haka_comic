@@ -2261,6 +2261,568 @@ $SearchComicsCopyWith<$Res> get comics {
 
 
 /// @nodoc
+mixin _$PersonalComments {
+
+ List<PersonalComment> get docs; int get pages; int get total; int get limit; String get page;
+/// Create a copy of PersonalComments
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PersonalCommentsCopyWith<PersonalComments> get copyWith => _$PersonalCommentsCopyWithImpl<PersonalComments>(this as PersonalComments, _$identity);
+
+  /// Serializes this PersonalComments to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalComments&&const DeepCollectionEquality().equals(other.docs, docs)&&(identical(other.pages, pages) || other.pages == pages)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(docs),pages,total,limit,page);
+
+@override
+String toString() {
+  return 'PersonalComments(docs: $docs, pages: $pages, total: $total, limit: $limit, page: $page)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PersonalCommentsCopyWith<$Res>  {
+  factory $PersonalCommentsCopyWith(PersonalComments value, $Res Function(PersonalComments) _then) = _$PersonalCommentsCopyWithImpl;
+@useResult
+$Res call({
+ List<PersonalComment> docs, int pages, int total, int limit, String page
+});
+
+
+
+
+}
+/// @nodoc
+class _$PersonalCommentsCopyWithImpl<$Res>
+    implements $PersonalCommentsCopyWith<$Res> {
+  _$PersonalCommentsCopyWithImpl(this._self, this._then);
+
+  final PersonalComments _self;
+  final $Res Function(PersonalComments) _then;
+
+/// Create a copy of PersonalComments
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? docs = null,Object? pages = null,Object? total = null,Object? limit = null,Object? page = null,}) {
+  return _then(_self.copyWith(
+docs: null == docs ? _self.docs : docs // ignore: cast_nullable_to_non_nullable
+as List<PersonalComment>,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
+as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PersonalComments].
+extension PersonalCommentsPatterns on PersonalComments {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PersonalComments value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PersonalComments() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PersonalComments value)  $default,){
+final _that = this;
+switch (_that) {
+case _PersonalComments():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PersonalComments value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PersonalComments() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<PersonalComment> docs,  int pages,  int total,  int limit,  String page)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PersonalComments() when $default != null:
+return $default(_that.docs,_that.pages,_that.total,_that.limit,_that.page);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<PersonalComment> docs,  int pages,  int total,  int limit,  String page)  $default,) {final _that = this;
+switch (_that) {
+case _PersonalComments():
+return $default(_that.docs,_that.pages,_that.total,_that.limit,_that.page);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<PersonalComment> docs,  int pages,  int total,  int limit,  String page)?  $default,) {final _that = this;
+switch (_that) {
+case _PersonalComments() when $default != null:
+return $default(_that.docs,_that.pages,_that.total,_that.limit,_that.page);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _PersonalComments implements PersonalComments {
+  const _PersonalComments({required final  List<PersonalComment> docs, required this.pages, required this.total, required this.limit, required this.page}): _docs = docs;
+  factory _PersonalComments.fromJson(Map<String, dynamic> json) => _$PersonalCommentsFromJson(json);
+
+ final  List<PersonalComment> _docs;
+@override List<PersonalComment> get docs {
+  if (_docs is EqualUnmodifiableListView) return _docs;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_docs);
+}
+
+@override final  int pages;
+@override final  int total;
+@override final  int limit;
+@override final  String page;
+
+/// Create a copy of PersonalComments
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PersonalCommentsCopyWith<_PersonalComments> get copyWith => __$PersonalCommentsCopyWithImpl<_PersonalComments>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PersonalCommentsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalComments&&const DeepCollectionEquality().equals(other._docs, _docs)&&(identical(other.pages, pages) || other.pages == pages)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_docs),pages,total,limit,page);
+
+@override
+String toString() {
+  return 'PersonalComments(docs: $docs, pages: $pages, total: $total, limit: $limit, page: $page)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PersonalCommentsCopyWith<$Res> implements $PersonalCommentsCopyWith<$Res> {
+  factory _$PersonalCommentsCopyWith(_PersonalComments value, $Res Function(_PersonalComments) _then) = __$PersonalCommentsCopyWithImpl;
+@override @useResult
+$Res call({
+ List<PersonalComment> docs, int pages, int total, int limit, String page
+});
+
+
+
+
+}
+/// @nodoc
+class __$PersonalCommentsCopyWithImpl<$Res>
+    implements _$PersonalCommentsCopyWith<$Res> {
+  __$PersonalCommentsCopyWithImpl(this._self, this._then);
+
+  final _PersonalComments _self;
+  final $Res Function(_PersonalComments) _then;
+
+/// Create a copy of PersonalComments
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? docs = null,Object? pages = null,Object? total = null,Object? limit = null,Object? page = null,}) {
+  return _then(_PersonalComments(
+docs: null == docs ? _self._docs : docs // ignore: cast_nullable_to_non_nullable
+as List<PersonalComment>,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
+as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$PersonalCommentsResponse {
+
+ PersonalComments get comments;
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PersonalCommentsResponseCopyWith<PersonalCommentsResponse> get copyWith => _$PersonalCommentsResponseCopyWithImpl<PersonalCommentsResponse>(this as PersonalCommentsResponse, _$identity);
+
+  /// Serializes this PersonalCommentsResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalCommentsResponse&&(identical(other.comments, comments) || other.comments == comments));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,comments);
+
+@override
+String toString() {
+  return 'PersonalCommentsResponse(comments: $comments)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PersonalCommentsResponseCopyWith<$Res>  {
+  factory $PersonalCommentsResponseCopyWith(PersonalCommentsResponse value, $Res Function(PersonalCommentsResponse) _then) = _$PersonalCommentsResponseCopyWithImpl;
+@useResult
+$Res call({
+ PersonalComments comments
+});
+
+
+$PersonalCommentsCopyWith<$Res> get comments;
+
+}
+/// @nodoc
+class _$PersonalCommentsResponseCopyWithImpl<$Res>
+    implements $PersonalCommentsResponseCopyWith<$Res> {
+  _$PersonalCommentsResponseCopyWithImpl(this._self, this._then);
+
+  final PersonalCommentsResponse _self;
+  final $Res Function(PersonalCommentsResponse) _then;
+
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? comments = null,}) {
+  return _then(_self.copyWith(
+comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
+as PersonalComments,
+  ));
+}
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PersonalCommentsCopyWith<$Res> get comments {
+  
+  return $PersonalCommentsCopyWith<$Res>(_self.comments, (value) {
+    return _then(_self.copyWith(comments: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [PersonalCommentsResponse].
+extension PersonalCommentsResponsePatterns on PersonalCommentsResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PersonalCommentsResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PersonalCommentsResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PersonalCommentsResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PersonalComments comments)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse() when $default != null:
+return $default(_that.comments);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PersonalComments comments)  $default,) {final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse():
+return $default(_that.comments);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PersonalComments comments)?  $default,) {final _that = this;
+switch (_that) {
+case _PersonalCommentsResponse() when $default != null:
+return $default(_that.comments);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _PersonalCommentsResponse implements PersonalCommentsResponse {
+  const _PersonalCommentsResponse({required this.comments});
+  factory _PersonalCommentsResponse.fromJson(Map<String, dynamic> json) => _$PersonalCommentsResponseFromJson(json);
+
+@override final  PersonalComments comments;
+
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PersonalCommentsResponseCopyWith<_PersonalCommentsResponse> get copyWith => __$PersonalCommentsResponseCopyWithImpl<_PersonalCommentsResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PersonalCommentsResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalCommentsResponse&&(identical(other.comments, comments) || other.comments == comments));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,comments);
+
+@override
+String toString() {
+  return 'PersonalCommentsResponse(comments: $comments)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PersonalCommentsResponseCopyWith<$Res> implements $PersonalCommentsResponseCopyWith<$Res> {
+  factory _$PersonalCommentsResponseCopyWith(_PersonalCommentsResponse value, $Res Function(_PersonalCommentsResponse) _then) = __$PersonalCommentsResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ PersonalComments comments
+});
+
+
+@override $PersonalCommentsCopyWith<$Res> get comments;
+
+}
+/// @nodoc
+class __$PersonalCommentsResponseCopyWithImpl<$Res>
+    implements _$PersonalCommentsResponseCopyWith<$Res> {
+  __$PersonalCommentsResponseCopyWithImpl(this._self, this._then);
+
+  final _PersonalCommentsResponse _self;
+  final $Res Function(_PersonalCommentsResponse) _then;
+
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? comments = null,}) {
+  return _then(_PersonalCommentsResponse(
+comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
+as PersonalComments,
+  ));
+}
+
+/// Create a copy of PersonalCommentsResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PersonalCommentsCopyWith<$Res> get comments {
+  
+  return $PersonalCommentsCopyWith<$Res>(_self.comments, (value) {
+    return _then(_self.copyWith(comments: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$NotificationsResponse {
 
  NotificationsData get notifications;

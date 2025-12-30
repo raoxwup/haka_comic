@@ -1,8 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/network/models.dart'
-    show Comment, PersonalComment, User, Chapter;
+import 'package:haka_comic/network/models.dart' show Comment, Chapter;
 import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
@@ -20,8 +19,7 @@ import 'package:haka_comic/views/comments/sub_comments.dart';
 import 'package:haka_comic/views/home/home.dart';
 import 'package:haka_comic/views/login/login.dart';
 import 'package:haka_comic/views/login/register.dart';
-import 'package:haka_comic/views/mine/comments/comments.dart';
-import 'package:haka_comic/views/mine/comments/sub_comments.dart';
+import 'package:haka_comic/views/mine/comments.dart';
 import 'package:haka_comic/views/mine/editor.dart';
 import 'package:haka_comic/views/mine/favorites.dart';
 import 'package:haka_comic/views/mine/history.dart';
@@ -115,15 +113,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/favorites', builder: (_, _) => const Favorites()),
     GoRoute(path: '/history', builder: (_, _) => const History()),
     GoRoute(path: '/downloads', builder: (_, _) => const Downloads()),
-    GoRoute(path: '/personal_comments', builder: (_, _) => const Comments()),
     GoRoute(
-      path: '/personal_sub_comments',
-      builder: (_, state) {
-        final extra = state.extra as Map;
-        final comment = extra['comment'] as PersonalComment;
-        final user = extra['user'] as User;
-        return PersonalSubComment(comment: comment, user: user);
-      },
+      path: '/personal_comments',
+      builder: (_, _) => const Comments(),
+      routes: [
+        GoRoute(
+          path: 'sub_comments',
+          builder: (_, state) =>
+              SubCommentsPage(comment: state.extra as Comment),
+        ),
+      ],
     ),
     GoRoute(path: '/personal_editor', builder: (_, _) => const Editor()),
     GoRoute(
