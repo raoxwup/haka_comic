@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/search/item.dart';
-import 'package:haka_comic/widgets/base_page.dart';
 import 'package:provider/provider.dart';
 
 class HotSearchWords extends StatefulWidget {
@@ -18,42 +17,25 @@ class HotSearchWords extends StatefulWidget {
   State<HotSearchWords> createState() => _HotSearchWordsState();
 }
 
-class _HotSearchWordsState extends State<HotSearchWords>
-    with AutoRegisterHandlerMixin {
+class _HotSearchWordsState extends State<HotSearchWords> with RequestMixin {
   final _handler = fetchHotSearchWords.useRequest(
-    onSuccess: (data, _) {
+    onSuccess: (data) {
       Log.info('Fetch hot search words success', data.toString());
     },
-    onError: (e, _) {
+    onError: (e) {
       Log.error('Fetch hot search words error', e);
     },
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  void initState() {
-    super.initState();
-    _handler.run();
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Widget build(BuildContext context) {
-    final words = _handler.data?.keywords ?? [];
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 150),
-      child: BasePage(
-        error: _handler.error,
-        isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
-        onRetry: _handler.refresh,
-        errorBuilder: (context) => Center(
-          child: IconButton(
-            onPressed: _handler.refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-        ),
-        child: Column(
+      child: switch (_handler.state) {
+        Success(:final data) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 10,
@@ -72,7 +54,7 @@ class _HotSearchWordsState extends State<HotSearchWords>
             Wrap(
               spacing: 5,
               runSpacing: 5,
-              children: words
+              children: data.keywords
                   .map(
                     (e) => Item(
                       title: e,
@@ -86,7 +68,14 @@ class _HotSearchWordsState extends State<HotSearchWords>
             ),
           ],
         ),
-      ),
+        Error(error: final _) => Center(
+          child: IconButton(
+            onPressed: _handler.refresh,
+            icon: const Icon(Icons.refresh),
+          ),
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 }

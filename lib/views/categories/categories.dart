@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart' hide UseRequestExtensions;
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/utils/ui.dart';

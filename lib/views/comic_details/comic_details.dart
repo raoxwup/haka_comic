@@ -6,8 +6,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart'
-    hide UseRequest1Extensions, AsyncRequestHandler;
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/database/read_record_helper.dart';

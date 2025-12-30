@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/button.dart';

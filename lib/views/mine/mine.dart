@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/providers/user_provider.dart';
-import 'package:haka_comic/utils/extension.dart' hide UseRequest1Extensions;
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';

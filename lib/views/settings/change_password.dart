@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -33,10 +33,12 @@ class ChangePassWordDialog extends StatefulWidget {
   State<ChangePassWordDialog> createState() => _ChangePassWordDialogState();
 }
 
-class _ChangePassWordDialogState extends State<ChangePassWordDialog> {
+class _ChangePassWordDialogState extends State<ChangePassWordDialog>
+    with RequestMixin {
   final controller = TextEditingController();
 
   late final _handler = updatePassword.useRequest(
+    manual: true,
     onSuccess: (data, _) {
       Toast.show(message: '修改成功');
       context.pop();
@@ -46,19 +48,12 @@ class _ChangePassWordDialogState extends State<ChangePassWordDialog> {
     },
   );
 
-  void _update() => setState(() {});
-
   @override
-  void initState() {
-    super.initState();
-    _handler
-      ..addListener(_update)
-      ..isLoading = false;
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   void dispose() {
-    _handler.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -91,7 +86,7 @@ class _ChangePassWordDialogState extends State<ChangePassWordDialog> {
               ),
             );
           },
-          isLoading: _handler.isLoading,
+          isLoading: _handler.state.loading,
           child: const Text('确定'),
         ),
       ],

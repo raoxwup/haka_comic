@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class CollectAction extends StatefulWidget {
@@ -20,7 +20,9 @@ class _CollectActionState extends State<CollectAction>
   late bool _isFavorite;
   late AnimationController _controller;
   late Animation<double> _animation;
+
   late final handler = favoriteComic.useRequest(
+    manual: true,
     onSuccess: (data, _) {
       Log.info('Favorite comic success', data.action);
     },
