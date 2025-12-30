@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/views/comic_details/comic_details.dart';
+import 'package:haka_comic/views/comic_details/title_box.dart';
 
 class ChaptersList extends StatefulWidget {
   const ChaptersList({

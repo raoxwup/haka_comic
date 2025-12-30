@@ -92,6 +92,8 @@ class _RecommendationState extends State<Recommendation> with RequestMixin {
               return InkWell(
                 onTap: () => context.push('/details/${item.id}'),
                 hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
                 child: SizedBox(
                   width: 100,
                   child: Column(

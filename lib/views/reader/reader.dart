@@ -105,6 +105,7 @@ class _ReaderState extends State<Reader> {
               Error(:final error) => ErrorPage(
                 errorMessage: error.toString(),
                 onRetry: context.reader.handler.refresh,
+                canPop: true,
               ),
               _ => const Center(child: CircularProgressIndicator()),
             },

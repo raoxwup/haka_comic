@@ -18,6 +18,7 @@ import 'package:haka_comic/views/comic_details/creator.dart';
 import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/icon_text.dart';
 import 'package:haka_comic/views/comic_details/recommendation.dart';
+import 'package:haka_comic/views/comic_details/title_box.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/error_page.dart';
@@ -132,7 +133,6 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   @override
   Widget build(BuildContext context) {
     final data = handler.state.data?.comic;
-    final bottom = context.bottom;
 
     return RouteAwarePageWrapper(
       builder: (context, completed) {
@@ -178,108 +178,113 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
               ),
             ],
           ),
-          body: Builder(
-            builder: (context) {
-              if (!completed) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          body: SafeArea(
+            child: Builder(
+              builder: (context) {
+                if (!completed) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              if (handler.state case Error(:final error)) {
-                return ErrorPage(
-                  errorMessage: error.toString(),
-                  onRetry: () {
-                    handler.refresh();
-                    chaptersHandler.refresh();
-                  },
-                );
-              }
+                if (handler.state case Error(:final error)) {
+                  return ErrorPage(
+                    errorMessage: error.toString(),
+                    onRetry: () {
+                      handler.refresh();
+                      chaptersHandler.refresh();
+                    },
+                  );
+                }
 
-              if (chaptersHandler.state case Error(:final error)) {
-                return ErrorPage(
-                  errorMessage: error.toString(),
-                  onRetry: () {
-                    handler.refresh();
-                    chaptersHandler.refresh();
-                  },
-                );
-              }
+                if (chaptersHandler.state case Error(:final error)) {
+                  return ErrorPage(
+                    errorMessage: error.toString(),
+                    onRetry: () {
+                      handler.refresh();
+                      chaptersHandler.refresh();
+                    },
+                  );
+                }
 
-              return switch ((handler.state, chaptersHandler.state)) {
-                (Success(:final data), Success(data: final chapters)) =>
-                  SingleChildScrollView(
-                    controller: _scrollController,
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, bottom + 20),
-                    child: Column(
-                      spacing: 15,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitle(data.comic),
-                        if (data.comic.categories.isNotEmpty)
-                          _buildTags(data.comic, '分类'),
-                        if (data.comic.tags.isNotEmpty)
-                          _buildTags(data.comic, '标签'),
-                        _buildActions(data.comic),
-                        if (UiMode.m1(context))
-                          ValueListenableBuilder(
-                            valueListenable: _readRecordNotifier,
-                            builder: (context, value, child) {
-                              return Row(
-                                spacing: 10,
-                                children: [
-                                  Expanded(
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        minHeight: 40,
-                                      ),
-                                      child: value != null
-                                          ? FilledButton.tonalIcon(
-                                              onPressed: () => _startRead(),
-                                              label: const Text('从头开始'),
-                                            )
-                                          : FilledButton(
-                                              onPressed: () => _startRead(),
-                                              child: const Text('开始阅读'),
-                                            ),
-                                    ),
-                                  ),
-                                  if (value != null)
+                return switch ((handler.state, chaptersHandler.state)) {
+                  (Success(:final data), Success(data: final chapters)) =>
+                    SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const .fromLTRB(10, 0, 10, 20),
+                      child: Column(
+                        spacing: 15,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTitle(data.comic),
+                          if (data.comic.categories.isNotEmpty)
+                            _buildTags(data.comic, '分类'),
+                          if (data.comic.tags.isNotEmpty)
+                            _buildTags(data.comic, '标签'),
+                          _buildActions(data.comic),
+                          if (UiMode.m1(context))
+                            ValueListenableBuilder(
+                              valueListenable: _readRecordNotifier,
+                              builder: (context, value, child) {
+                                return Row(
+                                  spacing: 10,
+                                  children: [
                                     Expanded(
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                           minHeight: 40,
                                         ),
-                                        child: FilledButton(
-                                          onPressed: () => _startRead(
-                                            chapterId: value.chapterId,
-                                            pageNo: value.pageNo,
-                                          ),
-                                          child: const Text('继续阅读'),
-                                        ),
+                                        child: value != null
+                                            ? FilledButton.tonalIcon(
+                                                onPressed: () => _startRead(),
+                                                label: const Text('从头开始'),
+                                              )
+                                            : FilledButton(
+                                                onPressed: () => _startRead(),
+                                                child: const Text('开始阅读'),
+                                              ),
                                       ),
                                     ),
-                                ],
-                              );
-                            },
+                                    if (value != null)
+                                      Expanded(
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            minHeight: 40,
+                                          ),
+                                          child: FilledButton(
+                                            onPressed: () => _startRead(
+                                              chapterId: value.chapterId,
+                                              pageNo: value.pageNo,
+                                            ),
+                                            child: const Text('继续阅读'),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
+                          _buildReadRecord(),
+                          // SizedBox(height: 8),
+                          const Divider(),
+                          ComicCreator(
+                            creator: data.comic.creator,
+                            updatedAt: data.comic.updated_at,
                           ),
-                        _buildReadRecord(),
-                        // SizedBox(height: 8),
-                        const Divider(),
-                        ComicCreator(
-                          creator: data.comic.creator,
-                          updatedAt: data.comic.updated_at,
-                        ),
-                        const SizedBox(height: 5),
-                        _buildDescription(data.comic),
-                        const SizedBox(height: 5),
-                        ChaptersList(chapters: chapters, startRead: _startRead),
-                        const SizedBox(height: 5),
-                        _buildRecommendation(data.comic),
-                      ],
+                          const SizedBox(height: 5),
+                          _buildDescription(data.comic),
+                          const SizedBox(height: 5),
+                          ChaptersList(
+                            chapters: chapters,
+                            startRead: _startRead,
+                          ),
+                          const SizedBox(height: 5),
+                          _buildRecommendation(data.comic),
+                        ],
+                      ),
                     ),
-                  ),
-                _ => const Center(child: CircularProgressIndicator()),
-              };
-            },
+                  _ => const Center(child: CircularProgressIndicator()),
+                };
+              },
+            ),
           ),
         );
       },
@@ -332,7 +337,6 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
                   data: data.chineseTeam,
                   icon: Icons.translate,
                 ),
-              // ComicShareId(id: widget.id),
               Row(
                 spacing: 10,
                 children: [
@@ -570,38 +574,6 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
                 ),
               );
       },
-    );
-  }
-}
-
-class TitleBox extends StatelessWidget {
-  const TitleBox({
-    super.key,
-    required this.title,
-    required this.builder,
-    this.actions = const [],
-  });
-
-  final String title;
-  final WidgetBuilder builder;
-  final List<Widget> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Text(title, style: context.textTheme.titleMedium),
-            const Spacer(),
-            ...actions,
-          ],
-        ),
-        Builder(builder: builder),
-      ],
     );
   }
 }
