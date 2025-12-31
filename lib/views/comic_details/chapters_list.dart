@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/comic_details/title_box.dart';
+import 'package:haka_comic/views/comic_details/types.dart';
 
 class ChaptersList extends StatefulWidget {
   const ChaptersList({
@@ -11,7 +12,7 @@ class ChaptersList extends StatefulWidget {
 
   final List<Chapter> chapters;
 
-  final Function({String? chapterId, int? pageNo}) startRead;
+  final ReadCallback startRead;
 
   @override
   State<ChaptersList> createState() => _ChaptersListState();
@@ -43,18 +44,18 @@ class _ChaptersListState extends State<ChaptersList> {
         ),
       ],
       builder: (context) {
-        return widget.chapters.isEmpty
-            ? _buildCircularProgressIndicator()
-            : _buildChapterList();
+        if (widget.chapters.isEmpty) {
+          return const SizedBox(
+            height: 200,
+            width: double.infinity,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return _buildChapterList();
       },
     );
   }
-
-  Widget _buildCircularProgressIndicator() => const SizedBox(
-    height: 200,
-    width: double.infinity,
-    child: Center(child: CircularProgressIndicator()),
-  );
 
   Widget _buildChapterList() {
     final chapters = expand ? sortedChapters : sortedChapters.take(40).toList();
@@ -92,9 +93,8 @@ class _ChaptersListState extends State<ChaptersList> {
             );
           },
         ),
-        if (widget.chapters.length > 40)
+        if (widget.chapters.length > 40) ...[
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
-        if (widget.chapters.length > 40)
           SliverToBoxAdapter(
             child: Center(
               child: TextButton.icon(
@@ -108,6 +108,7 @@ class _ChaptersListState extends State<ChaptersList> {
               ),
             ),
           ),
+        ],
       ],
     );
   }
