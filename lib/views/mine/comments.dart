@@ -42,6 +42,9 @@ class _CommentsState extends State<Comments>
   );
 
   @override
+  bool get pagination => false;
+
+  @override
   Future<void> loadMore() async {
     final pages = _handler.state.data?.comments.pages ?? 1;
     if (page >= pages) return;

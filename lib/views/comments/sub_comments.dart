@@ -45,6 +45,9 @@ class _SubCommentsPageState extends State<SubCommentsPage>
   List<RequestHandler> registerHandler() => [handler];
 
   @override
+  bool get pagination => false;
+
+  @override
   Future<void> loadMore() async {
     final pages = handler.state.data?.comments.pages ?? 1;
     if (_page >= pages) return;
