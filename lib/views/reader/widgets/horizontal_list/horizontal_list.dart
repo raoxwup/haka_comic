@@ -104,94 +104,110 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       }
     });
 
-    return GestureDetector(
-      onTapDown: (details) {
-        _tapDetails = details;
-      },
-      onTap: () {
-        context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
-      },
-      onLongPress: context.stateReader.toggleLockMenu,
-      child: Listener(
-        onPointerSignal: (event) {
-          if (HardwareKeyboard.instance.isControlPressed) return;
-          if (event is PointerScrollEvent) {
-            _handleScroll(event);
-          }
-        },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return PhotoViewGallery.builder(
-              backgroundDecoration: BoxDecoration(
-                color: context.colorScheme.surfaceContainerLowest,
+    return RawGestureDetector(
+      gestures: <Type, GestureRecognizerFactory>{
+        LongPressGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(
+                duration: const Duration(seconds: 2),
+                debugOwner: this,
               ),
-              scrollPhysics: const BouncingScrollPhysics(),
-              itemCount: pageCount,
-              pageController: context.reader.pageController,
-              onPageChanged: _onPageChanged,
-              reverse: readMode.isReverse,
-              builder: (context, index) {
-                if (!readMode.isDoublePage) {
-                  final item = images[index];
-                  return PhotoViewGalleryPageOptions(
-                    minScale: PhotoViewComputedScale.contained * 1.0,
-                    maxScale: PhotoViewComputedScale.covered * 4.0,
-                    imageProvider: context.reader.type == ReaderType.network
-                        ? ExtendedNetworkImageProvider(
-                            item.url,
-                            timeRetry: const Duration(milliseconds: 300),
-                            cache: true,
-                          )
-                        : ExtendedFileImageProvider(File(item.url)),
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (context, error, stackTrace, retry) {
-                      return Center(
-                        child: IconButton(
-                          onPressed: () {
-                            clearMemoryImageCache(item.url);
-                            retry();
-                          },
-                          icon: const Icon(Icons.refresh),
-                        ),
-                      );
-                    },
-                    onImageFrame: (info, synchronousCall) {
-                      final imageSize = ImageSize(
-                        imageId: item.uid,
-                        width: info.image.width,
-                        height: info.image.height,
-                        cid: cid,
-                      );
-                      insertImageSize(imageSize);
-                    },
-                  );
-                }
-
-                final items = multiPageImages[index];
-                final size = Size(constraints.maxWidth, constraints.maxHeight);
-                return PhotoViewGalleryPageOptions.customChild(
-                  childSize: size * 2,
-                  minScale: PhotoViewComputedScale.contained * 1.0,
-                  maxScale: PhotoViewComputedScale.covered * 10.0,
-                  child: buildPageImages(items, readMode.isReverse),
-                );
+              (instance) {
+                instance.onLongPress = context.stateReader.toggleLockMenu;
               },
-              loadingBuilder: (context, event) {
-                final bytes = event?.cumulativeBytesLoaded ?? 0;
-                final value = computeProgress(bytes);
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: value,
-                    strokeWidth: 3,
-                    constraints: BoxConstraints.tight(const Size(28, 28)),
-                    backgroundColor: Colors.grey.shade300,
-                    color: context.colorScheme.primary,
-                    strokeCap: StrokeCap.round,
-                  ),
-                );
-              },
-            );
+            ),
+      },
+      child: GestureDetector(
+        onTapDown: (details) {
+          _tapDetails = details;
+        },
+        onTap: () {
+          context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+        },
+        child: Listener(
+          onPointerSignal: (event) {
+            if (HardwareKeyboard.instance.isControlPressed) return;
+            if (event is PointerScrollEvent) {
+              _handleScroll(event);
+            }
           },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return PhotoViewGallery.builder(
+                backgroundDecoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLowest,
+                ),
+                scrollPhysics: const BouncingScrollPhysics(),
+                itemCount: pageCount,
+                pageController: context.reader.pageController,
+                onPageChanged: _onPageChanged,
+                reverse: readMode.isReverse,
+                builder: (context, index) {
+                  if (!readMode.isDoublePage) {
+                    final item = images[index];
+                    return PhotoViewGalleryPageOptions(
+                      minScale: PhotoViewComputedScale.contained * 1.0,
+                      maxScale: PhotoViewComputedScale.covered * 4.0,
+                      imageProvider: context.reader.type == ReaderType.network
+                          ? ExtendedNetworkImageProvider(
+                              item.url,
+                              timeRetry: const Duration(milliseconds: 300),
+                              cache: true,
+                            )
+                          : ExtendedFileImageProvider(File(item.url)),
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (context, error, stackTrace, retry) {
+                        return Center(
+                          child: IconButton(
+                            onPressed: () {
+                              clearMemoryImageCache(item.url);
+                              retry();
+                            },
+                            icon: const Icon(Icons.refresh),
+                          ),
+                        );
+                      },
+                      onImageFrame: (info, synchronousCall) {
+                        final imageSize = ImageSize(
+                          imageId: item.uid,
+                          width: info.image.width,
+                          height: info.image.height,
+                          cid: cid,
+                        );
+                        insertImageSize(imageSize);
+                      },
+                    );
+                  }
+
+                  final items = multiPageImages[index];
+                  final size = Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
+                  return PhotoViewGalleryPageOptions.customChild(
+                    childSize: size * 2,
+                    minScale: PhotoViewComputedScale.contained * 1.0,
+                    maxScale: PhotoViewComputedScale.covered * 10.0,
+                    child: buildPageImages(items, readMode.isReverse),
+                  );
+                },
+                loadingBuilder: (context, event) {
+                  final bytes = event?.cumulativeBytesLoaded ?? 0;
+                  final value = computeProgress(bytes);
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: value,
+                      strokeWidth: 3,
+                      constraints: BoxConstraints.tight(const Size(28, 28)),
+                      backgroundColor: Colors.grey.shade300,
+                      color: context.colorScheme.primary,
+                      strokeCap: StrokeCap.round,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

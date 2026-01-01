@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -149,20 +150,33 @@ class _GestureWrapperState extends State<GestureWrapper>
       onPointerDown: (event) => _handlePointerChange(event, true),
       onPointerUp: (event) => _handlePointerChange(event, false),
       onPointerCancel: (event) => _handlePointerChange(event, false),
-      child: GestureDetector(
-        onTap: () {
-          context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+      child: RawGestureDetector(
+        gestures: <Type, GestureRecognizerFactory>{
+          LongPressGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+                () => LongPressGestureRecognizer(
+                  duration: const Duration(seconds: 2),
+                  debugOwner: this,
+                ),
+                (instance) {
+                  instance.onLongPress = context.stateReader.toggleLockMenu;
+                },
+              ),
         },
-        onTapDown: (details) => _tapDownDetails = details,
-        onDoubleTapDown: _handleDoubleTapDown,
-        onDoubleTap: _handleDoubleTap,
-        onLongPress: context.stateReader.toggleLockMenu,
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          scaleEnabled: isDesktop ? isCtrlPressed : true,
-          minScale: 1.0,
-          maxScale: 3.5,
-          child: widget.child,
+        child: GestureDetector(
+          onTap: () {
+            context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+          },
+          onTapDown: (details) => _tapDownDetails = details,
+          onDoubleTapDown: _handleDoubleTapDown,
+          onDoubleTap: _handleDoubleTap,
+          child: InteractiveViewer(
+            transformationController: _transformationController,
+            scaleEnabled: isDesktop ? isCtrlPressed : true,
+            minScale: 1.0,
+            maxScale: 3.5,
+            child: widget.child,
+          ),
         ),
       ),
     );

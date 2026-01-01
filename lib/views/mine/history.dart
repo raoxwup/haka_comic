@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
@@ -148,12 +148,10 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
       ),
       body: switch (_handler.state) {
         RequestState(:final data) when data != null => CommonTMIList(
+          onItemSelected: _onItemSelected,
+          contextMenu: menu,
           controller: scrollController,
           comics: data.comics,
-          onTapDown: (details) => _details = details,
-          onLongPress: (item) {
-            _showContextMenu(context, _details.globalPosition, item);
-          },
         ),
         Error(:final error) => ErrorPage(
           errorMessage: error.toString(),
@@ -164,44 +162,19 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
     );
   }
 
-  late TapDownDetails _details;
+  final entries = <ContextMenuEntry>[
+    const MenuItem(label: Text('复制标题'), icon: Icon(Icons.copy), value: 'copy'),
+    const MenuItem(
+      label: Text('删除记录'),
+      icon: Icon(Icons.delete),
+      value: 'delete',
+    ),
+  ];
 
-  void _showContextMenu(BuildContext context, Offset offset, Doc item) async {
-    // 获取屏幕尺寸信息
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final screenSize = overlay.size;
+  late final menu = ContextMenu(entries: entries, padding: const .all(8.0));
 
-    // 创建相对位置矩形
-    final position = RelativeRect.fromRect(
-      Rect.fromLTWH(offset.dx, offset.dy, 1, 1),
-      Offset.zero & screenSize,
-    );
-
-    // 显示菜单
-    final String? result = await showMenu<String>(
-      context: context,
-      position: position,
-      items: [
-        const PopupMenuItem(
-          value: 'copy',
-          child: ListTile(leading: Icon(Icons.copy), title: Text('复制标题')),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: Icon(Icons.delete, color: context.colorScheme.error),
-            title: Text(
-              '删除记录',
-              style: TextStyle(color: context.colorScheme.error),
-            ),
-          ),
-        ),
-      ],
-      elevation: 4,
-    );
-
-    switch (result) {
+  void _onItemSelected(dynamic key, ComicBase item) async {
+    switch (key) {
       case 'copy':
         final title = item.title;
         await Clipboard.setData(ClipboardData(text: title));

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/android_download_saver.dart';
@@ -381,6 +382,34 @@ class _DownloadsState extends State<Downloads> {
     }
   }
 
+  void _startReader(ComicDownloadTask task) async {
+    final chapters = task.chapters.map((e) => e.toChapter()).toList();
+
+    final helper = ReadRecordHelper();
+
+    final record = await helper.query(task.comic.id);
+
+    var pageNo = 0;
+    var chapter = chapters.firstWhereOrNull((e) => e.id == record?.chapterId);
+
+    if (chapter != null) {
+      pageNo = record!.pageNo;
+    }
+
+    if (!mounted) return;
+    context.push(
+      '/reader',
+      extra: ComicState(
+        id: task.comic.id,
+        title: task.comic.title,
+        chapters: chapters,
+        pageNo: pageNo,
+        chapter: chapter ?? chapters.first,
+        type: ReaderType.local,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
@@ -445,20 +474,7 @@ class _DownloadsState extends State<Downloads> {
                         }
                       });
                     } else {
-                      final chapters = task.chapters
-                          .map((e) => e.toChapter())
-                          .toList();
-                      context.push(
-                        '/reader',
-                        extra: ComicState(
-                          id: task.comic.id,
-                          title: task.comic.title,
-                          chapters: chapters,
-                          pageNo: 0,
-                          chapter: chapters.first,
-                          type: ReaderType.local,
-                        ),
-                      );
+                      _startReader(task);
                     }
                   },
                   onItemSelected: _onContextMenuItemPress,
@@ -582,6 +598,7 @@ class _DownloadTaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContextMenuRegion(
+      key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
       enableDefaultGestures: !isSelecting,
       onItemSelected: (value) => onItemSelected(value!, task),

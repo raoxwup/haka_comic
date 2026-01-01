@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -8,24 +9,18 @@ class SimpleListItem extends StatelessWidget {
   const SimpleListItem({
     super.key,
     required this.doc,
-    this.isSelected = false,
-    this.onTapDown,
-    this.onSecondaryTapDown,
-    this.onLongPress,
-    this.onSecondaryTap,
+    this.contextMenu,
+    this.onItemSelected,
+    this.enableDefaultGestures = true,
   });
 
   final ComicBase doc;
 
-  final bool isSelected;
+  final ContextMenu? contextMenu;
 
-  final void Function(TapDownDetails)? onTapDown;
+  final void Function(dynamic, ComicBase)? onItemSelected;
 
-  final void Function(TapDownDetails)? onSecondaryTapDown;
-
-  final void Function(Doc)? onLongPress;
-
-  final void Function()? onSecondaryTap;
+  final bool enableDefaultGestures;
 
   @override
   Widget build(BuildContext context) {
@@ -34,50 +29,14 @@ class SimpleListItem extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: InkWell(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            onTap: () {
-              context.push('/details/${item.uid}');
-            },
-            onTapDown: onTapDown,
-            onSecondaryTapDown: onSecondaryTapDown,
-            onLongPress: item is Doc ? () => onLongPress?.call(item) : null,
-            onSecondaryTap: onSecondaryTap,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: isSelected
-                  ? BoxDecoration(
-                      color: context.colorScheme.secondaryContainer.withValues(
-                        alpha: 0.65,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    )
-                  : null,
-              child: SingleChildScrollView(
-                child: Column(
-                  spacing: 3,
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 1 / 1.4,
-                      child: UiImage(
-                        url: doc.thumb.url,
-                        cacheWidth: 140,
-                        shape: .rectangle,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    Text(
-                      item.title,
-                      style: context.textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          child: contextMenu != null
+              ? ContextMenuRegion(
+                  contextMenu: contextMenu!,
+                  enableDefaultGestures: enableDefaultGestures,
+                  onItemSelected: (value) => onItemSelected?.call(value, item),
+                  child: _buildContent(context, item),
+                )
+              : _buildContent(context, item),
         ),
 
         if (item.finished)
@@ -102,6 +61,41 @@ class SimpleListItem extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ComicBase item) {
+    return InkWell(
+      borderRadius: .circular(12),
+      onTap: () {
+        context.push('/details/${item.uid}');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        child: SingleChildScrollView(
+          child: Column(
+            spacing: 3,
+            children: [
+              AspectRatio(
+                aspectRatio: 1 / 1.4,
+                child: UiImage(
+                  url: doc.thumb.url,
+                  cacheWidth: 140,
+                  shape: .rectangle,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              Text(
+                item.title,
+                style: context.textTheme.titleSmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
