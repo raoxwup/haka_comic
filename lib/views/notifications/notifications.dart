@@ -36,6 +36,9 @@ class _NotificationsState extends State<Notifications>
   );
 
   @override
+  bool get pagination => false;
+
+  @override
   Future<void> loadMore() async {
     final pages = _handler.state.data?.notifications.pages ?? 1;
     if (_page >= pages) return;
