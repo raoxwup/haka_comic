@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
-import 'package:haka_comic/mixin/pagination_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/comics/common_pagination_footer.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 
 class Favorites extends StatefulWidget {
   const Favorites({super.key});
@@ -19,44 +19,34 @@ class Favorites extends StatefulWidget {
 }
 
 class _FavoritesState extends State<Favorites>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
+    with RequestMixin, PaginationMixin {
+  int _page = 1;
+  ComicSortType _sortType = ComicSortType.dd;
+
   late final _handler = fetchFavoriteComics.useRequest(
+    defaultParams: UserFavoritePayload(page: _page, sort: _sortType),
     onSuccess: (data, _) {
       Log.info('Fetch favorite comics success', data.toString());
-      setState(() {
-        if (!pagination) {
-          _comics.addAll(data.comics.docs);
-        } else {
-          _comics = data.comics.docs;
-        }
-        filterComics();
-      });
     },
     onError: (e, _) {
       Log.error('Fetch favorite comics error', e);
     },
+    reducer: pagination
+        ? null
+        : (prev, current) {
+            if (prev == null) return current;
+            return current.copyWith.comics(
+              docs: [...prev.comics.docs, ...current.comics.docs],
+            );
+          },
   );
 
-  List<Doc> _comics = [];
-  int _page = 1;
-  ComicSortType _sortType = ComicSortType.dd;
-
   @override
-  void initState() {
-    super.initState();
-
-    _handler.run(UserFavoritePayload(page: _page, sort: _sortType));
-  }
-
-  @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  List<ComicBase> get comics => _comics;
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Future<void> loadMore() async {
-    final pages = _handler.data?.comics.pages ?? 1;
+    final pages = _handler.state.data?.comics.pages ?? 1;
     if (_page >= pages) return;
     await _onPageChange(_page + 1);
   }
@@ -73,27 +63,19 @@ class _FavoritesState extends State<Favorites>
     setState(() {
       _page = 1;
       _sortType = sortType;
-      _comics = [];
-      filterComics();
     });
+    _handler.mutate(ComicsResponse.empty);
     _handler.run(UserFavoritePayload(page: 1, sort: sortType));
   }
 
   @override
   Widget build(BuildContext context) {
-    final pages = _handler.data?.comics.pages ?? 1;
-
     return RouteAwarePageWrapper(
       builder: (context, completed) {
         return Scaffold(
           appBar: AppBar(
             title: const Text('收藏漫画'),
             actions: [
-              IconButton(
-                tooltip: '刷新',
-                onPressed: () => _onPageChange(1),
-                icon: const Icon(Icons.refresh),
-              ),
               MenuAnchor(
                 menuChildren: <Widget>[
                   ...[
@@ -135,52 +117,32 @@ class _FavoritesState extends State<Favorites>
               ),
             ],
           ),
-          body: pagination
-              ? BasePage(
-                  isLoading: _handler.isLoading,
-                  onRetry: _handler.refresh,
-                  error: _handler.error,
-                  child: CommonTMIList(
-                    comics: filteredComics.cast<Doc>(),
-                    pageSelectorBuilder: (context) {
+          body: switch (_handler.state) {
+            RequestState(:final data) when data != null => CommonTMIList(
+              comics: data.comics.docs,
+              pageSelectorBuilder: pagination
+                  ? (context) {
                       return PageSelector(
                         currentPage: _page,
-                        pages: pages,
+                        pages: data.comics.pages,
                         onPageChange: _onPageChange,
                       );
+                    }
+                  : null,
+              controller: pagination ? null : scrollController,
+              footerBuilder: pagination
+                  ? null
+                  : (context) {
+                      final loading = _handler.state.loading;
+                      return CommonPaginationFooter(loading: loading);
                     },
-                  ),
-                )
-              : BasePage(
-                  isLoading: false,
-                  onRetry: _handler.refresh,
-                  error: _handler.error,
-                  child: CommonTMIList(
-                    comics: filteredComics.cast<Doc>(),
-                    controller: scrollController,
-                    footerBuilder: (context) {
-                      final loading = _handler.isLoading;
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: loading
-                                ? CircularProgressIndicator(
-                                    constraints: BoxConstraints.tight(
-                                      const Size(28, 28),
-                                    ),
-                                    strokeWidth: 3,
-                                  )
-                                : Text(
-                                    '没有更多数据了',
-                                    style: context.textTheme.bodySmall,
-                                  ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+            ),
+            Error(:final error) => ErrorPage(
+              errorMessage: error.toString(),
+              onRetry: _handler.refresh,
+            ),
+            _ => const Center(child: CircularProgressIndicator()),
+          },
         );
       },
     );

@@ -28,6 +28,7 @@ extension RequestHandlerWithParamsExtensions<T, P> on Future<T> Function(P) {
     void Function(T, P)? onSuccess,
     void Function(Object, P)? onError,
     void Function(P)? onFinally,
+    T Function(T? prev, T current)? reducer,
   }) {
     return RequestHandlerWithParams<T, P>(
       this,
@@ -37,6 +38,7 @@ extension RequestHandlerWithParamsExtensions<T, P> on Future<T> Function(P) {
       onSuccess: onSuccess,
       onError: onError,
       onFinally: onFinally,
+      reducer: reducer,
     );
   }
 }

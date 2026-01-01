@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
-import 'package:haka_comic/mixin/pagination_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/comics/common_pagination_footer.dart';
+import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
-import 'package:haka_comic/views/comics/simple_list_item.dart';
-import 'package:haka_comic/views/comics/tmi_list.dart';
-import 'package:haka_comic/views/comics/list_item.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:provider/provider.dart';
 
 class SearchComics extends StatefulWidget {
@@ -29,39 +27,40 @@ class SearchComics extends StatefulWidget {
 }
 
 class _SearchComicsState extends State<SearchComics>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
+    with RequestMixin, PaginationMixin {
   final _searchController = TextEditingController();
 
   late final _handler = searchComics.useRequest(
+    defaultParams: SearchPayload(
+      keyword: widget.keyword,
+      page: _page,
+      sort: _sortType,
+    ),
     onSuccess: (data, _) {
       Log.info('Search comics success', data.toString());
-      setState(() {
-        if (!pagination) {
-          _comics.addAll(data.comics.docs);
-        } else {
-          _comics = data.comics.docs;
-        }
-        filterComics();
-      });
     },
     onError: (e, _) {
       Log.error('Search comics error', e);
     },
+    reducer: pagination
+        ? null
+        : (prev, current) {
+            if (prev == null) return current;
+            return current.copyWith.comics(
+              docs: [...prev.comics.docs, ...current.comics.docs],
+            );
+          },
   );
 
-  List<SearchComic> _comics = [];
   int _page = 1;
   ComicSortType _sortType = ComicSortType.dd;
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  List<ComicBase> get comics => _comics;
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Future<void> loadMore() async {
-    final pages = _handler.data?.comics.pages ?? 1;
+    final pages = _handler.state.data?.comics.pages ?? 1;
     if (_page >= pages) return;
     await _onPageChange(_page + 1);
   }
@@ -71,10 +70,6 @@ class _SearchComicsState extends State<SearchComics>
     super.initState();
 
     _searchController.text = widget.keyword;
-
-    _handler.run(
-      SearchPayload(keyword: widget.keyword, page: _page, sort: _sortType),
-    );
   }
 
   Future<void> _onPageChange(int page) async {
@@ -130,60 +125,33 @@ class _SearchComicsState extends State<SearchComics>
               ),
             ],
           ),
-          body: BasePage(
-            isLoading: pagination ? (_handler.isLoading || !completed) : false,
-            error: _handler.error,
-            onRetry: _handler.refresh,
-            child: _buildList(pagination),
-          ),
+          body: switch (_handler.state) {
+            RequestState(:final data) when data != null => CommonTMIList(
+              controller: pagination ? null : scrollController,
+              comics: context.filtered(data.comics.docs),
+              pageSelectorBuilder: pagination
+                  ? (context) => PageSelector(
+                      currentPage: _page,
+                      pages: data.comics.pages,
+                      onPageChange: _onPageChange,
+                    )
+                  : null,
+              footerBuilder: pagination
+                  ? null
+                  : (context) {
+                      final loading = _handler.state.loading;
+                      return CommonPaginationFooter(loading: loading);
+                    },
+            ),
+            Error(:final error) => ErrorPage(
+              errorMessage: error.toString(),
+              onRetry: _handler.refresh,
+            ),
+            _ => const Center(child: CircularProgressIndicator()),
+          },
         );
       },
     );
-  }
-
-  Widget _buildList(bool pagination) {
-    final pages = _handler.data?.comics.pages ?? 1;
-    return TMIList(
-      controller: pagination ? null : scrollController,
-      itemCount: filteredComics.length,
-      itemBuilder: _buildItem,
-      pageSelectorBuilder: pagination
-          ? (context) => PageSelector(
-              currentPage: _page,
-              pages: pages,
-              onPageChange: _onPageChange,
-            )
-          : null,
-      footerBuilder: pagination
-          ? null
-          : (context) {
-              final loading = _handler.isLoading;
-              return SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: loading
-                        ? CircularProgressIndicator(
-                            constraints: BoxConstraints.tight(
-                              const Size(28, 28),
-                            ),
-                            strokeWidth: 3,
-                          )
-                        : Text('没有更多数据了', style: context.textTheme.bodySmall),
-                  ),
-                ),
-              );
-            },
-    );
-  }
-
-  Widget _buildItem(BuildContext context, int index) {
-    final item = filteredComics[index] as SearchComic;
-    final key = ValueKey(item.uid);
-
-    return isSimpleMode
-        ? SimpleListItem(doc: item, key: key)
-        : ListItem(doc: item, key: key);
   }
 
   void _buildSortTypeSelector() {
@@ -201,9 +169,8 @@ class _SearchComicsState extends State<SearchComics>
     setState(() {
       _sortType = type;
       _page = 1;
-      _comics = [];
-      filterComics();
     });
+    _handler.mutate(SearchResponse.empty);
     _handler.run(
       SearchPayload(keyword: _searchController.text, page: 1, sort: type),
     );

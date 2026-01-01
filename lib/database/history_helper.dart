@@ -67,6 +67,10 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
     await migrations.migrate(db);
   }
 
+  HistoryChangeEvent? _lastEvent;
+
+  HistoryChangeEvent? get lastEvent => _lastEvent;
+
   Future<void> insert(Comic comic) async {
     await db.writeTransaction((tx) async {
       await tx.execute(
@@ -120,16 +124,19 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
         ],
       );
     });
+    _lastEvent = InsertEvent(comic);
     notifyListeners();
   }
 
   Future<void> delete(String id) async {
     await db.execute('DELETE FROM history WHERE cid = ?', [id]);
+    _lastEvent = DeleteEvent(id);
     notifyListeners();
   }
 
   Future<void> deleteAll() async {
     await db.execute('DELETE FROM history');
+    _lastEvent = const DeleteAllEvent();
     notifyListeners();
   }
 
@@ -173,6 +180,29 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
   Future<void> restore(File file) async {
     await super.restore(file);
     await Future.delayed(const Duration(milliseconds: 100));
+    _lastEvent = const RestoreEvent();
     notifyListeners();
   }
+}
+
+sealed class HistoryChangeEvent {
+  const HistoryChangeEvent();
+}
+
+final class DeleteEvent extends HistoryChangeEvent {
+  final String id;
+  const DeleteEvent(this.id);
+}
+
+final class DeleteAllEvent extends HistoryChangeEvent {
+  const DeleteAllEvent();
+}
+
+final class InsertEvent extends HistoryChangeEvent {
+  final Comic comic;
+  const InsertEvent(this.comic);
+}
+
+final class RestoreEvent extends HistoryChangeEvent {
+  const RestoreEvent();
 }

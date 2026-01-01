@@ -8,6 +8,7 @@ import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/providers/theme_color_provider.dart';
@@ -20,7 +21,7 @@ import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/widgets/button.dart';
-import 'package:provider/provider.dart' hide Consumer;
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -37,6 +38,10 @@ void main(List<String> args) {
                   ChangeNotifierProvider(create: (_) => ThemeColorProvider()),
                   ChangeNotifierProvider(create: (_) => SearchProvider()),
                   ChangeNotifierProvider(create: (_) => UserProvider()),
+                  ChangeNotifierProvider(
+                    create: (_) => BlockProvider(),
+                    lazy: false,
+                  ),
                 ],
                 child: const App(),
               ),

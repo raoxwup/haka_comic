@@ -8,6 +8,7 @@ import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/download/fetch_local_images.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/utils/image_preload_controller.dart';
@@ -23,7 +24,7 @@ extension BuildContextReader on BuildContext {
 }
 
 typedef FetchImageHandler =
-    RequestHandlerWithParams<List<ChapterImage>, FetchChapterImagesPayload>;
+    RequestHandlerWithParams<List<ImageBase>, FetchChapterImagesPayload>;
 
 class ReaderProvider extends RequestProvider {
   ReaderProvider({required ComicState state}) {
@@ -32,8 +33,12 @@ class ReaderProvider extends RequestProvider {
     chapters = state.chapters;
     chapter = state.chapter;
     pageNo = state.pageNo;
+    type = state.type;
 
-    handler = fetchChapterImages.useRequest(
+    final Future<List<ImageBase>> Function(FetchChapterImagesPayload) request =
+        type == ReaderType.network ? fetchChapterImages : fetchLocalImages;
+
+    handler = request.useRequest(
       defaultParams: FetchChapterImagesPayload(
         id: state.id,
         order: chapter.order,
@@ -50,6 +55,9 @@ class ReaderProvider extends RequestProvider {
 
     register(handler);
   }
+
+  /// 读取的是本地图片还是网络图片
+  late final ReaderType type;
 
   /// 获取图片的handler
   late final FetchImageHandler handler;
@@ -92,10 +100,10 @@ class ReaderProvider extends RequestProvider {
   final pageController = PageController();
 
   /// 章节图片
-  List<ChapterImage> get images => handler.state.data ?? [];
+  List<ImageBase> get images => handler.state.data ?? [];
 
   ///多页模式下章节图片
-  List<List<ChapterImage>> get multiPageImages => splitList(images, 2);
+  List<List<ImageBase>> get multiPageImages => splitList(images, 2);
 
   /// 章节总页数
   int get pageCount =>
@@ -308,14 +316,15 @@ class ReaderProvider extends RequestProvider {
     }
   }
 
-  late final ImagePreloadController<ChapterImage> preloadController;
+  late ImagePreloadController<ImageBase> preloadController;
 
   /// 初始化图片预加载控制器
   void initPreloadController(BuildContext context) {
-    preloadController = ImagePreloadController<ChapterImage>(
+    preloadController = ImagePreloadController<ImageBase>(
       items: images,
-      urlResolver: (image) => image.media.url,
+      urlResolver: (image) => image.url,
       context: context,
+      type: type,
     );
   }
 

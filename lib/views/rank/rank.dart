@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/ui_image.dart';
 
 class Rank extends StatefulWidget {
@@ -79,14 +79,11 @@ class ComicRank extends StatefulWidget {
 }
 
 class _ComicRankState extends State<ComicRank>
-    with
-        AutomaticKeepAliveClientMixin,
-        AutoRegisterHandlerMixin,
-        BlockedWordsMixin {
+    with AutomaticKeepAliveClientMixin, RequestMixin {
   late final _handler = fetchComicRank.useRequest(
+    defaultParams: ComicRankPayload(type: widget.type),
     onSuccess: (data, _) {
       Log.info('Fetch comic rank success', data.toString());
-      setState(filterComics);
     },
     onError: (e, _) {
       Log.error('Fetch comic rank error', e);
@@ -94,27 +91,22 @@ class _ComicRankState extends State<ComicRank>
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  List<ComicBase> get comics => _handler.data?.comics ?? [];
-
-  @override
-  void initState() {
-    super.initState();
-    _handler.run(ComicRankPayload(type: widget.type));
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    return BasePage(
-      isLoading: _handler.isLoading || !widget.isRouteAnimationCompleted,
-      onRetry: _handler.refresh,
-      error: _handler.error,
-      child: CommonTMIList(comics: filteredComics.cast<Doc>()),
-    );
+    return switch (_handler.state) {
+      Success(:final data) => CommonTMIList(
+        comics: context.filtered(data.comics),
+      ),
+      Error(:final error) => ErrorPage(
+        errorMessage: error.toString(),
+        onRetry: _handler.refresh,
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    };
   }
 
   @override
@@ -128,36 +120,25 @@ class KnightRank extends StatefulWidget {
   State<KnightRank> createState() => _KnightRankState();
 }
 
-class _KnightRankState extends State<KnightRank> with AutoRegisterHandlerMixin {
+class _KnightRankState extends State<KnightRank> with RequestMixin {
   final _handler = fetchKnightRank.useRequest(
-    onSuccess: (data, _) {
+    onSuccess: (data) {
       Log.info('Fetch knight rank success', data.toString());
     },
-    onError: (e, _) {
+    onError: (e) {
       Log.error('Fetch knight rank error', e);
     },
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  void initState() {
-    super.initState();
-    _handler.run();
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   Widget build(BuildContext context) {
-    final users = _handler.data?.users ?? [];
-
-    return BasePage(
-      isLoading: _handler.isLoading,
-      onRetry: _handler.refresh,
-      error: _handler.error,
-      child: ListView.separated(
+    return switch (_handler.state) {
+      Success(:final data) => ListView.separated(
         itemBuilder: (context, index) {
-          final user = users[index];
+          final user = data.users[index];
           return InkWell(
             onTap: () => context.push('/comics?ca=${user.id}'),
             child: Container(
@@ -206,8 +187,13 @@ class _KnightRankState extends State<KnightRank> with AutoRegisterHandlerMixin {
           );
         },
         separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemCount: users.length,
+        itemCount: data.users.length,
       ),
-    );
+      Error(:final error) => ErrorPage(
+        errorMessage: error.toString(),
+        onRetry: _handler.refresh,
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    };
   }
 }

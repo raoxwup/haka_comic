@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/button.dart';
 
 class CommentInput extends StatefulWidget {
@@ -9,35 +10,22 @@ class CommentInput extends StatefulWidget {
 
   final String id;
 
-  final AsyncRequestHandler1<void, SendCommentPayload> handler;
+  final RequestHandlerWithParams<void, SendCommentPayload> handler;
 
   @override
   State<CommentInput> createState() => _CommentInputState();
 }
 
-class _CommentInputState extends State<CommentInput> {
-  late final AsyncRequestHandler1<void, SendCommentPayload> _handler;
+class _CommentInputState extends State<CommentInput> with RequestMixin {
+  late final _handler = widget.handler;
   final _commentController = TextEditingController();
 
-  void _update() => setState(() {});
-
   @override
-  void initState() {
-    super.initState();
-    _handler = widget.handler;
-    _handler.isLoading = false;
-
-    _handler.addListener(_update);
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   @override
   void dispose() {
-    _handler
-      ..removeListener(_update)
-      ..dispose();
-
     _commentController.dispose();
-
     super.dispose();
   }
 
@@ -46,48 +34,50 @@ class _CommentInputState extends State<CommentInput> {
     final content = _commentController.text;
     final bottom = context.viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(15, 15, 15, 5 + bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 5,
-        children: [
-          TextField(
-            minLines: 3,
-            maxLines: 10,
-            keyboardType: TextInputType.multiline,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: '评论',
-              border: const OutlineInputBorder(borderSide: BorderSide.none),
-              filled: true,
-              fillColor: context.colorScheme.surfaceContainerHighest,
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(15, 15, 15, 5 + bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 5,
+          children: [
+            TextField(
+              minLines: 3,
+              maxLines: 10,
+              keyboardType: TextInputType.multiline,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: '评论',
+                border: const OutlineInputBorder(borderSide: BorderSide.none),
+                filled: true,
+                fillColor: context.colorScheme.surfaceContainerHighest,
+              ),
+              controller: _commentController,
+              onChanged: (_) => setState(() {}),
             ),
-            controller: _commentController,
-            onChanged: (_) => _update(),
-          ),
-          Row(
-            spacing: 5,
-            children: [
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: Text('取消', style: context.textTheme.bodyMedium),
-              ),
-              Button.text(
-                isLoading: _handler.isLoading,
-                onPressed: content.isEmpty
-                    ? null
-                    : () {
-                        _handler.run(
-                          SendCommentPayload(id: widget.id, content: content),
-                        );
-                      },
-                child: const Text('发送'),
-              ),
-            ],
-          ),
-        ],
+            Row(
+              spacing: 5,
+              children: [
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: Text('取消', style: context.textTheme.bodyMedium),
+                ),
+                Button.text(
+                  isLoading: _handler.state.loading,
+                  onPressed: content.isEmpty
+                      ? null
+                      : () {
+                          _handler.run(
+                            SendCommentPayload(id: widget.id, content: content),
+                          );
+                        },
+                  child: const Text('发送'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

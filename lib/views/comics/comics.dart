@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
-import 'package:haka_comic/mixin/blocked_words.dart';
-import 'package:haka_comic/mixin/pagination_handler.dart';
+import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
-import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/comics/common_pagination_footer.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/views/comics/sort_type_selector.dart';
-import 'package:haka_comic/widgets/base_page.dart';
+import 'package:haka_comic/widgets/error_page.dart';
 
 class Comics extends StatefulWidget {
   const Comics({super.key, this.t, this.c, this.a, this.ct, this.ca});
@@ -34,57 +33,44 @@ class Comics extends StatefulWidget {
   State<Comics> createState() => _ComicsState();
 }
 
-class _ComicsState extends State<Comics>
-    with AutoRegisterHandlerMixin, PaginationHandlerMixin, BlockedWordsMixin {
+class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
   ComicSortType sortType = ComicSortType.dd;
   int page = 1;
-  List<Doc> _comics = [];
 
   late final handler = fetchComics.useRequest(
+    defaultParams: ComicsPayload(
+      c: widget.c,
+      s: sortType,
+      page: page,
+      t: widget.t,
+      ca: widget.ca,
+      a: widget.a,
+      ct: widget.ct,
+    ),
     onSuccess: (data, _) {
       Log.info("Fetch comics success", data.toString());
-      setState(() {
-        if (!pagination) {
-          _comics.addAll(data.comics.docs);
-        } else {
-          _comics = data.comics.docs;
-        }
-        filterComics();
-      });
     },
     onError: (e, _) {
       Log.error('Fetch comics failed', e);
     },
+    reducer: pagination
+        ? null
+        : (prev, current) {
+            if (prev == null) return current;
+            return current.copyWith.comics(
+              docs: [...prev.comics.docs, ...current.comics.docs],
+            );
+          },
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [handler];
-
-  @override
-  List<ComicBase> get comics => _comics;
+  List<RequestHandler> registerHandler() => [handler];
 
   @override
   Future<void> loadMore() async {
-    final pages = handler.data?.comics.pages ?? 1;
+    final pages = handler.state.data?.comics.pages ?? 1;
     if (page >= pages) return;
     await _onPageChange(page + 1);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    handler.run(
-      ComicsPayload(
-        c: widget.c,
-        s: sortType,
-        page: page,
-        t: widget.t,
-        ca: widget.ca,
-        a: widget.a,
-        ct: widget.ct,
-      ),
-    );
   }
 
   Future<void> _onPageChange(int page) async {
@@ -106,70 +92,44 @@ class _ComicsState extends State<Comics>
 
   @override
   Widget build(BuildContext context) {
-    final int pages = handler.data?.comics.pages ?? 1;
-
-    return RouteAwarePageWrapper(
-      builder: (context, completed) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              widget.c ??
-                  widget.t ??
-                  widget.a ??
-                  widget.ct ??
-                  widget.ca ??
-                  '最近更新',
-            ),
-            actions: [
-              IconButton(
-                tooltip: '排序',
-                icon: const Icon(Icons.sort),
-                onPressed: _buildSortTypeSelector,
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '最近更新',
+        ),
+        actions: [
+          IconButton(
+            tooltip: '排序',
+            icon: const Icon(Icons.sort),
+            onPressed: _buildSortTypeSelector,
           ),
-          body: BasePage(
-            isLoading: pagination ? (handler.isLoading || !completed) : false,
-            onRetry: handler.refresh,
-            error: handler.error,
-            child: CommonTMIList(
-              controller: pagination ? null : scrollController,
-              comics: filteredComics.cast<Doc>(),
-              pageSelectorBuilder: pagination
-                  ? (context) {
-                      return PageSelector(
-                        pages: pages,
-                        onPageChange: _onPageChange,
-                        currentPage: page,
-                      );
-                    }
-                  : null,
-              footerBuilder: pagination
-                  ? null
-                  : (context) {
-                      final loading = handler.isLoading;
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: loading
-                                ? CircularProgressIndicator(
-                                    constraints: BoxConstraints.tight(
-                                      const Size(28, 28),
-                                    ),
-                                    strokeWidth: 3,
-                                  )
-                                : Text(
-                                    '没有更多数据了',
-                                    style: context.textTheme.bodySmall,
-                                  ),
-                          ),
-                        ),
-                      );
-                    },
-            ),
-          ),
-        );
+        ],
+      ),
+      body: switch (handler.state) {
+        RequestState(:final data) when data != null => CommonTMIList(
+          controller: pagination ? null : scrollController,
+          comics: context.filtered(data.comics.docs),
+          pageSelectorBuilder: pagination
+              ? (context) {
+                  return PageSelector(
+                    pages: data.comics.pages,
+                    onPageChange: _onPageChange,
+                    currentPage: page,
+                  );
+                }
+              : null,
+          footerBuilder: pagination
+              ? null
+              : (context) {
+                  final loading = handler.state.loading;
+                  return CommonPaginationFooter(loading: loading);
+                },
+        ),
+        Error(:final error) => ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: handler.refresh,
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
       },
     );
   }
@@ -179,9 +139,8 @@ class _ComicsState extends State<Comics>
     setState(() {
       sortType = type;
       page = 1;
-      _comics = [];
-      filterComics();
     });
+    handler.mutate(ComicsResponse.empty);
     handler.run(
       ComicsPayload(
         c: widget.c,

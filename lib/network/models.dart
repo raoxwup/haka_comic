@@ -1,8 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
+part 'models.freezed.dart';
 
 class BaseResponse<T> {
   final int code;
@@ -238,41 +239,29 @@ class Doc extends ComicBase {
   Map<String, dynamic> toJson() => _$DocToJson(this);
 }
 
-@JsonSerializable()
-class Comics {
-  final List<Doc> docs;
-
-  final int total;
-
-  final int limit;
-
-  final int page;
-
-  final int pages;
-
-  Comics({
-    required this.docs,
-    required this.limit,
-    required this.page,
-    required this.pages,
-    required this.total,
-  });
+@freezed
+abstract class Comics with _$Comics {
+  const factory Comics({
+    required List<Doc> docs,
+    required int limit,
+    required int page,
+    required int pages,
+    required int total,
+  }) = _Comics;
 
   factory Comics.fromJson(Map<String, dynamic> json) => _$ComicsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ComicsToJson(this);
 }
 
-@JsonSerializable()
-class ComicsResponse {
-  final Comics comics;
-
-  ComicsResponse({required this.comics});
+@freezed
+abstract class ComicsResponse with _$ComicsResponse {
+  const factory ComicsResponse({required Comics comics}) = _ComicsResponse;
 
   factory ComicsResponse.fromJson(Map<String, dynamic> json) =>
       _$ComicsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ComicsResponseToJson(this);
+  static ComicsResponse get empty => const ComicsResponse(
+    comics: Comics(docs: [], limit: 0, page: 0, pages: 0, total: 0),
+  );
 }
 
 @JsonSerializable()
@@ -610,47 +599,33 @@ class Comment {
   Map<String, dynamic> toJson() => _$CommentToJson(this);
 }
 
-@JsonSerializable()
-class Comments {
-  final List<Comment> docs;
+int pageFormat(dynamic value) => int.tryParse(value.toString()) ?? 1;
 
-  final int total;
-
-  @JsonKey(defaultValue: 20)
-  final int limit;
-
-  /// 极端情况下又返回的不是字符串....
-  @JsonKey(fromJson: _pageFormat)
-  final String page;
-
-  final int pages;
-
-  Comments({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
-
-  static String _pageFormat(dynamic value) => value.toString();
+@freezed
+abstract class Comments with _$Comments {
+  const factory Comments({
+    required List<Comment> docs,
+    required int total,
+    @Default(20) int limit,
+    @JsonKey(fromJson: pageFormat) required int page,
+    required int pages,
+  }) = _Comments;
 
   factory Comments.fromJson(Map<String, dynamic> json) =>
       _$CommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$CommentsToJson(this);
 }
 
-@JsonSerializable()
-class CommentsResponse {
-  final Comments comments;
-
-  CommentsResponse({required this.comments});
+@freezed
+abstract class CommentsResponse with _$CommentsResponse {
+  const factory CommentsResponse({required Comments comments}) =
+      _CommentsResponse;
 
   factory CommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$CommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CommentsResponseToJson(this);
+  static CommentsResponse get empty => const CommentsResponse(
+    comments: Comments(docs: [], total: 0, limit: 0, page: 0, pages: 0),
+  );
 }
 
 class SendCommentPayload {
@@ -718,42 +693,31 @@ class SubComment {
   Map<String, dynamic> toJson() => _$SubCommentToJson(this);
 }
 
-@JsonSerializable()
-class SubComments {
-  final List<SubComment> docs;
-
-  final int total;
-
-  final int limit;
-
-  final String page;
-
-  final int pages;
-
-  SubComments({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
+@freezed
+abstract class SubComments with _$SubComments {
+  const factory SubComments({
+    required List<SubComment> docs,
+    required int total,
+    required int limit,
+    required String page,
+    required int pages,
+  }) = _SubComments;
 
   factory SubComments.fromJson(Map<String, dynamic> json) =>
       _$SubCommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SubCommentsToJson(this);
 }
 
-@JsonSerializable()
-class SubCommentsResponse {
-  final SubComments comments;
-
-  SubCommentsResponse({required this.comments});
+@freezed
+abstract class SubCommentsResponse with _$SubCommentsResponse {
+  const factory SubCommentsResponse({required SubComments comments}) =
+      _SubCommentsResponse;
 
   factory SubCommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$SubCommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SubCommentsResponseToJson(this);
+  static SubCommentsResponse get empty => const SubCommentsResponse(
+    comments: SubComments(docs: [], total: 0, limit: 0, page: '', pages: 0),
+  );
 }
 
 class SubCommentsPayload {
@@ -862,42 +826,31 @@ class SearchComic extends ComicBase {
   Map<String, dynamic> toJson() => _$SearchComicToJson(this);
 }
 
-@JsonSerializable()
-class SearchComics {
-  final List<SearchComic> docs;
-
-  final int total;
-
-  final int limit;
-
-  final int page;
-
-  final int pages;
-
-  SearchComics({
-    required this.docs,
-    required this.total,
-    required this.limit,
-    required this.page,
-    required this.pages,
-  });
+@freezed
+abstract class SearchComics with _$SearchComics {
+  const factory SearchComics({
+    required List<SearchComic> docs,
+    required int total,
+    required int limit,
+    required int page,
+    required int pages,
+  }) = _SearchComics;
 
   factory SearchComics.fromJson(Map<String, dynamic> json) =>
       _$SearchComicsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SearchComicsToJson(this);
 }
 
-@JsonSerializable()
-class SearchResponse {
-  final SearchComics comics;
-
-  SearchResponse({required this.comics});
+@freezed
+abstract class SearchResponse with _$SearchResponse {
+  const factory SearchResponse({required SearchComics comics}) =
+      _SearchResponse;
 
   factory SearchResponse.fromJson(Map<String, dynamic> json) =>
       _$SearchResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SearchResponseToJson(this);
+  static SearchResponse get empty => const SearchResponse(
+    comics: SearchComics(docs: [], total: 0, limit: 0, page: 0, pages: 0),
+  );
 }
 
 class UserFavoritePayload {
@@ -943,11 +896,32 @@ class FetchChapterImagesPayload {
   const FetchChapterImagesPayload({required this.id, required this.order});
 }
 
+abstract class ImageBase {
+  String get url;
+  String? get id;
+  String get uid;
+}
+
+class LocalImage extends ImageBase {
+  @override
+  final String uid;
+
+  @override
+  final String? id;
+
+  @override
+  final String url;
+
+  LocalImage({required this.uid, required this.id, required this.url});
+}
+
 @JsonSerializable()
-class ChapterImage {
+class ChapterImage extends ImageBase {
+  @override
   @JsonKey(name: '_id')
   final String uid;
 
+  @override
   final String? id;
 
   final ImageDetail media;
@@ -958,6 +932,9 @@ class ChapterImage {
       _$ChapterImageFromJson(json);
 
   Map<String, dynamic> toJson() => _$ChapterImageToJson(this);
+
+  @override
+  String get url => media.url;
 }
 
 @JsonSerializable()
@@ -1228,7 +1205,7 @@ class PersonalComment {
 
   final bool isLiked;
 
-  PersonalComment({
+  const PersonalComment({
     required this.uid,
     required this.content,
     required this.comic,
@@ -1246,44 +1223,64 @@ class PersonalComment {
       _$PersonalCommentFromJson(json);
 
   Map<String, dynamic> toJson() => _$PersonalCommentToJson(this);
+
+  Comment toComment(User user) => Comment(
+    uid: uid,
+    content: content,
+    user: Creator(
+      id: user.id,
+      characters: user.characters,
+      exp: user.exp,
+      gender: user.gender,
+      level: user.level,
+      name: user.name,
+      role: '',
+      title: user.title,
+      avatar: user.avatar,
+    ),
+    comic: comic?.title ?? '',
+    totalComments: totalComments,
+    isTop: false,
+    hide: hide,
+    created_at: created_at,
+    id: uid,
+    likesCount: likesCount,
+    commentsCount: commentsCount,
+    isLiked: isLiked,
+  );
 }
 
-@JsonSerializable()
-class PersonalComments {
-  final List<PersonalComment> docs;
-
-  final int pages;
-
-  final int total;
-
-  final int limit;
-
-  final String page;
-
-  PersonalComments({
-    required this.docs,
-    required this.pages,
-    required this.total,
-    required this.limit,
-    required this.page,
-  });
+@freezed
+abstract class PersonalComments with _$PersonalComments {
+  const factory PersonalComments({
+    required List<PersonalComment> docs,
+    required int pages,
+    required int total,
+    required int limit,
+    required String page,
+  }) = _PersonalComments;
 
   factory PersonalComments.fromJson(Map<String, dynamic> json) =>
       _$PersonalCommentsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PersonalCommentsToJson(this);
 }
 
-@JsonSerializable()
-class PersonalCommentsResponse {
-  final PersonalComments comments;
-
-  PersonalCommentsResponse({required this.comments});
+@freezed
+abstract class PersonalCommentsResponse with _$PersonalCommentsResponse {
+  const factory PersonalCommentsResponse({required PersonalComments comments}) =
+      _PersonalCommentsResponse;
 
   factory PersonalCommentsResponse.fromJson(Map<String, dynamic> json) =>
       _$PersonalCommentsResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PersonalCommentsResponseToJson(this);
+  static PersonalCommentsResponse get empty => const PersonalCommentsResponse(
+    comments: PersonalComments(
+      docs: [],
+      pages: 0,
+      total: 0,
+      limit: 0,
+      page: '0',
+    ),
+  );
 }
 
 @JsonSerializable()
@@ -1340,36 +1337,38 @@ class RegisterPayload {
   };
 }
 
-@JsonSerializable()
-class NotificationsResponse {
-  final NotificationsData notifications;
-
-  NotificationsResponse({required this.notifications});
+@freezed
+abstract class NotificationsResponse with _$NotificationsResponse {
+  const factory NotificationsResponse({
+    required NotificationsData notifications,
+  }) = _NotificationsResponse;
 
   factory NotificationsResponse.fromJson(Map<String, dynamic> json) =>
       _$NotificationsResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$NotificationsResponseToJson(this);
+
+  static NotificationsResponse get empty => const NotificationsResponse(
+    notifications: NotificationsData(
+      docs: [],
+      limit: 0,
+      page: 0,
+      pages: 0,
+      total: 0,
+    ),
+  );
 }
 
-@JsonSerializable()
-class NotificationsData {
-  final List<NotificationDoc> docs;
-  final int limit;
-  final int page;
-  final int pages;
-  final int total;
-
-  NotificationsData({
-    required this.docs,
-    required this.limit,
-    required this.page,
-    required this.pages,
-    required this.total,
-  });
+@freezed
+abstract class NotificationsData with _$NotificationsData {
+  const factory NotificationsData({
+    required List<NotificationDoc> docs,
+    required int limit,
+    required int page,
+    required int pages,
+    required int total,
+  }) = _NotificationsData;
 
   factory NotificationsData.fromJson(Map<String, dynamic> json) =>
       _$NotificationsDataFromJson(json);
-  Map<String, dynamic> toJson() => _$NotificationsDataToJson(this);
 }
 
 @JsonSerializable()

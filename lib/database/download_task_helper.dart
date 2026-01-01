@@ -280,4 +280,12 @@ class DownloadTaskHelper with ChangeNotifier {
       );
     }).toList();
   }
+
+  Future<DownloadComic> getDownloadComic(String id) async {
+    final result = await _db.get(
+      'SELECT id, title, cover FROM download_comic WHERE id = ?',
+      [id],
+    );
+    return DownloadComic.fromJson(result);
+  }
 }

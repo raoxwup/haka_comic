@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/android_download_saver.dart';
@@ -14,6 +15,7 @@ import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -380,6 +382,34 @@ class _DownloadsState extends State<Downloads> {
     }
   }
 
+  void _startReader(ComicDownloadTask task) async {
+    final chapters = task.chapters.map((e) => e.toChapter()).toList();
+
+    final helper = ReadRecordHelper();
+
+    final record = await helper.query(task.comic.id);
+
+    var pageNo = 0;
+    var chapter = chapters.firstWhereOrNull((e) => e.id == record?.chapterId);
+
+    if (chapter != null) {
+      pageNo = record!.pageNo;
+    }
+
+    if (!mounted) return;
+    context.push(
+      '/reader',
+      extra: ComicState(
+        id: task.comic.id,
+        title: task.comic.title,
+        chapters: chapters,
+        pageNo: pageNo,
+        chapter: chapter ?? chapters.first,
+        type: ReaderType.local,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = context.width;
@@ -443,6 +473,8 @@ class _DownloadsState extends State<Downloads> {
                           _selectedTaskIds.add(task.comic.id);
                         }
                       });
+                    } else {
+                      _startReader(task);
                     }
                   },
                   onItemSelected: _onContextMenuItemPress,
@@ -566,6 +598,7 @@ class _DownloadTaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContextMenuRegion(
+      key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
       enableDefaultGestures: !isSelecting,
       onItemSelected: (value) => onItemSelected(value!, task),
@@ -586,10 +619,11 @@ class _DownloadTaskItem extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 90 / 130,
-                child: Card(
-                  elevation: 0,
-                  clipBehavior: .hardEdge,
-                  child: UiImage(url: task.comic.cover, cacheWidth: 180),
+                child: UiImage(
+                  url: task.comic.cover,
+                  cacheWidth: 180,
+                  shape: .rectangle,
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               const SizedBox(width: 12),

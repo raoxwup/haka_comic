@@ -22,7 +22,6 @@ class StartupPrepare {
       SetupConf.initialize(),
       RustLib.init(),
     ]);
-    DownloadTaskHelper().initialize();
     return Future.wait([
       HistoryHelper().initialize(),
       ImagesHelper().initialize(),
@@ -30,6 +29,7 @@ class StartupPrepare {
       BackgroundDownloader.initialize(),
       TagBlockHelper().initialize(),
       WordBlockHelper().initialize(),
+      DownloadTaskHelper().initialize(),
       if (isAndroid) FlutterDisplayMode.setHighRefreshRate(),
       startDesktop(),
     ]);

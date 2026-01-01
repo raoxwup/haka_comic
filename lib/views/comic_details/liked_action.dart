@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/network/http.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class LikedAction extends StatefulWidget {
@@ -20,6 +20,7 @@ class _LikedActionState extends State<LikedAction>
   late bool _isLiked;
   late AnimationController _controller;
   late Animation<double> _animation;
+
   late final handler = likeComic.useRequest(
     onSuccess: (data, _) {
       Log.info('Like comic success', data.action);

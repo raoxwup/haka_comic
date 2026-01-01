@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/utils/extension.dart' hide UseRequestExtensions;
+import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/utils/ui.dart';
@@ -78,7 +78,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
         crossAxisSpacing: 3,
         childAspectRatio: 1 / 1.35,
       ),
-      padding: const EdgeInsets.all(8.0),
+      padding: const .symmetric(horizontal: 8.0),
       itemCount: visibleExtraMenus.length + visibleCategories.length,
       itemBuilder: (context, index) {
         if (index < visibleExtraMenus.length) {

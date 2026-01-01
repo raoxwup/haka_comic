@@ -90,32 +90,6 @@ Map<String, dynamic> _$DocToJson(Doc instance) => <String, dynamic>{
   'tags': instance.tags,
 };
 
-Comics _$ComicsFromJson(Map<String, dynamic> json) => Comics(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  limit: (json['limit'] as num).toInt(),
-  page: (json['page'] as num).toInt(),
-  pages: (json['pages'] as num).toInt(),
-  total: (json['total'] as num).toInt(),
-);
-
-Map<String, dynamic> _$ComicsToJson(Comics instance) => <String, dynamic>{
-  'docs': instance.docs,
-  'total': instance.total,
-  'limit': instance.limit,
-  'page': instance.page,
-  'pages': instance.pages,
-};
-
-ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
-    ComicsResponse(
-      comics: Comics.fromJson(json['comics'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$ComicsResponseToJson(ComicsResponse instance) =>
-    <String, dynamic>{'comics': instance.comics};
-
 Creator _$CreatorFromJson(Map<String, dynamic> json) => Creator(
   id: json['_id'] as String,
   avatar: json['avatar'] == null
@@ -328,32 +302,6 @@ Map<String, dynamic> _$CommentToJson(Comment instance) => <String, dynamic>{
   'isLiked': instance.isLiked,
 };
 
-Comments _$CommentsFromJson(Map<String, dynamic> json) => Comments(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => Comment.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  total: (json['total'] as num).toInt(),
-  limit: (json['limit'] as num?)?.toInt() ?? 20,
-  page: Comments._pageFormat(json['page']),
-  pages: (json['pages'] as num).toInt(),
-);
-
-Map<String, dynamic> _$CommentsToJson(Comments instance) => <String, dynamic>{
-  'docs': instance.docs,
-  'total': instance.total,
-  'limit': instance.limit,
-  'page': instance.page,
-  'pages': instance.pages,
-};
-
-CommentsResponse _$CommentsResponseFromJson(Map<String, dynamic> json) =>
-    CommentsResponse(
-      comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$CommentsResponseToJson(CommentsResponse instance) =>
-    <String, dynamic>{'comments': instance.comments};
-
 SubComment _$SubCommentFromJson(Map<String, dynamic> json) => SubComment(
   uid: json['_id'] as String,
   content: json['content'] as String,
@@ -386,34 +334,6 @@ Map<String, dynamic> _$SubCommentToJson(SubComment instance) =>
       '_game': instance.game,
       '_parent': instance.parent,
     };
-
-SubComments _$SubCommentsFromJson(Map<String, dynamic> json) => SubComments(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => SubComment.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  total: (json['total'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
-  page: json['page'] as String,
-  pages: (json['pages'] as num).toInt(),
-);
-
-Map<String, dynamic> _$SubCommentsToJson(SubComments instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-    };
-
-SubCommentsResponse _$SubCommentsResponseFromJson(Map<String, dynamic> json) =>
-    SubCommentsResponse(
-      comments: SubComments.fromJson(json['comments'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$SubCommentsResponseToJson(
-  SubCommentsResponse instance,
-) => <String, dynamic>{'comments': instance.comments};
 
 SearchComic _$SearchComicFromJson(Map<String, dynamic> json) => SearchComic(
   updated_at: json['updated_at'] as String,
@@ -453,33 +373,6 @@ Map<String, dynamic> _$SearchComicToJson(SearchComic instance) =>
       '_id': instance.uid,
       'likesCount': instance.likesCount,
     };
-
-SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) => SearchComics(
-  docs: (json['docs'] as List<dynamic>)
-      .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  total: (json['total'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
-  page: (json['page'] as num).toInt(),
-  pages: (json['pages'] as num).toInt(),
-);
-
-Map<String, dynamic> _$SearchComicsToJson(SearchComics instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-    };
-
-SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
-    SearchResponse(
-      comics: SearchComics.fromJson(json['comics'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$SearchResponseToJson(SearchResponse instance) =>
-    <String, dynamic>{'comics': instance.comics};
 
 ChapterImage _$ChapterImageFromJson(Map<String, dynamic> json) => ChapterImage(
   uid: json['_id'] as String,
@@ -698,36 +591,6 @@ Map<String, dynamic> _$PersonalCommentToJson(PersonalComment instance) =>
       'isLiked': instance.isLiked,
     };
 
-PersonalComments _$PersonalCommentsFromJson(Map<String, dynamic> json) =>
-    PersonalComments(
-      docs: (json['docs'] as List<dynamic>)
-          .map((e) => PersonalComment.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      pages: (json['pages'] as num).toInt(),
-      total: (json['total'] as num).toInt(),
-      limit: (json['limit'] as num).toInt(),
-      page: json['page'] as String,
-    );
-
-Map<String, dynamic> _$PersonalCommentsToJson(PersonalComments instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'pages': instance.pages,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-    };
-
-PersonalCommentsResponse _$PersonalCommentsResponseFromJson(
-  Map<String, dynamic> json,
-) => PersonalCommentsResponse(
-  comments: PersonalComments.fromJson(json['comments'] as Map<String, dynamic>),
-);
-
-Map<String, dynamic> _$PersonalCommentsResponseToJson(
-  PersonalCommentsResponse instance,
-) => <String, dynamic>{'comments': instance.comments};
-
 HotSearchWordsResponse _$HotSearchWordsResponseFromJson(
   Map<String, dynamic> json,
 ) => HotSearchWordsResponse(
@@ -739,38 +602,6 @@ HotSearchWordsResponse _$HotSearchWordsResponseFromJson(
 Map<String, dynamic> _$HotSearchWordsResponseToJson(
   HotSearchWordsResponse instance,
 ) => <String, dynamic>{'keywords': instance.keywords};
-
-NotificationsResponse _$NotificationsResponseFromJson(
-  Map<String, dynamic> json,
-) => NotificationsResponse(
-  notifications: NotificationsData.fromJson(
-    json['notifications'] as Map<String, dynamic>,
-  ),
-);
-
-Map<String, dynamic> _$NotificationsResponseToJson(
-  NotificationsResponse instance,
-) => <String, dynamic>{'notifications': instance.notifications};
-
-NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
-    NotificationsData(
-      docs: (json['docs'] as List<dynamic>)
-          .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      limit: (json['limit'] as num).toInt(),
-      page: (json['page'] as num).toInt(),
-      pages: (json['pages'] as num).toInt(),
-      total: (json['total'] as num).toInt(),
-    );
-
-Map<String, dynamic> _$NotificationsDataToJson(NotificationsData instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-      'total': instance.total,
-    };
 
 NotificationDoc _$NotificationDocFromJson(Map<String, dynamic> json) =>
     NotificationDoc(
@@ -821,4 +652,174 @@ Map<String, dynamic> _$InitResponseToJson(InitResponse instance) =>
       'addresses': instance.addresses,
       'waka': instance.waka,
       'adKeyword': instance.adKeyword,
+    };
+
+_Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  limit: (json['limit'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
+  total: (json['total'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicsToJson(_Comics instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+  'total': instance.total,
+};
+
+_ComicsResponse _$ComicsResponseFromJson(Map<String, dynamic> json) =>
+    _ComicsResponse(
+      comics: Comics.fromJson(json['comics'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ComicsResponseToJson(_ComicsResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};
+
+_Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Comment.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num?)?.toInt() ?? 20,
+  page: pageFormat(json['page']),
+  pages: (json['pages'] as num).toInt(),
+);
+
+Map<String, dynamic> _$CommentsToJson(_Comments instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'total': instance.total,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+};
+
+_CommentsResponse _$CommentsResponseFromJson(Map<String, dynamic> json) =>
+    _CommentsResponse(
+      comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$CommentsResponseToJson(_CommentsResponse instance) =>
+    <String, dynamic>{'comments': instance.comments};
+
+_SubComments _$SubCommentsFromJson(Map<String, dynamic> json) => _SubComments(
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => SubComment.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: json['page'] as String,
+  pages: (json['pages'] as num).toInt(),
+);
+
+Map<String, dynamic> _$SubCommentsToJson(_SubComments instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+_SubCommentsResponse _$SubCommentsResponseFromJson(Map<String, dynamic> json) =>
+    _SubCommentsResponse(
+      comments: SubComments.fromJson(json['comments'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SubCommentsResponseToJson(
+  _SubCommentsResponse instance,
+) => <String, dynamic>{'comments': instance.comments};
+
+_SearchComics _$SearchComicsFromJson(Map<String, dynamic> json) =>
+    _SearchComics(
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => SearchComic.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SearchComicsToJson(_SearchComics instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+_SearchResponse _$SearchResponseFromJson(Map<String, dynamic> json) =>
+    _SearchResponse(
+      comics: SearchComics.fromJson(json['comics'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SearchResponseToJson(_SearchResponse instance) =>
+    <String, dynamic>{'comics': instance.comics};
+
+_PersonalComments _$PersonalCommentsFromJson(Map<String, dynamic> json) =>
+    _PersonalComments(
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => PersonalComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      pages: (json['pages'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+      limit: (json['limit'] as num).toInt(),
+      page: json['page'] as String,
+    );
+
+Map<String, dynamic> _$PersonalCommentsToJson(_PersonalComments instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'pages': instance.pages,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+    };
+
+_PersonalCommentsResponse _$PersonalCommentsResponseFromJson(
+  Map<String, dynamic> json,
+) => _PersonalCommentsResponse(
+  comments: PersonalComments.fromJson(json['comments'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$PersonalCommentsResponseToJson(
+  _PersonalCommentsResponse instance,
+) => <String, dynamic>{'comments': instance.comments};
+
+_NotificationsResponse _$NotificationsResponseFromJson(
+  Map<String, dynamic> json,
+) => _NotificationsResponse(
+  notifications: NotificationsData.fromJson(
+    json['notifications'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$NotificationsResponseToJson(
+  _NotificationsResponse instance,
+) => <String, dynamic>{'notifications': instance.notifications};
+
+_NotificationsData _$NotificationsDataFromJson(Map<String, dynamic> json) =>
+    _NotificationsData(
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => NotificationDoc.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      limit: (json['limit'] as num).toInt(),
+      page: (json['page'] as num).toInt(),
+      pages: (json['pages'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$NotificationsDataToJson(_NotificationsData instance) =>
+    <String, dynamic>{
+      'docs': instance.docs,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+      'total': instance.total,
     };

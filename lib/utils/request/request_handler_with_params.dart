@@ -13,6 +13,7 @@ class RequestHandlerWithParams<T, P> extends RequestHandler<T, P> {
     super.onSuccess,
     super.onError,
     super.onFinally,
+    super.reducer,
   });
 
   @override

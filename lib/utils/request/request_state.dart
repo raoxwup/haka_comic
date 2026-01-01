@@ -7,7 +7,11 @@ sealed class RequestState<T> {
 
   bool get shouldLoading => loading || idle;
 
-  T? get data => this is Success<T> ? (this as Success<T>).data : null;
+  T? get data => switch (this) {
+    Success(:final data) => data,
+    Loading(:final data) => data,
+    _ => null,
+  };
 
   Object? get error => this is Error ? (this as Error).error : null;
 
@@ -21,7 +25,9 @@ final class Initial<T> extends RequestState<T> {
 }
 
 final class Loading<T> extends RequestState<T> {
-  const Loading();
+  const Loading(this.data);
+  @override
+  final T? data;
 }
 
 final class Success<T> extends RequestState<T> {

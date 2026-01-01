@@ -20,25 +20,25 @@ class _NetworkState extends State<Network> {
     return MenuListTile.withValue(
       icon: Icons.network_check_outlined,
       title: 'API切换',
-      value: _api.name,
+      value: _api.alias,
       items: Api.values.map((api) {
         return PopupMenuItem(
-          value: api.name,
+          value: api.alias,
           child: ListTile(
             leading: Icon(
-              _api.name == api.name
+              _api.alias == api.alias
                   ? Icons.check_circle
                   : Icons.radio_button_unchecked,
               color: context.colorScheme.primary,
             ),
-            title: Text(api.name),
+            title: Text(api.alias),
           ),
         );
       }).toList(),
       onSelected: (value) {
-        if (value == _api.name) return;
+        if (value == _api.alias) return;
         setState(() {
-          final api = Api.fromName(value);
+          final api = Api.fromAlias(value);
           _api = api;
           AppConf().api = api;
           Client.setBaseUrl(api.host);

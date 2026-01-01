@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
@@ -16,19 +17,16 @@ class ReaderImage extends StatefulWidget {
     required this.onImageSizeChanged,
   });
 
-  // 图片url
+  // 图片url 或 本地文件路径
   final String url;
 
   // 缓存的图片尺寸
   final ImageSize? imageSize;
-
   final BoxFit fit;
 
   // 是否使用缓存的尺寸
   final bool enableCache;
-
   final FilterQuality filterQuality;
-
   final Duration timeRetry;
 
   // 尺寸回调
@@ -42,15 +40,16 @@ class _ReaderImageState extends State<ReaderImage> {
   static const double _fallbackAspectRatio = 3 / 4;
   bool _isReported = false;
 
+  bool get isNetwork =>
+      widget.url.startsWith('http') || widget.url.startsWith('https');
+
   Widget _buildPlaceholder(Widget child, [Key? key]) {
     if (!widget.enableCache) {
       return Center(key: key, child: child);
     }
-
     final aspectRatio = widget.imageSize != null
         ? widget.imageSize!.width / widget.imageSize!.height
         : _fallbackAspectRatio;
-
     return AspectRatio(
       key: key,
       aspectRatio: aspectRatio,
@@ -58,71 +57,88 @@ class _ReaderImageState extends State<ReaderImage> {
     );
   }
 
+  Widget? _handleLocalLoadStateChanged(ExtendedImageState state) {
+    final loadState = state.extendedImageLoadState;
+
+    if (loadState == LoadState.loading) {
+      return _buildPlaceholder(const SizedBox.expand());
+    }
+
+    if (loadState == LoadState.completed) {
+      return null;
+    }
+
+    return _buildPlaceholder(
+      IconButton(onPressed: state.reLoadImage, icon: const Icon(Icons.refresh)),
+    );
+  }
+
+  Widget _handleLoadStateChanged(ExtendedImageState state) {
+    final loadState = state.extendedImageLoadState;
+
+    if (loadState == LoadState.loading) {
+      final progress = state.loadingProgress;
+      final bytes = progress?.cumulativeBytesLoaded ?? 0;
+      final value = computeProgress(bytes);
+
+      return _buildPlaceholder(
+        CircularProgressIndicator(
+          value: value,
+          strokeWidth: 3,
+          constraints: BoxConstraints.tight(const Size(28, 28)),
+          backgroundColor: Colors.grey.shade300,
+          color: context.colorScheme.primary,
+          strokeCap: StrokeCap.round,
+        ),
+      );
+    }
+
+    if (loadState == LoadState.completed) {
+      final info = state.extendedImageInfo;
+      if (info != null) {
+        if (!_isReported) {
+          widget.onImageSizeChanged(info.image.width, info.image.height);
+          _isReported = true;
+        }
+      }
+
+      return TweenAnimationBuilder(
+        key: ValueKey(info),
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutQuad,
+        builder: (context, value, child) {
+          return Opacity(opacity: value, child: child);
+        },
+        child: state.completedWidget,
+      );
+    }
+
+    return _buildPlaceholder(
+      IconButton(onPressed: state.reLoadImage, icon: const Icon(Icons.refresh)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ExtendedImage.network(
-      widget.url,
-      fit: widget.fit,
-      filterQuality: widget.filterQuality,
-      cache: true,
-      enableLoadState: true,
-      handleLoadingProgress: true,
-      timeRetry: widget.timeRetry,
-      loadStateChanged: (state) {
-        final loadState =
-            state.extendedImageLoadState == LoadState.loading ||
-            state.extendedImageLoadState == LoadState.completed;
-        if (loadState) {
-          final progress = state.loadingProgress;
-          final bytes = progress?.cumulativeBytesLoaded ?? 0;
-
-          final value = computeProgress(bytes);
-
-          if (state.extendedImageLoadState == LoadState.completed) {
-            final info = state.extendedImageInfo;
-            if (info != null) {
-              if (!_isReported) {
-                widget.onImageSizeChanged(info.image.width, info.image.height);
-                _isReported = true;
-              }
-            }
-          }
-
-          return Stack(
-            fit: StackFit.passthrough,
-            children: [
-              // 图片
-              AnimatedOpacity(
-                opacity: state.extendedImageLoadState == LoadState.completed
-                    ? 1
-                    : 0,
-                duration: const Duration(milliseconds: 200),
-                child: state.completedWidget,
-              ),
-
-              // loading
-              if (state.extendedImageLoadState != LoadState.completed)
-                _buildPlaceholder(
-                  CircularProgressIndicator(
-                    value: value,
-                    strokeWidth: 3,
-                    constraints: BoxConstraints.tight(const Size(28, 28)),
-                    backgroundColor: Colors.grey.shade300,
-                    color: context.colorScheme.primary,
-                    strokeCap: StrokeCap.round,
-                  ),
-                ),
-            ],
-          );
-        }
-
-        return _buildPlaceholder(
-          IconButton(
-            onPressed: state.reLoadImage,
-            icon: const Icon(Icons.refresh),
-          ),
-        );
-      },
-    );
+    if (isNetwork) {
+      return ExtendedImage.network(
+        widget.url,
+        fit: widget.fit,
+        filterQuality: widget.filterQuality,
+        cache: true,
+        enableLoadState: true,
+        handleLoadingProgress: true,
+        timeRetry: widget.timeRetry,
+        loadStateChanged: _handleLoadStateChanged,
+      );
+    } else {
+      return ExtendedImage.file(
+        File(widget.url),
+        fit: widget.fit,
+        filterQuality: widget.filterQuality,
+        loadStateChanged: _handleLocalLoadStateChanged,
+      );
+    }
   }
 }

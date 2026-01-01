@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/mixin/auto_register_handler.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -16,31 +16,27 @@ class About extends StatefulWidget {
   State<About> createState() => _AboutState();
 }
 
-class _AboutState extends State<About> with AutoRegisterHandlerMixin {
+class _AboutState extends State<About> with RequestMixin {
   String version = '';
   bool _checkUpdate = AppConf().checkUpdate;
+
   late final _handler = checkIsUpdated.useRequest(
-    onSuccess: (shouldCheckUpdate, _) {
+    manual: true,
+    onSuccess: (shouldCheckUpdate) {
       if (shouldCheckUpdate) {
         showUpdateDialog();
       } else {
         Toast.show(message: '当前已是最新版本');
       }
     },
-    onError: (error, _) {
+    onError: (error) {
       Log.error('fetch release error', error);
       Toast.show(message: '获取版本信息失败');
     },
   );
 
   @override
-  List<AsyncRequestHandler> registerHandler() => [_handler];
-
-  @override
-  initState() {
-    super.initState();
-    _handler.isLoading = false;
-  }
+  List<RequestHandler> registerHandler() => [_handler];
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -51,7 +47,7 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
     return Scaffold(
       appBar: AppBar(title: const Text('关于')),
       body: ListView(
@@ -99,7 +95,7 @@ class _AboutState extends State<About> with AutoRegisterHandlerMixin {
           ),
           ListTile(
             title: const Text('检查更新'),
-            trailing: _handler.isLoading
+            trailing: _handler.state.loading
                 ? CircularProgressIndicator(
                     constraints: BoxConstraints.tight(const Size(16, 16)),
                     strokeWidth: 2,

@@ -1,42 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:haka_comic/database/word_block_helper.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/toast.dart';
+import 'package:provider/provider.dart';
 
-class WordBlock extends StatefulWidget {
+class WordBlock extends StatelessWidget {
   const WordBlock({super.key});
 
   @override
-  State<WordBlock> createState() => _WordBlockState();
-}
-
-class _WordBlockState extends State<WordBlock> {
-  final helper = WordBlockHelper();
-  List<String> blockedWords = [];
-
-  Future<void> getBlockedWords() async {
-    final words = await helper.query();
-    setState(() {
-      blockedWords = words;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getBlockedWords();
-    helper.addListener(getBlockedWords);
-  }
-
-  @override
-  void dispose() {
-    helper.removeListener(getBlockedWords);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final blockedWords = context.select<BlockProvider, List<String>>(
+      (p) => p.blockedWords,
+    );
+    final provider = context.read<BlockProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text('标题关键词屏蔽')),
       body: blockedWords.isEmpty
@@ -56,7 +33,7 @@ class _WordBlockState extends State<WordBlock> {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () async {
-                      await helper.delete(word);
+                      await provider.deleteWord(word);
                     },
                   ),
                 );
@@ -104,7 +81,7 @@ class _WordBlockState extends State<WordBlock> {
               Toast.show(message: '「$w」已存在');
               return;
             }
-            await helper.insert(w);
+            await provider.insertWord(w);
             return;
           }
           Toast.show(message: '关键词长度应为2~20个字符');

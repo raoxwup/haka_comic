@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/extension.dart';
 
 class ErrorPage extends StatefulWidget {
@@ -6,10 +7,12 @@ class ErrorPage extends StatefulWidget {
     super.key,
     required this.errorMessage,
     required this.onRetry,
+    this.canPop = false,
   });
 
   final String errorMessage;
   final Function() onRetry;
+  final bool canPop;
 
   @override
   State<ErrorPage> createState() => _ErrorPageState();
@@ -33,7 +36,19 @@ class _ErrorPageState extends State<ErrorPage> {
               style: context.textTheme.bodyMedium,
             ),
           ),
-          TextButton(onPressed: widget.onRetry, child: const Text('重新加载')),
+          Row(
+            spacing: 8,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(onPressed: widget.onRetry, child: const Text('重新加载')),
+              if (widget.canPop && context.canPop())
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: const Text('返回'),
+                ),
+            ],
+          ),
         ],
       ),
     );

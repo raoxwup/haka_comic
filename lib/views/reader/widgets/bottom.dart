@@ -31,7 +31,7 @@ class ReaderBottom extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         child: WithBlur(
           child: Container(
-            padding: EdgeInsets.fromLTRB(12, 8, 12, bottom + 8),
+            padding: EdgeInsets.fromLTRB(12, 8, 12, bottom),
             decoration: BoxDecoration(
               color: context.colorScheme.secondaryContainer.withValues(
                 alpha: 0.6,
