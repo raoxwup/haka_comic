@@ -22,10 +22,21 @@ Future<List<ImageBase>> fetchLocalImages(
     throw Exception('漫画不存在，检查是否已被删除');
   }
 
-  final chapterPath = p.join(comicPath, chapter.title.legalized);
-  final chapterDir = Directory(chapterPath);
+  final chapterPath = p.join(
+    comicPath,
+    '${chapter.order}_${chapter.title.legalized}',
+  );
+  var chapterDir = Directory(chapterPath);
+
   if (!await chapterDir.exists()) {
-    throw Exception('章节不存在，检查是否已被删除');
+    // 兼容之前下载的漫画
+    final orderChapterPath = p.join(comicPath, chapter.title.legalized);
+    var dir = Directory(orderChapterPath);
+    if (await dir.exists()) {
+      chapterDir = dir;
+    } else {
+      throw Exception('漫画不存在，检查是否已被删除');
+    }
   }
 
   const imageExts = {'.jpg', '.jpeg', '.png', '.webp'};

@@ -91,7 +91,10 @@ enum DownloadTaskStatus {
 
   ({IconData icon, void Function(String id) action}) get iconAndAction {
     return switch (this) {
-      paused => (icon: Icons.pause, action: BackgroundDownloader.resumeTask),
+      paused => (
+        icon: Icons.play_arrow,
+        action: BackgroundDownloader.resumeTask,
+      ),
       downloading => (
         icon: Icons.pause,
         action: BackgroundDownloader.pauseTask,

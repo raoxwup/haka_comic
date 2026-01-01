@@ -383,7 +383,13 @@ class _DownloadsState extends State<Downloads> {
   }
 
   void _startReader(ComicDownloadTask task) async {
+    if (task.status != DownloadTaskStatus.completed) {
+      Toast.show(message: '任务未完成');
+      return;
+    }
     final chapters = task.chapters.map((e) => e.toChapter()).toList();
+
+    chapters.sort((a, b) => a.order.compareTo(b.order));
 
     final helper = ReadRecordHelper();
 
@@ -442,47 +448,49 @@ class _DownloadsState extends State<Downloads> {
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
               ),
-        body: CustomScrollView(
-          slivers: [
-            if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
-            SliverGrid.builder(
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: UiMode.m1(context)
-                    ? width
-                    : UiMode.m2(context)
-                    ? width / 2
-                    : width / 3,
-                mainAxisSpacing: 5,
-                crossAxisSpacing: 5,
-                childAspectRatio: 2.5,
+        body: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              if (tasks.isEmpty) const SliverToBoxAdapter(child: Empty()),
+              SliverGrid.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: UiMode.m1(context)
+                      ? width
+                      : UiMode.m2(context)
+                      ? width / 2
+                      : width / 3,
+                  mainAxisSpacing: 5,
+                  crossAxisSpacing: 5,
+                  childAspectRatio: 2.5,
+                ),
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  final isSelected = _selectedTaskIds.contains(task.comic.id);
+                  return _DownloadTaskItem(
+                    task: task,
+                    isSelecting: _isSelecting,
+                    isSelected: isSelected,
+                    contextMenu: menu,
+                    onTap: () {
+                      if (_isSelecting) {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedTaskIds.remove(task.comic.id);
+                          } else {
+                            _selectedTaskIds.add(task.comic.id);
+                          }
+                        });
+                      } else {
+                        _startReader(task);
+                      }
+                    },
+                    onItemSelected: _onContextMenuItemPress,
+                  );
+                },
+                itemCount: tasks.length,
               ),
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                final isSelected = _selectedTaskIds.contains(task.comic.id);
-                return _DownloadTaskItem(
-                  task: task,
-                  isSelecting: _isSelecting,
-                  isSelected: isSelected,
-                  contextMenu: menu,
-                  onTap: () {
-                    if (_isSelecting) {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedTaskIds.remove(task.comic.id);
-                        } else {
-                          _selectedTaskIds.add(task.comic.id);
-                        }
-                      });
-                    } else {
-                      _startReader(task);
-                    }
-                  },
-                  onItemSelected: _onContextMenuItemPress,
-                );
-              },
-              itemCount: tasks.length,
-            ),
-          ],
+            ],
+          ),
         ),
         persistentFooterButtons: _isSelecting
             ? [
