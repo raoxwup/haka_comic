@@ -10,7 +10,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/widgets/toast.dart';
-import 'package:haka_comic/widgets/ui_image.dart';
+import 'package:haka_comic/widgets/ui_avatar.dart';
 
 class Editor extends StatefulWidget {
   const Editor({super.key});
@@ -140,12 +140,7 @@ class _EditorState extends State<Editor> with RequestMixin {
               ListItem(
                 onTap: _pickImage,
                 title: Text('头像', style: context.textTheme.titleMedium),
-                trailing: UiImage(
-                  url: value.avatar?.url ?? '',
-                  width: 64,
-                  height: 64,
-                  shape: .circle,
-                ),
+                trailing: UiAvatar(size: 64, source: value.avatar),
               ),
               ListItem(
                 title: Text('昵称', style: context.textTheme.titleMedium),
