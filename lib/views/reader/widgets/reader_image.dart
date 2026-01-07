@@ -105,7 +105,7 @@ class _ReaderImageState extends State<ReaderImage> {
       return TweenAnimationBuilder(
         key: ValueKey(info),
         tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutQuad,
         builder: (context, value, child) {
           return Opacity(opacity: value, child: child);
