@@ -130,7 +130,7 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
     name: iOS Build
     needs: setup
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
@@ -143,7 +143,7 @@ jobs:
           flutter-version-file: pubspec.yaml
           architecture: x64
 
-      - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - run: sudo xcode-select --switch /Applications/Xcode_26.2.app
 
       - run: flutter pub get
 
