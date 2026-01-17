@@ -179,7 +179,7 @@ class _AppState extends State<App> with WindowListener {
       ThemeData(
         colorScheme: colorScheme,
         brightness: brightness,
-        fontFamily: Platform.isWindows ? '微软雅黑' : null,
+        fontFamily: null,
         appBarTheme: AppBarTheme(
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
