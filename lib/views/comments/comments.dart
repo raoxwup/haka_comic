@@ -62,7 +62,13 @@ class _CommentsPageState extends State<CommentsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: const Text('评论')),
+      appBar: AppBar(
+        title: const Text('评论'),
+        leading: BackButton(
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).maybePop(),
+        ),
+      ),
       body: switch (handler.state) {
         RequestState(:final data) when data != null => SafeArea(
           child: CommentList(

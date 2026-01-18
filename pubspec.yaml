@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.1.0
+version: 1.1.1
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -73,7 +73,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/icons/splash/splash-icon-dark.png
     - assets/icons/splash/splash-icon-light.png
@@ -88,3 +87,4 @@ flutter:
     - assets/images/default_avatar.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
+  # fonts:

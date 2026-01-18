@@ -25,6 +25,11 @@ on:
           - macos
           - windows
 
+env:
+  BUILD_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
+  FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION_FILE: pubspec.yaml
+
 jobs:
   setup:
     name: Setup
@@ -34,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
       - id: get_version
         run: |
           version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
@@ -47,10 +52,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -61,8 +65,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -74,25 +78,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Create key.properties
+      - name: Prepare signing files
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=upload-keystore.jks" >> android/key.properties
-
-      - name: Set up keystore
-        run: |
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Universal APK
-        run: flutter build apk --release
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
-      - name: Build Split APKs
-        run: flutter build apk --release --split-per-abi
+      - name: Build APKs
+        run: |
+          flutter build apk --release
+          flutter build apk --release --split-per-abi
 
       - name: Move And Rename APKs
         run: |
@@ -135,17 +138,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
           architecture: x64
 
       - run: sudo xcode-select --switch /Applications/Xcode_26.2.app
 
       - run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build unsigned IPA
         run: |
@@ -181,19 +187,21 @@ jobs:
     needs: setup
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build Windows Release
         run: flutter build windows --release
@@ -279,19 +287,21 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build MacOS Release
         run: flutter build macos --release

@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart' show Comment, Chapter;
 import 'package:haka_comic/router/route_observer.dart';
+import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comic_details/downloader.dart';
@@ -35,6 +37,65 @@ import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
 import 'package:haka_comic/views/settings/word_block.dart';
 import 'package:provider/provider.dart';
+
+Page<dynamic> _buildSideSheetRoutePage(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+) {
+  if (UiMode.m1(context)) {
+    return MaterialPage(key: state.pageKey, child: child);
+  }
+
+  return CustomTransitionPage(
+    key: state.pageKey,
+    opaque: false,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: FadeTransition(
+              opacity: curvedAnimation,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  final navigator = Navigator.of(context, rootNavigator: true);
+                  if (navigator.canPop()) {
+                    navigator.pop();
+                  }
+                },
+                child: Container(color: Colors.black54),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(curvedAnimation),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Material(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  elevation: 4,
+                  child: child,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+    child: child,
+  );
+}
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -77,14 +138,20 @@ final GoRouter appRouter = GoRouter(
       path: '/details/:id',
       builder: (_, state) => ComicDetails(id: state.pathParameters['id']!),
     ),
-    GoRoute(
-      path: '/comments/:id',
-      builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
+    ShellRoute(
+      pageBuilder: (context, state, child) =>
+          _buildSideSheetRoutePage(context, state, child),
       routes: [
         GoRoute(
-          path: 'sub_comments',
-          builder: (_, state) =>
-              SubCommentsPage(comment: state.extra as Comment),
+          path: '/comments/:id',
+          builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
+          routes: [
+            GoRoute(
+              path: 'sub_comments',
+              builder: (_, state) =>
+                  SubCommentsPage(comment: state.extra as Comment),
+            ),
+          ],
         ),
       ],
     ),
@@ -113,27 +180,39 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/favorites', builder: (_, _) => const Favorites()),
     GoRoute(path: '/history', builder: (_, _) => const History()),
     GoRoute(path: '/downloads', builder: (_, _) => const Downloads()),
-    GoRoute(
-      path: '/personal_comments',
-      builder: (_, _) => const Comments(),
+    ShellRoute(
+      pageBuilder: (context, state, child) =>
+          _buildSideSheetRoutePage(context, state, child),
       routes: [
         GoRoute(
-          path: 'sub_comments',
-          builder: (_, state) =>
-              SubCommentsPage(comment: state.extra as Comment),
+          path: '/personal_comments',
+          builder: (_, _) => const Comments(),
+          routes: [
+            GoRoute(
+              path: 'sub_comments',
+              builder: (_, state) =>
+                  SubCommentsPage(comment: state.extra as Comment),
+            ),
+          ],
         ),
       ],
     ),
     GoRoute(path: '/personal_editor', builder: (_, _) => const Editor()),
-    GoRoute(
-      path: '/downloader',
-      builder: (_, state) {
-        final extra = state.extra as Map;
-        final DownloadComic downloadComic =
-            extra['downloadComic'] as DownloadComic;
-        final chapters = extra['chapters'] as List<Chapter>;
-        return Downloader(chapters: chapters, downloadComic: downloadComic);
-      },
+    ShellRoute(
+      pageBuilder: (context, state, child) =>
+          _buildSideSheetRoutePage(context, state, child),
+      routes: [
+        GoRoute(
+          path: '/downloader',
+          builder: (_, state) {
+            final extra = state.extra as Map;
+            final DownloadComic downloadComic =
+                extra['downloadComic'] as DownloadComic;
+            final chapters = extra['chapters'] as List<Chapter>;
+            return Downloader(chapters: chapters, downloadComic: downloadComic);
+          },
+        ),
+      ],
     ),
     GoRoute(path: '/about', builder: (_, _) => const About()),
     GoRoute(path: '/blacklist', builder: (_, _) => const Blacklist()),
