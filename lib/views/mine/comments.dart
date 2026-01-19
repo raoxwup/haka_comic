@@ -61,7 +61,13 @@ class _CommentsState extends State<Comments>
   Widget build(BuildContext context) {
     final user = context.userSelector((p) => p.userHandler.state.data!.user);
     return Scaffold(
-      appBar: AppBar(title: const Text('我的评论')),
+      appBar: AppBar(
+        title: const Text('我的评论'),
+        leading: BackButton(
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).maybePop(),
+        ),
+      ),
       body: switch (_handler.state) {
         RequestState(:final data) when data != null => SafeArea(
           child: _buildList(user, data.comments.docs),

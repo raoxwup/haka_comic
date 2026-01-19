@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -179,7 +178,17 @@ class _AppState extends State<App> with WindowListener {
       ThemeData(
         colorScheme: colorScheme,
         brightness: brightness,
-        fontFamily: Platform.isWindows ? '微软雅黑' : null,
+        fontFamily: isWindows ? 'Microsoft YaHei' : null,
+        fontFamilyFallback: [
+          'Segoe UI',
+          'PingFang SC',
+          'Noto Sans SC',
+          'Noto Sans TC',
+          'Noto Sans',
+          'Microsoft YaHei',
+          'Arial',
+          'sans-serif',
+        ],
         appBarTheme: AppBarTheme(
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -191,6 +200,7 @@ class _AppState extends State<App> with WindowListener {
             TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
             TargetPlatform.iOS: GoTransitions.cupertino,
             TargetPlatform.macOS: GoTransitions.fade,
+            TargetPlatform.linux: GoTransitions.fade,
           },
         ),
       );
