@@ -87,4 +87,7 @@ flutter:
     - assets/images/default_avatar.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
-  # fonts:
+  fonts:
+    - family: HarmonyOS Sans
+      fonts:
+        - asset: assets/fonts/HarmonyOS_Sans_SC_Regular.ttf
