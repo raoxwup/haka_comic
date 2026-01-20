@@ -70,5 +70,7 @@
 	<string>Biometric authentication is required.</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
 </dict>
 </plist>

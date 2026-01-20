@@ -178,7 +178,7 @@ class _AppState extends State<App> with WindowListener {
       ThemeData(
         colorScheme: colorScheme,
         brightness: brightness,
-        fontFamily: isWindows ? 'HarmonyOS Sans' : null,
+        fontFamily: '霞鹜文楷',
         fontFamilyFallback: [
           'Segoe UI',
           'PingFang SC',

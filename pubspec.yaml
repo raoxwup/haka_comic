@@ -66,7 +66,7 @@ dev_dependencies:
   build_runner: ^2.10.4
   json_serializable: ^6.11.1
   flutter_launcher_icons: ^0.14.3
-  package_rename: ^1.10.0
+  package_rename: ^1.10.1
   freezed: ^3.2.3
   integration_test:
     sdk: flutter
@@ -87,7 +87,5 @@ flutter:
     - assets/images/default_avatar.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
-  fonts:
-    - family: HarmonyOS Sans
-      fonts:
-        - asset: assets/fonts/HarmonyOS_Sans_SC_Regular.ttf
+    - assets/icons/pc/windows_icon.png
+  # fonts:

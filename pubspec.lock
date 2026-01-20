@@ -683,10 +683,10 @@ packages:
     dependency: "direct dev"
     description:
       name: package_rename
-      sha256: "5dbef9f2f0849a7b5d237733a898bcdab917e5b7e16d662e91e095b6278d9af9"
+      sha256: "8e957670ab3c8ab0aa9976d10dfe8575c279e81a48aeeca9e7de43dbdc2c2be0"
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.0"
+    version: "1.10.1"
   path:
     dependency: "direct main"
     description:

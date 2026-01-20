@@ -8,4 +8,5 @@ void main() async {
   var config = await File("lib/config/setup_config.dart").readAsString();
   config = config.replaceFirst('#version', data['version']);
   await File("lib/config/setup_config.dart").writeAsString(config);
+  print("Successfully patched version.");
 }
