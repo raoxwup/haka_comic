@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=HaKa Comic
+Comment=HaKa Comic
+Exec=@BINARY_NAME@
+Icon=@APPLICATION_ID@
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupWMClass=@APPLICATION_ID@

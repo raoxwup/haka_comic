@@ -358,11 +358,20 @@ jobs:
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
-      - name: Setup Flutter
+      - name: Setup Flutter (x64)
+        if: ${{ matrix.flutter_arch == 'x64' }}
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          architecture: x64
+
+      - name: Setup Flutter (arm64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          architecture: arm64
 
       - name: Install Linux build deps
         run: |
