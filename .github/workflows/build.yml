@@ -370,8 +370,8 @@ jobs:
         if: ${{ matrix.flutter_arch == 'arm64' }}
         uses: subosito/flutter-action@v2
         with:
-          channel: ${{ env.FLUTTER_CHANNEL }}
-          architecture: arm64
+          channel: main
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Install Linux build deps
         run: |
