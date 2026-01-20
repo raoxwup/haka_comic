@@ -88,4 +88,4 @@ flutter:
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
     - assets/icons/pc/windows_icon.png
-  # fonts:
+# fonts:
