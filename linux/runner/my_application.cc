@@ -14,8 +14,6 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
-gtk_window_set_icon_from_file(GTK_WINDOW(window),"assets/icons/pc/windows_icon.png",NULL);
-
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
@@ -55,6 +53,8 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 380, 720);
+
+  gtk_window_set_icon_from_file(GTK_WINDOW(window),"assets/icons/pc/windows_icon.png",NULL);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(
