@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/mixin/pagination.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/database/history_helper.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
@@ -163,10 +164,20 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
   }
 
   final entries = <ContextMenuEntry>[
-    const MenuItem(label: Text('复制标题'), icon: Icon(Icons.copy), value: 'copy'),
-    const MenuItem(
-      label: Text('删除记录'),
-      icon: Icon(Icons.delete),
+    MenuItem(
+      label: Text(
+        '复制标题',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.copy),
+      value: 'copy',
+    ),
+    MenuItem(
+      label: Text(
+        '删除记录',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.delete),
       value: 'delete',
     ),
   ];
