@@ -441,7 +441,7 @@ jobs:
             --deb-compression-level 9 \
             --maintainer "raoxwup" \
             --description "A third-party PICACG project." \
-            --license gpl3 \
+            --license "GPL-3.0" \
             --url "https://github.com/raoxwup/haka_comic" \
             --depends libstdc++6 \
             --depends libgtk-3-0 \

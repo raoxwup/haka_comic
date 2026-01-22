@@ -74,11 +74,11 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/icons/splash/splash-icon-dark.png
-    - assets/icons/splash/splash-icon-light.png
+    # - assets/icons/splash/splash-icon-dark.png
+    # - assets/icons/splash/splash-icon-light.png
     - assets/images/login.png
     - assets/images/icon_empty.png
-    - assets/images/icon_no_comment.png
+    # - assets/images/icon_no_comment.png
     - assets/images/user.png
     - assets/images/leaderboard.jpg
     - assets/images/forum.jpg
@@ -87,4 +87,5 @@ flutter:
     - assets/images/default_avatar.jpg
     - assets/icons/ios/Light.png
     - assets/icons/ios/Dark.png
+    - assets/icons/pc/linux_icon.png
 # fonts:
