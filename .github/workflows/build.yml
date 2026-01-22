@@ -386,7 +386,9 @@ jobs:
         run: dart run script/prebuild_inject_font.dart
 
       - name: Build Linux Release
-        run: flutter build linux --release
+        run: |
+          flutter build linux --release
+          ldd build/linux/${{ matrix.flutter_arch }}/release/bundle/haka_comic
 
       - name: Install fpm
         run: |
@@ -435,8 +437,17 @@ jobs:
             -n "$pkg_name" \
             -v "$version" \
             -a "${{ matrix.deb_arch }}" \
-            --maintainer "HaKa Comic CI <ci@github>" \
-            --description "A third-party PICACG project." \
+            --maintainer "raoxwup" \
+            --description "An open-source and free software." \
+            --license "GPL-3.0" \
+            --url "https://github.com/raoxwup/haka_comic" \
+            --depends libc6 (>= 2.31) \
+            --depends libstdc++6 \
+            --depends libgtk-3-0 \
+            --depends libglib2.0-0 \
+            --depends libgdk-pixbuf2.0-0 \
+            --depends libpango-1.0-0 \
+            --depends libcairo2 \
             -C "$deb_root" \
             -p "$artifacts_dir/${pkg_name}-v$version-${{ matrix.deb_arch }}.deb" \
             .
