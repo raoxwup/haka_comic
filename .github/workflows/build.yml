@@ -441,13 +441,12 @@ jobs:
             --description "An open-source and free software." \
             --license "GPL-3.0" \
             --url "https://github.com/raoxwup/haka_comic" \
-            --depends libc6 (>= 2.31) \
             --depends libstdc++6 \
             --depends libgtk-3-0 \
             --depends libglib2.0-0 \
-            --depends libgdk-pixbuf2.0-0 \
-            --depends libpango-1.0-0 \
-            --depends libcairo2 \
+            --depends libblkid1 \
+            --depends liblzma5 \
+            --depends libepoxy0 \
             -C "$deb_root" \
             -p "$artifacts_dir/${pkg_name}-v$version-${{ matrix.deb_arch }}.deb" \
             .
