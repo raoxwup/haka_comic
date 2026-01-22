@@ -44,7 +44,7 @@ dependencies:
   go_transitions: ^0.8.3
   # windows平台构建时tree shake对第三方图标不生效 导致构建产物体积过大
   # https://github.com/flutter/flutter/issues/157216
-  material_symbols_icons: ^4.2892.0
+  # material_symbols_icons: ^4.2892.0
   rust_lib_haka_comic:
     path: rust_builder
   flutter_rust_bridge: ^2.11.1
