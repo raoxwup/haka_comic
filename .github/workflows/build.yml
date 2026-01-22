@@ -430,6 +430,7 @@ jobs:
           Icon=$pkg_name
           Terminal=false
           Type=Application
+          StartupWMClass=$app_name
           Categories=Utility;
           EOF
 
