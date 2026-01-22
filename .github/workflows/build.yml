@@ -437,9 +437,11 @@ jobs:
             -n "$pkg_name" \
             -v "$version" \
             -a "${{ matrix.deb_arch }}" \
+            --deb-compression xz \
+            --deb-compression-level 9 \
             --maintainer "raoxwup" \
-            --description "An open-source and free software." \
-            --license "GPL-3.0" \
+            --description "A third-party PICACG project." \
+            --license gpl3 \
             --url "https://github.com/raoxwup/haka_comic" \
             --depends libstdc++6 \
             --depends libgtk-3-0 \
