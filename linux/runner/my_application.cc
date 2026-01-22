@@ -1,7 +1,3 @@
-#include <filesystem>
-using namespace std;
-using namespace std::filesystem;
-
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
@@ -26,8 +22,6 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
-  
-  g_set_application_name("Haka Comic");
 
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
@@ -64,6 +58,7 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "HaKa Comic");
   }
 
+  gtk_window_set_icon_from_file(window, "assets/icons/pc/linux_icon.png", NULL);
   gtk_window_set_default_size(window, 380, 720);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

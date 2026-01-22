@@ -65,7 +65,11 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.10.4
   json_serializable: ^6.11.1
-  flutter_launcher_icons: ^0.14.3
+  # flutter_launcher_icons: ^0.14.3
+  flutter_launcher_icons:
+    git:
+      url: https://github.com/devmil/flutter_launcher_icons.git
+      ref: f23536ec17ac211c06de78fd059a5e0404dadfb4
   package_rename: ^1.10.1
   freezed: ^3.2.3
   integration_test:

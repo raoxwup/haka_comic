@@ -401,6 +401,7 @@ jobs:
           set -euo pipefail
 
           version="${{ needs.setup.outputs.app-version }}"
+          app_id="com.github.raoxwup.hakacomic"
           app_name="haka_comic"
           app_title="HaKa Comic"
           pkg_name="haka-comic"
@@ -420,18 +421,18 @@ jobs:
           mkdir -p "$install_dir" "$deb_root/usr/bin" "$deb_root/usr/share/applications" "$deb_root/usr/share/pixmaps"
           cp -a "$bundle_dir/." "$install_dir/"
           ln -sf "/opt/$app_name/$app_name" "$deb_root/usr/bin/$app_name"
-          cp "assets/icons/pc/linux_icon.png" "$deb_root/usr/share/pixmaps/${pkg_name}.png"
+          cp "assets/icons/pc/linux_icon.png" "$deb_root/usr/share/pixmaps/${app_id}.png"
 
-          cat > "$deb_root/usr/share/applications/${pkg_name}.desktop" <<EOF
+          cat > "$deb_root/usr/share/applications/${app_id}.desktop" <<EOF
           [Desktop Entry]
           Name=$app_title
           Comment=A third-party PICACG project.
           Exec=$app_name
-          Icon=$pkg_name
+          Icon=$app_id
           Terminal=false
           Type=Application
-          StartupWMClass=$app_name
           Categories=Utility;
+          StartupWMClass=$app_id
           EOF
 
           fpm -s dir -t deb \
