@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart' show Comment, Chapter;
+import 'package:haka_comic/router/build_side_sheet_route.dart';
 import 'package:haka_comic/router/route_observer.dart';
-import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
 import 'package:haka_comic/views/comic_details/downloader.dart';
@@ -37,65 +36,6 @@ import 'package:haka_comic/views/settings/settings.dart';
 import 'package:haka_comic/views/settings/webdav.dart';
 import 'package:haka_comic/views/settings/word_block.dart';
 import 'package:provider/provider.dart';
-
-Page<dynamic> _buildSideSheetRoutePage(
-  BuildContext context,
-  GoRouterState state,
-  Widget child,
-) {
-  if (UiMode.m1(context)) {
-    return MaterialPage(key: state.pageKey, child: child);
-  }
-
-  return CustomTransitionPage(
-    key: state.pageKey,
-    opaque: false,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      );
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: FadeTransition(
-              opacity: curvedAnimation,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  final navigator = Navigator.of(context, rootNavigator: true);
-                  if (navigator.canPop()) {
-                    navigator.pop();
-                  }
-                },
-                child: Container(color: Colors.black54),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1, 0),
-                end: Offset.zero,
-              ).animate(curvedAnimation),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Material(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  elevation: 4,
-                  child: child,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-    child: child,
-  );
-}
 
 // 路由配置
 final GoRouter appRouter = GoRouter(
@@ -139,8 +79,7 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) => ComicDetails(id: state.pathParameters['id']!),
     ),
     ShellRoute(
-      pageBuilder: (context, state, child) =>
-          _buildSideSheetRoutePage(context, state, child),
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
       routes: [
         GoRoute(
           path: '/comments/:id',
@@ -181,8 +120,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/history', builder: (_, _) => const History()),
     GoRoute(path: '/downloads', builder: (_, _) => const Downloads()),
     ShellRoute(
-      pageBuilder: (context, state, child) =>
-          _buildSideSheetRoutePage(context, state, child),
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
       routes: [
         GoRoute(
           path: '/personal_comments',
@@ -199,8 +137,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/personal_editor', builder: (_, _) => const Editor()),
     ShellRoute(
-      pageBuilder: (context, state, child) =>
-          _buildSideSheetRoutePage(context, state, child),
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
       routes: [
         GoRoute(
           path: '/downloader',
