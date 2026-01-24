@@ -461,3 +461,46 @@ jobs:
           name: linux-packages-${{ matrix.deb_arch }}
           path: artifacts/*
           retention-days: 5
+
+  release:
+    name: Draft Release
+    needs:
+      - setup
+      - android-build
+      - ios-build
+      - windows-build
+      - macos-build
+      - linux-build
+    if: >-
+      ${{ always()
+          && needs.android-build.result != 'failure'
+          && needs.android-build.result != 'cancelled'
+          && needs.ios-build.result != 'failure'
+          && needs.ios-build.result != 'cancelled'
+          && needs.windows-build.result != 'failure'
+          && needs.windows-build.result != 'cancelled'
+          && needs.macos-build.result != 'failure'
+          && needs.macos-build.result != 'cancelled'
+          && needs.linux-build.result != 'failure'
+          && needs.linux-build.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}
+          name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}
+          target_commitish: ${{ env.BUILD_BRANCH }}
+          draft: true
+          generate_release_notes: false
+          files: release-artifacts/**/*
+          fail_on_unmatched_files: false
