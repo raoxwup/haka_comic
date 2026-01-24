@@ -44,4 +44,13 @@ class ListStateProvider extends ChangeNotifier {
     notifyListeners();
     Toast.show(message: _lockMenu ? '菜单已锁定' : '菜单已解锁');
   }
+
+  /// 切换页码显隐
+  bool _showPageNumbers = AppConf().showPageNumbers;
+  bool get showPageNumbers => _showPageNumbers;
+  void toggleShowPageNumbers() {
+    _showPageNumbers = !_showPageNumbers;
+    AppConf().showPageNumbers = _showPageNumbers;
+    notifyListeners();
+  }
 }

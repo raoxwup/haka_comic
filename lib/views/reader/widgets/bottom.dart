@@ -85,6 +85,7 @@ class ReaderBottom extends StatelessWidget {
   Widget _buildCommonContent(BuildContext context) {
     final isFirstChapter = context.selector((p) => p.isFirstChapter);
     final isLastChapter = context.selector((p) => p.isLastChapter);
+    final showPageNumbers = context.stateSelector((p) => p.showPageNumbers);
 
     final previousAction = isFirstChapter
         ? null
@@ -224,6 +225,18 @@ class ReaderBottom extends StatelessWidget {
                 },
                 tooltip: '锁定菜单',
                 icon: const Icon(Icons.lock_outlined),
+              ),
+              IconButton(
+                onPressed: () {
+                  context.stateReader.toggleShowPageNumbers();
+                  context.reader.openOrCloseToolbar();
+                },
+                tooltip: showPageNumbers ? '隐藏页码' : '显示页码',
+                icon: Icon(
+                  showPageNumbers
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
               ),
             ],
           ),

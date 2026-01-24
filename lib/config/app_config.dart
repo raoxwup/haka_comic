@@ -92,6 +92,9 @@ class AppConf {
   /// 条漫模式列表宽度占屏幕宽度的百分比
   double _verticalListWidthRatio = 1.0;
 
+  /// 是否显示阅读器页码
+  bool _showPageNumbers = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -139,6 +142,8 @@ class AppConf {
     instance._needAuth = prefsWithCache.getBool('needAuth') ?? false;
     instance._verticalListWidthRatio =
         prefsWithCache.getDouble('verticalListWidthRatio') ?? 1.0;
+    instance._showPageNumbers =
+        prefsWithCache.getBool('showPageNumbers') ?? true;
   }
 
   set email(String value) {
@@ -311,6 +316,11 @@ class AppConf {
     );
   }
 
+  set showPageNumbers(bool value) {
+    _showPageNumbers = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('showPageNumbers', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -343,6 +353,7 @@ class AppConf {
   List<String> get searchHistory => _searchHistory;
   bool get needAuth => _needAuth;
   double get verticalListWidthRatio => _verticalListWidthRatio;
+  bool get showPageNumbers => _showPageNumbers;
 
   /// 清除token
   void clearAuth() {
