@@ -24,6 +24,12 @@ on:
           - ios
           - macos
           - windows
+          - linux
+
+env:
+  BUILD_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
+  FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION_FILE: pubspec.yaml
 
 jobs:
   setup:
@@ -34,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
       - id: get_version
         run: |
           version=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
@@ -47,10 +53,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -61,8 +66,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -74,25 +79,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Create key.properties
+      - name: Prepare signing files
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=upload-keystore.jks" >> android/key.properties
-
-      - name: Set up keystore
-        run: |
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Universal APK
-        run: flutter build apk --release
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
-      - name: Build Split APKs
-        run: flutter build apk --release --split-per-abi
+      - name: Build APKs
+        run: |
+          flutter build apk --release
+          flutter build apk --release --split-per-abi
 
       - name: Move And Rename APKs
         run: |
@@ -130,22 +134,25 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
     name: iOS Build
     needs: setup
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
           architecture: x64
 
-      - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - run: sudo xcode-select --switch /Applications/Xcode_26.2.app
 
       - run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build unsigned IPA
         run: |
@@ -181,19 +188,21 @@ jobs:
     needs: setup
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build Windows Release
         run: flutter build windows --release
@@ -279,19 +288,21 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ env.BUILD_BRANCH }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
 
       - name: Build MacOS Release
         run: flutter build macos --release
@@ -323,3 +334,173 @@ jobs:
           name: macos-app-dmg
           path: build/macos/Build/Products/Release/*.dmg
           retention-days: 5
+
+  linux-build:
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'linux' || github.event.inputs.target == 'all' }}
+    name: Linux Build
+    needs: setup
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flutter_arch: x64
+            runner: ubuntu-latest
+            deb_arch: amd64
+          - flutter_arch: arm64
+            runner: ubuntu-24.04-arm
+            deb_arch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BUILD_BRANCH }}
+
+      - name: Setup Flutter (x64)
+        if: ${{ matrix.flutter_arch == 'x64' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          architecture: x64
+
+      - name: Setup Flutter (arm64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: main
+          flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+
+      - name: Install Linux build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev clang cmake pkg-config ruby ruby-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Inject version config
+        run: dart run script/prebuild_inject_version.dart
+
+      - name: Inject font assets
+        run: dart run script/prebuild_inject_font.dart
+
+      - name: Build Linux Release
+        run: |
+          flutter build linux --release
+          ldd build/linux/${{ matrix.flutter_arch }}/release/bundle/haka_comic
+
+      - name: Install fpm
+        run: |
+          sudo gem install fpm --no-document
+          echo "$(ruby -e 'print Gem.bindir')" >> $GITHUB_PATH
+
+      - name: Package Linux Deb
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.setup.outputs.app-version }}"
+          app_id="com.github.raoxwup.hakacomic"
+          app_name="haka_comic"
+          app_title="HaKa Comic"
+          pkg_name="haka-comic"
+          bundle_dir="build/linux/${{ matrix.flutter_arch }}/release/bundle"
+
+          if [ ! -d "$bundle_dir" ]; then
+            echo "Bundle not found at $bundle_dir"
+            ls -la build/linux || true
+            exit 1
+          fi
+
+          artifacts_dir="artifacts"
+          mkdir -p "$artifacts_dir"
+
+          deb_root="build/linux/package/${{ matrix.deb_arch }}"
+          install_dir="$deb_root/opt/$app_name"
+          mkdir -p "$install_dir" "$deb_root/usr/bin" "$deb_root/usr/share/applications" "$deb_root/usr/share/pixmaps"
+          cp -a "$bundle_dir/." "$install_dir/"
+          ln -sf "/opt/$app_name/$app_name" "$deb_root/usr/bin/$app_name"
+          cp "assets/icons/pc/linux_icon.png" "$deb_root/usr/share/pixmaps/${app_id}.png"
+
+          cat > "$deb_root/usr/share/applications/${app_id}.desktop" <<EOF
+          [Desktop Entry]
+          Name=$app_title
+          Comment=A third-party PICACG project.
+          Exec=$app_name
+          Icon=$app_id
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          StartupWMClass=$app_id
+          EOF
+
+          fpm -s dir -t deb \
+            -n "$pkg_name" \
+            -v "$version" \
+            -a "${{ matrix.deb_arch }}" \
+            --deb-compression xz \
+            --deb-compression-level 9 \
+            --maintainer "raoxwup" \
+            --description "A third-party PICACG project." \
+            --license "GPL-3.0" \
+            --url "https://github.com/raoxwup/haka_comic" \
+            --depends libstdc++6 \
+            --depends libgtk-3-0 \
+            --depends libglib2.0-0 \
+            --depends libblkid1 \
+            --depends liblzma5 \
+            --depends libepoxy0 \
+            -C "$deb_root" \
+            -p "$artifacts_dir/${pkg_name}-v$version-${{ matrix.deb_arch }}.deb" \
+            .
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-${{ matrix.deb_arch }}
+          path: artifacts/*
+          retention-days: 5
+
+  release:
+    name: Draft Release
+    needs:
+      - setup
+      - android-build
+      - ios-build
+      - windows-build
+      - macos-build
+      - linux-build
+    if: >-
+      ${{ always()
+          && needs.android-build.result != 'failure'
+          && needs.android-build.result != 'cancelled'
+          && needs.ios-build.result != 'failure'
+          && needs.ios-build.result != 'cancelled'
+          && needs.windows-build.result != 'failure'
+          && needs.windows-build.result != 'cancelled'
+          && needs.macos-build.result != 'failure'
+          && needs.macos-build.result != 'cancelled'
+          && needs.linux-build.result != 'failure'
+          && needs.linux-build.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}
+          name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}
+          target_commitish: ${{ env.BUILD_BRANCH }}
+          draft: true
+          generate_release_notes: false
+          files: release-artifacts/**/*
+          fail_on_unmatched_files: false

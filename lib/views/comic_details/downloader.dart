@@ -68,7 +68,13 @@ class _DownloaderState extends State<Downloader> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('下载')),
+      appBar: AppBar(
+        title: const Text('下载'),
+        leading: BackButton(
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).maybePop(),
+        ),
+      ),
       body: ListView.builder(
         itemCount: widget.chapters.length,
         itemBuilder: (context, index) {

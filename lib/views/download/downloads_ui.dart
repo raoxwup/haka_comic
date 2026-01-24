@@ -350,10 +350,20 @@ class _DownloadsState extends State<Downloads> {
   );
 
   final entries = <ContextMenuEntry>[
-    const MenuItem(label: Text('复制标题'), icon: Icon(Icons.copy), value: 'copy'),
-    const MenuItem(
-      label: Text('选中该项'),
-      icon: Icon(Icons.check),
+    MenuItem(
+      label: Text(
+        '复制标题',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.copy),
+      value: 'copy',
+    ),
+    MenuItem(
+      label: Text(
+        '选中该项',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.check),
       value: 'select',
     ),
   ];

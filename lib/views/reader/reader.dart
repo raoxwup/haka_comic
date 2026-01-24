@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/request/request.dart';
+import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/widgets/app_bar.dart';
 import 'package:haka_comic/views/reader/widgets/bottom.dart';
 import 'package:haka_comic/views/reader/widgets/next_chapter.dart';
@@ -72,6 +73,8 @@ class _ReaderState extends State<Reader> {
 
     final state = context.selector((state) => state.handler.state);
 
+    final showPageNumbers = context.stateSelector((p) => p.showPageNumbers);
+
     final prev = context.reader.prev;
     final next = context.reader.next;
 
@@ -111,7 +114,7 @@ class _ReaderState extends State<Reader> {
             },
           ),
 
-          const ReaderPageNoTag(),
+          if (showPageNumbers) const ReaderPageNoTag(),
 
           const ReaderNextChapter(),
 

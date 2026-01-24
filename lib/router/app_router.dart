@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart' show Comment, Chapter;
+import 'package:haka_comic/router/build_side_sheet_route.dart';
 import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/views/comic_details/comic_details.dart';
@@ -77,14 +78,19 @@ final GoRouter appRouter = GoRouter(
       path: '/details/:id',
       builder: (_, state) => ComicDetails(id: state.pathParameters['id']!),
     ),
-    GoRoute(
-      path: '/comments/:id',
-      builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
+    ShellRoute(
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
       routes: [
         GoRoute(
-          path: 'sub_comments',
-          builder: (_, state) =>
-              SubCommentsPage(comment: state.extra as Comment),
+          path: '/comments/:id',
+          builder: (_, state) => CommentsPage(id: state.pathParameters['id']!),
+          routes: [
+            GoRoute(
+              path: 'sub_comments',
+              builder: (_, state) =>
+                  SubCommentsPage(comment: state.extra as Comment),
+            ),
+          ],
         ),
       ],
     ),
@@ -113,27 +119,37 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/favorites', builder: (_, _) => const Favorites()),
     GoRoute(path: '/history', builder: (_, _) => const History()),
     GoRoute(path: '/downloads', builder: (_, _) => const Downloads()),
-    GoRoute(
-      path: '/personal_comments',
-      builder: (_, _) => const Comments(),
+    ShellRoute(
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
       routes: [
         GoRoute(
-          path: 'sub_comments',
-          builder: (_, state) =>
-              SubCommentsPage(comment: state.extra as Comment),
+          path: '/personal_comments',
+          builder: (_, _) => const Comments(),
+          routes: [
+            GoRoute(
+              path: 'sub_comments',
+              builder: (_, state) =>
+                  SubCommentsPage(comment: state.extra as Comment),
+            ),
+          ],
         ),
       ],
     ),
     GoRoute(path: '/personal_editor', builder: (_, _) => const Editor()),
-    GoRoute(
-      path: '/downloader',
-      builder: (_, state) {
-        final extra = state.extra as Map;
-        final DownloadComic downloadComic =
-            extra['downloadComic'] as DownloadComic;
-        final chapters = extra['chapters'] as List<Chapter>;
-        return Downloader(chapters: chapters, downloadComic: downloadComic);
-      },
+    ShellRoute(
+      pageBuilder: (c, s, child) => buildSideSheetRoutePage(c, s, child),
+      routes: [
+        GoRoute(
+          path: '/downloader',
+          builder: (_, state) {
+            final extra = state.extra as Map;
+            final DownloadComic downloadComic =
+                extra['downloadComic'] as DownloadComic;
+            final chapters = extra['chapters'] as List<Chapter>;
+            return Downloader(chapters: chapters, downloadComic: downloadComic);
+          },
+        ),
+      ],
     ),
     GoRoute(path: '/about', builder: (_, _) => const About()),
     GoRoute(path: '/blacklist', builder: (_, _) => const Blacklist()),

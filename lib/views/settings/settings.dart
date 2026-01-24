@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart' hide Block;
 import 'package:haka_comic/views/settings/auth.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
@@ -73,7 +72,7 @@ class Settings extends StatelessWidget {
                 const SlipFactor(),
                 if (!isDesktop) const EnableVolume(),
                 MenuListTile.withAction(
-                  icon: Symbols.gesture_select,
+                  icon: Icons.touch_app_outlined,
                   title: '手势区域',
                   onTap: () => context.push('/gesture_area'),
                 ),

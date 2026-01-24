@@ -9,7 +9,7 @@
 
 **_关于下载_**
 
-软件下载在[releases](https://github.com/raoxwup/haka_comic/releases)，Android 一般下载 arm64-v8a 即可，实在不知道下什么选择 universal。iOS 选择 ipa，但需要自签，[这里](https://github.com/Predidit/Kazumi/issues/819)有很全面的自签教程。Mac 选择 dmg。Windows 选择 exe。
+软件下载在[releases](https://github.com/raoxwup/haka_comic/releases)，Android 一般下载 arm64-v8a 即可，实在不知道下什么选择 universal。iOS 选择 ipa，但需要自签，我个人推荐[SideStore](https://docs.sidestore.io/zh/docs/installation/prerequisites)折腾一次就方便很多。Mac 选择 dmg。Windows 选择 exe。
 
 ---
 
