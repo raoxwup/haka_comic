@@ -3,6 +3,8 @@ name: Cross-Platform Build
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - alt_store.json
   workflow_dispatch:
     inputs:
       branch:
@@ -488,11 +490,51 @@ jobs:
       contents: write
       actions: read
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BUILD_BRANCH }}
+          fetch-depth: 0
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
           merge-multiple: true
+
+      - name: Setup Dart
+        if: ${{ needs.ios-build.result == 'success' }}
+        uses: dart-lang/setup-dart@v1
+
+      - name: Update AltStore source (alt_store.json)
+        if: ${{ needs.ios-build.result == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.setup.outputs.app-version }}"
+          tag="v${version}+${{ github.run_number }}"
+          date="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+          ipa_path="$(find release-artifacts -maxdepth 2 -name '*.ipa' | head -n 1)"
+          if [ -z "${ipa_path}" ]; then
+            echo "No IPA found under release-artifacts"
+            find release-artifacts -maxdepth 2 -type f -print
+            exit 1
+          fi
+          ipa_name="$(basename "${ipa_path}")"
+
+          dart script/update_alt_store_json.dart \
+            --json alt_store.json \
+            --ipa "${ipa_path}" \
+            --version "${version}" \
+            --buildVersion "${version}" \
+            --date "${date}" \
+            --repo "${{ github.repository }}" \
+            --tag "${tag}" \
+            --assetName "${ipa_name}"
+
+          # Attach the source JSON to the GitHub Release too.
+          cp alt_store.json release-artifacts/alt_store.json
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2

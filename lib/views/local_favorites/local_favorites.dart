@@ -314,28 +314,21 @@ class _LocalFavoritesState extends State<LocalFavorites> with RequestMixin {
     required bool selected,
     required VoidCallback onTap,
   }) {
-    return Tooltip(
+    return ListTile(
       key: key,
-      message: title,
-      child: ListTile(
-        selected: selected,
-        selectedTileColor: context.colorScheme.primaryContainer.withValues(
-          alpha: 0.4,
-        ),
-        title: Text(
-          title,
-          style: context.textTheme.titleSmall,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text('$count'),
-        leading: Icon(
-          Icons.folder,
-          size: 36,
-          color: context.colorScheme.primary,
-        ),
-        onTap: onTap,
+      selected: selected,
+      selectedTileColor: context.colorScheme.primaryContainer.withValues(
+        alpha: 0.4,
       ),
+      title: Text(
+        title,
+        style: context.textTheme.titleSmall,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Text('$count'),
+      leading: Icon(Icons.folder, size: 36, color: context.colorScheme.primary),
+      onTap: onTap,
     );
   }
 
