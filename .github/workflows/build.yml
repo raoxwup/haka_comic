@@ -512,7 +512,7 @@ jobs:
           set -euo pipefail
 
           version="${{ needs.setup.outputs.app-version }}"
-          tag="v${version}+${{ github.run_number }}"
+          tag="${version}"
           date="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
           ipa_path="$(find release-artifacts -maxdepth 2 -name '*.ipa' | head -n 1)"
