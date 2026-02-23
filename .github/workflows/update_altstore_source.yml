@@ -1,0 +1,108 @@
+name: Update AltStore Source
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-altstore-json:
+    name: Update alt_store.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Extract IPA asset metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re, sys
+
+          event_path = os.environ["GITHUB_EVENT_PATH"]
+          with open(event_path, "r", encoding="utf-8") as f:
+            event = json.load(f)
+
+          release = event["release"]
+          tag = release["tag_name"]
+          date = release.get("published_at") or release.get("created_at") or ""
+          assets = release.get("assets", [])
+
+          ipa = None
+          for a in assets:
+            name = a.get("name", "")
+            if name.endswith(".ipa") and "no-codesign-ios" in name:
+              ipa = a
+              break
+          if ipa is None:
+            for a in assets:
+              if a.get("name", "").endswith(".ipa"):
+                ipa = a
+                break
+          if ipa is None:
+            print("has_ipa=false")
+            sys.exit(0)
+          print("has_ipa=true")
+
+          ipa_name = ipa.get("name", "")
+          download_url = ipa.get("browser_download_url", "")
+          size = ipa.get("size", 0)
+
+          # Prefer parsing version from the IPA name: no-codesign-ios-v<version>.ipa
+          m = re.search(r"no-codesign-ios-v(.+)\\.ipa$", ipa_name)
+          if m:
+            version = m.group(1)
+          else:
+            # Fallback to tag: v<version>+<build> or <version>
+            t = tag.lstrip("v")
+            version = t.split("+", 1)[0]
+
+          print(f"tag={tag}")
+          print(f"date={date}")
+          print(f"version={version}")
+          print(f"asset_name={ipa_name}")
+          print(f"download_url={download_url}")
+          print(f"size={size}")
+          PY
+
+      - name: Update alt_store.json
+        if: ${{ steps.meta.outputs.has_ipa == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          dart script/update_alt_store_json.dart \
+            --json alt_store.json \
+            --version "${{ steps.meta.outputs.version }}" \
+            --buildVersion "${{ steps.meta.outputs.version }}" \
+            --date "${{ steps.meta.outputs.date }}" \
+            --downloadURL "${{ steps.meta.outputs.download_url }}" \
+            --size "${{ steps.meta.outputs.size }}"
+
+      - name: Commit & push
+        if: ${{ steps.meta.outputs.has_ipa == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add alt_store.json
+          if git diff --cached --quiet; then
+            echo "alt_store.json unchanged; nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: update AltStore source (${{ steps.meta.outputs.version }})"
+          git push
