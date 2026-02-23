@@ -1,0 +1,36 @@
+{
+  "name": "HaKa Comic",
+  "subtitle": "第三方哗咔漫画跨平台客户端",
+  "description": "用于通过 AltStore / SideStore 安装与更新 HaKa Comic（iOS IPA）。",
+  "website": "https://github.com/raoxwup/haka_comic",
+  "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/Light.png",
+  "apps": [
+    {
+      "name": "HaKa Comic",
+      "bundleIdentifier": "com.github.raoxwup.hakacomic",
+      "developerName": "raoxwup",
+      "subtitle": "第三方哗咔漫画客户端",
+      "localizedDescription": "第三方哗咔漫画跨平台客户端（学习/练习项目）。",
+      "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/Light.png",
+      "versions": [
+        {
+          "version": "1.1.2",
+          "buildVersion": "1.1.2",
+          "date": "2026-02-06T16:17:38Z",
+          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.1.2/no-codesign-ios-v1.1.2.ipa",
+          "size": 12385972,
+          "minOSVersion": "13.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSAppleMusicUsageDescription": "Allow Runner to access your music.",
+          "NSFaceIDUsageDescription": "Biometric authentication is required.",
+          "NSPhotoLibraryUsageDescription": "Allow Runner to access your photos."
+        }
+      }
+    }
+  ],
+  "news": []
+}
