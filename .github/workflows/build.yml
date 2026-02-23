@@ -199,6 +199,7 @@ jobs:
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          cache: false
 
       - name: Install dependencies
         run: flutter pub get
