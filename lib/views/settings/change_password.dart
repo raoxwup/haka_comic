@@ -59,20 +59,21 @@ class _ChangePassWordDialogState extends State<ChangePassWordDialog>
 
   @override
   Widget build(BuildContext context) {
-    return SimpleDialog(
-      contentPadding: const EdgeInsets.all(20),
+    return AlertDialog(
       title: const Text('修改密码'),
-      children: [
-        TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: '新密码',
-          ),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        decoration: const InputDecoration(hintText: '新密码'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            context.pop();
+          },
+          child: const Text('取消'),
         ),
-        const SizedBox(height: 10),
-        Button.filled(
+        Button.text(
           onPressed: () {
             final password = controller.text;
             if (password.isEmpty) {
