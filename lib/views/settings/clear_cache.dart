@@ -88,6 +88,7 @@ class _ClearCacheState extends State<ClearCache> {
     setState(() => _isCalculating = true);
     final paths = await _getCacheDirs();
     final size = await compute(_calculateCacheSizeIsolate, paths);
+    if (!mounted) return;
     setState(() {
       _cacheSize = size;
       _isCalculating = false;
