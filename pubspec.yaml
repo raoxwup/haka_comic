@@ -58,6 +58,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   extended_image: ^10.0.1
   flutter_displaymode: ^0.7.0
+  sidebarx: ^0.17.2
 
 dev_dependencies:
   flutter_test:
