@@ -38,6 +38,8 @@ class _HomeState extends State<Home> {
               if (!UiMode.m1(context)) _buildAppNavigationBar(),
               Expanded(
                 child: SafeArea(
+                  left: false,
+                  right: false,
                   child: IndexedStack(
                     index: _selectedIndex,
                     children: [
