@@ -51,6 +51,8 @@ class AppNavigationBar extends StatelessWidget {
             ),
           ),
           child: SafeArea(
+            right: false,
+            left: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -149,7 +151,7 @@ class _SideMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = context.colorScheme;
-    final bg = selected ? scheme.primaryContainer : Colors.transparent;
+    final bg = selected ? scheme.secondaryContainer : Colors.transparent;
     final fg = selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant;
 
     return Padding(
