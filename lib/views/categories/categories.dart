@@ -46,7 +46,10 @@ class _CategoriesState extends State<Categories> with RequestMixin {
   @override
   Widget build(BuildContext context) {
     return switch (handler.state) {
-      Success(:final data) => _buildCategoryList(data.categories),
+      Success(:final data) => Padding(
+        padding: .fromLTRB(0, context.top, 0, context.bottom),
+        child: _buildCategoryList(data.categories),
+      ),
       Error(:final error) => ErrorPage(
         errorMessage: error.toString(),
         onRetry: handler.refresh,
