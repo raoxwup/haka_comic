@@ -9,19 +9,30 @@
 
 ---
 
+## 🖼️ 项目截图
+
+| 分类浏览                                          | 漫画列表                                              | 漫画详情                                              | 阅读界面                                          |
+| ------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- |
+| <img src="./screenshots/分类.png" width="200">    | <img src="./screenshots/漫画列表.png" width="200">    | <img src="./screenshots/漫画详情.png" width="200">    | <img src="./screenshots/阅读.png" width="200">    |
+| <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
+
+**截图已经过时，以实际项目界面为主**
+
+---
+
 ## ⬇️ 下载
 
 所有平台安装包都在 GitHub [Releases](https://github.com/raoxwup/haka_comic/releases)。
 
-| 平台    | Release 资产文件名                                                                                                                                                                           | 选择建议 / 备注                                                                                                                                                                                                                                                                                |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Android | `app-arm64-v8a-release-v{version}.apk`（推荐）<br/>`app-universal-release-v{version}.apk`（通用）<br/>`app-armeabi-v7a-release-v{version}.apk` / `app-x86_64-release-v{version}.apk`（可选） | 大多数真机选 `arm64-v8a`；不确定就选 `universal`（体积更大）。`x86_64` 通常用于模拟器。                                                                                                                                                                                                        |
-| iOS     | `no-codesign-ios-v{version}.ipa`                                                                                                                                                             | **未签名 IPA**，需要自签/侧载后才能安装。推荐用 SideStore/AltStore：添加源 `alt_store.json`（`https://raw.githubusercontent.com/raoxwup/haka_comic/main/alt_store.json`），并按官方文档完成前置配置（如 [SideStore 安装前置](https://docs.sidestore.io/zh/docs/installation/prerequisites)）。 |
-| macOS   | `HaKa Comic-v{version}.dmg`                                                                                                                                                                  | DMG 安装包（未做公证/签名时，首次打开可能需要在系统安全设置里手动允许）。                                                                                                                                                                                                                      |
-| Windows | `HaKa Comic-Setup-v{version}.exe`                                                                                                                                                            | Inno Setup 安装器（可能会触发 SmartScreen 提示，按需放行）。                                                                                                                                                                                                                                   |
-| Linux   | `haka-comic-v{version}-amd64.deb` / `haka-comic-v{version}-arm64.deb`                                                                                                                        | Debian/Ubuntu 系：`sudo apt install ./xxx.deb`。目前仅提供 `.deb`。                                                                                                                                                                                                                            |
+| 平台    | 资源类型                                        | 选择建议 / 备注                                                                                                                                                                                                                                                                |
+| ------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Android | `APK`（`arm64` 推荐 / `universal` 通用 / 可选） | 大多数真机选 `arm64`；不确定就选 `universal`（体积更大）。`x86_64` 通常用于模拟器。                                                                                                                                                                                            |
+| iOS     | `IPA`（未签名）                                 | 需要自签/侧载后才能安装。推荐用 SideStore/AltStore：添加源 `alt_store.json`（`https://raw.githubusercontent.com/raoxwup/haka_comic/main/alt_store.json`），并按官方文档完成前置配置（如 [SideStore 安装前置](https://docs.sidestore.io/zh/docs/installation/prerequisites)）。 |
+| macOS   | `DMG`                                           | 首次打开可能需要在系统安全设置里手动允许。                                                                                                                                                                                                                                     |
+| Windows | `EXE`                                           | Inno Setup 安装器，可能触发 SmartScreen 提示，按需放行。                                                                                                                                                                                                                       |
+| Linux   | `DEB`（`amd64` / `arm64`）                      | Debian/Ubuntu 系：`sudo apt install ./xxx.deb`。目前仅提供 `.deb`。                                                                                                                                                                                                            |
 
-> 提示：`{version}` 为版本号（例如 `1.1.3`），Release 中实际文件名以页面展示为准。
+> 提示：具体资产文件名会随版本变化，按 Release 页面展示为准。
 
 ---
 
@@ -34,17 +45,6 @@
 | Rust toolchain | 建议使用 stable（本项目 Rust crate 为 edition 2021） | [Rust 安装文档（rustup）](https://www.rust-lang.org/tools/install) | `rustc --version` / `cargo --version`     |
 
 > 说明：Flutter SDK 自带 Dart SDK；如果你已经安装了 Flutter，一般无需再单独安装 Dart。
-
----
-
-## 🖼️ 项目截图
-
-| 分类浏览                                          | 漫画列表                                              | 漫画详情                                              | 阅读界面                                          |
-| ------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- |
-| <img src="./screenshots/分类.png" width="200">    | <img src="./screenshots/漫画列表.png" width="200">    | <img src="./screenshots/漫画详情.png" width="200">    | <img src="./screenshots/阅读.png" width="200">    |
-| <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
-
-**截图已经过时，以实际项目界面为主**
 
 ---
 
