@@ -86,7 +86,7 @@ class _DownloadExecutor {
       }
     } catch (e, st) {
       task.status = DownloadTaskStatus.error;
-      debugPrint('update error for ${task.comic.id}: $e\n$st');
+      Log.error('update task error (${task.comic.id})', e, st);
       save(task);
     }
   }
@@ -188,7 +188,7 @@ class _DownloadExecutor {
       task.status = DownloadTaskStatus.error;
       save(task);
 
-      debugPrint('Download failed for ${task.comic.id}: $e');
+      Log.error('download failed (${task.comic.id})', e);
     }
 
     await pool.close();
@@ -283,7 +283,7 @@ class _DownloadExecutor {
     try {
       await downloadTaskHelper.insertSingleTask(task);
     } catch (e, st) {
-      debugPrint('setCache single task error: $e\n$st');
+      Log.error('set cache single task error', e, st);
     }
   }
 
@@ -402,7 +402,7 @@ class _DownloadExecutor {
           try {
             Directory(path).deleteSync(recursive: true);
           } catch (e) {
-            debugPrint('Failed to delete folder $path: $e');
+            Log.error('delete download folder failed ($path)', e);
           }
         }
         tasks.removeAt(index);
