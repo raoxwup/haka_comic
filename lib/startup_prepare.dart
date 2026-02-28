@@ -66,7 +66,7 @@ Future<void> startDesktop() async {
         await windowManager.setPosition(Offset(x, y));
       }
 
-      await windowManager.setMinimumSize(const Size(750, 550));
+      await windowManager.setMinimumSize(const Size(780, 550));
       await windowManager.setResizable(true);
       await windowManager.show();
       await windowManager.focus();
