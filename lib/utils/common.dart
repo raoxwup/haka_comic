@@ -129,19 +129,22 @@ String _addThousandsSeparator(String numberStr) {
 
 /// 根据平台返回不同的下载目录
 Future<String> getDownloadDirectory() async {
-  if (isIos || isMacOS) {
+  if (isIos) {
     return (await getApplicationDocumentsDirectory()).path;
   }
 
-  final downloadPath = (await getDownloadsDirectory())?.path;
-  if (downloadPath != null) return downloadPath;
+  if (isWindows || isLinux || isMacOS) {
+    return (await getApplicationCacheDirectory()).path;
+  }
 
   if (isAndroid) {
+    final downloadPath = (await getDownloadsDirectory())?.path;
+    if (downloadPath != null) return downloadPath;
     final externalPath = (await getExternalStorageDirectory())?.path;
     if (externalPath != null) return externalPath;
   }
 
-  return (await getApplicationDocumentsDirectory()).path;
+  return (await getApplicationSupportDirectory()).path;
 }
 
 /// 复制文件
