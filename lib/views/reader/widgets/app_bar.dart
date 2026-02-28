@@ -30,7 +30,7 @@ class ReaderAppBar extends StatelessWidget {
           child: AppBar(
             leading: IconButton(
               icon: Icon(
-                (isIos || isMacOS)
+                (isIOS || isMacOS)
                     ? Icons.arrow_back_ios_new
                     : Icons.arrow_back,
               ),

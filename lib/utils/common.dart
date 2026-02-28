@@ -91,7 +91,7 @@ void showCreator(BuildContext context, Creator? creator) {
   );
 }
 
-bool isIos = Platform.isIOS;
+bool isIOS = Platform.isIOS;
 bool isAndroid = Platform.isAndroid;
 bool isMacOS = Platform.isMacOS;
 bool isWindows = Platform.isWindows;
@@ -129,7 +129,7 @@ String _addThousandsSeparator(String numberStr) {
 
 /// 根据平台返回不同的下载目录
 Future<String> getDownloadDirectory() async {
-  if (isIos) {
+  if (isIOS) {
     return (await getApplicationDocumentsDirectory()).path;
   }
 
