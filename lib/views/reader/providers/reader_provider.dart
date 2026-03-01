@@ -77,7 +77,20 @@ class ReaderProvider extends RequestProvider {
   /// 切换工具栏显示状态
   void openOrCloseToolbar() {
     Future.microtask(() {
-      showToolbar = !showToolbar;
+      final willShowToolbar = !showToolbar;
+
+      if (willShowToolbar) {
+        if (_isPageTurning) {
+          turnPageTimer?.cancel();
+          turnPageTimer = null;
+          _isPageTurnPausedByToolbar = true;
+        }
+      } else if (_isPageTurning && _isPageTurnPausedByToolbar) {
+        _startPageTurnTimer();
+        _isPageTurnPausedByToolbar = false;
+      }
+
+      showToolbar = willShowToolbar;
       SystemChrome.setEnabledSystemUIMode(
         showToolbar ? SystemUiMode.edgeToEdge : SystemUiMode.immersive,
       );
@@ -274,6 +287,7 @@ class ReaderProvider extends RequestProvider {
 
   /// 定时翻页
   bool _isPageTurning = false;
+  bool _isPageTurnPausedByToolbar = false;
   bool get isPageTurning => _isPageTurning;
   set isPageTurning(bool value) {
     _isPageTurning = value;
@@ -292,28 +306,35 @@ class ReaderProvider extends RequestProvider {
     notifyListeners();
   }
 
-  /// 开始定时翻页
-  void startPageTurn() {
+  void _startPageTurnTimer() {
     turnPageTimer?.cancel();
     turnPageTimer = Timer.periodic(Duration(seconds: _interval), (timer) {
       if (handler.state case Loading()) return;
       next();
     });
+  }
+
+  /// 开始定时翻页
+  void startPageTurn() {
+    _isPageTurnPausedByToolbar = false;
+    _startPageTurnTimer();
     isPageTurning = true;
   }
 
   /// 关闭定时翻页
   void stopPageTurn() {
     turnPageTimer?.cancel();
+    turnPageTimer = null;
+    _isPageTurnPausedByToolbar = false;
     isPageTurning = false;
   }
 
   /// 更新定时翻页间隔
   void updateInterval(int interval) {
     this.interval = interval;
-    if (isPageTurning) {
-      startPageTurn();
-    }
+    // if (isPageTurning && !_isPageTurnPausedByToolbar) {
+    //   _startPageTurnTimer();
+    // }
   }
 
   late ImagePreloadController<ImageBase> preloadController;

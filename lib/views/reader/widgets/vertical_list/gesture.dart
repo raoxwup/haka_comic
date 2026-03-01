@@ -38,10 +38,6 @@ class _GestureWrapperState extends State<GestureWrapper>
       _activePointerIds.remove(event.pointer);
     }
     final int nextPointerCount = _activePointerIds.length;
-
-    // Rebuild so InteractiveViewer.scaleEnabled can react to pointer count
-    // changes (e.g. allow two-finger pinch on touch, but avoid mouse wheel zoom
-    // on mobile when no pointers are down).
     if (prevPointerCount != nextPointerCount && mounted) {
       setState(() {});
     }
@@ -155,12 +151,6 @@ class _GestureWrapperState extends State<GestureWrapper>
   @override
   Widget build(BuildContext context) {
     final isCtrlPressed = context.stateSelector((p) => p.isCtrlPressed);
-    // InteractiveViewer treats mouse wheel scroll as scale. On mobile platforms
-    // (e.g. Android/iOS) this becomes problematic when using a Bluetooth mouse:
-    // the wheel should scroll the list, not zoom.
-    //
-    // - Desktop: keep existing behavior (scale only when Ctrl is pressed).
-    // - Mobile: allow scale only for pinch (2 pointers) or when Ctrl is pressed.
     final bool scaleEnabled = isDesktop
         ? isCtrlPressed
         : (isCtrlPressed || _activePointerIds.length >= 2);
