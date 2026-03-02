@@ -28,10 +28,10 @@ class _SubCommentsPageState extends State<SubCommentsPage>
   late final handler = fetchSubComments.useRequest(
     defaultParams: SubCommentsPayload(id: widget.comment.id, page: _page),
     onSuccess: (data, _) {
-      Log.info('Fetch comic comments success', data.toString());
+      Log.i('Fetch comic comments success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch comic comments error', e);
+      Log.e('Fetch comic comments error', error: e);
     },
     reducer: (prev, current) {
       if (prev == null) return current;
@@ -157,12 +157,12 @@ class _SubCommentsPageState extends State<SubCommentsPage>
         handler: sendReply.useRequest(
           manual: true,
           onSuccess: (data, _) {
-            Log.info('Send reply success', 'reply');
+            Log.i('Send reply success', 'reply');
             _refresh();
             context.pop();
           },
           onError: (e, _) {
-            Log.error('Send reply error', e);
+            Log.e('Send reply error', error: e);
             Toast.show(message: '回复失败');
           },
         ),

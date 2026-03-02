@@ -40,11 +40,11 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   late final handler = fetchComicDetails.useRequest(
     defaultParams: widget.id,
     onSuccess: (data, _) {
-      Log.info('Fetch comic details', data.toString());
+      Log.i('Fetch comic details', data);
       HistoryHelper().insert(data.comic);
     },
     onError: (e, _) {
-      Log.error('Fetch comic details error', e);
+      Log.e('Fetch comic details error', error: e);
     },
   );
 
@@ -52,12 +52,12 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   late final chaptersHandler = fetchChapters.useRequest(
     defaultParams: widget.id,
     onSuccess: (data, _) {
-      Log.info('Fetch chapters success', data.toString());
+      Log.i('Fetch chapters success', data);
       // 哔咔最新的排在最前面
       _chapters = data.reversed.toList();
     },
     onError: (e, _) {
-      Log.error('Fetch chapters error', e);
+      Log.e('Fetch chapters error', error: e);
     },
   );
 

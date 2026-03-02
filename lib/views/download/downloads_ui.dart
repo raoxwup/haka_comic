@@ -131,7 +131,7 @@ class _DownloadsState extends State<Downloads> {
 
       Toast.show(message: "导出成功");
     } catch (e) {
-      Log.error("export comic failed", e);
+      Log.e("export comic failed", error: e);
       Toast.show(message: "导出失败");
     } finally {
       if (mounted) {
@@ -232,7 +232,7 @@ class _DownloadsState extends State<Downloads> {
         Toast.show(message: "导出失败");
       }
     } catch (e) {
-      Log.error("export comic failed", e);
+      Log.e("export comic failed", error: e);
       Toast.show(message: "导出失败");
     } finally {
       if (mounted) {
@@ -316,7 +316,7 @@ class _DownloadsState extends State<Downloads> {
 
       Toast.show(message: "导出成功");
     } catch (e) {
-      Log.error("export comic failed", e);
+      Log.e("export comic failed", error: e);
       Toast.show(message: "导出失败");
     } finally {
       if (mounted) {

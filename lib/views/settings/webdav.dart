@@ -132,7 +132,7 @@ class _WebDAVState extends State<WebDAV> {
 
       save();
     } catch (e) {
-      Log.error('WebDAV error', e);
+      Log.e('WebDAV error', error: e);
       showSnackBar('发生错误: ${e.toString()}');
     } finally {
       setState(() {

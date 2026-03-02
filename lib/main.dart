@@ -49,7 +49,7 @@ void main(List<String> args) {
           .wait();
     },
     (Object error, StackTrace stackTrace) {
-      Log.error('runZonedGuarded', error, stackTrace);
+      Log.f('runZonedGuarded', error: error, stackTrace: stackTrace);
     },
   );
 }
@@ -81,8 +81,8 @@ class _AppState extends State<App> with WindowListener {
         isAuthorized = didAuthenticate;
         isVerifying = false;
       });
-    } catch (e) {
-      Log.error('LocalAuthentication', e);
+    } catch (e, st) {
+      Log.w('LocalAuthentication', error: e, stackTrace: st);
       setState(() {
         isAuthorized = false;
         isVerifying = false;

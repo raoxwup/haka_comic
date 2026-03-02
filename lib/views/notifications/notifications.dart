@@ -22,10 +22,10 @@ class _NotificationsState extends State<Notifications>
   late final _handler = fetchNotifications.useRequest(
     defaultParams: _page,
     onSuccess: (data, _) {
-      Log.info('Fetch notifications success', data.toString());
+      Log.i('Fetch notifications success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch notifications error', e);
+      Log.e('Fetch notifications error', error: e);
     },
     reducer: (prev, current) {
       if (prev == null) return current;

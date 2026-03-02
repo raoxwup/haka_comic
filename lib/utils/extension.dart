@@ -8,8 +8,8 @@ extension WaitFuture<T> on Future<T> {
   Future<void> wait() async {
     try {
       await this;
-    } catch (e) {
-      Log.error('unexpected error', e);
+    } catch (e, st) {
+      Log.e('Unexpected error', error: e, stackTrace: st);
     }
   }
 }
@@ -57,5 +57,14 @@ extension Legalized on String {
     }
 
     return str.substring(0, max);
+  }
+}
+
+extension FirstWhereOrNull<T> on List<T> {
+  T? firstWhereOrNull(bool Function(T) predicate) {
+    for (final element in this) {
+      if (predicate(element)) return element;
+    }
+    return null;
   }
 }

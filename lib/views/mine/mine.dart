@@ -258,8 +258,8 @@ class _FavoritesState extends State<Favorites> with RequestMixin {
   late final _handler = fetchFavoriteComics.useRequest(
     defaultParams: UserFavoritePayload(page: 1, sort: ComicSortType.dd),
     onSuccess: (data, _) =>
-        Log.info('Fetch favorite comics success', data.toString()),
-    onError: (e, _) => Log.error('Fetch favorite comics error', e),
+        Log.i('Fetch favorite comics success', data.toString()),
+    onError: (e, _) => Log.e('Fetch favorite comics error', error: e),
   );
 
   @override

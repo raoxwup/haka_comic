@@ -27,14 +27,14 @@ class _ThumbUpState extends State<ThumbUp> with RequestMixin {
   late final _handler = likeComment.useRequest(
     manual: true,
     onSuccess: (data, _) {
-      Log.info('Like comment success', data.action);
+      Log.i('Like comment success', data.action);
       setState(() {
         _isLiked = !_isLiked;
         _likesCount += _isLiked ? 1 : -1;
       });
     },
     onError: (e, _) {
-      Log.error('Like comment error', e);
+      Log.e('Like comment error', error: e);
       Toast.show(message: '点赞失败');
     },
   );

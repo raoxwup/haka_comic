@@ -33,10 +33,10 @@ const extraMenus = [
 class _CategoriesState extends State<Categories> with RequestMixin {
   final handler = fetchCategories.useRequest(
     onSuccess: (data) {
-      Log.info('Fetch categories success', data.toString());
+      Log.i('Fetch categories success', data);
     },
     onError: (e) {
-      Log.error('Fetch categories failed', e);
+      Log.e('Fetch categories failed', error: e);
     },
   );
 

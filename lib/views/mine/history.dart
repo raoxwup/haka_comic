@@ -53,10 +53,10 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
   late final _handler = getComicsWithTotal.useRequest(
     defaultParams: 1,
     onSuccess: (data, _) {
-      Log.info('Get history success', data.toString());
+      Log.i('Get history success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Get history error', e);
+      Log.e('Get history error', error: e);
     },
     reducer: (prev, current) {
       if (prev == null) return current;
@@ -80,7 +80,7 @@ class _HistoryState extends State<History> with RequestMixin, PaginationMixin {
       case InsertEvent(comic: final _):
         _update();
       default:
-        Log.info('Unknown event', event.toString());
+        Log.i('Unknown event', event.toString());
     }
   }
 

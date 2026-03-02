@@ -35,7 +35,7 @@ class StartupPrepare {
       LocalFavoritesHelper().initialize(),
       if (isAndroid) FlutterDisplayMode.setHighRefreshRate(),
       startDesktop(),
-      Log.init(),
+      Log.initialize(),
     ]);
   }
 }

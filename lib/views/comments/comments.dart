@@ -26,10 +26,10 @@ class _CommentsPageState extends State<CommentsPage>
   late final handler = fetchComicComments.useRequest(
     defaultParams: CommentsPayload(id: widget.id, page: _page),
     onSuccess: (data, _) {
-      Log.info('Fetch comic comments success', data.toString());
+      Log.i('Fetch comic comments success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch comic comments error', e);
+      Log.e('Fetch comic comments error', error: e);
     },
     reducer: (prev, current) {
       if (prev == null) return current;
@@ -114,12 +114,12 @@ class _CommentsPageState extends State<CommentsPage>
         handler: sendComment.useRequest(
           manual: true,
           onSuccess: (data, _) {
-            Log.info('Send comment success', 'comment');
+            Log.i('Send comment success', 'comment');
             _refresh();
             context.pop();
           },
           onError: (e, _) {
-            Log.error('Send comment error', e);
+            Log.e('Send comment error', error: e);
             Toast.show(message: '评论失败');
           },
         ),

@@ -32,10 +32,10 @@ class _FolderComicsState extends State<FolderComics> with RequestMixin {
   late final _getFolderComicsHandler = _helper.getFolderComics.useRequest(
     manual: true,
     onSuccess: (comics, _) {
-      Log.info('Get folder comics success', comics.toString());
+      Log.i('Get folder comics success', comics.toString());
     },
     onError: (e, _) {
-      Log.error('Get folder comics error', e);
+      Log.e('Get folder comics error', error: e);
     },
   );
 
@@ -55,10 +55,10 @@ class _FolderComicsState extends State<FolderComics> with RequestMixin {
       );
     },
     onSuccess: (_, cid) {
-      Log.info('Remove comic from folder success', cid);
+      Log.i('Remove comic from folder success', cid);
     },
     onError: (e, _) {
-      Log.error('Remove comic from folder error', e);
+      Log.e('Remove comic from folder error', error: e);
       Toast.show(message: '移除失败');
       _getFolderComicsHandler.mutate(cachedComics);
     },

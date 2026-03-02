@@ -15,24 +15,24 @@ class UserProvider extends RequestProvider {
   late final userHandler = fetchUserProfile.useRequest(
     manual: true,
     onSuccess: (data) {
-      Log.info('Fetched user profile successfully', data.toString());
+      Log.i('Fetched user profile successfully', data);
       if (!data.user.isPunched) {
         punchInHandler.run();
       }
     },
     onError: (error) {
-      Log.error('Failed to fetch user profile ', error);
+      Log.e('Failed to fetch user profile ', error: error);
     },
   );
 
   late final punchInHandler = punchIn.useRequest(
     manual: true,
     onSuccess: (data) {
-      Log.info('Punched in successfully', 'Punched in successfully');
+      Log.i('Punched in successfully', 'Punched in successfully');
       Toast.show(message: '打卡成功');
     },
     onError: (error) {
-      Log.error('Failed to punch in ', error);
+      Log.e('Failed to punch in ', error: error);
     },
   );
 

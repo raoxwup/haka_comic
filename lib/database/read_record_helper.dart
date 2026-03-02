@@ -55,8 +55,8 @@ class ReadRecordHelper with ChangeNotifier, DbBackupMixin {
         );
       });
       notifyListeners();
-    } catch (e) {
-      Log.error('insert read record error', e);
+    } catch (e, st) {
+      Log.e('insert read record error', error: e, stackTrace: st);
       rethrow;
     }
   }

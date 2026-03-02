@@ -23,14 +23,14 @@ class _LoginState extends State<Login> with RequestMixin {
   late final handler = login.useRequest(
     manual: true,
     onSuccess: (data, params) {
-      Log.info('Sign in success', data.toString());
+      Log.i('Sign in success', data.toString());
       AppConf().email = params.email;
       AppConf().password = params.password;
       AppConf().token = data.token;
       context.go('/');
     },
     onError: (e, _) {
-      Log.error('Sign in failed', e);
+      Log.e('Sign in failed', error: e);
       showSnackBar(e.toString());
     },
   );
