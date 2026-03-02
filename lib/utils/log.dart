@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -16,8 +15,8 @@ class Log {
       _logger = Logger(
         printer: PrettyPrinter(
           lineLength: 120,
-          colors: kReleaseMode ? false : true,
-          printEmojis: kReleaseMode ? false : true,
+          colors: false,
+          printEmojis: false,
           dateTimeFormat: DateTimeFormat.dateAndTime,
         ),
         output: MultiOutput([
