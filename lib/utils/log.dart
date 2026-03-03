@@ -21,6 +21,11 @@ class HaKaLog {
     required this.stackTrace,
     required this.time,
   });
+
+  @override
+  String toString() {
+    return '[$time][$level]\n$message\n$error\n$stackTrace';
+  }
 }
 
 class Log {
@@ -73,6 +78,10 @@ class Log {
       _logger.e('Failed to get logs', error: e, stackTrace: st);
       return [];
     }
+  }
+
+  static Future<void> clearLogs() async {
+    await Directory(_logsPath).delete(recursive: true);
   }
 
   static void t(

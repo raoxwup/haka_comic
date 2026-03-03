@@ -107,6 +107,19 @@ class Settings extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
+            Block(
+              title: '调试',
+              children: [
+                MenuListTile.withAction(
+                  icon: Icons.bug_report_outlined,
+                  title: '日志',
+                  onTap: () {
+                    context.push('/logs');
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             const Block(children: [Logout()]),
           ],
         ),
