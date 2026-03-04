@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
-import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -23,7 +22,7 @@ class _LogsState extends State<Logs> with RequestMixin {
     },
   );
 
-  late final _clearHandler = Log.clearLogs.useRequest(
+  late final _clearHandler = Log.clear.useRequest(
     manual: true,
     onSuccess: (data) {
       Log.i('Successfully cleared logs', 'clear logs');
@@ -228,14 +227,20 @@ class _LogsState extends State<Logs> with RequestMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isClearing = _clearHandler.state.loading;
     return Scaffold(
       appBar: AppBar(
         title: const Text('日志'),
         actions: [
-          Button.text(
-            isLoading: _clearHandler.state.loading,
-            onPressed: _clearHandler.run,
-            child: const Text('清空'),
+          IconButton(
+            tooltip: '清空日志',
+            onPressed: isClearing ? null : _clearHandler.run,
+            icon: isClearing
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.delete_forever_rounded),
           ),
         ],
       ),

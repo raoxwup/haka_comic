@@ -80,8 +80,10 @@ class Log {
     }
   }
 
-  static Future<void> clearLogs() async {
+  static Future<void> clear() async {
+    await _logger.close();
     await Directory(_logsPath).delete(recursive: true);
+    await initialize();
   }
 
   static void t(
