@@ -86,7 +86,11 @@ class _DownloadExecutor {
       }
     } catch (e, st) {
       task.status = DownloadTaskStatus.error;
-      Log.e('update task error (${task.comic.id})', error: e, stackTrace: st);
+      _sendLogError(
+        'update task error (${task.comic.id})',
+        error: e,
+        stackTrace: st,
+      );
       save(task);
     }
   }
@@ -177,7 +181,7 @@ class _DownloadExecutor {
 
     try {
       await Future.wait(futures);
-    } catch (e) {
+    } catch (e, st) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
         await pool.close();
         return;
@@ -188,7 +192,11 @@ class _DownloadExecutor {
       task.status = DownloadTaskStatus.error;
       save(task);
 
-      Log.e('download failed (${task.comic.id})', error: e);
+      _sendLogError(
+        'download failed (${task.comic.id})',
+        error: e,
+        stackTrace: st,
+      );
     }
 
     await pool.close();
@@ -277,13 +285,27 @@ class _DownloadExecutor {
     mainIsolateSendPort.send(tasks);
   }
 
+  static void _sendLogError(
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    mainIsolateSendPort.send(
+      IsolateLogMessage(
+        message: message,
+        error: error?.toString(),
+        stackTrace: stackTrace?.toString(),
+      ),
+    );
+  }
+
   /// 将任务或全部任务保存到数据库（带 debounce）
   static Future<void> save(ComicDownloadTask task) async {
     final downloadTaskHelper = DownloadTaskHelper();
     try {
       await downloadTaskHelper.insertSingleTask(task);
     } catch (e, st) {
-      Log.e('set cache single task error', error: e, stackTrace: st);
+      _sendLogError('set cache single task error', error: e, stackTrace: st);
     }
   }
 
@@ -401,8 +423,12 @@ class _DownloadExecutor {
         if (Directory(path).existsSync()) {
           try {
             Directory(path).deleteSync(recursive: true);
-          } catch (e) {
-            Log.e('delete download folder failed ($path)', error: e);
+          } catch (e, st) {
+            _sendLogError(
+              'delete download folder failed ($path)',
+              error: e,
+              stackTrace: st,
+            );
           }
         }
         tasks.removeAt(index);
@@ -437,6 +463,14 @@ class BackgroundDownloader {
           completer.complete();
         case List<ComicDownloadTask> tasks:
           streamController.add(tasks);
+        case IsolateLogMessage logMessage:
+          Log.e(
+            logMessage.message,
+            error: logMessage.error,
+            stackTrace: logMessage.stackTrace == null
+                ? null
+                : StackTrace.fromString(logMessage.stackTrace!),
+          );
       }
     });
 

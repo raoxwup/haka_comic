@@ -18,6 +18,14 @@ class MainMessage {
   const MainMessage({required this.payload, required this.type});
 }
 
+class IsolateLogMessage {
+  final String message;
+  final String? error;
+  final String? stackTrace;
+
+  const IsolateLogMessage({required this.message, this.error, this.stackTrace});
+}
+
 /// 下载漫画
 class DownloadComic {
   final String id;
