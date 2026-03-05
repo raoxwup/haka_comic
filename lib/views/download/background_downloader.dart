@@ -45,6 +45,8 @@ class _DownloadExecutor {
   static late final SendPort mainIsolateSendPort;
   static late final String _downloadPath;
   static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  static int _bytesInWindow = 0;
+  static int _lastSentSpeed = 0;
 
   /// 默认单任务并发数
   static const int defaultConcurrency = 3;
@@ -67,6 +69,18 @@ class _DownloadExecutor {
     }
 
     downloadTaskHelper.addListener(notify);
+    _startSpeedTracking();
+  }
+
+  static void _startSpeedTracking() {
+    Timer.periodic(const Duration(seconds: 1), (_) {
+      final speed = _bytesInWindow;
+      _bytesInWindow = 0;
+      if (speed > 0 || _lastSentSpeed > 0) {
+        mainIsolateSendPort.send(DownloadSpeed(bytesPerSecond: speed));
+        _lastSentSpeed = speed;
+      }
+    });
   }
 
   /// 更新任务（重新计算 total 并开始下载）
@@ -227,8 +241,17 @@ class _DownloadExecutor {
     final tmpPath = '$path.part';
 
     for (var attempt = 0; attempt < maxRetries; attempt++) {
+      int previousCount = 0;
       try {
-        await _dio.download(url, tmpPath, cancelToken: cancelToken);
+        await _dio.download(
+          url,
+          tmpPath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (count, total) {
+            _bytesInWindow += count - previousCount;
+            previousCount = count;
+          },
+        );
         final tmpFile = File(tmpPath);
         if (tmpFile.existsSync()) {
           if (target.existsSync()) {
@@ -446,6 +469,7 @@ class BackgroundDownloader {
   static final _rootToken = RootIsolateToken.instance!;
   static final streamController =
       StreamController<List<ComicDownloadTask>>.broadcast();
+  static final speedStreamController = StreamController<int>.broadcast();
 
   /// 初始化下载管理器
   static Future<void> initialize() async {
@@ -463,6 +487,8 @@ class BackgroundDownloader {
           completer.complete();
         case List<ComicDownloadTask> tasks:
           streamController.add(tasks);
+        case DownloadSpeed speed:
+          speedStreamController.add(speed.bytesPerSecond);
         case IsolateLogMessage logMessage:
           Log.e(
             logMessage.message,
@@ -514,5 +540,6 @@ class BackgroundDownloader {
       _workerIsolate.kill(priority: Isolate.immediate);
     } catch (_) {}
     streamController.close();
+    speedStreamController.close();
   }
 }

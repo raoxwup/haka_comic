@@ -37,8 +37,10 @@ class Downloads extends StatefulWidget {
 class _DownloadsState extends State<Downloads> {
   List<ComicDownloadTask> tasks = [];
   late final StreamSubscription _subscription;
+  late final StreamSubscription<int> _speedSubscription;
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
+  int _downloadSpeed = 0;
 
   @override
   void initState() {
@@ -48,12 +50,15 @@ class _DownloadsState extends State<Downloads> {
         tasks = event;
       }),
     );
+    _speedSubscription = BackgroundDownloader.speedStreamController.stream
+        .listen((speed) => setState(() => _downloadSpeed = speed));
     BackgroundDownloader.getTasks();
   }
 
   @override
   void dispose() {
     _subscription.cancel();
+    _speedSubscription.cancel();
     super.dispose();
   }
 
@@ -457,6 +462,7 @@ class _DownloadsState extends State<Downloads> {
               )
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
+                downloadSpeed: _downloadSpeed,
               ),
         body: SafeArea(
           child: CustomScrollView(
@@ -577,13 +583,30 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
-  const _NormalAppBar({required this.onEnterSelection});
+  final int downloadSpeed;
+  const _NormalAppBar({
+    required this.onEnterSelection,
+    required this.downloadSpeed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
+        if (downloadSpeed > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Center(
+              child: Text(
+                _formatSpeed(downloadSpeed),
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         IconButton(
           onPressed: onEnterSelection,
           icon: const Icon(Icons.checklist_rtl),
@@ -594,6 +617,15 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+String _formatSpeed(int bytesPerSecond) {
+  if (bytesPerSecond >= 1024 * 1024) {
+    return '${(bytesPerSecond / (1024 * 1024)).toStringAsFixed(1)}MB/s';
+  } else if (bytesPerSecond >= 1024) {
+    return '${(bytesPerSecond / 1024).toStringAsFixed(0)}KB/s';
+  }
+  return '${bytesPerSecond}B/s';
 }
 
 class _DownloadTaskItem extends StatelessWidget {

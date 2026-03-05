@@ -26,6 +26,11 @@ class IsolateLogMessage {
   const IsolateLogMessage({required this.message, this.error, this.stackTrace});
 }
 
+class DownloadSpeed {
+  final int bytesPerSecond;
+  const DownloadSpeed({required this.bytesPerSecond});
+}
+
 /// 下载漫画
 class DownloadComic {
   final String id;
