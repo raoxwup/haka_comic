@@ -600,10 +600,7 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Center(
               child: Text(
                 _formatSpeed(downloadSpeed),
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: context.textTheme.bodySmall,
               ),
             ),
           ),
