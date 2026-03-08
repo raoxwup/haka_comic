@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
-import 'package:provider/provider.dart';
 
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
@@ -85,7 +83,6 @@ class ReaderBottom extends StatelessWidget {
   Widget _buildCommonContent(BuildContext context) {
     final isFirstChapter = context.selector((p) => p.isFirstChapter);
     final isLastChapter = context.selector((p) => p.isLastChapter);
-    final showPageNumbers = context.stateSelector((p) => p.showPageNumbers);
 
     final previousAction = isFirstChapter
         ? null
@@ -100,8 +97,6 @@ class ReaderBottom extends StatelessWidget {
             context.reader.goNext();
             context.reader.openOrCloseToolbar();
           };
-
-    final isVerticalMode = context.selector((p) => p.readMode.isVertical);
 
     return Column(
       key: const ValueKey('common_toolbar'),
@@ -131,85 +126,6 @@ class ReaderBottom extends StatelessWidget {
                 tooltip: '章节',
                 icon: const Icon(Icons.menu_outlined),
               ),
-              if (isVerticalMode)
-                IconButton(
-                  onPressed: () {
-                    context.reader.openOrCloseToolbar();
-                    final slipFactor = ValueNotifier(AppConf().slipFactor);
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return SimpleDialog(
-                          contentPadding: const EdgeInsets.all(20),
-                          title: const Text('滑动距离'),
-                          children: [
-                            const Text('用于调整阅读时翻页的滑动距离。'),
-                            ValueListenableBuilder<double>(
-                              valueListenable: slipFactor,
-                              builder: (context, value, child) {
-                                return Slider(
-                                  value: value * 10,
-                                  min: 3,
-                                  max: 10,
-                                  divisions: 7,
-                                  label: '$value * 屏高',
-                                  onChanged: (double value) {
-                                    slipFactor.value = value / 10;
-                                    AppConf().slipFactor = value / 10;
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  tooltip: '滑动距离',
-                  icon: const Icon(Icons.straighten_outlined),
-                ),
-              if (isVerticalMode)
-                IconButton(
-                  onPressed: () {
-                    context.reader.openOrCloseToolbar();
-                    final stateReader = context.stateReader;
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return ChangeNotifierProvider.value(
-                          value: stateReader,
-                          child: SimpleDialog(
-                            contentPadding: const EdgeInsets.all(20),
-                            title: const Text('漫画宽度'),
-                            children: [
-                              const Text('用于调整阅读时漫画的宽度。'),
-                              Builder(
-                                builder: (c) {
-                                  final widthRatio = c.stateSelector(
-                                    (p) => p.verticalListWidthRatio,
-                                  );
-                                  return Slider(
-                                    value: widthRatio * 10,
-                                    min: 2,
-                                    max: 10,
-                                    divisions: 8,
-                                    label: '$widthRatio * 屏宽',
-                                    onChanged: (double v) {
-                                      c.stateReader.verticalListWidthRatio =
-                                          v / 10;
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  tooltip: '漫画宽度',
-                  icon: const Icon(Icons.width_normal_outlined),
-                ),
               IconButton(
                 onPressed: () {
                   context.reader.startPageTurn();
@@ -225,18 +141,6 @@ class ReaderBottom extends StatelessWidget {
                 },
                 tooltip: '锁定菜单',
                 icon: const Icon(Icons.lock_outlined),
-              ),
-              IconButton(
-                onPressed: () {
-                  context.stateReader.toggleShowPageNumbers();
-                  context.reader.openOrCloseToolbar();
-                },
-                tooltip: showPageNumbers ? '隐藏页码' : '显示页码',
-                icon: Icon(
-                  showPageNumbers
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                ),
               ),
             ],
           ),

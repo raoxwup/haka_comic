@@ -33,10 +33,10 @@ const extraMenus = [
 class _CategoriesState extends State<Categories> with RequestMixin {
   final handler = fetchCategories.useRequest(
     onSuccess: (data) {
-      Log.info('Fetch categories success', data.toString());
+      Log.i('Fetch categories success', data);
     },
     onError: (e) {
-      Log.error('Fetch categories failed', e);
+      Log.e('Fetch categories failed', error: e);
     },
   );
 
@@ -46,7 +46,10 @@ class _CategoriesState extends State<Categories> with RequestMixin {
   @override
   Widget build(BuildContext context) {
     return switch (handler.state) {
-      Success(:final data) => _buildCategoryList(data.categories),
+      Success(:final data) => Padding(
+        padding: .fromLTRB(0, context.top, 0, context.bottom),
+        child: _buildCategoryList(data.categories),
+      ),
       Error(:final error) => ErrorPage(
         errorMessage: error.toString(),
         onRetry: handler.refresh,

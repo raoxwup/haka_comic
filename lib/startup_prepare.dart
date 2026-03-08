@@ -14,6 +14,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:haka_comic/utils/log.dart';
 
 class StartupPrepare {
   /// 初始化
@@ -34,6 +35,7 @@ class StartupPrepare {
       LocalFavoritesHelper().initialize(),
       if (isAndroid) FlutterDisplayMode.setHighRefreshRate(),
       startDesktop(),
+      Log.initialize(),
     ]);
   }
 }
@@ -66,7 +68,7 @@ Future<void> startDesktop() async {
         await windowManager.setPosition(Offset(x, y));
       }
 
-      await windowManager.setMinimumSize(const Size(750, 550));
+      await windowManager.setMinimumSize(const Size(780, 550));
       await windowManager.setResizable(true);
       await windowManager.show();
       await windowManager.focus();

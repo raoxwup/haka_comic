@@ -23,10 +23,10 @@ class _LikedActionState extends State<LikedAction>
 
   late final handler = likeComic.useRequest(
     onSuccess: (data, _) {
-      Log.info('Like comic success', data.action);
+      Log.i('Like comic success', data.action);
     },
     onError: (e, _) {
-      Log.error('Like comic error', e);
+      Log.e('Like comic error', error: e);
       Toast.show(message: '点赞失败');
       setState(() {
         _isLiked = !_isLiked;

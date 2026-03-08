@@ -20,10 +20,10 @@ class HotSearchWords extends StatefulWidget {
 class _HotSearchWordsState extends State<HotSearchWords> with RequestMixin {
   final _handler = fetchHotSearchWords.useRequest(
     onSuccess: (data) {
-      Log.info('Fetch hot search words success', data.toString());
+      Log.i('Fetch hot search words success', data.toString());
     },
     onError: (e) {
-      Log.error('Fetch hot search words error', e);
+      Log.e('Fetch hot search words error', error: e);
     },
   );
 

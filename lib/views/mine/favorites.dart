@@ -26,10 +26,10 @@ class _FavoritesState extends State<Favorites>
   late final _handler = fetchFavoriteComics.useRequest(
     defaultParams: UserFavoritePayload(page: _page, sort: _sortType),
     onSuccess: (data, _) {
-      Log.info('Fetch favorite comics success', data.toString());
+      Log.i('Fetch favorite comics success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch favorite comics error', e);
+      Log.e('Fetch favorite comics error', error: e);
     },
     reducer: pagination
         ? null

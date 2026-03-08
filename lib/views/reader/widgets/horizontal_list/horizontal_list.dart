@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +37,15 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   late TapDownDetails _tapDetails;
 
   void _handleTap() {
+    final appConf = AppConf();
+
+    if (!appConf.enableGesture) {
+      context.reader.openOrCloseToolbar();
+      return;
+    }
+
     final width = context.width;
-    double centerFraction = AppConf().horizontalCenterFraction;
+    double centerFraction = appConf.horizontalCenterFraction;
     double leftFraction = (1 - centerFraction) / 2;
 
     final leftWidth = width * leftFraction;

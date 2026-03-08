@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -7,7 +8,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SetupConf {
   static late String dataPath;
-  static String appVersion = "#version";
+  static String appVersion = kReleaseMode ? "#version" : "1.0.0";
 
   static Future<void> initialize() async {
     await Future.wait([initPath()]);

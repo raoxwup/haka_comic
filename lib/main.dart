@@ -15,7 +15,6 @@ import 'package:haka_comic/providers/theme_mode_provider.dart';
 import 'package:haka_comic/providers/user_provider.dart';
 import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/about/about.dart';
@@ -23,6 +22,7 @@ import 'package:haka_comic/widgets/button.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:haka_comic/utils/log.dart';
 
 void main(List<String> args) {
   runZonedGuarded(
@@ -49,7 +49,7 @@ void main(List<String> args) {
           .wait();
     },
     (Object error, StackTrace stackTrace) {
-      Log.error('runZonedGuarded', error, stackTrace);
+      Log.f('runZonedGuarded', error: error, stackTrace: stackTrace);
     },
   );
 }
@@ -81,8 +81,8 @@ class _AppState extends State<App> with WindowListener {
         isAuthorized = didAuthenticate;
         isVerifying = false;
       });
-    } catch (e) {
-      Log.error('LocalAuthentication', e);
+    } catch (e, st) {
+      Log.w('LocalAuthentication', error: e, stackTrace: st);
       setState(() {
         isAuthorized = false;
         isVerifying = false;

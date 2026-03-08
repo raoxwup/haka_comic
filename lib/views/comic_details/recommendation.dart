@@ -22,7 +22,7 @@ class _RecommendationState extends State<Recommendation> with RequestMixin {
   late final handler = fetchComicRecommendation.useRequest(
     defaultParams: widget.id,
     onSuccess: (data, _) {
-      Log.info('Fetch recommendation success', data.toString());
+      Log.i('Fetch recommendation success', data.toString());
       _comics.addAll(
         data.comics
             .map(
@@ -36,18 +36,18 @@ class _RecommendationState extends State<Recommendation> with RequestMixin {
       );
     },
     onError: (e, _) {
-      Log.error('Fetch recommendation error', e);
+      Log.e('Fetch recommendation error', error: e);
     },
   );
 
   late final extraHandler = fetchExtraRecommendComics.useRequest(
     defaultParams: widget.id,
     onSuccess: (data, _) {
-      Log.info('Fetch extra recommendation success', data.toString());
+      Log.i('Fetch extra recommendation success', data.toString());
       _comics.addAll(data);
     },
     onError: (e, _) {
-      Log.error('Fetch extra recommendation error', e);
+      Log.e('Fetch extra recommendation error', error: e);
     },
   );
 

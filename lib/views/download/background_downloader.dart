@@ -45,6 +45,8 @@ class _DownloadExecutor {
   static late final SendPort mainIsolateSendPort;
   static late final String _downloadPath;
   static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  static int _bytesInWindow = 0;
+  static int _lastSentSpeed = 0;
 
   /// 默认单任务并发数
   static const int defaultConcurrency = 3;
@@ -67,6 +69,18 @@ class _DownloadExecutor {
     }
 
     downloadTaskHelper.addListener(notify);
+    _startSpeedTracking();
+  }
+
+  static void _startSpeedTracking() {
+    Timer.periodic(const Duration(seconds: 1), (_) {
+      final speed = _bytesInWindow;
+      _bytesInWindow = 0;
+      if (speed > 0 || _lastSentSpeed > 0) {
+        mainIsolateSendPort.send(DownloadSpeed(bytesPerSecond: speed));
+        _lastSentSpeed = speed;
+      }
+    });
   }
 
   /// 更新任务（重新计算 total 并开始下载）
@@ -86,7 +100,11 @@ class _DownloadExecutor {
       }
     } catch (e, st) {
       task.status = DownloadTaskStatus.error;
-      debugPrint('update error for ${task.comic.id}: $e\n$st');
+      _sendLogError(
+        'update task error (${task.comic.id})',
+        error: e,
+        stackTrace: st,
+      );
       save(task);
     }
   }
@@ -177,7 +195,7 @@ class _DownloadExecutor {
 
     try {
       await Future.wait(futures);
-    } catch (e) {
+    } catch (e, st) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
         await pool.close();
         return;
@@ -188,7 +206,11 @@ class _DownloadExecutor {
       task.status = DownloadTaskStatus.error;
       save(task);
 
-      debugPrint('Download failed for ${task.comic.id}: $e');
+      _sendLogError(
+        'download failed (${task.comic.id})',
+        error: e,
+        stackTrace: st,
+      );
     }
 
     await pool.close();
@@ -219,8 +241,17 @@ class _DownloadExecutor {
     final tmpPath = '$path.part';
 
     for (var attempt = 0; attempt < maxRetries; attempt++) {
+      int previousCount = 0;
       try {
-        await _dio.download(url, tmpPath, cancelToken: cancelToken);
+        await _dio.download(
+          url,
+          tmpPath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (count, total) {
+            _bytesInWindow += count - previousCount;
+            previousCount = count;
+          },
+        );
         final tmpFile = File(tmpPath);
         if (tmpFile.existsSync()) {
           if (target.existsSync()) {
@@ -277,13 +308,27 @@ class _DownloadExecutor {
     mainIsolateSendPort.send(tasks);
   }
 
+  static void _sendLogError(
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    mainIsolateSendPort.send(
+      IsolateLogMessage(
+        message: message,
+        error: error?.toString(),
+        stackTrace: stackTrace?.toString(),
+      ),
+    );
+  }
+
   /// 将任务或全部任务保存到数据库（带 debounce）
   static Future<void> save(ComicDownloadTask task) async {
     final downloadTaskHelper = DownloadTaskHelper();
     try {
       await downloadTaskHelper.insertSingleTask(task);
     } catch (e, st) {
-      debugPrint('setCache single task error: $e\n$st');
+      _sendLogError('set cache single task error', error: e, stackTrace: st);
     }
   }
 
@@ -401,8 +446,12 @@ class _DownloadExecutor {
         if (Directory(path).existsSync()) {
           try {
             Directory(path).deleteSync(recursive: true);
-          } catch (e) {
-            debugPrint('Failed to delete folder $path: $e');
+          } catch (e, st) {
+            _sendLogError(
+              'delete download folder failed ($path)',
+              error: e,
+              stackTrace: st,
+            );
           }
         }
         tasks.removeAt(index);
@@ -420,6 +469,7 @@ class BackgroundDownloader {
   static final _rootToken = RootIsolateToken.instance!;
   static final streamController =
       StreamController<List<ComicDownloadTask>>.broadcast();
+  static final speedStreamController = StreamController<int>.broadcast();
 
   /// 初始化下载管理器
   static Future<void> initialize() async {
@@ -437,6 +487,16 @@ class BackgroundDownloader {
           completer.complete();
         case List<ComicDownloadTask> tasks:
           streamController.add(tasks);
+        case DownloadSpeed speed:
+          speedStreamController.add(speed.bytesPerSecond);
+        case IsolateLogMessage logMessage:
+          Log.e(
+            logMessage.message,
+            error: logMessage.error,
+            stackTrace: logMessage.stackTrace == null
+                ? null
+                : StackTrace.fromString(logMessage.stackTrace!),
+          );
       }
     });
 
@@ -480,5 +540,6 @@ class BackgroundDownloader {
       _workerIsolate.kill(priority: Isolate.immediate);
     } catch (_) {}
     streamController.close();
+    speedStreamController.close();
   }
 }

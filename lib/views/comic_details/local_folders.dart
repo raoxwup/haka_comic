@@ -23,25 +23,25 @@ class _LocalFoldersState extends State<LocalFolders> with RequestMixin {
   late final _getFoldersHandler = _helper.getFoldersByComic.useRequest(
     defaultParams: widget.comic.id,
     onSuccess: (data, _) {
-      Log.info('Get local folders success', data.toString());
+      Log.i('Get local folders success', data.toString());
     },
-    onError: (e, _) => Log.error('Get local folders error', e),
+    onError: (e, _) => Log.e('Get local folders error', error: e),
   );
 
   late final _createFolderHandler = _helper.createFolder.useRequest(
     manual: true,
     onSuccess: (data, name) {
       if (data) {
-        Log.info('Create folder success', name);
+        Log.i('Create folder success', name);
         _getFoldersHandler.refresh();
       } else {
         Toast.show(message: '「$name」已存在');
-        Log.info('Create folder failed. $name already exists', name);
+        Log.i('Create folder failed. $name already exists', name);
       }
     },
     onError: (e, name) {
       Toast.show(message: '创建失败');
-      Log.error('Create folder $name error', e);
+      Log.e('Create folder $name error', error: e);
     },
   );
 
@@ -69,13 +69,13 @@ class _LocalFoldersState extends State<LocalFolders> with RequestMixin {
       );
     },
     onSuccess: (_, payload) {
-      Log.info(
+      Log.i(
         'Toggle comic in folder success',
         '${payload.comic.id} in ${payload.folderId}',
       );
     },
     onError: (e, _) {
-      Log.error('Toggle comic in folder error', e);
+      Log.e('Toggle comic in folder error', error: e);
       Toast.show(message: '操作失败');
       _getFoldersHandler.mutate(cacheFolders);
     },

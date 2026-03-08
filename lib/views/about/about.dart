@@ -30,7 +30,7 @@ class _AboutState extends State<About> with RequestMixin {
       }
     },
     onError: (error) {
-      Log.error('fetch release error', error);
+      Log.e('fetch release error', error: error);
       Toast.show(message: '获取版本信息失败');
     },
   );

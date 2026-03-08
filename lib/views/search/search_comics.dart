@@ -37,10 +37,10 @@ class _SearchComicsState extends State<SearchComics>
       sort: _sortType,
     ),
     onSuccess: (data, _) {
-      Log.info('Search comics success', data.toString());
+      Log.i('Search comics success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Search comics error', e);
+      Log.e('Search comics error', error: e);
     },
     reducer: pagination
         ? null

@@ -31,6 +31,7 @@ import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/gesture_area.dart';
+import 'package:haka_comic/views/settings/logs.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
@@ -179,6 +180,7 @@ final GoRouter appRouter = GoRouter(
       path: '/local_favorites',
       builder: (_, _) => const LocalFavorites(),
     ),
+    GoRoute(path: '/logs', builder: (_, _) => const Logs()),
   ],
 );
 

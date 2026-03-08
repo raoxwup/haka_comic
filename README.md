@@ -7,10 +7,6 @@
 
 第三方哗咔漫画跨平台客户端。**学习 flutter 的练习项目**，支持 Android、iOS、Mac、Windows、Linux平台，目前仍在持续完善中。如果觉得项目有帮助，欢迎给个 star ⭐ 支持一下
 
-**_关于下载_**
-
-软件下载在[releases](https://github.com/raoxwup/haka_comic/releases)，Android 一般下载 arm64-v8a 即可，实在不知道下什么选择 universal。iOS 选择 ipa，但需要自签，我个人推荐[SideStore](https://docs.sidestore.io/zh/docs/installation/prerequisites)折腾一次就方便很多。Mac 选择 dmg。Windows 选择 exe。
-
 ---
 
 ## 🖼️ 项目截图
@@ -21,6 +17,34 @@
 | <img src="./screenshots/pc-分类.png" width="200"> | <img src="./screenshots/pc-漫画列表.png" width="200"> | <img src="./screenshots/pc-漫画详情.png" width="200"> | <img src="./screenshots/pc-阅读.png" width="200"> |
 
 **截图已经过时，以实际项目界面为主**
+
+---
+
+## ⬇️ 下载
+
+所有平台安装包都在 GitHub [Releases](https://github.com/raoxwup/haka_comic/releases)。
+
+| 平台    | 资源类型                                        | 选择建议 / 备注                                                                                                                                                                                                                                                                |
+| ------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Android | `APK`（`arm64` 推荐 / `universal` 通用 / 可选） | 大多数真机选 `arm64`；不确定就选 `universal`（体积更大）。`x86_64` 通常用于模拟器。                                                                                                                                                                                            |
+| iOS     | `IPA`（未签名）                                 | 需要自签/侧载后才能安装。推荐用 SideStore/AltStore：添加源 `alt_store.json`（`https://raw.githubusercontent.com/raoxwup/haka_comic/main/alt_store.json`），并按官方文档完成前置配置（如 [SideStore 安装前置](https://docs.sidestore.io/zh/docs/installation/prerequisites)）。 |
+| macOS   | `DMG`                                           | 首次打开可能需要在系统安全设置里手动允许。                                                                                                                                                                                                                                     |
+| Windows | `EXE`                                           | Inno Setup 安装器，可能触发 SmartScreen 提示，按需放行。                                                                                                                                                                                                                       |
+| Linux   | `DEB`（`amd64` / `arm64`）                      | Debian/Ubuntu 系：`sudo apt install ./xxx.deb`。目前仅提供 `.deb`。                                                                                                                                                                                                            |
+
+> 提示：具体资产文件名会随版本变化，按 Release 页面展示为准。
+
+---
+
+## 🛠️ 开发环境
+
+| 组件           | 版本要求                                             | 官网安装指南                                                       | 验证命令                                  |
+| -------------- | ---------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
+| Flutter SDK    | `3.41.2`（见 `pubspec.yaml`）                        | [Flutter 安装文档](https://docs.flutter.dev/get-started/install)   | `flutter --version` / `flutter doctor -v` |
+| Dart SDK       | `>= 3.10.0 < 4.0.0`（见 `pubspec.yaml`）             | [Dart SDK 安装文档](https://dart.dev/get-dart)                     | `dart --version`                          |
+| Rust toolchain | 建议使用 stable（本项目 Rust crate 为 edition 2021） | [Rust 安装文档（rustup）](https://www.rust-lang.org/tools/install) | `rustc --version` / `cargo --version`     |
+
+> 说明：Flutter SDK 自带 Dart SDK；如果你已经安装了 Flutter，一般无需再单独安装 Dart。
 
 ---
 

@@ -95,6 +95,9 @@ class AppConf {
   /// 是否显示阅读器页码
   bool _showPageNumbers = true;
 
+  /// 是否启用手势翻页
+  bool _enableGesture = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -144,6 +147,7 @@ class AppConf {
         prefsWithCache.getDouble('verticalListWidthRatio') ?? 1.0;
     instance._showPageNumbers =
         prefsWithCache.getBool('showPageNumbers') ?? true;
+    instance._enableGesture = prefsWithCache.getBool('enableGesture') ?? true;
   }
 
   set email(String value) {
@@ -321,6 +325,11 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setBool('showPageNumbers', value);
   }
 
+  set enableGesture(bool value) {
+    _enableGesture = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('enableGesture', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -354,6 +363,7 @@ class AppConf {
   bool get needAuth => _needAuth;
   double get verticalListWidthRatio => _verticalListWidthRatio;
   bool get showPageNumbers => _showPageNumbers;
+  bool get enableGesture => _enableGesture;
 
   /// 清除token
   void clearAuth() {

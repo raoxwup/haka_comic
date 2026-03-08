@@ -24,10 +24,10 @@ class _CollectActionState extends State<CollectAction>
   late final handler = favoriteComic.useRequest(
     manual: true,
     onSuccess: (data, _) {
-      Log.info('Favorite comic success', data.action);
+      Log.i('Favorite comic success', data.action);
     },
     onError: (e, _) {
-      Log.error('Favorite comic error', e);
+      Log.e('Favorite comic error', error: e);
       Toast.show(message: '收藏失败');
       setState(() {
         _isFavorite = !_isFavorite;

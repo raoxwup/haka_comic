@@ -83,10 +83,10 @@ class _ComicRankState extends State<ComicRank>
   late final _handler = fetchComicRank.useRequest(
     defaultParams: ComicRankPayload(type: widget.type),
     onSuccess: (data, _) {
-      Log.info('Fetch comic rank success', data.toString());
+      Log.i('Fetch comic rank success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch comic rank error', e);
+      Log.e('Fetch comic rank error', error: e);
     },
   );
 
@@ -123,10 +123,10 @@ class KnightRank extends StatefulWidget {
 class _KnightRankState extends State<KnightRank> with RequestMixin {
   final _handler = fetchKnightRank.useRequest(
     onSuccess: (data) {
-      Log.info('Fetch knight rank success', data.toString());
+      Log.i('Fetch knight rank success', data.toString());
     },
     onError: (e) {
-      Log.error('Fetch knight rank error', e);
+      Log.e('Fetch knight rank error', error: e);
     },
   );
 

@@ -48,10 +48,10 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
       ct: widget.ct,
     ),
     onSuccess: (data, _) {
-      Log.info("Fetch comics success", data.toString());
+      Log.i("Fetch comics success", data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch comics failed', e);
+      Log.e('Fetch comics failed', error: e);
     },
     reducer: pagination
         ? null

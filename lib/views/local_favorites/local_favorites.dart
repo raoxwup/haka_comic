@@ -25,33 +25,33 @@ class _LocalFavoritesState extends State<LocalFavorites> with RequestMixin {
   late final _helper = LocalFavoritesHelper();
   late final _getFoldersHandler = _helper.getFoldersWithCount.useRequest(
     onSuccess: (data) {
-      Log.info('Get local folders success', data.toString());
+      Log.i('Get local folders success', data.toString());
     },
-    onError: (e) => Log.error('Get local folders error', e),
+    onError: (e) => Log.e('Get local folders error', error: e),
   );
 
   late final _getFavoritedComicCount = _helper.getFavoritedComicCount
       .useRequest(
         onSuccess: (data) {
-          Log.info('Get favorited comic count success', data.toString());
+          Log.i('Get favorited comic count success', data.toString());
         },
-        onError: (e) => Log.error('Get favorited comic count error', e),
+        onError: (e) => Log.e('Get favorited comic count error', error: e),
       );
 
   late final _createFolderHandler = _helper.createFolder.useRequest(
     manual: true,
     onSuccess: (data, name) {
       if (data) {
-        Log.info('Create folder success', name);
+        Log.i('Create folder success', name);
         _getFoldersHandler.refresh();
       } else {
         Toast.show(message: '「$name」已存在');
-        Log.info('Create folder failed. $name already exists', name);
+        Log.i('Create folder failed. $name already exists', name);
       }
     },
     onError: (e, name) {
       Toast.show(message: '创建失败');
-      Log.error('Create folder $name error', e);
+      Log.e('Create folder $name error', error: e);
     },
   );
 
@@ -195,14 +195,14 @@ class _LocalFavoritesState extends State<LocalFavorites> with RequestMixin {
   late final _deleteFolderHandler = _helper.deleteFolder.useRequest(
     manual: true,
     onSuccess: (_, id) {
-      Log.info('Delete folder success', id.toString());
+      Log.i('Delete folder success', id.toString());
       if (selectedFolder?.id == id) {
         selectedFolder = null;
       }
       _getFoldersHandler.refresh();
     },
     onError: (e, _) {
-      Log.error('Delete folder error', e);
+      Log.e('Delete folder error', error: e);
       Toast.show(message: '删除失败');
     },
   );
@@ -210,11 +210,11 @@ class _LocalFavoritesState extends State<LocalFavorites> with RequestMixin {
   late final _renameFolderHandler = _helper.renameFolder.useRequest(
     manual: true,
     onSuccess: (_, payload) {
-      Log.info('Rename folder success', payload.id.toString());
+      Log.i('Rename folder success', payload.id.toString());
       _getFoldersHandler.refresh();
     },
     onError: (e, _) {
-      Log.error('Rename folder error', e);
+      Log.e('Rename folder error', error: e);
       Toast.show(message: '重命名失败');
     },
   );

@@ -28,10 +28,10 @@ class _CommentsState extends State<Comments>
   late final _handler = fetchPersonalComments.useRequest(
     defaultParams: page,
     onSuccess: (data, _) {
-      Log.info('Fetch personal comments success', data.toString());
+      Log.i('Fetch personal comments success', data.toString());
     },
     onError: (e, _) {
-      Log.error('Fetch personal comments error', e);
+      Log.e('Fetch personal comments error', error: e);
     },
     reducer: (prev, current) {
       if (prev == null) return current;

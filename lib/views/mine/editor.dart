@@ -27,12 +27,12 @@ class _EditorState extends State<Editor> with RequestMixin {
     manual: true,
     onSuccess: (data, _) {
       Toast.show(message: '头像更新成功');
-      Log.info('Update avatar success', 'avatar');
+      Log.i('Update avatar success', 'avatar');
       context.userReader.userHandler.refresh();
     },
     onError: (e, _) {
       Toast.show(message: '头像更新失败');
-      Log.error('Update avatar error', e);
+      Log.e('Update avatar error', error: e);
     },
   );
 
@@ -40,12 +40,12 @@ class _EditorState extends State<Editor> with RequestMixin {
     manual: true,
     onSuccess: (data, _) {
       Toast.show(message: '自我介绍更新成功');
-      Log.info('Update slogan success', 'slogan');
+      Log.i('Update slogan success', 'slogan');
       context.userReader.userHandler.refresh();
     },
     onError: (e, _) {
       Toast.show(message: '自我介绍更新失败');
-      Log.error('Update slogan error', e);
+      Log.e('Update slogan error', error: e);
     },
   );
 
@@ -66,7 +66,7 @@ class _EditorState extends State<Editor> with RequestMixin {
         await _avatarUpdateHandler.run(base64);
       }
     } catch (e) {
-      Log.error("Error picking image", e);
+      Log.e("Error picking image", error: e);
       Toast.show(message: '选择图片失败');
     }
   }

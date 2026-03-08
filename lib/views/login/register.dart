@@ -27,13 +27,15 @@ class _RegisterState extends State<Register> with RequestMixin {
   late final _handler = register.useRequest(
     manual: true,
     onSuccess: (data, _) {
-      Log.info('Register success', '');
+      Log.i('Register success', '');
       Toast.show(message: '注册成功');
       context.pop();
     },
     onError: (e, _) {
-      Log.error('Register error', e);
-      showSnackBar(e.toString());
+      Log.e('Register error', error: e);
+      showSnackBar(
+        e.toString().replaceFirst("email is already exist", "用户名已存在"),
+      );
     },
   );
 

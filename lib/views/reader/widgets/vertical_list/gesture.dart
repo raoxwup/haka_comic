@@ -31,10 +31,15 @@ class _GestureWrapperState extends State<GestureWrapper>
   bool _isScrollable = true;
 
   void _handlePointerChange(PointerEvent event, bool isAdding) {
+    final int prevPointerCount = _activePointerIds.length;
     if (isAdding) {
       _activePointerIds.add(event.pointer);
     } else {
       _activePointerIds.remove(event.pointer);
+    }
+    final int nextPointerCount = _activePointerIds.length;
+    if (prevPointerCount != nextPointerCount && mounted) {
+      setState(() {});
     }
 
     final bool shouldBeScrollable = _activePointerIds.length < 2;
@@ -111,8 +116,15 @@ class _GestureWrapperState extends State<GestureWrapper>
   late TapDownDetails _tapDownDetails;
 
   void _handleTap() {
-    final height = context.height;
     final appConf = AppConf();
+
+    if (!appConf.enableGesture) {
+      widget.openOrCloseToolbar();
+      return;
+    }
+
+    final height = context.height;
+
     double centerFraction = appConf.verticalCenterFraction;
     double topFraction = (1 - centerFraction) / 2;
 
@@ -146,6 +158,9 @@ class _GestureWrapperState extends State<GestureWrapper>
   @override
   Widget build(BuildContext context) {
     final isCtrlPressed = context.stateSelector((p) => p.isCtrlPressed);
+    final bool scaleEnabled = isDesktop
+        ? isCtrlPressed
+        : (isCtrlPressed || _activePointerIds.length >= 2);
     return Listener(
       onPointerDown: (event) => _handlePointerChange(event, true),
       onPointerUp: (event) => _handlePointerChange(event, false),
@@ -172,7 +187,7 @@ class _GestureWrapperState extends State<GestureWrapper>
           onDoubleTap: _handleDoubleTap,
           child: InteractiveViewer(
             transformationController: _transformationController,
-            scaleEnabled: isDesktop ? isCtrlPressed : true,
+            scaleEnabled: scaleEnabled,
             minScale: 1.0,
             maxScale: 3.5,
             child: widget.child,

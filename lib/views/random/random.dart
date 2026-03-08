@@ -16,10 +16,10 @@ class Random extends StatefulWidget {
 class _RandomState extends State<Random> with RequestMixin {
   late final _handler = fetchRandomComics.useRequest(
     onSuccess: (data) {
-      Log.info('fetch random comics success', data.toString());
+      Log.i('fetch random comics success', data.toString());
     },
     onError: (e) {
-      Log.error('fetch random comics error', e);
+      Log.e('fetch random comics error', error: e);
     },
   );
 
