@@ -116,8 +116,15 @@ class _GestureWrapperState extends State<GestureWrapper>
   late TapDownDetails _tapDownDetails;
 
   void _handleTap() {
-    final height = context.height;
     final appConf = AppConf();
+
+    if (!appConf.enableGesture) {
+      widget.openOrCloseToolbar();
+      return;
+    }
+
+    final height = context.height;
+
     double centerFraction = appConf.verticalCenterFraction;
     double topFraction = (1 - centerFraction) / 2;
 
