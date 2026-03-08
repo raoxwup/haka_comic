@@ -33,7 +33,9 @@ class _RegisterState extends State<Register> with RequestMixin {
     },
     onError: (e, _) {
       Log.e('Register error', error: e);
-      showSnackBar(e.toString());
+      showSnackBar(
+        e.toString().replaceFirst("email is already exist", "用户名已存在"),
+      );
     },
   );
 
