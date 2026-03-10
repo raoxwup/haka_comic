@@ -96,9 +96,22 @@ class DownloadTaskHelper with ChangeNotifier {
     isInitialized = true;
   }
 
+  /// 轻量级进度更新：仅更新任务状态和完成进度
+  Future<void> updateTaskProgress(ComicDownloadTask task) async {
+    await _db.writeTransaction((tx) async {
+      await tx.execute(
+        '''
+          UPDATE download_task 
+          SET completed = ?, status = ?
+          WHERE id = ?
+        ''',
+        [task.completed, task.status.name, task.comic.id],
+      );
+    });
+  }
+
   /// 插入或者更新单个下载任务
-  Future<void> insertSingleTask(ComicDownloadTask task) async =>
-      await insert([task]);
+  Future<void> insertSingleTask(ComicDownloadTask task) => insert([task]);
 
   /// 插入或者更新下载任务列表
   Future<void> insert(List<ComicDownloadTask> tasks) async {
@@ -165,84 +178,85 @@ class DownloadTaskHelper with ChangeNotifier {
     });
   }
 
-  /// 获取所有的下载任务
   Future<List<ComicDownloadTask>> getAll() async {
-    final result = await _db.readTransaction((tx) async {
-      return await tx.getAll('''
+    return await _db.readTransaction((tx) async {
+      final taskRows = await tx.getAll('''
         SELECT 
-          t.id AS task_id,
+          t.id,
           t.total,
           t.completed,
           t.status,
-          c.title AS comic_title,
-          c.cover,
-          ch.id AS chapter_id,
-          ch.title AS chapter_title,
-          ch.chapter_order,
-          img.file_server,
-          img.path,
-          img.original_name
+          c.title,
+          c.cover
         FROM download_task t
         JOIN download_comic c ON t.id = c.id
-        LEFT JOIN download_chapter ch ON t.id = ch.task_id
-        LEFT JOIN chapter_image img ON ch.id = img.chapter_id
-        ORDER BY t.created_at ASC, ch.ROWID ASC, img.id ASC
+        ORDER BY t.created_at ASC
       ''');
-    });
 
-    // 将扁平数据组装为嵌套结构
-    final tasksMap = <String, ComicDownloadTask>{};
-    for (var row in result) {
-      final taskId = row['task_id'];
-      var task = tasksMap[taskId];
-      if (task == null) {
-        task = ComicDownloadTask(
-          comic: DownloadComic(
-            id: taskId,
-            title: row['comic_title'],
-            cover: row['cover'],
+      if (taskRows.isEmpty) return [];
+
+      final tasks = <String, ComicDownloadTask>{};
+
+      for (final row in taskRows) {
+        final taskId = row['id'];
+
+        tasks[taskId] =
+            ComicDownloadTask(
+                comic: DownloadComic(
+                  id: taskId,
+                  title: row['title'],
+                  cover: row['cover'],
+                ),
+                chapters: [],
+              )
+              ..total = row['total']
+              ..completed = row['completed']
+              ..status = DownloadTaskStatus.fromName(row['status']);
+      }
+
+      // 2 查询章节
+      final chapterRows = await tx.getAll('''
+        SELECT id, title, chapter_order, task_id
+        FROM download_chapter
+        ORDER BY chapter_order ASC
+      ''');
+
+      final chapters = <String, DownloadChapter>{};
+
+      for (final row in chapterRows) {
+        final chapter = DownloadChapter(
+          id: row['id'],
+          title: row['title'],
+          order: row['chapter_order'],
+        );
+
+        chapters[row['id']] = chapter;
+
+        final task = tasks[row['task_id']];
+        task?.chapters.add(chapter);
+      }
+
+      // 3 查询图片
+      final imageRows = await tx.getAll('''
+        SELECT file_server, path, original_name, chapter_id
+        FROM chapter_image
+        ORDER BY id ASC
+      ''');
+
+      for (final row in imageRows) {
+        final chapter = chapters[row['chapter_id']];
+        if (chapter == null) continue;
+
+        chapter.images.add(
+          ImageDetail(
+            fileServer: row['file_server'],
+            path: row['path'],
+            originalName: row['original_name'],
           ),
-          chapters: [],
         );
-        task.total = row['total'];
-        task.completed = row['completed'];
-        task.status = DownloadTaskStatus.fromName(row['status']);
-        tasksMap[taskId] = task;
       }
 
-      final chapterId = row['chapter_id'];
-      if (chapterId != null) {
-        var chapter = task.chapters.firstWhere(
-          (ch) => ch.id == chapterId,
-          orElse: () {
-            final newChapter = DownloadChapter(
-              id: chapterId,
-              title: row['chapter_title'],
-              order: row['chapter_order'],
-            );
-            task?.chapters.add(newChapter);
-            return newChapter;
-          },
-        );
-
-        if (row['file_server'] != null) {
-          chapter.images.add(
-            ImageDetail(
-              fileServer: row['file_server'],
-              path: row['path'],
-              originalName: row['original_name'],
-            ),
-          );
-        }
-      }
-    }
-    return tasksMap.values.toList();
-  }
-
-  /// 根据comicId移除下载任务
-  Future<void> delete(String id) async {
-    await _db.writeTransaction((tx) async {
-      await tx.execute('DELETE FROM download_task WHERE id = ?', [id]);
+      return tasks.values.toList();
     });
   }
 
