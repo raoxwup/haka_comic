@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/background_downloader_new.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
 class Downloader extends StatefulWidget {

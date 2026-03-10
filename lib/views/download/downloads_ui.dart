@@ -14,7 +14,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/background_downloader_new.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
@@ -689,11 +689,18 @@ class _DownloadTaskItem extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          IconButton(
-                            onPressed: () {
-                              task.status.iconAndAction.action(task.comic.id);
+                          Builder(
+                            builder: (_) {
+                              final action = resolveDownloadTaskAction(
+                                task.status,
+                              );
+                              return IconButton(
+                                onPressed: () {
+                                  action.action(task.comic.id);
+                                },
+                                icon: Icon(action.icon),
+                              );
                             },
-                            icon: Icon(task.status.iconAndAction.icon),
                           ),
                         ],
                       ),

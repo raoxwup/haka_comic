@@ -11,7 +11,7 @@ import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/database/word_block_helper.dart';
 import 'package:haka_comic/rust/frb_generated.dart';
 import 'package:haka_comic/utils/common.dart';
-import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/background_downloader_new.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:haka_comic/utils/log.dart';
