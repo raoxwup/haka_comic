@@ -14,7 +14,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/views/download/background_downloader_new.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
@@ -26,6 +26,29 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:save_to_folder_ios/save_to_folder_ios.dart';
 
 enum ExportFileType { pdf, zip }
+
+typedef _DownloadTaskAction = ({
+  IconData icon,
+  void Function(String taskId) action,
+});
+
+_DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
+  return switch (status) {
+    DownloadTaskStatus.paused => (
+      icon: Icons.play_arrow,
+      action: BackgroundDownloader.resumeTask,
+    ),
+    DownloadTaskStatus.downloading => (
+      icon: Icons.pause,
+      action: BackgroundDownloader.pauseTask,
+    ),
+    DownloadTaskStatus.error => (
+      icon: Icons.refresh,
+      action: BackgroundDownloader.resumeTask,
+    ),
+    _ => (icon: Icons.error, action: (_) {}),
+  };
+}
 
 class Downloads extends StatefulWidget {
   const Downloads({super.key});
@@ -691,7 +714,7 @@ class _DownloadTaskItem extends StatelessWidget {
                         children: [
                           Builder(
                             builder: (_) {
-                              final action = resolveDownloadTaskAction(
+                              final action = _resolveDownloadTaskAction(
                                 task.status,
                               );
                               return IconButton(

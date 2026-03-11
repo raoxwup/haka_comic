@@ -6,7 +6,7 @@ import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/comic_details/collect_action.dart';
 import 'package:haka_comic/views/comic_details/liked_action.dart';
 import 'package:haka_comic/views/comic_details/types.dart';
-import 'package:haka_comic/views/download/background_downloader_new.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 
 class ComicActionBar extends StatelessWidget {
   const ComicActionBar({
