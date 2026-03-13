@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
@@ -100,6 +101,10 @@ class _ReaderImageState extends State<ReaderImage> {
           widget.onImageSizeChanged(info.image.width, info.image.height);
           _isReported = true;
         }
+      }
+
+      if (!AppConf().enablePageAnimation) {
+        return state.completedWidget;
       }
 
       return TweenAnimationBuilder(

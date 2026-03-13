@@ -223,10 +223,14 @@ class ReaderProvider extends RequestProvider {
       return;
     }
 
-    scrollOffsetController.animateScroll(
-      offset: offset,
-      duration: const Duration(milliseconds: 200),
-    );
+    if (AppConf().enablePageAnimation) {
+      scrollOffsetController.animateScroll(
+        offset: offset,
+        duration: const Duration(milliseconds: 200),
+      );
+    } else {
+      scrollOffsetController.scrollTo(offset);
+    }
   }
 
   /// HorizontalList 翻页
@@ -241,10 +245,14 @@ class ReaderProvider extends RequestProvider {
         return;
       }
 
-      pageController.previousPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
+      if (AppConf().enablePageAnimation) {
+        pageController.previousPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      } else {
+        pageController.jumpToPage(pageController.page!.round() - 1);
+      }
     }
 
     void nextPage() {
@@ -258,10 +266,14 @@ class ReaderProvider extends RequestProvider {
         return;
       }
 
-      pageController.nextPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
+      if (AppConf().enablePageAnimation) {
+        pageController.nextPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      } else {
+        pageController.jumpToPage(pageController.page!.round() + 1);
+      }
     }
 
     isTurnNext ? nextPage() : previousPage();

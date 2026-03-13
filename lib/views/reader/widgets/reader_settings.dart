@@ -12,6 +12,7 @@ class ReaderSettings extends StatefulWidget {
 class _ReaderSettingsState extends State<ReaderSettings> {
   final slipFactor = ValueNotifier(AppConf().slipFactor);
   final enableGesture = ValueNotifier(AppConf().enableGesture);
+  final enablePageAnimation = ValueNotifier(AppConf().enablePageAnimation);
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +91,20 @@ class _ReaderSettingsState extends State<ReaderSettings> {
                 },
                 title: const Text('点击翻页'),
                 subtitle: const Text('启用时，点击屏幕特定区域可以翻页。'),
+              );
+            },
+          ),
+          ValueListenableBuilder(
+            valueListenable: enablePageAnimation,
+            builder: (context, value, child) {
+              return SwitchListTile(
+                value: value,
+                onChanged: (value) {
+                  AppConf().enablePageAnimation = value;
+                  enablePageAnimation.value = value;
+                },
+                title: const Text('翻页动画'),
+                subtitle: const Text('关闭后，点击翻页时不会有过渡动画。有助于改善墨水屏设备的阅读体验。'),
               );
             },
           ),

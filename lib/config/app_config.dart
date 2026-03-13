@@ -98,6 +98,9 @@ class AppConf {
   /// 是否启用手势翻页
   bool _enableGesture = true;
 
+  /// 是否启用翻页动画
+  bool _enablePageAnimation = true;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -148,6 +151,8 @@ class AppConf {
     instance._showPageNumbers =
         prefsWithCache.getBool('showPageNumbers') ?? true;
     instance._enableGesture = prefsWithCache.getBool('enableGesture') ?? true;
+    instance._enablePageAnimation =
+        prefsWithCache.getBool('enablePageAnimation') ?? true;
   }
 
   set email(String value) {
@@ -330,6 +335,11 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setBool('enableGesture', value);
   }
 
+  set enablePageAnimation(bool value) {
+    _enablePageAnimation = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('enablePageAnimation', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -364,6 +374,7 @@ class AppConf {
   double get verticalListWidthRatio => _verticalListWidthRatio;
   bool get showPageNumbers => _showPageNumbers;
   bool get enableGesture => _enableGesture;
+  bool get enablePageAnimation => _enablePageAnimation;
 
   /// 清除token
   void clearAuth() {
