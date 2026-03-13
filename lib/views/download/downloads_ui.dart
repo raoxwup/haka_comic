@@ -524,6 +524,7 @@ class _DownloadsState extends State<Downloads> {
                       }
                     },
                     onItemSelected: _onContextMenuItemPress,
+                    downloadSpeed: _downloadSpeed,
                   );
                 },
                 itemCount: tasks.length,
@@ -617,16 +618,6 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
-        if (downloadSpeed > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Center(
-              child: Text(
-                _formatSpeed(downloadSpeed),
-                style: context.textTheme.bodySmall,
-              ),
-            ),
-          ),
         IconButton(
           onPressed: onEnterSelection,
           icon: const Icon(Icons.checklist_rtl),
@@ -655,6 +646,7 @@ class _DownloadTaskItem extends StatelessWidget {
   final VoidCallback onTap;
   final Future<void> Function(String, ComicDownloadTask) onItemSelected;
   final ContextMenu contextMenu;
+  final int downloadSpeed;
 
   const _DownloadTaskItem({
     required this.task,
@@ -663,6 +655,7 @@ class _DownloadTaskItem extends StatelessWidget {
     required this.onTap,
     required this.onItemSelected,
     required this.contextMenu,
+    required this.downloadSpeed,
   });
 
   @override
@@ -728,6 +721,7 @@ class _DownloadTaskItem extends StatelessWidget {
                         ],
                       ),
                     Row(
+                      spacing: 8,
                       children: [
                         Text(
                           task.status.displayName,
@@ -736,11 +730,16 @@ class _DownloadTaskItem extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
                           '${task.completed} / ${task.total}',
                           style: context.textTheme.bodySmall,
                         ),
+                        if (downloadSpeed > 0 &&
+                            task.status == DownloadTaskStatus.downloading)
+                          Text(
+                            _formatSpeed(downloadSpeed),
+                            style: context.textTheme.bodySmall,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 5),
