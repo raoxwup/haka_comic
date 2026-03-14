@@ -15,7 +15,6 @@ import 'package:haka_comic/views/reader/widgets/horizontal_list/horizontal_list.
 import 'package:haka_comic/views/reader/widgets/vertical_list/vertical_list.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:volume_button_override/volume_button_override.dart';
 
 class Reader extends StatefulWidget {
   const Reader({super.key});
@@ -25,21 +24,6 @@ class Reader extends StatefulWidget {
 }
 
 class _ReaderState extends State<Reader> {
-  /// 音量键控制器
-  final volumeController = VolumeButtonController();
-
-  /// 音量+事件
-  late final volumeUpAction = ButtonAction(
-    id: ButtonActionId.volumeUp,
-    onAction: context.reader.prev,
-  );
-
-  /// 音量-事件
-  late final volumeDownAction = ButtonAction(
-    id: ButtonActionId.volumeDown,
-    onAction: context.reader.next,
-  );
-
   @override
   void initState() {
     super.initState();
@@ -50,9 +34,9 @@ class _ReaderState extends State<Reader> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
     if (AppConf().enableVolume) {
-      volumeController.startListening(
-        volumeUpAction: volumeUpAction,
-        volumeDownAction: volumeDownAction,
+      context.reader.volumeController.startListening(
+        volumeUpAction: context.reader.volumeUpAction,
+        volumeDownAction: context.reader.volumeDownAction,
       );
     }
   }
@@ -61,7 +45,6 @@ class _ReaderState extends State<Reader> {
   void dispose() {
     // 恢复系统UI模式
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    volumeController.stopListening();
     super.dispose();
   }
 

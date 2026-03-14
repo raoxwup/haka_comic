@@ -16,6 +16,7 @@ import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:volume_button_override/volume_button_override.dart';
 
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
@@ -344,9 +345,6 @@ class ReaderProvider extends RequestProvider {
   /// 更新定时翻页间隔
   void updateInterval(int interval) {
     this.interval = interval;
-    // if (isPageTurning && !_isPageTurnPausedByToolbar) {
-    //   _startPageTurnTimer();
-    // }
   }
 
   late ImagePreloadController<ImageBase> preloadController;
@@ -361,12 +359,27 @@ class ReaderProvider extends RequestProvider {
     );
   }
 
+  final volumeController = VolumeButtonController();
+
+  /// 音量+事件
+  late final volumeUpAction = ButtonAction(
+    id: ButtonActionId.volumeUp,
+    onAction: prev,
+  );
+
+  /// 音量-事件
+  late final volumeDownAction = ButtonAction(
+    id: ButtonActionId.volumeDown,
+    onAction: next,
+  );
+
   @override
   void dispose() {
     pageController.dispose();
     turnPageTimer?.cancel();
     preloadController.dispose();
     _pageNoTimer?.cancel();
+    volumeController.stopListening();
     super.dispose();
   }
 }
