@@ -46,8 +46,6 @@ PODS:
     - Flutter
   - rust_lib_haka_comic (0.0.1):
     - Flutter
-  - save_to_folder_ios (0.0.1):
-    - Flutter
   - SDWebImage (5.21.1):
     - SDWebImage/Core (= 5.21.1)
   - SDWebImage/Core (5.21.1)
@@ -95,7 +93,6 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - rust_lib_haka_comic (from `.symlinks/plugins/rust_lib_haka_comic/ios`)
-  - save_to_folder_ios (from `.symlinks/plugins/save_to_folder_ios/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
@@ -125,8 +122,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   rust_lib_haka_comic:
     :path: ".symlinks/plugins/rust_lib_haka_comic/ios"
-  save_to_folder_ios:
-    :path: ".symlinks/plugins/save_to_folder_ios/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
@@ -148,7 +143,6 @@ SPEC CHECKSUMS:
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   rust_lib_haka_comic: d40236ae030a39b5c55786088c4b1733bee51b83
-  save_to_folder_ios: 9022a278b5c4bfcda3505f10b05807f8b2ff2da6
   SDWebImage: f29024626962457f3470184232766516dee8dfea
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb

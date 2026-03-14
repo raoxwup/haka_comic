@@ -10,6 +10,7 @@ import 'package:haka_comic/views/comic_details/downloader.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
+import 'package:haka_comic/views/import_comics/import_comics.dart';
 import 'package:haka_comic/views/local_favorites/local_favorites.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
@@ -30,7 +31,6 @@ import 'package:haka_comic/views/rank/rank.dart';
 import 'package:haka_comic/views/reader/reader.dart';
 import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
-import 'package:haka_comic/views/settings/gesture_area.dart';
 import 'package:haka_comic/views/settings/logs.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
@@ -163,24 +163,25 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/notifications', builder: (_, _) => const Notifications()),
     GoRoute(path: '/tag_block', builder: (_, _) => const TagBlock()),
     GoRoute(path: '/word_block', builder: (_, _) => const WordBlock()),
-    GoRoute(
-      path: '/gesture_area',
-      builder: (_, _) => const GestureArea(),
-      routes: [
-        GoRoute(
-          path: 'details/:type',
-          builder: (_, state) {
-            final type = GestureAreaType.fromName(state.pathParameters['type']);
-            return GestureAreaDetails(type: type);
-          },
-        ),
-      ],
-    ),
+    // GoRoute(
+    //   path: '/gesture_area',
+    //   builder: (_, _) => const GestureArea(),
+    //   routes: [
+    //     GoRoute(
+    //       path: 'details/:type',
+    //       builder: (_, state) {
+    //         final type = GestureAreaType.fromName(state.pathParameters['type']);
+    //         return GestureAreaDetails(type: type);
+    //       },
+    //     ),
+    //   ],
+    // ),
     GoRoute(
       path: '/local_favorites',
       builder: (_, _) => const LocalFavorites(),
     ),
     GoRoute(path: '/logs', builder: (_, _) => const Logs()),
+    GoRoute(path: '/import_comics', builder: (_, _) => const ImportComics()),
   ],
 );
 

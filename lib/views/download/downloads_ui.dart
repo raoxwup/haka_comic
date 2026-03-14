@@ -13,6 +13,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/save_to_folder_ios.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
@@ -23,7 +24,6 @@ import 'package:haka_comic/widgets/ui_image.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:save_to_folder_ios/save_to_folder_ios.dart';
 
 enum ExportFileType { pdf, zip }
 
