@@ -1,7 +1,5 @@
 import Flutter
 import UIKit
-import UniformTypeIdentifiers
-
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
@@ -26,10 +24,8 @@ import UniformTypeIdentifiers
 private final class HakaIosFileSaverPlugin: NSObject, FlutterPlugin, UIDocumentPickerDelegate {
   static let pluginKey = "HakaIosFileSaverPlugin"
   private static let channelName = "haka_comic/ios_file_saver"
-  private static let bufferSize = 1024 * 1024
 
   private var pendingResult: FlutterResult?
-  private var sourceFileURL: URL?
 
   static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
@@ -70,7 +66,6 @@ private final class HakaIosFileSaverPlugin: NSObject, FlutterPlugin, UIDocumentP
     }
 
     pendingResult = result
-    sourceFileURL = fileURL
     presentSaveUI(for: fileURL)
   }
 
@@ -82,12 +77,9 @@ private final class HakaIosFileSaverPlugin: NSObject, FlutterPlugin, UIDocumentP
       }
 
       if #available(iOS 14.0, *) {
-        let picker = UIDocumentPickerViewController(
-          forOpeningContentTypes: [.folder],
-          asCopy: false
-        )
+        let picker = UIDocumentPickerViewController(forExporting: [fileURL], asCopy: true)
         picker.delegate = self
-        picker.allowsMultipleSelection = false
+        picker.shouldShowFileExtensions = true
         self.configurePopoverIfNeeded(for: picker, presenter: presenter)
         presenter.present(picker, animated: true)
         return
@@ -113,152 +105,12 @@ private final class HakaIosFileSaverPlugin: NSObject, FlutterPlugin, UIDocumentP
     _ controller: UIDocumentPickerViewController,
     didPickDocumentsAt urls: [URL]
   ) {
-    guard let folderURL = urls.first, let sourceFileURL else {
-      finish(with: false)
-      return
-    }
-
-    DispatchQueue.global(qos: .userInitiated).async {
-      let success = self.copyFile(from: sourceFileURL, toFolder: folderURL)
-      DispatchQueue.main.async {
-        self.finish(with: success)
-      }
-    }
-  }
-
-  private func copyFile(from sourceURL: URL, toFolder folderURL: URL) -> Bool {
-    let accessedSecurityScope = folderURL.startAccessingSecurityScopedResource()
-    defer {
-      if accessedSecurityScope {
-        folderURL.stopAccessingSecurityScopedResource()
-      }
-    }
-
-    var isDirectory = ObjCBool(false)
-    guard
-      FileManager.default.fileExists(atPath: folderURL.path, isDirectory: &isDirectory),
-      isDirectory.boolValue
-    else {
-      return false
-    }
-
-    let destinationURL = uniqueDestinationURL(
-      in: folderURL,
-      fileName: sourceURL.lastPathComponent
-    )
-
-    if streamCopyFile(from: sourceURL, to: destinationURL) {
-      return true
-    }
-
-    do {
-      if FileManager.default.fileExists(atPath: destinationURL.path) {
-        try FileManager.default.removeItem(at: destinationURL)
-      }
-      try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-      return true
-    } catch {
-      NSLog("HakaIosFileSaverPlugin fallback copy failed: %@", error.localizedDescription)
-      return false
-    }
-  }
-
-  private func streamCopyFile(from sourceURL: URL, to destinationURL: URL) -> Bool {
-    FileManager.default.createFile(atPath: destinationURL.path, contents: nil)
-
-    guard
-      let inputStream = InputStream(url: sourceURL),
-      let outputStream = OutputStream(url: destinationURL, append: false)
-    else {
-      return false
-    }
-
-    inputStream.open()
-    outputStream.open()
-
-    defer {
-      inputStream.close()
-      outputStream.close()
-    }
-
-    let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Self.bufferSize)
-    defer {
-      buffer.deallocate()
-    }
-
-    while true {
-      let readCount = inputStream.read(buffer, maxLength: Self.bufferSize)
-      if readCount < 0 {
-        cleanupPartialFile(at: destinationURL)
-        NSLog(
-          "HakaIosFileSaverPlugin read failed: %@",
-          inputStream.streamError?.localizedDescription ?? "unknown error"
-        )
-        return false
-      }
-
-      if readCount == 0 {
-        return true
-      }
-
-      var writtenCount = 0
-      while writtenCount < readCount {
-        let currentPointer = buffer.advanced(by: writtenCount)
-        let bytesWritten = outputStream.write(
-          currentPointer,
-          maxLength: readCount - writtenCount
-        )
-
-        if bytesWritten <= 0 {
-          cleanupPartialFile(at: destinationURL)
-          NSLog(
-            "HakaIosFileSaverPlugin write failed: %@",
-            outputStream.streamError?.localizedDescription ?? "unknown error"
-          )
-          return false
-        }
-
-        writtenCount += bytesWritten
-      }
-    }
-  }
-
-  private func uniqueDestinationURL(in folderURL: URL, fileName: String) -> URL {
-    let fileExtension = (fileName as NSString).pathExtension
-    let baseName = (fileName as NSString).deletingPathExtension
-
-    var candidate = folderURL.appendingPathComponent(fileName, isDirectory: false)
-    var index = 1
-
-    while fileExists(at: candidate) {
-      let nextName: String
-      if fileExtension.isEmpty {
-        nextName = "\(baseName) (\(index))"
-      } else {
-        nextName = "\(baseName) (\(index)).\(fileExtension)"
-      }
-      candidate = folderURL.appendingPathComponent(nextName, isDirectory: false)
-      index += 1
-    }
-
-    return candidate
-  }
-
-  private func fileExists(at url: URL) -> Bool {
-    if FileManager.default.fileExists(atPath: url.path) {
-      return true
-    }
-    return (try? url.checkResourceIsReachable()) ?? false
-  }
-
-  private func cleanupPartialFile(at url: URL) {
-    try? FileManager.default.removeItem(at: url)
+    finish(with: !urls.isEmpty)
   }
 
   private func finish(with success: Bool) {
     pendingResult?(success)
     pendingResult = nil
-    sourceFileURL = nil
   }
 
   private func topViewController(base: UIViewController? = nil) -> UIViewController? {
