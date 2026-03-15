@@ -13,6 +13,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/native_folder_picker.dart';
 import 'package:haka_comic/utils/save_to_folder_ios.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
@@ -38,6 +39,18 @@ class _ImportedComic {
     required this.directoryPath,
     required this.coverPath,
     required this.imageCount,
+  });
+}
+
+class _PickedImportSource {
+  final String folderName;
+  final String directoryPath;
+  final String? cleanupPath;
+
+  const _PickedImportSource({
+    required this.folderName,
+    required this.directoryPath,
+    this.cleanupPath,
   });
 }
 
@@ -191,14 +204,42 @@ class _ImportComicsState extends State<ImportComics> {
     }
   }
 
+  Future<_PickedImportSource?> _pickImportSourceDirectory() async {
+    if (isAndroid || isIOS) {
+      final snapshot = await NativeFolderPicker.pickDirectorySnapshot();
+      if (snapshot == null) {
+        return null;
+      }
+
+      return _PickedImportSource(
+        folderName: snapshot.name,
+        directoryPath: snapshot.localPath,
+        cleanupPath: snapshot.localPath,
+      );
+    }
+
+    final path = await FilePicker.platform.getDirectoryPath();
+    if (path == null) {
+      return null;
+    }
+
+    return _PickedImportSource(
+      folderName: p.basename(path),
+      directoryPath: path,
+    );
+  }
+
   Future<void> _import() async {
     Directory? tempDir;
+    String? cleanupPath;
 
     try {
-      final path = await FilePicker.platform.getDirectoryPath();
-      if (path == null) return;
+      final picked = await _pickImportSourceDirectory();
+      if (picked == null) return;
 
-      final images = await _listImages(path);
+      cleanupPath = picked.cleanupPath;
+
+      final images = await _listImages(picked.directoryPath);
       if (images.isEmpty) {
         Toast.show(message: "没有找到漫画图片");
         return;
@@ -209,7 +250,7 @@ class _ImportComicsState extends State<ImportComics> {
       }
 
       final importRoot = await _getImportRootDirectory(create: true);
-      final folderName = p.basename(path);
+      final folderName = picked.folderName;
       final targetDirPath = p.join(importRoot.path, folderName);
       final targetDir = Directory(targetDirPath);
 
@@ -241,6 +282,17 @@ class _ImportComicsState extends State<ImportComics> {
         await tempDir.delete(recursive: true);
       }
     } finally {
+      if (cleanupPath != null) {
+        try {
+          final cleanupDir = Directory(cleanupPath);
+          if (await cleanupDir.exists()) {
+            await cleanupDir.delete(recursive: true);
+          }
+        } catch (e, st) {
+          Log.e('Cleanup import snapshot error', error: e, stackTrace: st);
+        }
+      }
+
       if (mounted) {
         Loader.hide(context);
       }

@@ -15,9 +15,11 @@ import java.io.FileOutputStream
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "haka_comic/download_saver"
+    private lateinit var folderPickerPlugin: FolderPickerPlugin
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         GeneratedPluginRegistrant.registerWith(flutterEngine)
+        folderPickerPlugin = FolderPickerPlugin(this, flutterEngine.dartExecutor.binaryMessenger)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -41,6 +43,15 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (::folderPickerPlugin.isInitialized &&
+            folderPickerPlugin.onActivityResult(requestCode, resultCode, data)
+        ) {
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun saveFileByPath(
