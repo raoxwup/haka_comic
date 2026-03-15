@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
@@ -49,6 +51,30 @@ class _ImportComicsState extends State<ImportComics> {
   bool _isLoading = false;
   bool _isSelecting = false;
   Set<String> _selectedComicPaths = {};
+
+  final entries = <ContextMenuEntry>[
+    MenuItem(
+      label: Text(
+        '复制标题',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.copy),
+      value: 'copy',
+    ),
+    MenuItem(
+      label: Text(
+        '选中该项',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.check),
+      value: 'select',
+    ),
+  ];
+
+  late final menu = ContextMenu(
+    entries: entries,
+    padding: const EdgeInsets.all(8.0),
+  );
 
   @override
   void initState() {
@@ -219,7 +245,19 @@ class _ImportComicsState extends State<ImportComics> {
     }
   }
 
-  void _openReader(_ImportedComic comic) {}
+  void _openReader(_ImportedComic comic) {
+    // context.push(
+    //   '/reader',
+    //   extra: ComicState(
+    //     id: task.comic.id,
+    //     title: task.comic.title,
+    //     chapters: chapters,
+    //     pageNo: pageNo,
+    //     chapter: chapter ?? chapters.first,
+    //     type: ReaderType.local,
+    //   ),
+    // );
+  }
 
   void _closeSelection() {
     if (!mounted) return;
@@ -227,6 +265,77 @@ class _ImportComicsState extends State<ImportComics> {
       _isSelecting = false;
       _selectedComicPaths.clear();
     });
+  }
+
+  Future<void> _onContextMenuItemPress(
+    String value,
+    _ImportedComic comic,
+  ) async {
+    switch (value) {
+      case 'copy':
+        await Clipboard.setData(ClipboardData(text: comic.title));
+        Toast.show(message: '已复制');
+        break;
+      case 'select':
+        if (!mounted) return;
+        setState(() {
+          _isSelecting = true;
+          _selectedComicPaths.add(comic.directoryPath);
+        });
+        break;
+    }
+  }
+
+  Future<void> _deleteSelectedComics() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('确认删除'),
+          content: const Text('是否删除选中的已导入漫画？'),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => context.pop(true),
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    final selectedComics = _selectedComics.toList();
+
+    try {
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      for (final comic in selectedComics) {
+        final directory = Directory(comic.directoryPath);
+        if (await directory.exists()) {
+          await directory.delete(recursive: true);
+        }
+      }
+
+      await _loadImportedComics();
+      Toast.show(message: '删除成功');
+    } catch (e, st) {
+      Log.e('Delete imported comics failed', error: e, stackTrace: st);
+      Toast.show(message: '删除失败');
+      await _loadImportedComics();
+    } finally {
+      if (mounted) {
+        Loader.hide(context);
+      }
+    }
   }
 
   Future<Directory> _createCleanTempDirectory() async {
@@ -513,81 +622,72 @@ class _ImportComicsState extends State<ImportComics> {
                 onShowInstructions: _showInstructions,
               ),
         body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _loadImportedComics,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                if (_isLoading && _comics.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else if (_comics.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Empty(height: 260),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8),
-                    sliver: SliverGrid.builder(
-                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: UiMode.m1(context)
-                            ? width
-                            : UiMode.m2(context)
-                            ? width / 2
-                            : width / 3,
-                        mainAxisSpacing: 5,
-                        crossAxisSpacing: 5,
-                        childAspectRatio: 2.45,
-                      ),
-                      itemCount: _comics.length,
-                      itemBuilder: (context, index) {
-                        final comic = _comics[index];
-                        final isSelected = _selectedComicPaths.contains(
-                          comic.directoryPath,
-                        );
-
-                        return _ImportedComicItem(
-                          comic: comic,
-                          isSelecting: _isSelecting,
-                          isSelected: isSelected,
-                          onTap: () {
-                            if (_isSelecting) {
-                              setState(() {
-                                if (isSelected) {
-                                  _selectedComicPaths.remove(
-                                    comic.directoryPath,
-                                  );
-                                } else {
-                                  _selectedComicPaths.add(comic.directoryPath);
-                                }
-                              });
-                            } else {
-                              _openReader(comic);
-                            }
-                          },
-                          onLongPress: () {
-                            if (_isSelecting) return;
-                            setState(() {
-                              _isSelecting = true;
-                              _selectedComicPaths.add(comic.directoryPath);
-                            });
-                          },
-                        );
-                      },
+          child: CustomScrollView(
+            slivers: [
+              if (_isLoading && _comics.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_comics.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Empty(height: 260),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(8),
+                  sliver: SliverGrid.builder(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: UiMode.m1(context)
+                          ? width
+                          : UiMode.m2(context)
+                          ? width / 2
+                          : width / 3,
+                      mainAxisSpacing: 5,
+                      crossAxisSpacing: 5,
+                      childAspectRatio: 2.45,
                     ),
+                    itemCount: _comics.length,
+                    itemBuilder: (context, index) {
+                      final comic = _comics[index];
+                      final isSelected = _selectedComicPaths.contains(
+                        comic.directoryPath,
+                      );
+
+                      return _ImportedComicItem(
+                        comic: comic,
+                        isSelecting: _isSelecting,
+                        isSelected: isSelected,
+                        contextMenu: menu,
+                        onTap: () {
+                          if (_isSelecting) {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedComicPaths.remove(comic.directoryPath);
+                              } else {
+                                _selectedComicPaths.add(comic.directoryPath);
+                              }
+                            });
+                          } else {
+                            _openReader(comic);
+                          }
+                        },
+                        onItemSelected: _onContextMenuItemPress,
+                      );
+                    },
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _import,
-          tooltip: '导入漫画',
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: _isSelecting
+            ? null
+            : FloatingActionButton(
+                onPressed: _import,
+                tooltip: '导入漫画',
+                child: const Icon(Icons.add),
+              ),
         persistentFooterButtons: _isSelecting
             ? [
                 FilledButton.tonalIcon(
@@ -599,6 +699,17 @@ class _ImportComicsState extends State<ImportComics> {
                   onPressed: _exportAction(type: _ExportFileType.zip),
                   label: const Text('ZIP'),
                   icon: const Icon(Icons.folder_zip),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _selectedComicPaths.isEmpty
+                      ? null
+                      : _deleteSelectedComics,
+                  label: const Text('删除'),
+                  icon: const Icon(Icons.delete_forever),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colorScheme.error,
+                    foregroundColor: context.colorScheme.onError,
+                  ),
                 ),
               ]
             : null,
@@ -691,87 +802,85 @@ class _ImportedComicItem extends StatelessWidget {
   final bool isSelecting;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
+  final Future<void> Function(String, _ImportedComic) onItemSelected;
+  final ContextMenu contextMenu;
 
   const _ImportedComicItem({
     required this.comic,
     required this.isSelecting,
     required this.isSelected,
     required this.onTap,
-    required this.onLongPress,
+    required this.onItemSelected,
+    required this.contextMenu,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: context.colorScheme.secondaryContainer.withValues(
-                  alpha: 0.65,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              )
-            : null,
-        child: Row(
-          children: [
-            AspectRatio(
-              aspectRatio: 90 / 130,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(comic.coverPath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) {
-                    return ColoredBox(
-                      color: context.colorScheme.surfaceContainerHigh,
-                      child: const Center(child: Icon(Icons.broken_image)),
-                    );
-                  },
+    return ContextMenuRegion(
+      key: ValueKey(comic.directoryPath),
+      contextMenu: contextMenu,
+      enableDefaultGestures: !isSelecting,
+      onItemSelected: (value) => onItemSelected(value!, comic),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: context.colorScheme.secondaryContainer.withValues(
+                    alpha: 0.65,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                )
+              : null,
+          child: Row(
+            children: [
+              AspectRatio(
+                aspectRatio: 90 / 130,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(comic.coverPath),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) {
+                      return ColoredBox(
+                        color: context.colorScheme.surfaceContainerHigh,
+                        child: const Center(child: Icon(Icons.broken_image)),
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    comic.title,
-                    style: context.textTheme.titleSmall,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${comic.imageCount} 张图片',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      comic.title,
+                      style: context.textTheme.titleSmall,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    borderRadius: BorderRadius.circular(99),
-                    value: 1,
-                  ),
-                ],
-              ),
-            ),
-            if (isSelecting) ...[
-              const SizedBox(width: 8),
-              Icon(
-                isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isSelected
-                    ? context.colorScheme.primary
-                    : context.colorScheme.outline,
+                    const Spacer(),
+                    Text(
+                      '${comic.imageCount} 张图片',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: context.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    LinearProgressIndicator(
+                      borderRadius: BorderRadius.circular(99),
+                      value: 1,
+                    ),
+                  ],
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
