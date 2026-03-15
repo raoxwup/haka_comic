@@ -107,7 +107,7 @@ class _UiImage extends StatelessWidget {
 }
 
 // 同时加载的图片数量
-final _imageLoadPool = Pool(5);
+final _imageLoadPool = Pool(6);
 
 class UiImage extends StatefulWidget {
   const UiImage({

@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/download/fetch_local_images.dart';
+import 'package:haka_comic/views/import_comics/fetch_import_images.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/utils/image_preload_controller.dart';
@@ -37,7 +38,11 @@ class ReaderProvider extends RequestProvider {
     type = state.type;
 
     final Future<List<ImageBase>> Function(FetchChapterImagesPayload) request =
-        type == ReaderType.network ? fetchChapterImages : fetchLocalImages;
+        switch (type) {
+          ReaderType.network => fetchChapterImages,
+          ReaderType.local => fetchLocalImages,
+          ReaderType.import => fetchImportImages,
+        };
 
     handler = request.useRequest(
       defaultParams: FetchChapterImagesPayload(

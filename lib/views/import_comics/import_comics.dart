@@ -1,10 +1,11 @@
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/database/read_record_helper.dart';
+import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/rust/api/compress.dart';
 import 'package:haka_comic/rust/api/simple.dart';
 import 'package:haka_comic/utils/android_download_saver.dart';
@@ -14,6 +15,7 @@ import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/save_to_folder_ios.dart';
 import 'package:haka_comic/utils/ui.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
 import 'package:haka_comic/widgets/toast.dart';
@@ -245,18 +247,34 @@ class _ImportComicsState extends State<ImportComics> {
     }
   }
 
-  void _openReader(_ImportedComic comic) {
-    // context.push(
-    //   '/reader',
-    //   extra: ComicState(
-    //     id: task.comic.id,
-    //     title: task.comic.title,
-    //     chapters: chapters,
-    //     pageNo: pageNo,
-    //     chapter: chapter ?? chapters.first,
-    //     type: ReaderType.local,
-    //   ),
-    // );
+  void _openReader(_ImportedComic comic) async {
+    final uid = '${comic.title}_import';
+    final chapter = Chapter(
+      uid: uid,
+      title: comic.title,
+      order: 1,
+      updated_at: '',
+      id: uid,
+    );
+
+    final helper = ReadRecordHelper();
+    final record = await helper.query(uid);
+
+    final pageNo = record?.pageNo ?? 0;
+
+    if (!mounted) return;
+
+    context.push(
+      '/reader',
+      extra: ComicState(
+        id: uid,
+        title: comic.title,
+        chapters: [chapter],
+        pageNo: pageNo,
+        chapter: chapter,
+        type: ReaderType.import,
+      ),
+    );
   }
 
   void _closeSelection() {
