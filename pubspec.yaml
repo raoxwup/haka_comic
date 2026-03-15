@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.1.4
+version: 1.2.0
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -18,7 +18,10 @@ dependencies:
   crypto: ^3.0.6
   json_annotation: ^4.9.0
   # cached_network_image: ^3.4.1
-  scrollable_positioned_list: ^0.3.8
+  scrollable_positioned_list:
+    git:
+      url: https://github.com/raoxwup/scrollable_positioned_list.git
+      ref: 193c9c00307ef948a28016693226a4ec7521c112
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.39
   path_provider: ^2.1.5
@@ -54,7 +57,6 @@ dependencies:
   share_plus: ^12.0.1
   flutter_context_menu: ^0.4.1
   permission_handler: ^12.0.1
-  save_to_folder_ios: ^1.0.4
   freezed_annotation: ^3.1.0
   extended_image: ^10.0.1
   flutter_displaymode: ^0.7.0

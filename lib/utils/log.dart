@@ -37,12 +37,19 @@ class Log {
     try {
       _logsPath = p.join((await getApplicationCacheDirectory()).path, 'logs');
 
+      final List<LogOutput> outputs = [
+        AdvancedFileOutput(path: _logsPath, maxRotatedFilesCount: 3),
+      ];
+
+      if (kDebugMode) {
+        outputs.add(ConsoleOutput());
+      }
+
       _logger = Logger(
         printer: HaKaPrinter(),
-        output: MultiOutput([
-          ConsoleOutput(),
-          AdvancedFileOutput(path: _logsPath, maxRotatedFilesCount: 3),
-        ]),
+        filter: ProductionFilter(),
+        level: kReleaseMode ? Level.info : Level.all,
+        output: MultiOutput(outputs),
       );
     } catch (e, st) {
       _logger.e('Failed to initialize logger', error: e, stackTrace: st);

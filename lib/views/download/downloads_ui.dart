@@ -13,6 +13,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/loader.dart';
 import 'package:haka_comic/utils/log.dart';
+import 'package:haka_comic/utils/save_to_folder_ios.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
@@ -23,9 +24,31 @@ import 'package:haka_comic/widgets/ui_image.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:save_to_folder_ios/save_to_folder_ios.dart';
 
 enum ExportFileType { pdf, zip }
+
+typedef _DownloadTaskAction = ({
+  IconData icon,
+  void Function(String taskId) action,
+});
+
+_DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
+  return switch (status) {
+    DownloadTaskStatus.paused => (
+      icon: Icons.play_arrow,
+      action: BackgroundDownloader.resumeTask,
+    ),
+    DownloadTaskStatus.downloading => (
+      icon: Icons.pause,
+      action: BackgroundDownloader.pauseTask,
+    ),
+    DownloadTaskStatus.error => (
+      icon: Icons.refresh,
+      action: BackgroundDownloader.resumeTask,
+    ),
+    _ => (icon: Icons.error, action: (_) {}),
+  };
+}
 
 class Downloads extends StatefulWidget {
   const Downloads({super.key});
@@ -501,6 +524,7 @@ class _DownloadsState extends State<Downloads> {
                       }
                     },
                     onItemSelected: _onContextMenuItemPress,
+                    downloadSpeed: _downloadSpeed,
                   );
                 },
                 itemCount: tasks.length,
@@ -594,16 +618,6 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
-        if (downloadSpeed > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Center(
-              child: Text(
-                _formatSpeed(downloadSpeed),
-                style: context.textTheme.bodySmall,
-              ),
-            ),
-          ),
         IconButton(
           onPressed: onEnterSelection,
           icon: const Icon(Icons.checklist_rtl),
@@ -632,6 +646,7 @@ class _DownloadTaskItem extends StatelessWidget {
   final VoidCallback onTap;
   final Future<void> Function(String, ComicDownloadTask) onItemSelected;
   final ContextMenu contextMenu;
+  final int downloadSpeed;
 
   const _DownloadTaskItem({
     required this.task,
@@ -640,6 +655,7 @@ class _DownloadTaskItem extends StatelessWidget {
     required this.onTap,
     required this.onItemSelected,
     required this.contextMenu,
+    required this.downloadSpeed,
   });
 
   @override
@@ -689,15 +705,23 @@ class _DownloadTaskItem extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          IconButton(
-                            onPressed: () {
-                              task.status.iconAndAction.action(task.comic.id);
+                          Builder(
+                            builder: (_) {
+                              final action = _resolveDownloadTaskAction(
+                                task.status,
+                              );
+                              return IconButton(
+                                onPressed: () {
+                                  action.action(task.comic.id);
+                                },
+                                icon: Icon(action.icon),
+                              );
                             },
-                            icon: Icon(task.status.iconAndAction.icon),
                           ),
                         ],
                       ),
                     Row(
+                      spacing: 8,
                       children: [
                         Text(
                           task.status.displayName,
@@ -706,11 +730,16 @@ class _DownloadTaskItem extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
                           '${task.completed} / ${task.total}',
                           style: context.textTheme.bodySmall,
                         ),
+                        if (downloadSpeed > 0 &&
+                            task.status == DownloadTaskStatus.downloading)
+                          Text(
+                            _formatSpeed(downloadSpeed),
+                            style: context.textTheme.bodySmall,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 5),

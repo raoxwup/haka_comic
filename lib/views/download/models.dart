@@ -6,16 +6,7 @@ class WorkerMessage {
   final WorkerMessageType type;
   final dynamic payload;
 
-  const WorkerMessage({required this.payload, required this.type});
-}
-
-enum MainMessageType { addTask, updateStatus }
-
-class MainMessage {
-  final MainMessageType type;
-  final dynamic payload;
-
-  const MainMessage({required this.payload, required this.type});
+  const WorkerMessage({required this.type, this.payload});
 }
 
 class IsolateLogMessage {
@@ -101,19 +92,4 @@ enum DownloadTaskStatus {
   }
 
   bool get isOperable => this == downloading || this == paused || this == error;
-
-  ({IconData icon, void Function(String id) action}) get iconAndAction {
-    return switch (this) {
-      paused => (
-        icon: Icons.play_arrow,
-        action: BackgroundDownloader.resumeTask,
-      ),
-      downloading => (
-        icon: Icons.pause,
-        action: BackgroundDownloader.pauseTask,
-      ),
-      error => (icon: Icons.refresh, action: BackgroundDownloader.resumeTask),
-      _ => (icon: Icons.error, action: (_) {}),
-    };
-  }
 }

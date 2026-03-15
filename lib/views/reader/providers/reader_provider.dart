@@ -9,6 +9,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/download/fetch_local_images.dart';
+import 'package:haka_comic/views/import_comics/fetch_import_images.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/utils/image_preload_controller.dart';
@@ -16,6 +17,7 @@ import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:volume_button_override/volume_button_override.dart';
 
 extension BuildContextReader on BuildContext {
   ReaderProvider get reader => read<ReaderProvider>();
@@ -36,7 +38,11 @@ class ReaderProvider extends RequestProvider {
     type = state.type;
 
     final Future<List<ImageBase>> Function(FetchChapterImagesPayload) request =
-        type == ReaderType.network ? fetchChapterImages : fetchLocalImages;
+        switch (type) {
+          ReaderType.network => fetchChapterImages,
+          ReaderType.local => fetchLocalImages,
+          ReaderType.import => fetchImportImages,
+        };
 
     handler = request.useRequest(
       defaultParams: FetchChapterImagesPayload(
@@ -223,10 +229,14 @@ class ReaderProvider extends RequestProvider {
       return;
     }
 
-    scrollOffsetController.animateScroll(
-      offset: offset,
-      duration: const Duration(milliseconds: 200),
-    );
+    if (AppConf().enablePageAnimation) {
+      scrollOffsetController.animateScroll(
+        offset: offset,
+        duration: const Duration(milliseconds: 200),
+      );
+    } else {
+      scrollOffsetController.scrollTo(offset);
+    }
   }
 
   /// HorizontalList 翻页
@@ -241,10 +251,14 @@ class ReaderProvider extends RequestProvider {
         return;
       }
 
-      pageController.previousPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
+      if (AppConf().enablePageAnimation) {
+        pageController.previousPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      } else {
+        pageController.jumpToPage(pageController.page!.round() - 1);
+      }
     }
 
     void nextPage() {
@@ -258,10 +272,14 @@ class ReaderProvider extends RequestProvider {
         return;
       }
 
-      pageController.nextPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.linear,
-      );
+      if (AppConf().enablePageAnimation) {
+        pageController.nextPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.linear,
+        );
+      } else {
+        pageController.jumpToPage(pageController.page!.round() + 1);
+      }
     }
 
     isTurnNext ? nextPage() : previousPage();
@@ -332,9 +350,6 @@ class ReaderProvider extends RequestProvider {
   /// 更新定时翻页间隔
   void updateInterval(int interval) {
     this.interval = interval;
-    // if (isPageTurning && !_isPageTurnPausedByToolbar) {
-    //   _startPageTurnTimer();
-    // }
   }
 
   late ImagePreloadController<ImageBase> preloadController;
@@ -349,12 +364,27 @@ class ReaderProvider extends RequestProvider {
     );
   }
 
+  final volumeController = VolumeButtonController();
+
+  /// 音量+事件
+  late final volumeUpAction = ButtonAction(
+    id: ButtonActionId.volumeUp,
+    onAction: prev,
+  );
+
+  /// 音量-事件
+  late final volumeDownAction = ButtonAction(
+    id: ButtonActionId.volumeDown,
+    onAction: next,
+  );
+
   @override
   void dispose() {
     pageController.dispose();
     turnPageTimer?.cancel();
     preloadController.dispose();
     _pageNoTimer?.cancel();
+    volumeController.stopListening();
     super.dispose();
   }
 }

@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart' hide Block;
 import 'package:haka_comic/views/settings/auth.dart';
-import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
 import 'package:haka_comic/views/settings/change_password.dart';
 import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/comic_block_scale.dart';
-import 'package:haka_comic/views/settings/enable_volume.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/network.dart';
 import 'package:haka_comic/views/settings/pager.dart';
-import 'package:haka_comic/views/settings/read_mode.dart';
-import 'package:haka_comic/views/settings/slip_factor.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
 import 'package:haka_comic/views/settings/theme_color.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
@@ -63,20 +59,6 @@ class Settings extends StatelessWidget {
             const Block(
               title: '浏览',
               children: [BrowseMode(), Pager(), ComicBlockScale()],
-            ),
-            const SizedBox(height: 20),
-            Block(
-              title: '阅读',
-              children: [
-                const ReadModeChanger(),
-                const SlipFactor(),
-                if (!isDesktop) const EnableVolume(),
-                MenuListTile.withAction(
-                  icon: Icons.touch_app_outlined,
-                  title: '手势区域',
-                  onTap: () => context.push('/gesture_area'),
-                ),
-              ],
             ),
             const SizedBox(height: 20),
             Block(

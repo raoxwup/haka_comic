@@ -50,10 +50,7 @@ class ComicActionBar extends StatelessWidget {
               ),
           ],
           LikedAction(isLiked: data.isLiked, id: comicId),
-          CollectAction(
-            isFavorite: data.isFavourite,
-            id: comicId,
-          ),
+          CollectAction(isFavorite: data.isFavourite, id: comicId),
           ActionChip(
             avatar: const Icon(Icons.comment),
             shape: const StadiumBorder(),
