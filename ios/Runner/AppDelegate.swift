@@ -6,17 +6,28 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let didLaunch = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    registerCustomPlugins(with: self)
+    return didLaunch
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     let registry = engineBridge.pluginRegistry
     GeneratedPluginRegistrant.register(with: registry)
+    registerCustomPlugins(with: registry)
+  }
 
+  private func registerCustomPlugins(with registry: FlutterPluginRegistry) {
     if !registry.hasPlugin(HakaIosFileSaverPlugin.pluginKey),
       let registrar = registry.registrar(forPlugin: HakaIosFileSaverPlugin.pluginKey)
     {
       HakaIosFileSaverPlugin.register(with: registrar)
+    }
+
+    if !registry.hasPlugin(HakaFolderPickerPlugin.pluginKey),
+      let registrar = registry.registrar(forPlugin: HakaFolderPickerPlugin.pluginKey)
+    {
+      HakaFolderPickerPlugin.register(with: registrar)
     }
   }
 }
