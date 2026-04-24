@@ -5,6 +5,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
+import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/widgets/reader_settings.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
@@ -47,6 +48,10 @@ class ReaderAppBar extends StatelessWidget {
 
     final readMode = context.selector((p) => p.readMode);
 
+    final readerType = context.selector((p) => p.type);
+
+    final comicId = context.selector((p) => p.id);
+
     final title = context.selector((p) => p.title);
 
     final isSmoothScroll = context.selector((p) => p.isSmoothScroll);
@@ -72,6 +77,12 @@ class ReaderAppBar extends StatelessWidget {
             actions: isSmoothScroll
                 ? null
                 : [
+                    if (readerType == ReaderType.local)
+                      IconButton(
+                        icon: const Icon(Icons.open_in_new),
+                        tooltip: '查看原作品',
+                        onPressed: () => context.push('/details/$comicId'),
+                      ),
                     Builder(
                       builder: (context) {
                         return IconButton(
