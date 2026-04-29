@@ -107,6 +107,9 @@ class AppConf {
   /// 预加载的图片数量
   int _preloadImageCount = 4;
 
+  /// 是否启用条漫模式下的滑动切章手势
+  bool _enableChapterSwipe = false;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -163,6 +166,8 @@ class AppConf {
         prefsWithCache.getBool('enablePageAnimation') ?? true;
     instance._preloadImageCount =
         prefsWithCache.getInt('preloadImageCount') ?? 4;
+    instance._enableChapterSwipe =
+        prefsWithCache.getBool('enableChapterSwipe') ?? false;
   }
 
   set email(String value) {
@@ -360,6 +365,11 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setInt('preloadImageCount', value);
   }
 
+  set enableChapterSwipe(bool value) {
+    _enableChapterSwipe = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('enableChapterSwipe', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -397,6 +407,7 @@ class AppConf {
   bool get enableGesture => _enableGesture;
   bool get enablePageAnimation => _enablePageAnimation;
   int get preloadImageCount => _preloadImageCount;
+  bool get enableChapterSwipe => _enableChapterSwipe;
 
   /// 清除token
   void clearAuth() {

@@ -4,8 +4,9 @@ import 'package:haka_comic/utils/request/request_state.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 
-/// Detects horizontal edge swipes to jump chapters.
-/// Left edge swipe → previous chapter, right edge swipe → next chapter.
+/// 条漫模式下的边缘滑动切章。
+/// 左右边缘按下后横向拖动:当前页跟手平移 + 下沉 + z 轴缩放。
+/// 松手时距离 ≥ 屏宽 50% 或 fling 够快则提交,否则回弹。
 class ChapterSwipeDetector extends StatefulWidget {
   final Widget child;
   const ChapterSwipeDetector({super.key, required this.child});
@@ -16,15 +17,51 @@ class ChapterSwipeDetector extends StatefulWidget {
 
 enum _Edge { left, right }
 
-class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector> {
+enum _Phase { idle, dragging, bouncing, committing }
+
+class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector>
+    with SingleTickerProviderStateMixin {
+  static const double _minDrag = 18.0;
+  static const double _edgeWidthRatio = 0.25;
+  static const double _fallbackInset = 24.0;
+  static const double _thresholdRatio = 0.5;
+  static const double _flingThreshold = 1200.0;
+  static const double _sinkMax = 40.0;
+  static const double _scaleDelta = 0.08;
+  static const Cubic _bounceDxCurve = Cubic(0.175, 0.885, 0.32, 1.08);
+  static const Curve _smoothCurve = Curves.easeOutCubic;
+  static const Curve _commitCurve = Curves.fastEaseInToSlowEaseOut;
+
   int? _pointer;
   _Edge? _edge;
-  double? _startX;
-  bool _activated = false;
+  double _startX = 0, _startY = 0;
+  bool _activated = false, _crossedThreshold = false;
+  Duration _lastTs = Duration.zero;
+  double _velocity = 0;
 
-  static const _minDrag = 4.0;
-  static const _edgeWidthRatio = 0.25;
-  static const _fallbackInset = 24.0;
+  final ValueNotifier<double> _dragDx = ValueNotifier(0);
+  final ValueNotifier<double> _progress = ValueNotifier(0);
+  late final Listenable _transformListenable;
+
+  late final AnimationController _anim;
+  _Phase _phase = _Phase.idle;
+  double _animStartDx = 0, _animStartProgress = 0, _commitTargetDx = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(vsync: this, duration: Duration.zero)
+      ..addListener(_onAnimTick);
+    _transformListenable = Listenable.merge([_dragDx, _progress]);
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    _dragDx.dispose();
+    _progress.dispose();
+    super.dispose();
+  }
 
   bool get _blocked {
     final r = context.reader;
@@ -33,54 +70,143 @@ class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector> {
         r.handler.state is Loading;
   }
 
+  double get _screenW => MediaQuery.sizeOf(context).width;
+
   double _edgeInset(BuildContext ctx) {
-    final insets = MediaQuery.systemGestureInsetsOf(ctx);
-    final max = insets.left > insets.right ? insets.left : insets.right;
-    return max > 0 ? max : _fallbackInset;
+    final i = MediaQuery.systemGestureInsetsOf(ctx);
+    final m = i.left > i.right ? i.left : i.right;
+    return m > 0 ? m : _fallbackInset;
+  }
+
+  void _beginTrack(PointerDownEvent e, _Edge edge, {bool takeover = false}) {
+    _pointer = e.pointer;
+    _edge = edge;
+    _startX = e.position.dx - (takeover ? _dragDx.value : 0);
+    _startY = e.position.dy;
+    _activated = takeover && _dragDx.value.abs() > 0;
+    _crossedThreshold = takeover && _progress.value >= _thresholdRatio;
+    _lastTs = e.timeStamp;
+    _velocity = 0;
+    _phase = _Phase.dragging;
   }
 
   void _onDown(PointerDownEvent e, _Edge edge) {
+    if (_anim.isAnimating) {
+      _anim.stop();
+      _beginTrack(e, edge, takeover: true);
+      return;
+    }
     if (_pointer != null || _blocked) return;
     final r = context.reader;
     if (edge == _Edge.left && r.isFirstChapter) return;
     if (edge == _Edge.right && r.isLastChapter) return;
-    _pointer = e.pointer;
-    _edge = edge;
-    _startX = e.position.dx;
-    _activated = false;
+    _beginTrack(e, edge);
   }
 
   void _onMove(PointerMoveEvent e) {
-    if (e.pointer != _pointer || _activated) return;
-    final dx = e.position.dx - _startX!;
-    if (dx.abs() < _minDrag) return;
-    // left edge requires rightward drag (dx>0), right edge requires leftward (dx<0)
-    _activated = (_edge == _Edge.left) ? dx > 0 : dx < 0;
-    if (!_activated) _cancel();
+    if (e.pointer != _pointer) return;
+    final dx = e.position.dx - _startX;
+    final dy = e.position.dy - _startY;
+
+    if (!_activated) {
+      if (dx.abs() < _minDrag) return;
+      final dirOk = (_edge == _Edge.left ? dx > 0 : dx < 0) &&
+          dx.abs() >= dy.abs() * 1.5;
+      if (!dirOk) {
+        _reset();
+        return;
+      }
+      _activated = true;
+    }
+
+    final dt = (e.timeStamp - _lastTs).inMicroseconds / 1e6;
+    if (dt > 0) _velocity = e.delta.dx / dt;
+    _lastTs = e.timeStamp;
+
+    _dragDx.value = dx;
+    _progress.value = (dx.abs() / _screenW).clamp(0.0, 1.0);
+
+    if (_progress.value >= _thresholdRatio && !_crossedThreshold) {
+      HapticFeedback.selectionClick();
+      _crossedThreshold = true;
+    } else if (_progress.value < _thresholdRatio) {
+      _crossedThreshold = false;
+    }
   }
 
   void _onUp(PointerUpEvent e) {
     if (e.pointer != _pointer) return;
-    if (_activated) {
-      HapticFeedback.mediumImpact();
-      if (_edge == _Edge.left) {
-        context.reader.goPrevious();
-      } else {
-        context.reader.goNext();
-      }
+    if (!_activated) {
+      _reset();
+      return;
     }
-    _cancel();
+    final flingDirOk = _edge == _Edge.left ? _velocity > 0 : _velocity < 0;
+    final committed = _progress.value >= _thresholdRatio ||
+        (_velocity.abs() >= _flingThreshold && flingDirOk);
+    committed ? _startCommit() : _startBounceBack();
   }
 
-  void _onPointerCancel(PointerCancelEvent e) {
-    if (e.pointer == _pointer) _cancel();
+  void _onCancel(PointerCancelEvent e) {
+    if (e.pointer != _pointer) return;
+    _activated ? _startBounceBack() : _reset();
   }
 
-  void _cancel() {
+  void _startBounceBack() {
+    _animStartDx = _dragDx.value;
+    _animStartProgress = _progress.value;
+    _phase = _Phase.bouncing;
+    _anim.duration = const Duration(milliseconds: 320);
+    _anim.forward(from: 0).whenCompleteOrCancel(() {
+      if (mounted && _phase == _Phase.bouncing) _reset();
+    });
+  }
+
+  void _startCommit() {
+    _animStartDx = _dragDx.value;
+    _commitTargetDx = _dragDx.value > 0 ? _screenW : -_screenW;
+    _phase = _Phase.committing;
+    _anim.duration = const Duration(milliseconds: 350);
+    _anim.forward(from: 0).whenCompleteOrCancel(() {
+      if (!mounted || _phase != _Phase.committing) return;
+      HapticFeedback.mediumImpact();
+      _edge == _Edge.left
+          ? context.reader.goPrevious()
+          : context.reader.goNext();
+      _reset();
+    });
+  }
+
+  void _onAnimTick() {
+    final t = _anim.value;
+    switch (_phase) {
+      case _Phase.bouncing:
+        // dx 过冲,progress 无过冲
+        _dragDx.value = _animStartDx * (1 - _bounceDxCurve.transform(t));
+        _progress.value =
+            _animStartProgress * (1 - _smoothCurve.transform(t));
+        break;
+      case _Phase.committing:
+        final cv = _commitCurve.transform(t);
+        _dragDx.value = _animStartDx + (_commitTargetDx - _animStartDx) * cv;
+        _progress.value = (_dragDx.value.abs() / _screenW).clamp(0.0, 1.0);
+        break;
+      case _Phase.idle:
+      case _Phase.dragging:
+        break;
+    }
+  }
+
+  void _reset() {
     _pointer = null;
     _edge = null;
-    _startX = null;
+    _startX = 0;
+    _startY = 0;
     _activated = false;
+    _crossedThreshold = false;
+    _velocity = 0;
+    _dragDx.value = 0;
+    _progress.value = 0;
+    _phase = _Phase.idle;
   }
 
   Widget _zone(_Edge edge, double inset, double width) {
@@ -95,13 +221,16 @@ class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector> {
         onPointerDown: (e) => _onDown(e, edge),
         onPointerMove: _onMove,
         onPointerUp: _onUp,
-        onPointerCancel: _onPointerCancel,
+        onPointerCancel: _onCancel,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final enabled = context.stateSelector((p) => p.enableChapterSwipe);
+    if (!enabled) return widget.child;
+
     final isFirst = context.selector<bool>((p) => p.isFirstChapter);
     final isLast = context.selector<bool>((p) => p.isLastChapter);
     final screenW = MediaQuery.sizeOf(context).width;
@@ -110,7 +239,21 @@ class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector> {
 
     return Stack(
       children: [
-        widget.child,
+        ListenableBuilder(
+          listenable: _transformListenable,
+          builder: (_, child) {
+            final p = _progress.value;
+            return Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0015) // 透视
+                ..translate(_dragDx.value, _sinkMax * p, 0.0)
+                ..scale(1.0 - _scaleDelta * p),
+              child: child,
+            );
+          },
+          child: widget.child,
+        ),
         if (!isFirst) _zone(_Edge.left, inset, zoneW),
         if (!isLast) _zone(_Edge.right, inset, zoneW),
       ],
