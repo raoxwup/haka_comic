@@ -102,6 +102,9 @@ class _ChapterSwipeDetectorState extends State<ChapterSwipeDetector> {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = context.stateSelector((p) => p.enableChapterSwipe);
+    if (!enabled) return widget.child;
+
     final isFirst = context.selector<bool>((p) => p.isFirstChapter);
     final isLast = context.selector<bool>((p) => p.isLastChapter);
     final screenW = MediaQuery.sizeOf(context).width;

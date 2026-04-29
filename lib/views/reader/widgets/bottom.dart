@@ -149,6 +149,23 @@ class _ReaderBottomState extends State<ReaderBottom>
                   tooltip: '平滑滚动',
                   icon: const Icon(Icons.keyboard_double_arrow_down),
                 ),
+              if (context.selector((p) => p.readMode.isVertical))
+                Builder(
+                  builder: (context) {
+                    final enabled = context.stateSelector(
+                      (p) => p.enableChapterSwipe,
+                    );
+                    return IconButton(
+                      onPressed: () {
+                        context.stateReader.toggleEnableChapterSwipe();
+                      },
+                      tooltip: '滑动切章',
+                      icon: Icon(
+                        enabled ? Icons.swipe : Icons.swipe_outlined,
+                      ),
+                    );
+                  },
+                ),
               IconButton(
                 onPressed: () {
                   context.stateReader.toggleLockMenu();

@@ -53,4 +53,14 @@ class ListStateProvider extends ChangeNotifier {
     AppConf().showPageNumbers = _showPageNumbers;
     notifyListeners();
   }
+
+  /// 条漫模式下的滑动切章手势开关
+  bool _enableChapterSwipe = AppConf().enableChapterSwipe;
+  bool get enableChapterSwipe => _enableChapterSwipe;
+  void toggleEnableChapterSwipe() {
+    _enableChapterSwipe = !_enableChapterSwipe;
+    AppConf().enableChapterSwipe = _enableChapterSwipe;
+    notifyListeners();
+    Toast.show(message: _enableChapterSwipe ? '滑动切章已开启' : '滑动切章已关闭');
+  }
 }
