@@ -148,10 +148,16 @@ class _GestureWrapperState extends State<GestureWrapper>
   }
 
   void _handleLockTap() {
+    final appConf = AppConf();
+
+    if (!appConf.enableGesture) {
+      return;
+    }
+
     final height = context.height;
     final halfHeight = height / 2;
     final dy = _tapDownDetails.localPosition.dy;
-    final slipFactor = AppConf().slipFactor;
+    final slipFactor = appConf.slipFactor;
     if (dy < halfHeight) {
       widget.jumpOffset(height * slipFactor * -1);
     } else {

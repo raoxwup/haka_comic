@@ -67,6 +67,12 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   }
 
   void _handleLockTap() {
+    final appConf = AppConf();
+
+    if (!appConf.enableGesture) {
+      return;
+    }
+
     final width = context.width;
     final halfWidth = width / 2;
     final dx = _tapDetails.localPosition.dx;
