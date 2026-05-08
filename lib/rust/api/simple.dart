@@ -6,7 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `collect_images`, `process_single_image`
+// These functions are ignored because they are not marked as `pub`: `add_image_page`, `allocate_object_id`, `begin_object`, `build_processed_image`, `collect_images`, `encode_dynamic_image_as_jpeg`, `estimate_image_memory`, `export_batch_size`, `finish`, `flatten_alpha_on_white`, `is_jpeg_start_of_frame`, `new`, `parse_jpeg_info`, `pdf_number`, `process_single_image`, `processing_batches`, `write_bytes`, `write_catalog_object`, `write_content_object`, `write_image_object`, `write_page_object`, `write_pages_object`, `write_text`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `JpegInfo`, `PdfStreamWriter`, `ProcessedImage`
 
 Future<void> exportPdf({
   required String sourceFolderPath,
