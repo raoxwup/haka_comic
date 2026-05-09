@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.2.3
+version: 1.2.4
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -12,19 +12,21 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  go_router: ^17.0.1
-  shared_preferences: ^2.5.4
-  dio: ^5.9.0
-  crypto: ^3.0.6
-  json_annotation: ^4.9.0
+  go_router: ^17.2.3
+  shared_preferences: ^2.5.5
+  dio: ^5.9.2
+  crypto: ^3.0.7
+  json_annotation: ^4.11.0
   scrollable_positioned_list:
     git:
       url: https://github.com/raoxwup/scrollable_positioned_list.git
       ref: 193c9c00307ef948a28016693226a4ec7521c112
-  sqlite3: ^2.9.0
-  sqlite3_flutter_libs: ^0.5.39
+  # sqlite3: ^2.9.0
+  # sqlite3_flutter_libs: ^0.5.39
+  # sqlite_async: ^0.12.1
+  sqlite3: ^3.3.1
+  sqlite_async: ^0.14.1
   path_provider: ^2.1.5
-  sqlite_async: ^0.12.1
   provider: ^6.1.5+1
   dynamic_color: ^1.8.1
   path: ^1.9.1
@@ -36,7 +38,7 @@ dependencies:
     git:
       url: https://github.com/raoxwup/photo_view.git
       ref: d951ef08d4461a778ac3c95da2e4d1fe7a2e6881
-  file_picker: ^10.3.8
+  file_picker: ^11.0.2
   webdav_client: ^1.2.2
   window_manager: ^0.5.1
   vector_math: ^2.2.0
@@ -48,7 +50,7 @@ dependencies:
   legalize: ^1.2.2
   local_auth: ^3.0.0
   pool: ^1.5.2
-  share_plus: ^12.0.1
+  # share_plus: ^12.0.1
   flutter_context_menu: ^0.4.1
   permission_handler: ^12.0.1
   freezed_annotation: ^3.1.0
@@ -61,8 +63,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.10.4
-  json_serializable: ^6.11.1
+  build_runner: ^2.15.0
+  json_serializable: ^6.13.2
   flutter_launcher_icons: ^0.14.4
   package_rename: ^1.10.1
   freezed: ^3.2.3

@@ -211,7 +211,7 @@ class _ImportComicsState extends State<ImportComics> {
       );
     }
 
-    final path = await FilePicker.platform.getDirectoryPath();
+    final path = await FilePicker.getDirectoryPath();
     if (path == null) {
       return null;
     }

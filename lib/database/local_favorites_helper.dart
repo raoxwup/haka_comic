@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/utils.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:sqlite_async/sqlite3.dart';
-import 'package:sqlite_async/sqlite_async.dart' hide SqliteOpenFactory;
+import 'package:sqlite3/common.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
 final migrations = SqliteMigrations()
   ..add(
@@ -112,7 +112,7 @@ class LocalFavoritesHelper with ChangeNotifier, DbBackupMixin {
 
   @override
   SqliteDatabase initSqliteDatabase() =>
-      SqliteDatabase.withFactory(SqliteOpenFactory(path: dbPath));
+      SqliteDatabase.withFactory(ForeignKeysOnSqliteOpenFactory(path: dbPath));
 
   @override
   Future<void> initialize() async {

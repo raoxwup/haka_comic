@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqlite_async/sqlite_async.dart' hide SqliteOpenFactory;
+import 'package:sqlite_async/sqlite_async.dart';
 import 'package:path/path.dart' as p;
-import 'package:haka_comic/database/utils.dart' show SqliteOpenFactory;
+import 'package:haka_comic/database/utils.dart';
 
 final migrations = SqliteMigrations()
   ..add(
@@ -90,7 +90,7 @@ class DownloadTaskHelper with ChangeNotifier {
     if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
     _db = SqliteDatabase.withFactory(
-      SqliteOpenFactory(path: p.join(dbPath, dbName)),
+      ForeignKeysOnSqliteOpenFactory(path: p.join(dbPath, dbName)),
     );
     await migrations.migrate(_db);
     isInitialized = true;
