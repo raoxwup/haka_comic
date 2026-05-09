@@ -44,3 +44,28 @@ double computeProgress(int bytes) {
 
   return (normalized * maxProgress).clamp(0.0, maxProgress);
 }
+
+/// 计算图片解码的 cacheWidth（物理像素）
+///
+/// 按 [layoutWidth] × [devicePixelRatio] × [zoomHeadroom] 计算所需的解码宽度，
+/// 再夹到 [minWidth]~[maxWidth] 区间，避免过小模糊或过大占内存。
+///
+/// - [layoutWidth]: 图片在布局中实际占用的逻辑宽度（如双页模式为半屏宽）
+/// - [devicePixelRatio]: 设备像素比，通过 MediaQuery.devicePixelRatioOf(context) 获取
+/// - [zoomHeadroom]: 缩放冗余倍数。默认 2.0 可以在 ~2x 放大时保持原图级清晰度，
+///   4x 极限放大时略柔化。如需更清晰可提高到 2.5 或 3.0，但内存占用会成平方增长。
+/// - [minWidth]: 下限，小屏上也保证基本细节，默认 1080。
+/// - [maxWidth]: 上限，防止大屏设备解码出 8K 级位图，默认 3840。
+int computeImageCacheWidth({
+  required double layoutWidth,
+  required double devicePixelRatio,
+  double zoomHeadroom = 2.0,
+  int minWidth = 1080,
+  int maxWidth = 3840,
+}) {
+  if (layoutWidth <= 0 || devicePixelRatio <= 0 || !layoutWidth.isFinite) {
+    return maxWidth;
+  }
+  final raw = (layoutWidth * devicePixelRatio * zoomHeadroom).round();
+  return raw.clamp(minWidth, maxWidth);
+}

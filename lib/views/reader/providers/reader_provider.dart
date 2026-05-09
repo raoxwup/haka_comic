@@ -455,6 +455,11 @@ class ReaderProvider extends RequestProvider {
     );
   }
 
+  /// 更新预加载解码宽度（与显示端保持一致，保证 ImageCache 命中）
+  void updatePreloadCacheWidth(int? cacheWidth) {
+    preloadController.cacheWidth = cacheWidth;
+  }
+
   final volumeController = VolumeButtonController();
 
   /// 音量+事件

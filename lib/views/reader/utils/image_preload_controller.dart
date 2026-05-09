@@ -14,6 +14,7 @@ class ImagePreloadController<T> {
     this.maxPreloadCount = 4,
     this.keepWindow = 10,
     this.debounceDuration = const Duration(milliseconds: 50),
+    this.cacheWidth,
   });
 
   final BuildContext context;
@@ -29,6 +30,10 @@ class ImagePreloadController<T> {
 
   /// 防抖时长
   final Duration debounceDuration;
+
+  /// 解码宽度（物理像素）。与显示端保持一致可共享 ImageCache 条目。
+  /// 为 null 时不做尺寸限制（即使用原始分辨率解码）。
+  int? cacheWidth;
 
   Timer? _debounceTimer;
 
@@ -92,9 +97,14 @@ class ImagePreloadController<T> {
         count++;
 
         final url = urlResolver(items[i]);
-        final ImageProvider provider = type == ReaderType.network
+        final ImageProvider base = type == ReaderType.network
             ? CachedNetworkImageProvider(url)
             : FileImage(File(url));
+        // 用与显示端一致的 ResizeImage 包裹，保证预加载进入的是同一个缓存键，
+        // 否则真正显示时会因 key 不同而重新解码一次，相当于白预加载。
+        final ImageProvider provider = cacheWidth != null
+            ? ResizeImage.resizeIfNeeded(cacheWidth, null, base)
+            : base;
         precacheImage(provider, context, onError: (_, _) {});
       }
     });

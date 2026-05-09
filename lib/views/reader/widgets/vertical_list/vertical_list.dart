@@ -73,6 +73,16 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
         builder: (context, constraints) {
           final widthFactor = widthRatio.clamp(0.0, 1.0);
 
+          // 图片在布局中实际占用的逻辑宽度
+          final imageLayoutWidth = constraints.maxWidth * widthFactor;
+          final dpr = MediaQuery.devicePixelRatioOf(context);
+          final cacheWidth = computeImageCacheWidth(
+            layoutWidth: imageLayoutWidth,
+            devicePixelRatio: dpr,
+          );
+          // 预加载使用同一个 cacheWidth，保证 ImageCache 命中
+          context.reader.updatePreloadCacheWidth(cacheWidth);
+
           return FractionallySizedBox(
             widthFactor: widthFactor,
             child: ScrollablePositionedList.builder(
@@ -104,6 +114,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
                 return ReaderImage(
                   key: ValueKey(item.uid),
                   url: item.url,
+                  cacheWidth: cacheWidth,
                   onImageSizeChanged: (width, height) {
                     if (_imageSizeCache[item.uid] == null) {
                       final size = ImageSize(

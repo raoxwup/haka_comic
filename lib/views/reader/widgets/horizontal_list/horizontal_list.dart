@@ -150,6 +150,23 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
           },
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final dpr = MediaQuery.devicePixelRatioOf(context);
+              // 单页模式按整个可视区域宽度计算，双页模式按半屏宽度计算
+              final singlePageLayoutWidth = constraints.maxWidth;
+              final doublePageLayoutWidth = constraints.maxWidth / 2;
+              final singleCacheWidth = computeImageCacheWidth(
+                layoutWidth: singlePageLayoutWidth,
+                devicePixelRatio: dpr,
+              );
+              final doubleCacheWidth = computeImageCacheWidth(
+                layoutWidth: doublePageLayoutWidth,
+                devicePixelRatio: dpr,
+              );
+              // 预加载解码宽度与当前显示模式一致
+              context.reader.updatePreloadCacheWidth(
+                readMode.isDoublePage ? doubleCacheWidth : singleCacheWidth,
+              );
+
               return PhotoViewGallery.builder(
                 backgroundDecoration: BoxDecoration(
                   color: context.colorScheme.surfaceContainerLowest,
@@ -162,12 +179,21 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                 builder: (context, index) {
                   if (!readMode.isDoublePage) {
                     final item = images[index];
+                    final ImageProvider base =
+                        context.reader.type == ReaderType.network
+                        ? CachedNetworkImageProvider(item.url)
+                        : FileImage(File(item.url));
+                    // 与 ReaderImage / 预加载统一用 ResizeImage 做解码限制，
+                    // 保证共享同一个 ImageCache 条目
+                    final imageProvider = ResizeImage.resizeIfNeeded(
+                      singleCacheWidth,
+                      null,
+                      base,
+                    );
                     return PhotoViewGalleryPageOptions(
                       minScale: PhotoViewComputedScale.contained * 1.0,
                       maxScale: PhotoViewComputedScale.covered * 4.0,
-                      imageProvider: context.reader.type == ReaderType.network
-                          ? CachedNetworkImageProvider(item.url)
-                          : FileImage(File(item.url)),
+                      imageProvider: imageProvider,
                       filterQuality: FilterQuality.medium,
                       errorBuilder: (context, error, stackTrace, retry) {
                         return Center(
@@ -200,7 +226,11 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                     childSize: size * 2,
                     minScale: PhotoViewComputedScale.contained * 1.0,
                     maxScale: PhotoViewComputedScale.covered * 10.0,
-                    child: buildPageImages(items, readMode.isReverse),
+                    child: buildPageImages(
+                      items,
+                      readMode.isReverse,
+                      doubleCacheWidth,
+                    ),
                   );
                 },
                 loadingBuilder: (context, event) {
@@ -246,7 +276,11 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
     return true;
   }
 
-  Widget buildPageImages(List<ImageBase> images, bool isReverse) {
+  Widget buildPageImages(
+    List<ImageBase> images,
+    bool isReverse,
+    int cacheWidth,
+  ) {
     final correctImages = isReverse ? images.reversed.toList() : images;
     final children = correctImages.asMap().entries.map((entry) {
       final index = entry.key;
@@ -260,6 +294,7 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
           child: ReaderImage(
             url: item.url,
             enableCache: false,
+            cacheWidth: cacheWidth,
             onImageSizeChanged: (width, height) {
               _reportImageSizeOnce(item, width, height);
             },
