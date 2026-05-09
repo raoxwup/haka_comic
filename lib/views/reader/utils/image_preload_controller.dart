@@ -125,6 +125,15 @@ class ImagePreloadController<T> {
     _lastAnchorIndex = 0;
   }
 
+  /// 让所有已预加载记录失效。
+  /// 在 [cacheWidth] 变化等会改变 ImageCache key 的场景下调用，
+  /// 以便后续锚点变化时重新按新尺寸预解码。
+  void invalidatePreloaded() {
+    _debounceTimer?.cancel();
+    _generation++;
+    _preloaded.clear();
+  }
+
   void dispose() {
     _debounceTimer?.cancel();
     _preloaded.clear();

@@ -457,7 +457,11 @@ class ReaderProvider extends RequestProvider {
 
   /// 更新预加载解码宽度（与显示端保持一致，保证 ImageCache 命中）
   void updatePreloadCacheWidth(int? cacheWidth) {
+    if (preloadController.cacheWidth == cacheWidth) return;
     preloadController.cacheWidth = cacheWidth;
+    // cacheWidth 变化会改变 ImageCache key，
+    // 旧的已预加载记录必须失效，否则后续锚点落在这些 index 上时不会重新预解码
+    preloadController.invalidatePreloaded();
   }
 
   final volumeController = VolumeButtonController();
