@@ -112,11 +112,14 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
 
     final readMode = context.selector((p) => p.readMode);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_lastIsDoublePage != readMode.isDoublePage) {
+    // 仅在单页 / 双页模式切换时做一次页码跳转
+    if (_lastIsDoublePage != readMode.isDoublePage) {
+      _lastIsDoublePage = readMode.isDoublePage;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         jumpToPage();
-      }
-    });
+      });
+    }
 
     return RawGestureDetector(
       gestures: <Type, GestureRecognizerFactory>{
