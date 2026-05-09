@@ -4,7 +4,7 @@ import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:haka_comic/widgets/deferred_blur.dart';
 
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
@@ -34,7 +34,8 @@ class _ReaderBottomState extends State<ReaderBottom>
         right: 0,
         height: bottom + kBottomBarHeight,
         duration: const Duration(milliseconds: 250),
-        child: WithBlur(
+        child: DeferredBlur(
+          active: showToolbar,
           child: Container(
             padding: EdgeInsets.fromLTRB(12, 8, 12, bottom),
             decoration: BoxDecoration(
@@ -59,7 +60,8 @@ class _ReaderBottomState extends State<ReaderBottom>
       child: RepaintBoundary(
         child: Align(
           alignment: Alignment.center,
-          child: WithBlur(
+          child: DeferredBlur(
+            active: showToolbar,
             borderRadius: BorderRadius.circular(32),
             child: Container(
               width: 550,
