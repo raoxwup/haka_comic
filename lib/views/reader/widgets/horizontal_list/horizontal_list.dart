@@ -286,19 +286,24 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       final index = entry.key;
       final item = entry.value;
       final size = correctImages.length;
+      // 关键点：不要再用 Align 给 ReaderImage 提供 loose 约束。
+      // RetryForImage 内部 AnimatedSwitcher 的 Stack 在过渡时尺寸会随
+      // 占满整格的占位图和 intrinsic 尺寸的 Image 之间变化，
+      // 这会让 Align 的对齐在过渡前后各表现一次，
+      // 视觉上就出现“先留缝、加载完成后贴到一起”的跳动。
+      // 改成让 Expanded 直接给 ReaderImage tight 约束，
+      // 对齐交由 Image 自身的 alignment（配合 BoxFit.contain）来处理。
       return Expanded(
-        child: Align(
+        child: ReaderImage(
+          url: item.url,
+          enableCache: false,
+          cacheWidth: cacheWidth,
           alignment: size == 1
               ? Alignment.center
               : (index == 0 ? Alignment.centerRight : Alignment.centerLeft),
-          child: ReaderImage(
-            url: item.url,
-            enableCache: false,
-            cacheWidth: cacheWidth,
-            onImageSizeChanged: (width, height) {
-              _reportImageSizeOnce(item, width, height);
-            },
-          ),
+          onImageSizeChanged: (width, height) {
+            _reportImageSizeOnce(item, width, height);
+          },
         ),
       );
     }).toList();

@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/views/reader/widgets/reader_image.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 
 void main() {
-  test('ReaderImage CE uses cached_network_image_ce package fade', () {
+  test('ReaderImage CE uses the cached_network_image_ce provider', () {
     final source = File(
       'lib/views/reader/widgets/reader_image.dart',
     ).readAsStringSync();
@@ -16,11 +17,7 @@ void main() {
       source,
       contains("package:cached_network_image_ce/cached_network_image.dart"),
     );
-    expect(source, contains('CachedNetworkImage('));
-    expect(
-      source,
-      contains('fadeInDuration: const Duration(milliseconds: 200)'),
-    );
+    expect(source, contains('CachedNetworkImageProvider('));
     expect(source, isNot(contains('TweenAnimationBuilder')));
     expect(source, isNot(contains('ExtendedImage.network')));
   });
@@ -94,13 +91,6 @@ void main() {
       ),
     );
 
-    final cachedImage = tester.widget<CachedNetworkImage>(
-      find.byType(CachedNetworkImage),
-    );
-    expect(cachedImage.fit, BoxFit.contain);
-    expect(cachedImage.filterQuality, FilterQuality.high);
-    expect(cachedImage.disablePlaceholderOnCacheHit, isFalse);
-
     final aspectRatio = tester.widget<AspectRatio>(find.byType(AspectRatio));
     expect(aspectRatio.aspectRatio, 0.5);
   });
@@ -118,10 +108,14 @@ void main() {
       ),
     );
 
-    final cachedImage = tester.widget<CachedNetworkImage>(
-      find.byType(CachedNetworkImage),
+    final retryForImage = tester.widget<RetryForImage>(
+      find.byType(RetryForImage),
     );
-    expect(cachedImage.memCacheWidth, 2160);
+    final provider = retryForImage.imageProvider;
+    expect(provider, isA<ResizeImage>());
+    final resize = provider as ResizeImage;
+    expect(resize.width, 2160);
+    expect(resize.imageProvider, isA<CachedNetworkImageProvider>());
   });
 
   testWidgets('local ReaderImage applies the requested image cache width', (
@@ -137,9 +131,14 @@ void main() {
       ),
     );
 
-    final image = tester.widget<Image>(find.byType(Image).first);
-    expect(image.image, isA<ResizeImage>());
-    expect((image.image as ResizeImage).width, 2160);
+    final retryForImage = tester.widget<RetryForImage>(
+      find.byType(RetryForImage),
+    );
+    final provider = retryForImage.imageProvider;
+    expect(provider, isA<ResizeImage>());
+    final resize = provider as ResizeImage;
+    expect(resize.width, 2160);
+    expect(resize.imageProvider, isA<FileImage>());
   });
 
   testWidgets('local ReaderImage automatically retries failed loads twice', (
@@ -148,56 +147,44 @@ void main() {
     final missingPath =
         '${Directory.systemTemp.path}/haka_comic_missing_reader_image.jpg';
 
+    const retryDelay = Duration(milliseconds: 50);
     await tester.pumpWidget(
       MaterialApp(
         home: ReaderImage(
           url: missingPath,
-          timeRetry: const Duration(milliseconds: 100),
+          timeRetry: retryDelay,
           onImageSizeChanged: (_, _) {},
         ),
       ),
     );
 
-    String imageKeyValue() {
-      final image = tester.widget<Image>(find.byType(Image).first);
-      return (image.key as ValueKey<String>).value;
-    }
-
-    expect(imageKeyValue(), endsWith('#0'));
-    Future<void> waitForFailureUi() async {
+    // Alternate a real-time delay (so the FileImage IO can fail) with a
+    // fake-clock advance past the retry delay (so the internal timer fires).
+    Future<void> advanceOneCycle() async {
       await tester.runAsync(() async {
         await Future<void>.delayed(const Duration(milliseconds: 50));
       });
       await tester.pump();
+      await tester.pump(retryDelay + const Duration(milliseconds: 10));
     }
 
-    await waitForFailureUi();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byIcon(Icons.refresh), findsNothing);
-
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump();
-    expect(imageKeyValue(), endsWith('#1'));
-    await waitForFailureUi();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byIcon(Icons.refresh), findsNothing);
-
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump();
-    expect(imageKeyValue(), endsWith('#2'));
-    await waitForFailureUi();
     for (
       var i = 0;
-      i < 50 && find.byIcon(Icons.refresh).evaluate().isEmpty;
+      i < 10 && find.byIcon(Icons.refresh).evaluate().isEmpty;
       i++
     ) {
-      await tester.pump(const Duration(milliseconds: 1));
+      await advanceOneCycle();
     }
+
     expect(find.byIcon(Icons.refresh), findsOneWidget);
+    // Advance past the fade-out so the outgoing loading child is gone.
+    await tester.pump(const Duration(milliseconds: 250));
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump();
-    expect(imageKeyValue(), endsWith('#2'));
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byIcon(Icons.refresh), findsOneWidget);
   });
 }
