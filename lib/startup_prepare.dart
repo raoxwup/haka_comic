@@ -61,6 +61,7 @@ Future<void> startDesktop() async {
     final h = conf.windowHeight;
     final w = conf.windowWidth;
     final isFullscreen = conf.windowFullscreen;
+    final shouldRestoreFullscreen = isFullscreen == true;
 
     // 默认窗口大小
     final defaultSize = const Size(900.0, 620.0);
@@ -80,12 +81,13 @@ Future<void> startDesktop() async {
 
       await windowManager.setMinimumSize(const Size(780, 550));
       await windowManager.setResizable(true);
-      await windowManager.show();
-      await windowManager.focus();
 
-      if (isFullscreen != null && isFullscreen) {
+      if (shouldRestoreFullscreen) {
         await windowManager.setFullScreen(true);
       }
+
+      await windowManager.show();
+      await windowManager.focus();
     });
   }
 }
