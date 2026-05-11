@@ -134,6 +134,8 @@ class _AppState extends State<App> with WindowListener {
   void onWindowEnterFullScreen() => _saveWindowState();
   @override
   void onWindowLeaveFullScreen() => _saveWindowState();
+  @override
+  void onWindowFocus() => setState(() {});
 
   Future<void> _saveWindowState() async {
     if (kDebugMode) return;
