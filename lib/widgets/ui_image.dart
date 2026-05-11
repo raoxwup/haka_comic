@@ -162,6 +162,7 @@ class _UiImageOuterState extends State<UiImage> with RouteAware {
   PoolResource? _resource;
   bool _ready = false;
   bool _isDisposed = false;
+  bool _isAcquiring = false;
 
   @override
   void initState() {
@@ -194,17 +195,19 @@ class _UiImageOuterState extends State<UiImage> with RouteAware {
 
   @override
   void didPopNext() {
-    if (_resource == null) {
+    if (!_ready && _resource == null) {
       _acquire();
     }
   }
 
   Future<void> _acquire() async {
-    if (_resource != null) return;
+    if (_ready || _resource != null || _isAcquiring || _isDisposed) return;
 
+    _isAcquiring = true;
     final resource = await _imageLoadPool.request();
+    _isAcquiring = false;
 
-    if (!mounted || _isDisposed) {
+    if (!mounted || _isDisposed || _ready || _resource != null) {
       resource.release();
       return;
     }
