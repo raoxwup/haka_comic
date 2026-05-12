@@ -32,7 +32,6 @@ env:
   BUILD_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
   FLUTTER_CHANNEL: stable
   FLUTTER_VERSION_FILE: pubspec.yaml
-  ARTIFACT_RETENTION_DAYS: 5
 
 jobs:
   setup:
@@ -113,11 +112,10 @@ jobs:
           done
 
       - name: Upload APKs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apks
           path: artifacts/
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   ios-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
@@ -152,11 +150,10 @@ jobs:
           zip -r no-codesign-ios-v${{ needs.setup.outputs.app-version }}.ipa Payload
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-ipa
           path: build/ios/iphoneos/*.ipa
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   windows-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
@@ -253,11 +250,10 @@ jobs:
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
 
       - name: Upload Windows Installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-installer
           path: Output/*.exe
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   macos-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
@@ -306,11 +302,10 @@ jobs:
           mv *.dmg "$dmgName"
 
       - name: Upload macOS DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-app-dmg
           path: build/macos/Build/Products/Release/*.dmg
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   linux-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'linux' || github.event.inputs.target == 'all' }}
@@ -430,11 +425,10 @@ jobs:
             .
 
       - name: Upload Linux Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-packages-${{ matrix.deb_arch }}
           path: artifacts/*
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   release:
     name: Draft Release
