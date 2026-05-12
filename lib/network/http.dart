@@ -180,25 +180,41 @@ Future<ComicsResponse> fetchFavoriteComics(UserFavoritePayload payload) async {
 }
 
 /// 获取额外推荐 这里跟其它请求不一样的host 格式也不一致
-Future<List<ExtraRecommendComic>> fetchExtraRecommendComics(String id) async {
+Future<ExtraRecommendComicIdsResponse> fetchExtraRecommendComicIds(
+  ExtraRecommendComicPayload payload,
+) async {
   const maxRetries = 3;
   for (var i = 0; i < maxRetries; i++) {
     try {
       final response = await Dio().get(
-        'https://recommend.go2778.com/pic/recommend/get',
-        queryParameters: {'c': id},
+        'https://macapi1.com/picacomic/rec/${payload.id}',
+        queryParameters: {'limit': payload.limit},
       );
-      final json = jsonDecode(response.data) as List<dynamic>;
-      final data = json
-          .map((data) => ExtraRecommendComic.fromJson(data))
-          .toList();
-      return data;
+      final json = Map<String, dynamic>.from(response.data);
+      return ExtraRecommendComicIdsResponse.fromJson(json);
     } catch (e) {
       if (i == maxRetries - 1) rethrow;
       await Future.delayed(Duration(seconds: 2 * i));
     }
   }
   throw Exception('Failed to fetch extra recommend comics');
+}
+
+/// 推测是官方用来追踪用户阅读漫画的接口 以此给出合适的相关推荐
+Future<void> postReadTrack(ReadTrackPayload payload) async {
+  const maxRetries = 3;
+  for (var i = 0; i < maxRetries; i++) {
+    try {
+      await Dio().post(
+        'https://macapi1.com/picacomic/rec/track',
+        data: payload.toJson(),
+      );
+    } catch (e) {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(Duration(seconds: 2 * i));
+    }
+  }
+  throw Exception('Failed to post track');
 }
 
 /// 获取章节图片  一次性请求所有图片
@@ -233,7 +249,8 @@ Future<List<ChapterImage>> fetchChapterImages(
   return images;
 }
 
-/// 获取漫画分享ID 应该是已废弃
+/// 获取漫画分享ID
+@Deprecated('哔咔官方目前已废弃')
 Future<int> fetchComicShareId(String id) async {
   const maxRetries = 3;
   for (var i = 0; i < maxRetries; i++) {
@@ -252,7 +269,8 @@ Future<int> fetchComicShareId(String id) async {
   throw Exception('Failed to fetch comic share ID');
 }
 
-/// 根据分享ID获取漫画信息 应该是已废弃
+/// 根据分享ID获取漫画信息
+@Deprecated('哔咔官方目前已废弃')
 Future<String> fetchComicIdByShareId(String shareId) async {
   const maxRetries = 3;
   for (var i = 0; i < maxRetries; i++) {
