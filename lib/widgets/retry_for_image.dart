@@ -1,9 +1,13 @@
 import 'dart:async';
-
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 
+final cacheManager = DefaultCacheManager(
+  stalePeriod: const Duration(days: 15),
+  maxNrOfCacheObjects: 2000,
+);
+
 /// 当前 [RetryForImage] 订阅的图片状态快照，传给 [RetryForImageBuilder]。
-@immutable
 class RetryImageStatus {
   const RetryImageStatus({
     required this.provider,
@@ -278,10 +282,7 @@ class _RetryForImageState extends State<RetryForImage> {
     return Stack(
       fit: StackFit.passthrough,
       alignment: Alignment.center,
-      children: <Widget>[
-        ...previousChildren,
-        ?currentChild,
-      ],
+      children: <Widget>[...previousChildren, ?currentChild],
     );
   }
 }

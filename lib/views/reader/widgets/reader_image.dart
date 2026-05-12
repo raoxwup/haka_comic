@@ -50,8 +50,8 @@ class _ReaderImageState extends State<ReaderImage> {
   }
 
   ImageProvider _buildProvider() {
-    final base = isNetwork
-        ? CachedNetworkImageProvider(widget.url) as ImageProvider
+    final ImageProvider base = isNetwork
+        ? CachedNetworkImageProvider(widget.url, cacheManager: cacheManager)
         : FileImage(File(widget.url));
     return ResizeImage.resizeIfNeeded(widget.cacheWidth, null, base);
   }

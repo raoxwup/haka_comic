@@ -56,7 +56,7 @@ class _UiImage extends StatelessWidget {
     final provider = ResizeImage.resizeIfNeeded(
       memCacheWidth,
       cacheHeight,
-      CachedNetworkImageProvider(url),
+      CachedNetworkImageProvider(url, cacheManager: cacheManager),
     );
 
     return _frame(

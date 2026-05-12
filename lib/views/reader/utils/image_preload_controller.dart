@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 
 /// 图片预加载控制器
 class ImagePreloadController<T> {
@@ -98,7 +99,7 @@ class ImagePreloadController<T> {
 
         final url = urlResolver(items[i]);
         final ImageProvider base = type == ReaderType.network
-            ? CachedNetworkImageProvider(url)
+            ? CachedNetworkImageProvider(url, cacheManager: cacheManager)
             : FileImage(File(url));
         // 用与显示端一致的 ResizeImage 包裹，保证预加载进入的是同一个缓存键，
         // 否则真正显示时会因 key 不同而重新解码一次，相当于白预加载。
