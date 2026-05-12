@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 final cacheManager = DefaultCacheManager(
   stalePeriod: const Duration(days: 15),
-  maxNrOfCacheObjects: 2000,
+  maxNrOfCacheObjects: 5000,
 );
 
 /// 当前 [RetryForImage] 订阅的图片状态快照，传给 [RetryForImageBuilder]。
