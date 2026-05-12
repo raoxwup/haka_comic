@@ -32,6 +32,7 @@ env:
   BUILD_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
   FLUTTER_CHANNEL: stable
   FLUTTER_VERSION_FILE: pubspec.yaml
+  ARTIFACT_RETENTION_DAYS: 5
 
 jobs:
   setup:
@@ -40,7 +41,7 @@ jobs:
     outputs:
       app-version: ${{ steps.get_version.outputs.app-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
       - id: get_version
@@ -55,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
@@ -89,11 +90,10 @@ jobs:
           echo "storeFile=upload-keystore.jks" >> android/key.properties
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Inject version config
-        run: dart run script/prebuild_inject_version.dart
+      - name: Prepare Flutter project
+        run: |
+          flutter pub get
+          dart run script/prebuild_inject_version.dart
 
       - name: Build APKs
         run: |
@@ -117,20 +117,7 @@ jobs:
         with:
           name: android-apks
           path: artifacts/
-          retention-days: 5
-
-      - name: Notify Android Build
-        uses: dawidd6/action-send-mail@v5
-        with:
-          server_address: smtp.qq.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Android Build Success
-          to: ${{ secrets.EMAIL_TO }}
-          from: ${{ secrets.EMAIL_FROM }}
-          body: Android build completed. APKs attached.
-          attachments: artifacts/app-arm64-v8a-release-v${{ needs.setup.outputs.app-version }}.apk
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   ios-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'ios' || github.event.inputs.target == 'all' }}
@@ -139,7 +126,7 @@ jobs:
     runs-on: macos-26
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
@@ -151,10 +138,10 @@ jobs:
 
       - run: sudo xcode-select --switch /Applications/Xcode_26.2.app
 
-      - run: flutter pub get
-
-      - name: Inject version config
-        run: dart run script/prebuild_inject_version.dart
+      - name: Prepare Flutter project
+        run: |
+          flutter pub get
+          dart run script/prebuild_inject_version.dart
 
       - name: Build unsigned IPA
         run: |
@@ -169,20 +156,7 @@ jobs:
         with:
           name: ios-ipa
           path: build/ios/iphoneos/*.ipa
-          retention-days: 5
-
-      - name: Notify iOS Build
-        uses: dawidd6/action-send-mail@v5
-        with:
-          server_address: smtp.qq.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: iOS Build Success
-          to: ${{ secrets.EMAIL_TO }}
-          from: ${{ secrets.EMAIL_FROM }}
-          body: iOS build completed. IPA attached.
-          attachments: build/ios/iphoneos/*.ipa
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   windows-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
@@ -190,7 +164,7 @@ jobs:
     needs: setup
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
@@ -201,11 +175,12 @@ jobs:
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
           cache: false
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Inject version config
-        run: dart run script/prebuild_inject_version.dart
+      - name: Prepare Flutter project
+        shell: pwsh
+        run: |
+          flutter pub get
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dart run script/prebuild_inject_version.dart
 
       - name: Build Windows Release
         run: flutter build windows --release
@@ -282,7 +257,7 @@ jobs:
         with:
           name: windows-installer
           path: Output/*.exe
-          retention-days: 5
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   macos-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
@@ -291,7 +266,7 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
@@ -301,11 +276,10 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Inject version config
-        run: dart run script/prebuild_inject_version.dart
+      - name: Prepare Flutter project
+        run: |
+          flutter pub get
+          dart run script/prebuild_inject_version.dart
 
       - name: Build MacOS Release
         run: flutter build macos --release
@@ -336,7 +310,7 @@ jobs:
         with:
           name: macos-app-dmg
           path: build/macos/Build/Products/Release/*.dmg
-          retention-days: 5
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   linux-build:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'linux' || github.event.inputs.target == 'all' }}
@@ -355,7 +329,7 @@ jobs:
             deb_arch: arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
 
@@ -379,14 +353,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build libgtk-3-dev clang cmake pkg-config ruby ruby-dev
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Inject version config
-        run: dart run script/prebuild_inject_version.dart
-
-      - name: Inject font assets
-        run: dart run script/prebuild_inject_font.dart
+      - name: Prepare Flutter project
+        run: |
+          flutter pub get
+          dart run script/prebuild_inject_version.dart
+          dart run script/prebuild_inject_font.dart
 
       - name: Build Linux Release
         run: |
@@ -463,7 +434,7 @@ jobs:
         with:
           name: linux-packages-${{ matrix.deb_arch }}
           path: artifacts/*
-          retention-days: 5
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
   release:
     name: Draft Release
@@ -476,22 +447,14 @@ jobs:
       - linux-build
     if: >-
       ${{ always()
-          && needs.android-build.result != 'failure'
-          && needs.android-build.result != 'cancelled'
-          && needs.ios-build.result != 'failure'
-          && needs.ios-build.result != 'cancelled'
-          && needs.windows-build.result != 'failure'
-          && needs.windows-build.result != 'cancelled'
-          && needs.macos-build.result != 'failure'
-          && needs.macos-build.result != 'cancelled'
-          && needs.linux-build.result != 'failure'
-          && needs.linux-build.result != 'cancelled' }}
+          && !contains(needs.*.result, 'failure')
+          && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_BRANCH }}
           fetch-depth: 0
@@ -501,58 +464,6 @@ jobs:
         with:
           path: release-artifacts
           merge-multiple: true
-
-      - name: Setup Dart
-        if: ${{ needs.ios-build.result == 'success' }}
-        uses: dart-lang/setup-dart@v1
-
-      - name: Update AltStore source (alt_store.json)
-        if: ${{ needs.ios-build.result == 'success' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          version="${{ needs.setup.outputs.app-version }}"
-          tag="${version}"
-          date="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-
-          ipa_path="$(find release-artifacts -maxdepth 2 -name '*.ipa' | head -n 1)"
-          if [ -z "${ipa_path}" ]; then
-            echo "No IPA found under release-artifacts"
-            find release-artifacts -maxdepth 2 -type f -print
-            exit 1
-          fi
-          ipa_name="$(basename "${ipa_path}")"
-
-          dart script/update_alt_store_json.dart \
-            --json alt_store.json \
-            --ipa "${ipa_path}" \
-            --version "${version}" \
-            --buildVersion "${version}" \
-            --date "${date}" \
-            --repo "${{ github.repository }}" \
-            --tag "${tag}" \
-            --assetName "${ipa_name}"
-
-      - name: Commit alt_store.json to repo (main only)
-        if: ${{ env.BUILD_BRANCH == 'main' && needs.ios-build.result == 'success' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          version="${{ needs.setup.outputs.app-version }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add alt_store.json
-          if git diff --cached --quiet; then
-            echo "alt_store.json unchanged; skip commit"
-            exit 0
-          fi
-
-          git commit -m "chore: update AltStore source (${version})"
-          git push
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
