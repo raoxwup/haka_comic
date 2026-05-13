@@ -121,135 +121,118 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
       });
     }
 
-    return RawGestureDetector(
-      gestures: <Type, GestureRecognizerFactory>{
-        LongPressGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
-              () => LongPressGestureRecognizer(
-                duration: const Duration(seconds: 2),
-                debugOwner: this,
-              ),
-              (instance) {
-                instance.onLongPress = context.stateReader.toggleLockMenu;
-              },
-            ),
+    return GestureDetector(
+      onTapDown: (details) {
+        _tapDetails = details;
       },
-      child: GestureDetector(
-        onTapDown: (details) {
-          _tapDetails = details;
+      onTap: () {
+        context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
+      },
+      child: Listener(
+        onPointerSignal: (event) {
+          if (HardwareKeyboard.instance.isControlPressed) return;
+          if (event is PointerScrollEvent) {
+            _handleScroll(event);
+          }
         },
-        onTap: () {
-          context.stateReader.lockMenu ? _handleLockTap() : _handleTap();
-        },
-        child: Listener(
-          onPointerSignal: (event) {
-            if (HardwareKeyboard.instance.isControlPressed) return;
-            if (event is PointerScrollEvent) {
-              _handleScroll(event);
-            }
-          },
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final dpr = MediaQuery.devicePixelRatioOf(context);
-              // 单页模式按整个可视区域宽度计算，双页模式按半屏宽度计算
-              final singlePageLayoutWidth = constraints.maxWidth;
-              final doublePageLayoutWidth = constraints.maxWidth / 2;
-              final singleCacheWidth = computeImageCacheWidth(
-                layoutWidth: singlePageLayoutWidth,
-                devicePixelRatio: dpr,
-              );
-              final doubleCacheWidth = computeImageCacheWidth(
-                layoutWidth: doublePageLayoutWidth,
-                devicePixelRatio: dpr,
-              );
-              // 预加载解码宽度与当前显示模式一致
-              context.reader.updatePreloadCacheWidth(
-                readMode.isDoublePage ? doubleCacheWidth : singleCacheWidth,
-              );
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final dpr = MediaQuery.devicePixelRatioOf(context);
+            // 单页模式按整个可视区域宽度计算，双页模式按半屏宽度计算
+            final singlePageLayoutWidth = constraints.maxWidth;
+            final doublePageLayoutWidth = constraints.maxWidth / 2;
+            final singleCacheWidth = computeImageCacheWidth(
+              layoutWidth: singlePageLayoutWidth,
+              devicePixelRatio: dpr,
+            );
+            final doubleCacheWidth = computeImageCacheWidth(
+              layoutWidth: doublePageLayoutWidth,
+              devicePixelRatio: dpr,
+            );
+            // 预加载解码宽度与当前显示模式一致
+            context.reader.updatePreloadCacheWidth(
+              readMode.isDoublePage ? doubleCacheWidth : singleCacheWidth,
+            );
 
-              return PhotoViewGallery.builder(
-                backgroundDecoration: BoxDecoration(
-                  color: context.colorScheme.surfaceContainerLowest,
-                ),
-                scrollPhysics: const BouncingScrollPhysics(),
-                itemCount: pageCount,
-                pageController: context.reader.pageController,
-                onPageChanged: _onPageChanged,
-                reverse: readMode.isReverse,
-                builder: (context, index) {
-                  if (!readMode.isDoublePage) {
-                    final item = images[index];
-                    final ImageProvider base =
-                        context.reader.type == ReaderType.network
-                        ? CachedNetworkImageProvider(item.url)
-                        : FileImage(File(item.url));
-                    // 与 ReaderImage / 预加载统一用 ResizeImage 做解码限制，
-                    // 保证共享同一个 ImageCache 条目
-                    final imageProvider = ResizeImage.resizeIfNeeded(
-                      singleCacheWidth,
-                      null,
-                      base,
-                    );
-                    return PhotoViewGalleryPageOptions(
-                      minScale: PhotoViewComputedScale.contained * 1.0,
-                      maxScale: PhotoViewComputedScale.covered * 4.0,
-                      imageProvider: imageProvider,
-                      filterQuality: FilterQuality.medium,
-                      errorBuilder: (context, error, stackTrace, retry) {
-                        return Center(
-                          child: IconButton(
-                            onPressed: () async {
-                              await _evictImage(item);
-                              if (!mounted) return;
-                              retry();
-                            },
-                            icon: const Icon(Icons.refresh),
-                          ),
-                        );
-                      },
-                      onImageFrame: (info, synchronousCall) {
-                        _reportImageSizeOnce(
-                          item,
-                          info.image.width,
-                          info.image.height,
-                        );
-                      },
-                    );
-                  }
-
-                  final items = multiPageImages[index];
-                  final size = Size(
-                    constraints.maxWidth,
-                    constraints.maxHeight,
+            return PhotoViewGallery.builder(
+              backgroundDecoration: BoxDecoration(
+                color: context.colorScheme.surfaceContainerLowest,
+              ),
+              scrollPhysics: const BouncingScrollPhysics(),
+              itemCount: pageCount,
+              pageController: context.reader.pageController,
+              onPageChanged: _onPageChanged,
+              reverse: readMode.isReverse,
+              builder: (context, index) {
+                if (!readMode.isDoublePage) {
+                  final item = images[index];
+                  final ImageProvider base =
+                      context.reader.type == ReaderType.network
+                      ? CachedNetworkImageProvider(item.url)
+                      : FileImage(File(item.url));
+                  // 与 ReaderImage / 预加载统一用 ResizeImage 做解码限制，
+                  // 保证共享同一个 ImageCache 条目
+                  final imageProvider = ResizeImage.resizeIfNeeded(
+                    singleCacheWidth,
+                    null,
+                    base,
                   );
-                  return PhotoViewGalleryPageOptions.customChild(
-                    childSize: size * 2,
+                  return PhotoViewGalleryPageOptions(
                     minScale: PhotoViewComputedScale.contained * 1.0,
-                    maxScale: PhotoViewComputedScale.covered * 10.0,
-                    child: buildPageImages(
-                      items,
-                      readMode.isReverse,
-                      doubleCacheWidth,
-                    ),
+                    maxScale: PhotoViewComputedScale.covered * 4.0,
+                    imageProvider: imageProvider,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (context, error, stackTrace, retry) {
+                      return Center(
+                        child: IconButton(
+                          onPressed: () async {
+                            await _evictImage(item);
+                            if (!mounted) return;
+                            retry();
+                          },
+                          icon: const Icon(Icons.refresh),
+                        ),
+                      );
+                    },
+                    onImageFrame: (info, synchronousCall) {
+                      _reportImageSizeOnce(
+                        item,
+                        info.image.width,
+                        info.image.height,
+                      );
+                    },
                   );
-                },
-                loadingBuilder: (context, event) {
-                  final bytes = event?.cumulativeBytesLoaded ?? 0;
-                  final value = computeProgress(bytes);
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: value,
-                      strokeWidth: 3,
-                      constraints: BoxConstraints.tight(const Size(28, 28)),
-                      backgroundColor: Colors.grey.shade300,
-                      color: context.colorScheme.primary,
-                      strokeCap: StrokeCap.round,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+                }
+
+                final items = multiPageImages[index];
+                final size = Size(constraints.maxWidth, constraints.maxHeight);
+                return PhotoViewGalleryPageOptions.customChild(
+                  childSize: size * 2,
+                  minScale: PhotoViewComputedScale.contained * 1.0,
+                  maxScale: PhotoViewComputedScale.covered * 10.0,
+                  child: buildPageImages(
+                    items,
+                    readMode.isReverse,
+                    doubleCacheWidth,
+                  ),
+                );
+              },
+              loadingBuilder: (context, event) {
+                final bytes = event?.cumulativeBytesLoaded ?? 0;
+                final value = computeProgress(bytes);
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: value,
+                    strokeWidth: 3,
+                    constraints: BoxConstraints.tight(const Size(28, 28)),
+                    backgroundColor: Colors.grey.shade300,
+                    color: context.colorScheme.primary,
+                    strokeCap: StrokeCap.round,
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
@@ -159,14 +158,6 @@ class _ReaderBottomState extends State<ReaderBottom>
                   tooltip: '平滑滚动',
                   icon: const Icon(Icons.keyboard_double_arrow_down),
                 ),
-              IconButton(
-                onPressed: () {
-                  context.stateReader.toggleLockMenu();
-                  context.reader.openOrCloseToolbar();
-                },
-                tooltip: '锁定菜单',
-                icon: const Icon(Icons.lock_outlined),
-              ),
             ],
           ),
         ),
