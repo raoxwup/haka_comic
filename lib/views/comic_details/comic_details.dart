@@ -35,13 +35,14 @@ class ComicDetails extends StatefulWidget {
 
 class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _hisHelper = HistoryHelper();
 
   /// 漫画详情
   late final handler = fetchComicDetails.useRequest(
     defaultParams: widget.id,
     onSuccess: (data, _) {
       Log.i('Fetch comic details', data);
-      HistoryHelper().insert(data.comic);
+      _hisHelper.insert(data.comic);
     },
     onError: (e, _) {
       Log.e('Fetch comic details error', error: e);
@@ -61,8 +62,34 @@ class _ComicDetailsState extends State<ComicDetails> with RequestMixin {
     },
   );
 
+  late final postTrackHandler = postReadTrack.useRequest(
+    manual: true,
+    onSuccess: (_, p) {
+      Log.i('Post read track success', p);
+    },
+    onError: (e, _) {
+      Log.e('Post read track error', error: e);
+    },
+  );
+
+  late final _firstIdHandler = _hisHelper.getFirstId.useRequest(
+    onSuccess: (id) {
+      Log.i('Query first comic id success', id);
+      if (id == null || id == widget.id) return;
+      postTrackHandler.run(ReadTrackPayload(fromId: id, toId: widget.id));
+    },
+    onError: (e) {
+      Log.e('Query first comic id error', error: e);
+    },
+  );
+
   @override
-  List<RequestHandler> registerHandler() => [handler, chaptersHandler];
+  List<RequestHandler> registerHandler() => [
+    handler,
+    chaptersHandler,
+    _firstIdHandler,
+    postTrackHandler,
+  ];
 
   final _showTitleNotifier = ValueNotifier(false);
   final _scrollController = ScrollController();
