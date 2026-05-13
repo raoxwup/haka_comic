@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
@@ -34,7 +36,9 @@ class MenuLock extends StatelessWidget {
     final lockMenu = context.stateSelector((p) => p.lockMenu);
     final visible = lockMenu || showMenuLock;
     final expanded = !lockMenu || menuLockExpanded;
-    final left = lockMenu && !expanded ? context.left - 18 : context.left + 8;
+    final collapsed = lockMenu && !expanded;
+    final showBack = lockMenu && expanded;
+    final left = collapsed ? context.left - 18 : context.left + 8;
 
     return AnimatedPositioned(
       duration: _duration,
@@ -59,11 +63,56 @@ class MenuLock extends StatelessWidget {
             );
           },
           child: visible
-              ? _MenuLockButton(
-                  key: const ValueKey('menu_lock_button'),
-                  lockMenu: lockMenu,
-                  collapsed: lockMenu && !expanded,
-                  onTap: () => _toggleLockMenu(context),
+              ? Column(
+                  key: const ValueKey('menu_lock_group'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: _duration,
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SizeTransition(
+                            sizeFactor: animation,
+                            axisAlignment: -1,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: showBack
+                          ? Padding(
+                              key: const ValueKey('menu_lock_back'),
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _EdgeCircleButton(
+                                icon: (isIOS || isMacOS)
+                                    ? Icons.arrow_back_ios_new
+                                    : Icons.arrow_back,
+                                tooltip: '返回',
+                                collapsed: false,
+                                onTap: () => context.pop(),
+                              ),
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('menu_lock_back_hidden'),
+                            ),
+                    ),
+                    _EdgeCircleButton(
+                      key: const ValueKey('menu_lock_button'),
+                      icon: lockMenu
+                          ? (collapsed ? Icons.arrow_right : Icons.lock_rounded)
+                          : Icons.lock_open_rounded,
+                      iconKey: ValueKey(lockMenu),
+                      tooltip: lockMenu
+                          ? (collapsed ? '展开菜单锁' : '解锁菜单')
+                          : '锁定菜单',
+                      collapsed: collapsed,
+                      accent: lockMenu,
+                      semanticsValue: lockMenu ? '已锁定' : '未锁定',
+                      onTap: () => _toggleLockMenu(context),
+                    ),
+                  ],
                 )
               : const SizedBox.shrink(key: ValueKey('menu_lock_hidden')),
         ),
@@ -72,23 +121,30 @@ class MenuLock extends StatelessWidget {
   }
 }
 
-class _MenuLockButton extends StatelessWidget {
-  const _MenuLockButton({
+class _EdgeCircleButton extends StatelessWidget {
+  const _EdgeCircleButton({
     super.key,
-    required this.lockMenu,
+    required this.icon,
+    required this.tooltip,
     required this.collapsed,
     required this.onTap,
+    this.accent = false,
+    this.iconKey,
+    this.semanticsValue,
   });
 
-  final bool lockMenu;
+  final IconData icon;
+  final String tooltip;
   final bool collapsed;
   final VoidCallback onTap;
+  final bool accent;
+  final Key? iconKey;
+  final String? semanticsValue;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
-    final tooltip = lockMenu ? (collapsed ? '展开菜单锁' : '解锁菜单') : '锁定菜单';
-    final foreground = lockMenu
+    final foreground = accent
         ? (collapsed
               ? colorScheme.primary.withValues(alpha: 0.72)
               : colorScheme.primary)
@@ -109,7 +165,7 @@ class _MenuLockButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: tooltip,
-      value: lockMenu ? '已锁定' : '未锁定',
+      value: semanticsValue,
       child: Tooltip(
         message: tooltip,
         child: Material(
@@ -125,7 +181,7 @@ class _MenuLockButton extends StatelessWidget {
             customBorder: shape,
             child: AnimatedContainer(
               key: ValueKey(
-                collapsed ? 'menu_lock_collapsed' : 'menu_lock_expanded',
+                collapsed ? 'edge_button_collapsed' : 'edge_button_expanded',
               ),
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOutCubic,
@@ -136,10 +192,8 @@ class _MenuLockButton extends StatelessWidget {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 child: Icon(
-                  lockMenu
-                      ? (collapsed ? Icons.arrow_right : Icons.lock_rounded)
-                      : Icons.lock_open_rounded,
-                  key: ValueKey(lockMenu),
+                  icon,
+                  key: iconKey ?? ValueKey(icon),
                   color: foreground,
                   size: 20,
                 ),
