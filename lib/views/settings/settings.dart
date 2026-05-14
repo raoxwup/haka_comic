@@ -38,12 +38,6 @@ class Settings extends StatelessWidget {
                   subtitle: const Text('修改访问的服务器地址'),
                 ),
                 MenuListTile.withAction(
-                  icon: Icons.hub_outlined,
-                  title: '代理设置',
-                  onTap: () => context.push('/proxy_settings'),
-                  subtitle: const Text('手动配置 SOCKS5 代理'),
-                ),
-                MenuListTile.withAction(
                   icon: Icons.topic_outlined,
                   title: '显示的分类',
                   onTap: () => context.push('/visible_categories'),
