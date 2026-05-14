@@ -61,8 +61,14 @@
           "NSFaceIDUsageDescription": "Biometric authentication is required.",
           "NSPhotoLibraryUsageDescription": "Allow Runner to access your photos."
         }
-      }
+      },
+      "tintColor": "#F54F32",
+      "category": "entertainment"
     }
   ],
-  "news": []
+  "news": [],
+  "tintColor": "#F54F32",
+  "featuredApps": [
+    "com.github.raoxwup.hakacomic"
+  ]
 }

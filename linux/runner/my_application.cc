@@ -55,6 +55,7 @@ static void my_application_activate(GApplication* application) {
   gtk_window_set_icon_from_file(window, "assets/icons/pc/linux_icon.png", NULL);
   gtk_window_set_default_size(window, 900, 620);
   gtk_widget_set_size_request(GTK_WIDGET(window), 780, 550);
+  gtk_widget_realize(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(

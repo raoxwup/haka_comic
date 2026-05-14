@@ -47,3 +47,4 @@ app.*.map.json
 *.jks
 .appdata/
 .claude/
+docs/

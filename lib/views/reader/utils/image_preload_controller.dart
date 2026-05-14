@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 
 /// 图片预加载控制器
 class ImagePreloadController<T> {
@@ -14,6 +15,7 @@ class ImagePreloadController<T> {
     this.maxPreloadCount = 4,
     this.keepWindow = 10,
     this.debounceDuration = const Duration(milliseconds: 50),
+    this.cacheWidth,
   });
 
   final BuildContext context;
@@ -29,6 +31,10 @@ class ImagePreloadController<T> {
 
   /// 防抖时长
   final Duration debounceDuration;
+
+  /// 解码宽度（物理像素）。与显示端保持一致可共享 ImageCache 条目。
+  /// 为 null 时不做尺寸限制（即使用原始分辨率解码）。
+  int? cacheWidth;
 
   Timer? _debounceTimer;
 
@@ -92,9 +98,14 @@ class ImagePreloadController<T> {
         count++;
 
         final url = urlResolver(items[i]);
-        final ImageProvider provider = type == ReaderType.network
-            ? CachedNetworkImageProvider(url)
+        final ImageProvider base = type == ReaderType.network
+            ? CachedNetworkImageProvider(url, cacheManager: cacheManager)
             : FileImage(File(url));
+        // 用与显示端一致的 ResizeImage 包裹，保证预加载进入的是同一个缓存键，
+        // 否则真正显示时会因 key 不同而重新解码一次，相当于白预加载。
+        final ImageProvider provider = cacheWidth != null
+            ? ResizeImage.resizeIfNeeded(cacheWidth, null, base)
+            : base;
         precacheImage(provider, context, onError: (_, _) {});
       }
     });
@@ -113,6 +124,15 @@ class ImagePreloadController<T> {
     this.items = items;
     _generation++;
     _lastAnchorIndex = 0;
+  }
+
+  /// 让所有已预加载记录失效。
+  /// 在 [cacheWidth] 变化等会改变 ImageCache key 的场景下调用，
+  /// 以便后续锚点变化时重新按新尺寸预解码。
+  void invalidatePreloaded() {
+    _debounceTimer?.cancel();
+    _generation++;
+    _preloaded.clear();
   }
 
   void dispose() {

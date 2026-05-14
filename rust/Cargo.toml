@@ -8,10 +8,10 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.12.0"
-zip = "6.0.0"
+zip = "8.6.0"
 walkdir = "2.5.0"
-image = "0.25.9"
-rayon = "1.11"
+image = "0.25.10"
+rayon = "1.12.0"
 human-sort = "0.2.2"
 sysproxy = "0.3.0"
 

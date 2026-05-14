@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_transitions/go_transitions.dart';
@@ -17,6 +16,7 @@ import 'package:haka_comic/router/app_router.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/startup_prepare.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/about/about.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/global_mouse_back_listener.dart';
@@ -62,7 +62,20 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> with WindowListener {
+class _AppState extends State<App> with WindowListener, RequestMixin {
+  late final _handler = checkIsUpdated.useRequest(
+    manual: !AppConf().checkUpdate,
+    onSuccess: (v) async {
+      if (v && mounted) {
+        await Future.delayed(const Duration(milliseconds: 1500));
+        showUpdateDialog();
+      }
+    },
+    onError: (error) {
+      Log.e('checkIsUpdated', error: error);
+    },
+  );
+
   bool isAuthorized = false;
   bool isVerifying = false;
 
@@ -99,10 +112,6 @@ class _AppState extends State<App> with WindowListener {
     // 清理图片宽高缓存
     ImagesHelper().trim();
 
-    if (AppConf().checkUpdate) {
-      checkUpdate();
-    }
-
     if (isDesktop) {
       windowManager.addListener(this);
     }
@@ -134,10 +143,10 @@ class _AppState extends State<App> with WindowListener {
   void onWindowEnterFullScreen() => _saveWindowState();
   @override
   void onWindowLeaveFullScreen() => _saveWindowState();
+  @override
+  void onWindowFocus() => setState(() {});
 
   Future<void> _saveWindowState() async {
-    if (kDebugMode) return;
-
     final conf = AppConf();
 
     final isFullScreen = await windowManager.isFullScreen();
@@ -150,16 +159,6 @@ class _AppState extends State<App> with WindowListener {
       conf.windowY = position.dy;
       conf.windowWidth = size.width;
       conf.windowHeight = size.height;
-    }
-  }
-
-  void checkUpdate() async {
-    await Future.delayed(const Duration(seconds: 1));
-    final result = await checkIsUpdated();
-    if (result) {
-      if (mounted) {
-        showUpdateDialog();
-      }
     }
   }
 
@@ -269,6 +268,9 @@ class _AppState extends State<App> with WindowListener {
       },
     );
   }
+
+  @override
+  List<RequestHandler> registerHandler() => [_handler];
 }
 
 class _SystemUiProvider extends StatelessWidget {

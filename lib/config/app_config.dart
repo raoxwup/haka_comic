@@ -1,4 +1,5 @@
 import 'package:haka_comic/network/utils.dart';
+import 'package:haka_comic/network/proxy_config.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
@@ -57,6 +58,9 @@ class AppConf {
 
   /// Api
   Api _api = Api.go2778;
+
+  /// 代理
+  ProxyConfig _proxyConfig = ProxyConfig.direct;
 
   /// 漫画块大小
   double _scale = 1.0;
@@ -136,6 +140,13 @@ class AppConf {
     );
     instance._pagination = prefsWithCache.getBool('pagination') ?? true;
     instance._api = Api.fromName(prefsWithCache.getString('api'));
+    instance._proxyConfig = ProxyConfig.fromPayload(<String, dynamic>{
+      'mode': prefsWithCache.getString('proxyMode'),
+      'host': prefsWithCache.getString('proxyHost'),
+      'port': prefsWithCache.getInt('proxyPort'),
+      'username': prefsWithCache.getString('proxyUsername'),
+      'password': prefsWithCache.getString('proxyPassword'),
+    });
     instance._scale = prefsWithCache.getDouble('scale') ?? 1.0;
     instance._slipFactor = prefsWithCache.getDouble('slipFactor') ?? 0.5;
     instance._enableVolume = prefsWithCache.getBool('enableVolume') ?? true;
@@ -242,6 +253,24 @@ class AppConf {
   set api(Api value) {
     _api = value;
     SharedPreferencesUtil.prefsWithCache.setString('api', value.name);
+  }
+
+  set proxyConfig(ProxyConfig value) {
+    _proxyConfig = value;
+    SharedPreferencesUtil.prefsWithCache.setString(
+      'proxyMode',
+      value.mode.name,
+    );
+    SharedPreferencesUtil.prefsWithCache.setString('proxyHost', value.host);
+    SharedPreferencesUtil.prefsWithCache.setInt('proxyPort', value.port);
+    SharedPreferencesUtil.prefsWithCache.setString(
+      'proxyUsername',
+      value.username,
+    );
+    SharedPreferencesUtil.prefsWithCache.setString(
+      'proxyPassword',
+      value.password,
+    );
   }
 
   set scale(double value) {
@@ -382,6 +411,7 @@ class AppConf {
   ComicBlockMode get comicBlockMode => _comicBlockMode;
   bool get pagination => _pagination;
   Api get api => _api;
+  ProxyConfig get proxyConfig => _proxyConfig;
   double get scale => _scale;
   double get slipFactor => _slipFactor;
   bool get enableVolume => _enableVolume;

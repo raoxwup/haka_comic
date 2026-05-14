@@ -34,6 +34,7 @@ import 'package:haka_comic/views/settings/api_settings.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/block_settings.dart';
 import 'package:haka_comic/views/settings/logs.dart';
+import 'package:haka_comic/views/settings/proxy_settings.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/visible_categories.dart';
 import 'package:haka_comic/views/settings/settings.dart';
@@ -49,7 +50,12 @@ final GoRouter appRouter = GoRouter(
     final isLoggedIn = AppConf.instance.isLogged;
     final currentPath = state.matchedLocation; // 获取当前匹配的路由路径
 
-    final allowPaths = ['/login', '/register', '/api_settings'];
+    final allowPaths = [
+      '/login',
+      '/register',
+      '/api_settings',
+      '/proxy_settings',
+    ];
 
     if (!isLoggedIn &&
         !allowPaths.any((path) => currentPath.startsWith(path))) {
@@ -172,6 +178,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/logs', builder: (_, _) => const Logs()),
     GoRoute(path: '/import_comics', builder: (_, _) => const ImportComics()),
     GoRoute(path: '/api_settings', builder: (_, _) => const ApiSettings()),
+    GoRoute(path: '/proxy_settings', builder: (_, _) => ProxySettings()),
     GoRoute(path: '/block_settings', builder: (_, _) => const BlockSettings()),
   ],
 );

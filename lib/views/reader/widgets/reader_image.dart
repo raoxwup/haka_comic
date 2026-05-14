@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/database/images_helper.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 
 class ReaderImage extends StatefulWidget {
   const ReaderImage({
@@ -16,6 +16,7 @@ class ReaderImage extends StatefulWidget {
     this.filterQuality = FilterQuality.medium,
     this.cacheWidth,
     this.timeRetry = const Duration(milliseconds: 300),
+    this.alignment = Alignment.center,
     required this.onImageSizeChanged,
   });
 
@@ -31,6 +32,7 @@ class ReaderImage extends StatefulWidget {
   final FilterQuality filterQuality;
   final int? cacheWidth;
   final Duration timeRetry;
+  final AlignmentGeometry alignment;
 
   // 尺寸回调
   final void Function(int width, int height) onImageSizeChanged;
@@ -41,48 +43,17 @@ class ReaderImage extends StatefulWidget {
 
 class _ReaderImageState extends State<ReaderImage> {
   static const double _fallbackAspectRatio = 3 / 4;
-  static const int _maxAutoRetryCount = 2;
-
-  bool _isReported = false;
-  int _reloadToken = 0;
-  int _autoRetryCount = 0;
-  Timer? _retryTimer;
-  ImageProvider? _listeningProvider;
-  ImageStream? _imageStream;
-  ImageStreamListener? _imageStreamListener;
 
   bool get isNetwork {
     final scheme = Uri.tryParse(widget.url)?.scheme.toLowerCase();
     return scheme == 'http' || scheme == 'https';
   }
 
-  @override
-  void didUpdateWidget(covariant ReaderImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      _resetImageReport();
-      _reloadToken = 0;
-      _autoRetryCount = 0;
-      _retryTimer?.cancel();
-    }
-  }
-
-  @override
-  void dispose() {
-    _retryTimer?.cancel();
-    _removeImageSizeListener();
-    super.dispose();
-  }
-
-  Widget _buildPlaceholder(Widget child, [Key? key]) {
-    if (!widget.enableCache) {
-      return Center(key: key, child: child);
-    }
-    return AspectRatio(
-      key: key,
-      aspectRatio: _placeholderAspectRatio,
-      child: Center(child: child),
-    );
+  ImageProvider _buildProvider() {
+    final ImageProvider base = isNetwork
+        ? CachedNetworkImageProvider(widget.url, cacheManager: cacheManager)
+        : FileImage(File(widget.url));
+    return ResizeImage.resizeIfNeeded(widget.cacheWidth, null, base);
   }
 
   double get _placeholderAspectRatio {
@@ -93,19 +64,14 @@ class _ReaderImageState extends State<ReaderImage> {
     return size.width / size.height;
   }
 
-  Widget _buildErrorPlaceholder(VoidCallback onReload) {
-    return _buildPlaceholder(
-      IconButton(onPressed: onReload, icon: const Icon(Icons.refresh)),
+  Widget _buildPlaceholder(Widget child) {
+    if (!widget.enableCache) {
+      return Center(child: child);
+    }
+    return AspectRatio(
+      aspectRatio: _placeholderAspectRatio,
+      child: Center(child: child),
     );
-  }
-
-  Widget _buildProgressPlaceholder(DownloadProgress progress) {
-    final value = progress.progress ?? computeProgress(progress.downloaded);
-    return _buildProgressIndicator(value);
-  }
-
-  Widget _buildRetryProgressPlaceholder() {
-    return _buildProgressIndicator(null);
   }
 
   Widget _buildProgressIndicator(double? value) {
@@ -121,151 +87,44 @@ class _ReaderImageState extends State<ReaderImage> {
     );
   }
 
-  bool get _hasAutoRetryRemaining => _autoRetryCount < _maxAutoRetryCount;
-
-  Widget _buildRetryAwareErrorPlaceholder(VoidCallback onReload) {
-    _scheduleAutoRetry();
-    if (_hasAutoRetryRemaining || _retryTimer?.isActive == true) {
-      return _buildRetryProgressPlaceholder();
+  double? _progressValue(ImageChunkEvent? chunk) {
+    if (chunk == null) return null;
+    final total = chunk.expectedTotalBytes;
+    final loaded = chunk.cumulativeBytesLoaded;
+    if (total != null && total > 0) {
+      return (loaded / total).clamp(0.0, 1.0);
     }
-    return _buildErrorPlaceholder(onReload);
-  }
-
-  void _listenForImageSize(ImageProvider provider) {
-    if (_isReported || _listeningProvider == provider) {
-      return;
-    }
-
-    _removeImageSizeListener();
-
-    final stream = provider.resolve(createLocalImageConfiguration(context));
-    late final ImageStreamListener listener;
-    listener = ImageStreamListener(
-      (info, _) {
-        if (!mounted || _isReported) {
-          return;
-        }
-        _isReported = true;
-        widget.onImageSizeChanged(info.image.width, info.image.height);
-        _removeImageSizeListener();
-      },
-      onError: (_, _) {
-        _scheduleAutoRetry();
-        _removeImageSizeListener();
-      },
-    );
-
-    _listeningProvider = provider;
-    _imageStream = stream;
-    _imageStreamListener = listener;
-    stream.addListener(listener);
-  }
-
-  void _removeImageSizeListener() {
-    final stream = _imageStream;
-    final listener = _imageStreamListener;
-    if (stream != null && listener != null) {
-      stream.removeListener(listener);
-    }
-    _listeningProvider = null;
-    _imageStream = null;
-    _imageStreamListener = null;
-  }
-
-  void _resetImageReport() {
-    _removeImageSizeListener();
-    _isReported = false;
-  }
-
-  void _scheduleAutoRetry() {
-    if (_autoRetryCount >= _maxAutoRetryCount ||
-        _retryTimer?.isActive == true) {
-      return;
-    }
-
-    _autoRetryCount++;
-    _retryTimer = Timer(widget.timeRetry, () {
-      if (!mounted) return;
-      _resetImageReport();
-      setState(() => _reloadToken++);
-    });
-  }
-
-  Future<void> _reloadNetworkImage() async {
-    _retryTimer?.cancel();
-    _autoRetryCount = 0;
-    _resetImageReport();
-    await CachedNetworkImage.evictFromCache(widget.url);
-    if (mounted) {
-      setState(() => _reloadToken++);
-    }
-  }
-
-  Future<void> _reloadLocalImage() async {
-    _retryTimer?.cancel();
-    _autoRetryCount = 0;
-    _resetImageReport();
-    await FileImage(File(widget.url)).evict();
-    if (mounted) {
-      setState(() => _reloadToken++);
-    }
-  }
-
-  Widget _buildNetworkImage() {
-    return CachedNetworkImage(
-      key: ValueKey('${widget.url}#$_reloadToken'),
-      imageUrl: widget.url,
-      fit: widget.fit,
-      filterQuality: widget.filterQuality,
-      memCacheWidth: widget.cacheWidth,
-      fadeInDuration: const Duration(milliseconds: 200),
-      fadeOutDuration: Duration.zero,
-      disablePlaceholderOnCacheHit: false,
-      progressIndicatorBuilder: (context, url, progress) {
-        return _buildProgressPlaceholder(progress);
-      },
-      imageBuilder: (context, imageProvider) {
-        _listenForImageSize(imageProvider);
-        return Image(
-          key: ValueKey(imageProvider),
-          image: imageProvider,
-          fit: widget.fit,
-          filterQuality: widget.filterQuality,
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return _buildRetryAwareErrorPlaceholder(_reloadNetworkImage);
-      },
-    );
-  }
-
-  Widget _buildLocalImage() {
-    final provider = ResizeImage.resizeIfNeeded(
-      widget.cacheWidth,
-      null,
-      FileImage(File(widget.url)),
-    );
-    _listenForImageSize(provider);
-
-    return Image(
-      key: ValueKey('${widget.url}#$_reloadToken'),
-      image: provider,
-      fit: widget.fit,
-      filterQuality: widget.filterQuality,
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded || frame != null) {
-          return child;
-        }
-        return _buildPlaceholder(const SizedBox.expand());
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return _buildRetryAwareErrorPlaceholder(_reloadLocalImage);
-      },
-    );
+    return computeProgress(loaded);
   }
 
   @override
   Widget build(BuildContext context) {
-    return isNetwork ? _buildNetworkImage() : _buildLocalImage();
+    return RetryForImage(
+      imageProvider: _buildProvider(),
+      retryDelay: widget.timeRetry,
+      fadeDuration: const Duration(milliseconds: 200),
+      onImageResolved: (info) {
+        widget.onImageSizeChanged(info.image.width, info.image.height);
+      },
+      builder: (context, status) {
+        if (status.isLoaded) {
+          return Image(
+            image: status.provider,
+            fit: widget.fit,
+            filterQuality: widget.filterQuality,
+            alignment: widget.alignment,
+          );
+        }
+        if (status.isExhausted) {
+          return _buildPlaceholder(
+            IconButton(
+              onPressed: status.retry,
+              icon: const Icon(Icons.refresh),
+            ),
+          );
+        }
+        return _buildProgressIndicator(_progressValue(status.chunk));
+      },
+    );
   }
 }

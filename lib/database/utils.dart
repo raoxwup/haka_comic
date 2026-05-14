@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqlite_async/native.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:path/path.dart' as p;
 
@@ -54,8 +55,8 @@ mixin DbBackupMixin on Object {
 }
 
 // 自定义 SqliteOpenFactory 以启用外键支持
-class SqliteOpenFactory extends DefaultSqliteOpenFactory {
-  SqliteOpenFactory({required super.path});
+final class ForeignKeysOnSqliteOpenFactory extends NativeSqliteOpenFactory {
+  ForeignKeysOnSqliteOpenFactory({required super.path, super.sqliteOptions});
   @override
   List<String> pragmaStatements(SqliteOpenOptions options) {
     final statements = super.pragmaStatements(options);

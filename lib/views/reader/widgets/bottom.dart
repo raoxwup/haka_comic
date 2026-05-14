@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/ui.dart';
-import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:haka_comic/widgets/deferred_blur.dart';
 
 const kBottomBarHeight = 105.0;
 const kBottomBarBottom = 15.0;
@@ -34,7 +33,8 @@ class _ReaderBottomState extends State<ReaderBottom>
         right: 0,
         height: bottom + kBottomBarHeight,
         duration: const Duration(milliseconds: 250),
-        child: WithBlur(
+        child: DeferredBlur(
+          active: showToolbar,
           child: Container(
             padding: EdgeInsets.fromLTRB(12, 8, 12, bottom),
             decoration: BoxDecoration(
@@ -59,7 +59,8 @@ class _ReaderBottomState extends State<ReaderBottom>
       child: RepaintBoundary(
         child: Align(
           alignment: Alignment.center,
-          child: WithBlur(
+          child: DeferredBlur(
+            active: showToolbar,
             borderRadius: BorderRadius.circular(32),
             child: Container(
               width: 550,
@@ -157,14 +158,6 @@ class _ReaderBottomState extends State<ReaderBottom>
                   tooltip: '平滑滚动',
                   icon: const Icon(Icons.keyboard_double_arrow_down),
                 ),
-              IconButton(
-                onPressed: () {
-                  context.stateReader.toggleLockMenu();
-                  context.reader.openOrCloseToolbar();
-                },
-                tooltip: '锁定菜单',
-                icon: const Icon(Icons.lock_outlined),
-              ),
             ],
           ),
         ),

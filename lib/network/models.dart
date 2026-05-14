@@ -890,6 +890,47 @@ class ExtraRecommendComic {
       : pic.replaceFirst('picacomic', 'go2778');
 }
 
+class ExtraRecommendComicIdsResponse {
+  final int code;
+
+  final List<String> recommendations;
+
+  final int count;
+
+  const ExtraRecommendComicIdsResponse({
+    required this.code,
+    required this.recommendations,
+    required this.count,
+  });
+
+  factory ExtraRecommendComicIdsResponse.fromJson(Map<String, dynamic> json) {
+    final recommendations =
+        (json['recommendations'] as List<dynamic>? ?? const [])
+            .map((id) => id.toString())
+            .toList();
+
+    return ExtraRecommendComicIdsResponse(
+      code: _intFromJson(json['code']),
+      recommendations: recommendations,
+      count: json['count'] == null
+          ? recommendations.length
+          : _intFromJson(json['count']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'code': code,
+    'recommendations': recommendations,
+    'count': count,
+  };
+
+  static int _intFromJson(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.parse(value.toString());
+  }
+}
+
 class FetchChapterImagesPayload {
   final String id;
   final int order;
@@ -1455,4 +1496,23 @@ abstract class ComicBase {
   int? get totalViews;
   int? get totalLikes;
   int get likesCount;
+}
+
+class ReadTrackPayload {
+  final String fromId;
+  final String toId;
+
+  const ReadTrackPayload({required this.fromId, required this.toId});
+
+  Map<String, dynamic> toJson() => {'from_id': fromId, 'to_id': toId};
+}
+
+class ExtraRecommendComicPayload {
+  final String id;
+
+  final int limit;
+
+  const ExtraRecommendComicPayload({required this.id, this.limit = 10});
+
+  Map<String, dynamic> toJson() => {'id': id, 'limit': limit};
 }

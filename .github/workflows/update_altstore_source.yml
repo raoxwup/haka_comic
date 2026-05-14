@@ -12,7 +12,7 @@ jobs:
     name: Update alt_store.json
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
@@ -38,6 +38,15 @@ jobs:
           date = release.get("published_at") or release.get("created_at") or ""
           assets = release.get("assets", [])
 
+          def split_version_build(value):
+            value = (value or "").strip()
+            if value.startswith("v"):
+              value = value[1:]
+            if "+" in value:
+              version, build = value.split("+", 1)
+              return version, build
+            return value, ""
+
           ipa = None
           for a in assets:
             name = a.get("name", "")
@@ -57,19 +66,34 @@ jobs:
           ipa_name = ipa.get("name", "")
           download_url = ipa.get("browser_download_url", "")
           size = ipa.get("size", 0)
+          if not download_url:
+            print("Selected IPA asset has no browser_download_url", file=sys.stderr)
+            sys.exit(1)
+          if not isinstance(size, int) or size <= 0:
+            print(f"Selected IPA asset has invalid size: {size}", file=sys.stderr)
+            sys.exit(1)
 
           # Prefer parsing version from the IPA name: no-codesign-ios-v<version>.ipa
-          m = re.search(r"no-codesign-ios-v(.+)\\.ipa$", ipa_name)
+          m = re.search(r"no-codesign-ios-v(.+)\.ipa$", ipa_name)
           if m:
-            version = m.group(1)
+            asset_version, asset_build = split_version_build(m.group(1))
           else:
-            # Fallback to tag: v<version>+<build> or <version>
-            t = tag.lstrip("v")
-            version = t.split("+", 1)[0]
+            asset_version, asset_build = "", ""
+
+          tag_version, tag_build = split_version_build(tag)
+          version = asset_version or tag_version
+          build_version = asset_build or tag_build or version
+          if not version or not build_version:
+            print(
+              f"Could not determine version/buildVersion from tag={tag!r} asset={ipa_name!r}",
+              file=sys.stderr,
+            )
+            sys.exit(1)
 
           print(f"tag={tag}")
           print(f"date={date}")
           print(f"version={version}")
+          print(f"build_version={build_version}")
           print(f"asset_name={ipa_name}")
           print(f"download_url={download_url}")
           print(f"size={size}")
@@ -84,7 +108,7 @@ jobs:
           dart script/update_alt_store_json.dart \
             --json alt_store.json \
             --version "${{ steps.meta.outputs.version }}" \
-            --buildVersion "${{ steps.meta.outputs.version }}" \
+            --buildVersion "${{ steps.meta.outputs.build_version }}" \
             --date "${{ steps.meta.outputs.date }}" \
             --downloadURL "${{ steps.meta.outputs.download_url }}" \
             --size "${{ steps.meta.outputs.size }}"

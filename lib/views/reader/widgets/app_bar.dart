@@ -7,7 +7,7 @@ import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/reader/widgets/reader_settings.dart';
-import 'package:haka_comic/widgets/with_blur.dart';
+import 'package:haka_comic/widgets/deferred_blur.dart';
 import 'package:provider/provider.dart';
 
 /// 顶部工具栏
@@ -59,7 +59,8 @@ class ReaderAppBar extends StatelessWidget {
       right: 0,
       height: kToolbarHeight + top,
       child: RepaintBoundary(
-        child: WithBlur(
+        child: DeferredBlur(
+          active: showToolbar,
           child: AppBar(
             leading: IconButton(
               icon: Icon(

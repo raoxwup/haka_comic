@@ -54,7 +54,7 @@ class ComicExporter {
     required List<ComicExportItem> items,
     required ExportFileType type,
   }) async {
-    final selectedDirectoryPath = await FilePicker.platform.getDirectoryPath();
+    final selectedDirectoryPath = await FilePicker.getDirectoryPath();
 
     if (selectedDirectoryPath == null) {
       Toast.show(message: '未选择导出目录');

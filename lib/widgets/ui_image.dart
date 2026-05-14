@@ -1,11 +1,11 @@
-import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 import 'package:pool/pool.dart';
 
-class _UiImage extends StatefulWidget {
+class _UiImage extends StatelessWidget {
   const _UiImage({
     required this.url,
     this.fit = BoxFit.cover,
@@ -49,118 +49,58 @@ class _UiImage extends StatefulWidget {
   final VoidCallback? onFinally;
 
   @override
-  State<_UiImage> createState() => _UiImageState();
-}
-
-class _UiImageState extends State<_UiImage> {
-  static const int _maxAutoRetryCount = 2;
-
-  int _reloadToken = 0;
-  int _autoRetryCount = 0;
-  Timer? _retryTimer;
-
-  @override
-  void didUpdateWidget(covariant _UiImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      _retryTimer?.cancel();
-      _reloadToken = 0;
-      _autoRetryCount = 0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _retryTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final memCacheWidth =
-        ((widget.width ?? widget.cacheWidth) * devicePixelRatio).round();
+    final memCacheWidth = ((width ?? cacheWidth) * devicePixelRatio).round();
+
+    final provider = ResizeImage.resizeIfNeeded(
+      memCacheWidth,
+      cacheHeight,
+      CachedNetworkImageProvider(url, cacheManager: cacheManager),
+    );
 
     return _frame(
       context,
-      child: CachedNetworkImage(
-        key: ValueKey('${widget.url}#$_reloadToken'),
-        imageUrl: widget.url,
-        fit: widget.fit,
-        width: widget.width,
-        height: widget.height,
-        memCacheWidth: memCacheWidth,
-        memCacheHeight: widget.cacheHeight,
-        filterQuality: widget.filterQuality,
-        fadeInDuration: const Duration(milliseconds: 250),
-        fadeInCurve: Curves.easeOutQuad,
-        fadeOutDuration: Duration.zero,
-        disablePlaceholderOnCacheHit: true,
-        imageBuilder: (context, imageProvider) {
-          widget.onFinally?.call();
-          return Image(
-            key: ValueKey(imageProvider),
-            image: imageProvider,
-            fit: widget.fit,
-            width: widget.width,
-            height: widget.height,
-            filterQuality: widget.filterQuality,
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildRetryAwareErrorContent();
+      child: RetryForImage(
+        imageProvider: provider,
+        fadeDuration: const Duration(milliseconds: 250),
+        onImageResolved: (_) => onFinally?.call(),
+        builder: (context, status) {
+          if (status.isLoaded) {
+            return Image(
+              image: status.provider,
+              fit: fit,
+              width: width,
+              height: height,
+              filterQuality: filterQuality,
+            );
+          }
+          if (status.isExhausted) {
+            onFinally?.call();
+            return Center(
+              child: IconButton(
+                onPressed: status.retry,
+                icon: const Icon(Icons.refresh),
+              ),
+            );
+          }
+          return const SizedBox.expand();
         },
       ),
     );
   }
 
-  Future<void> _reload() async {
-    _retryTimer?.cancel();
-    _autoRetryCount = 0;
-    await CachedNetworkImage.evictFromCache(widget.url);
-    if (mounted) {
-      setState(() => _reloadToken++);
-    }
-  }
-
-  bool get _hasAutoRetryRemaining => _autoRetryCount < _maxAutoRetryCount;
-
-  void _scheduleAutoRetry() {
-    if (_autoRetryCount >= _maxAutoRetryCount ||
-        _retryTimer?.isActive == true) {
-      return;
-    }
-
-    _autoRetryCount++;
-    _retryTimer = Timer(widget.timeRetry, () {
-      if (!mounted) return;
-      setState(() => _reloadToken++);
-    });
-  }
-
-  Widget _buildRetryAwareErrorContent() {
-    _scheduleAutoRetry();
-    if (_hasAutoRetryRemaining || _retryTimer?.isActive == true) {
-      return const SizedBox.expand();
-    }
-
-    widget.onFinally?.call();
-    return Center(
-      child: IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
-    );
-  }
-
   Widget _frame(BuildContext context, {Widget? child}) {
-    final shape = widget.shape ?? BoxShape.rectangle;
+    final boxShape = shape ?? BoxShape.rectangle;
     return Container(
-      width: widget.width,
-      height: widget.height,
-      clipBehavior: widget.clipBehavior,
+      width: width,
+      height: height,
+      clipBehavior: clipBehavior,
       decoration: BoxDecoration(
         color: context.colorScheme.surfaceContainerHigh,
-        shape: shape,
-        border: widget.border,
-        borderRadius: shape == BoxShape.circle ? null : widget.borderRadius,
+        shape: boxShape,
+        border: border,
+        borderRadius: boxShape == BoxShape.circle ? null : borderRadius,
       ),
       child: child,
     );
@@ -222,6 +162,7 @@ class _UiImageOuterState extends State<UiImage> with RouteAware {
   PoolResource? _resource;
   bool _ready = false;
   bool _isDisposed = false;
+  bool _isAcquiring = false;
 
   @override
   void initState() {
@@ -254,17 +195,19 @@ class _UiImageOuterState extends State<UiImage> with RouteAware {
 
   @override
   void didPopNext() {
-    if (_resource == null) {
+    if (!_ready && _resource == null) {
       _acquire();
     }
   }
 
   Future<void> _acquire() async {
-    if (_resource != null) return;
+    if (_ready || _resource != null || _isAcquiring || _isDisposed) return;
 
+    _isAcquiring = true;
     final resource = await _imageLoadPool.request();
+    _isAcquiring = false;
 
-    if (!mounted || _isDisposed) {
+    if (!mounted || _isDisposed || _ready || _resource != null) {
       resource.release();
       return;
     }

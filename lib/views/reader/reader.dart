@@ -7,6 +7,7 @@ import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
 import 'package:haka_comic/views/reader/widgets/app_bar.dart';
 import 'package:haka_comic/views/reader/widgets/bottom.dart';
+import 'package:haka_comic/views/reader/widgets/menu_lock.dart';
 import 'package:haka_comic/views/reader/widgets/next_chapter.dart';
 import 'package:haka_comic/views/reader/widgets/page_no_tag.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
@@ -69,9 +70,12 @@ class _ReaderState extends State<Reader> {
       onNotification: (notification) {
         if (notification is ScrollUpdateNotification) {
           _scrollAccumulator += (notification.scrollDelta ?? 0.0).abs();
-          if (_scrollAccumulator >= _hideToolbarScrollThreshold &&
-              !context.stateReader.lockMenu) {
-            context.reader.hideToolbar();
+          if (_scrollAccumulator >= _hideToolbarScrollThreshold) {
+            if (context.stateReader.lockMenu) {
+              context.reader.collapseMenuLock();
+            } else {
+              context.reader.hideToolbar();
+            }
             _scrollAccumulator = 0.0;
           }
         } else if (notification is ScrollEndNotification) {
@@ -117,6 +121,8 @@ class _ReaderState extends State<Reader> {
           if (showPageNumbers) const ReaderPageNoTag(),
 
           const ReaderNextChapter(),
+
+          const MenuLock(),
 
           const ReaderAppBar(),
 

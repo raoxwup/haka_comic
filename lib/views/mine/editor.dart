@@ -51,9 +51,7 @@ class _EditorState extends State<Editor> with RequestMixin {
 
   Future<void> _pickImage() async {
     try {
-      final pickedFile = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-      );
+      final pickedFile = await FilePicker.pickFiles(type: FileType.image);
       if (pickedFile != null) {
         if (pickedFile.files.single.size > 5 * 1024 * 1024) {
           Toast.show(message: '图片不能大于5MB');

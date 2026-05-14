@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
@@ -9,7 +8,7 @@ import 'package:haka_comic/database/local_favorites_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/database/word_block_helper.dart';
-import 'package:haka_comic/network/desktop_proxy_coordinator.dart';
+import 'package:haka_comic/network/proxy_controller.dart';
 import 'package:haka_comic/rust/frb_generated.dart';
 import 'package:haka_comic/network/proxy_overrides.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -27,12 +26,9 @@ class StartupPrepare {
       RustLib.init(),
     ]);
 
-    // 在主 Isolate 安装全局代理覆盖层（仅桌面端），
-    // extended_image 等所有 HttpClient 创建时都将经过此覆盖层。
-    if (isDesktop) {
-      ProxyHttpOverrides.install();
-      await desktopProxyCoordinator.start();
-    }
+    // 在主 Isolate 安装全局代理覆盖层，所有 HttpClient 创建时都将经过此覆盖层。
+    ProxyHttpOverrides.install();
+    appProxyController.start();
 
     return Future.wait([
       HistoryHelper().initialize(),
@@ -52,7 +48,7 @@ class StartupPrepare {
 
 /// 启动窗口 如果有上一次的窗口状态,则恢复
 Future<void> startDesktop() async {
-  if (isDesktop && kReleaseMode) {
+  if (isDesktop) {
     await windowManager.ensureInitialized();
 
     final conf = AppConf();
@@ -61,6 +57,7 @@ Future<void> startDesktop() async {
     final h = conf.windowHeight;
     final w = conf.windowWidth;
     final isFullscreen = conf.windowFullscreen;
+    final shouldRestoreFullscreen = isFullscreen == true;
 
     // 默认窗口大小
     final defaultSize = const Size(900.0, 620.0);
@@ -80,12 +77,13 @@ Future<void> startDesktop() async {
 
       await windowManager.setMinimumSize(const Size(780, 550));
       await windowManager.setResizable(true);
-      await windowManager.show();
-      await windowManager.focus();
 
-      if (isFullscreen != null && isFullscreen) {
+      if (shouldRestoreFullscreen) {
         await windowManager.setFullScreen(true);
       }
+
+      await windowManager.show();
+      await windowManager.focus();
     });
   }
 }

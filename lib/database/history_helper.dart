@@ -220,6 +220,21 @@ class HistoryHelper with ChangeNotifier, DbBackupMixin {
     return result['count'] as int;
   }
 
+  Future<String?> getFirstId() async {
+    final row = await db.get('''
+      SELECT
+        cid
+      FROM
+        history
+      ORDER BY
+        updated_at DESC,
+        cid DESC
+        LIMIT 1
+      ''');
+    if (row.isEmpty) return null;
+    return row['cid'];
+  }
+
   @override
   Future<void> restore(File file) async {
     await super.restore(file);

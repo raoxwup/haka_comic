@@ -93,7 +93,6 @@ class _ClearCacheState extends State<ClearCache> {
       _loadCacheSize(); // 重新加载大小
       Toast.show(message: '缓存已清理');
     } catch (e) {
-      print(e);
       Toast.show(message: '清理缓存失败');
     } finally {
       setState(() => _isClearing = false);
