@@ -8,7 +8,7 @@ import 'package:haka_comic/database/local_favorites_helper.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/database/tag_block_helper.dart';
 import 'package:haka_comic/database/word_block_helper.dart';
-import 'package:haka_comic/network/desktop_proxy_coordinator.dart';
+import 'package:haka_comic/network/proxy_controller.dart';
 import 'package:haka_comic/rust/frb_generated.dart';
 import 'package:haka_comic/network/proxy_overrides.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -26,12 +26,9 @@ class StartupPrepare {
       RustLib.init(),
     ]);
 
-    // 在主 Isolate 安装全局代理覆盖层（仅桌面端），
-    // extended_image 等所有 HttpClient 创建时都将经过此覆盖层。
-    if (isDesktop) {
-      ProxyHttpOverrides.install();
-      await desktopProxyCoordinator.start();
-    }
+    // 在主 Isolate 安装全局代理覆盖层，所有 HttpClient 创建时都将经过此覆盖层。
+    ProxyHttpOverrides.install();
+    appProxyController.start();
 
     return Future.wait([
       HistoryHelper().initialize(),

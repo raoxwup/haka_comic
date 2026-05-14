@@ -158,6 +158,10 @@ class _LoginState extends State<Login> with RequestMixin {
                   onPressed: () => context.push('/api_settings'),
                   child: const Text('API切换'),
                 ),
+                TextButton(
+                  onPressed: () => context.push('/proxy_settings'),
+                  child: const Text('代理设置'),
+                ),
                 const Spacer(),
                 const Text('没有账号？'),
                 TextButton(
