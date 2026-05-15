@@ -107,11 +107,11 @@ class ComicExporter {
       Loader.show(context);
     }
 
-    final cacheDir = await getApplicationCacheDirectory();
+    final tempDir = await _createCleanTempDirectory();
 
     for (final item in items) {
       final fileName = '${item.fileStem}.${type.name}';
-      final destPath = p.join(cacheDir.path, exportFileTempDir, fileName);
+      final destPath = p.join(tempDir.path, fileName);
 
       await _buildFile(
         sourceFolderPath: item.sourceFolderPath,
