@@ -184,6 +184,9 @@ Future<ExtraRecommendComicIdsResponse> fetchExtraRecommendComicIds(
   ExtraRecommendComicPayload payload,
 ) async {
   const maxRetries = 3;
+  Object? lastError;
+  StackTrace? lastStackTrace;
+
   for (var i = 0; i < maxRetries; i++) {
     try {
       final response = await Dio().get(
@@ -192,29 +195,47 @@ Future<ExtraRecommendComicIdsResponse> fetchExtraRecommendComicIds(
       );
       final json = Map<String, dynamic>.from(response.data);
       return ExtraRecommendComicIdsResponse.fromJson(json);
-    } catch (e) {
-      if (i == maxRetries - 1) rethrow;
-      await Future.delayed(Duration(seconds: 2 * i));
+    } catch (e, stackTrace) {
+      lastError = e;
+      lastStackTrace = stackTrace;
+      if (i < maxRetries - 1) {
+        await Future.delayed(Duration(seconds: 2 * i));
+      }
     }
   }
-  throw Exception('Failed to fetch extra recommend comics');
+
+  Error.throwWithStackTrace(
+    Exception('Failed to fetch extra recommend comics: $lastError'),
+    lastStackTrace ?? StackTrace.current,
+  );
 }
 
 /// 推测是官方用来追踪用户阅读漫画的接口 以此给出合适的相关推荐
 Future<void> postReadTrack(ReadTrackPayload payload) async {
   const maxRetries = 3;
+  Object? lastError;
+  StackTrace? lastStackTrace;
+
   for (var i = 0; i < maxRetries; i++) {
     try {
       await Dio().post(
         'https://macapi1.com/picacomic/rec/track',
         data: payload.toJson(),
       );
-    } catch (e) {
-      if (i == maxRetries - 1) rethrow;
-      await Future.delayed(Duration(seconds: 2 * i));
+      return;
+    } catch (e, stackTrace) {
+      lastError = e;
+      lastStackTrace = stackTrace;
+      if (i < maxRetries - 1) {
+        await Future.delayed(Duration(seconds: 2 * i));
+      }
     }
   }
-  throw Exception('Failed to post track');
+
+  Error.throwWithStackTrace(
+    Exception('Failed to post track: $lastError'),
+    lastStackTrace ?? StackTrace.current,
+  );
 }
 
 /// 获取章节图片  一次性请求所有图片
