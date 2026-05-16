@@ -129,8 +129,13 @@ class ImagePreloadController<T> {
   /// 让所有已预加载记录失效。
   /// 在 [cacheWidth] 变化等会改变 ImageCache key 的场景下调用，
   /// 以便后续锚点变化时重新按新尺寸预解码。
+  ///
+  /// 注意：这里**不**取消正在排队的 debounce timer。
+  /// 取消会让“数据加载成功后立即排好的首批预加载”被随后第一帧
+  /// LayoutBuilder 中的 cacheWidth 校准吃掉，造成预加载迟迟不发生。
+  /// 旧 generation 的 timer 即使继续跑，也会因为 generation 不匹配
+  /// 而在 `_trimPreloaded` 阶段被自然清理。
   void invalidatePreloaded() {
-    _debounceTimer?.cancel();
     _generation++;
     _preloaded.clear();
   }

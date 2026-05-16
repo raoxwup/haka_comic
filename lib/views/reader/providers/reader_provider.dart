@@ -64,7 +64,13 @@ class ReaderProvider extends RequestProvider {
       onSuccess: (data, _) {
         Log.i('Fetch chapter images success', data.toString());
         preloadController.replaceItems(data);
-        preloadController.onAnchorChanged([0]);
+        // 用当前实际起始页作为预加载锚点，
+        // 否则从历史进度页打开 / 切章后，预加载会一直围绕第 0 页，
+        // 与用户实际在看的位置错开。
+        final anchor = readMode.isDoublePage
+            ? toCorrectMultiPageNo(_pageNo, 2)
+            : _pageNo;
+        preloadController.onAnchorChanged([anchor]);
       },
       onError: (e, _) {
         Log.e('Fetch chapter images error', error: e);
@@ -221,6 +227,12 @@ class ReaderProvider extends RequestProvider {
   void go(Chapter chapter) {
     this.chapter = chapter;
     pageNo = 0;
+    // 切章后必须把 PageController 重置到 0，否则 PageView 在新章节
+    // 长度不足时会 clamp，但不一定回调 onPageChanged，
+    // 导致预加载锚点停留在旧章节的页码上。
+    if (pageController.hasClients) {
+      pageController.jumpToPage(0);
+    }
     handler.run(FetchChapterImagesPayload(id: id, order: chapter.order));
   }
 
