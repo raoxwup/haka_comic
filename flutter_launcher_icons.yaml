@@ -13,14 +13,14 @@ flutter_launcher_icons:
   image_path_ios: "assets/icons/ios/AppIcon.png"
   remove_alpha_ios: true
   background_color_ios: "#F494BA"
-  image_path_ios_dark_transparent: "assets/icons/ios/Dark.png"
-  image_path_ios_tinted_grayscale: "assets/icons/ios/Tinted.png"
+  image_path_ios_dark_transparent: "assets/icons/ios/DarkAppIcon.png"
+  image_path_ios_tinted_grayscale: "assets/icons/ios/TintedAppIcon.png"
   desaturate_tinted_to_grayscale_ios: true
 
   windows:
     generate: true
     image_path: "assets/icons/pc/windows_icon.png"
-    icon_size: 96 # min:48, max:256, default: 48
+    icon_size: 256 # min:48, max:256, default: 48
 
   macos:
     generate: true
