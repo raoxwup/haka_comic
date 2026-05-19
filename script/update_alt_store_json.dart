@@ -4,7 +4,7 @@ import 'dart:io';
 const _defaultBundleId = 'com.github.raoxwup.hakacomic';
 const _defaultMinOSVersion = '13.0';
 const _defaultIconURL =
-    'https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/Light.png';
+    'https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/AppIcon.png';
 const _defaultTintColor = '#F54F32';
 
 const _sourceDefaults = <String, dynamic>{

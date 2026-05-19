@@ -78,8 +78,7 @@ flutter:
     - assets/images/latest.jpg
     - assets/images/random.jpg
     - assets/images/default_avatar.jpg
-    - assets/icons/ios/Light.png
-    - assets/icons/ios/Dark.png
+    - assets/icons/android/ic_launcher_foreground.png
     - assets/icons/pc/linux_icon.png
 
 # fonts:
