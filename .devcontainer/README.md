@@ -24,6 +24,15 @@ The Codespace includes `fpm`, matching the release workflow's Debian packaging t
 
 ## Install And Run A Deb
 
+Download the Linux artifact from a GitHub Actions run:
+
+```bash
+gh run list --workflow "Cross-Platform Build" --branch dev -L 5
+gh run download <RUN_ID> -n linux-packages-amd64 -D artifacts
+```
+
+Check the Codespace architecture with `dpkg --print-architecture` and use `linux-packages-arm64` instead if it prints `arm64`.
+
 ```bash
 sudo apt install ./artifacts/haka-comic-v1.2.5-amd64.deb
 haka_comic

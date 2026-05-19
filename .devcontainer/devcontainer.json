@@ -10,6 +10,9 @@
     },
     "ghcr.io/devcontainers/features/rust:1": {
       "version": "stable"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
     }
   },
   "forwardPorts": [
