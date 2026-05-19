@@ -1,0 +1,36 @@
+{
+  "name": "HaKa Comic Linux Desktop",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/desktop-lite:1": {
+      "version": "latest",
+      "webPort": "6080",
+      "password": "vscode"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "stable"
+    }
+  },
+  "forwardPorts": [
+    6080
+  ],
+  "portsAttributes": {
+    "6080": {
+      "label": "Ubuntu Desktop (noVNC)",
+      "onAutoForward": "notify"
+    }
+  },
+  "runArgs": [
+    "--shm-size=1g"
+  ],
+  "postCreateCommand": "bash .devcontainer/setup-linux.sh && bash .devcontainer/install-flutter.sh && flutter pub get",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  }
+}
