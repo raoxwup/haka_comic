@@ -51,6 +51,9 @@ abstract class RequestHandler<T, P> {
 
   void mutate(T data) => _setState((s) => Success(data));
 
+  /// 重置状态为初始态（清除已累积的数据）
+  void resetState() => _setState((_) => const Initial());
+
   void apply([P? params]);
 
   void refresh();

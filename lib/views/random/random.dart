@@ -33,6 +33,7 @@ class _RandomState extends State<Random> with RequestMixin {
       body: switch (_handler.state) {
         Success(:final data) => CommonTMIList(
           comics: context.filtered(data.comics),
+          emptyRefreshCallback: _handler.refresh,
         ),
         Error(:final error) => ErrorPage(
           errorMessage: error.toString(),

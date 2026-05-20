@@ -46,7 +46,13 @@ class ComicTagGroup extends StatelessWidget {
         ...tags.map(
           (e) => InkWell(
             borderRadius: BorderRadius.circular(8),
-            onTap: () => context.push('/comics?$paramKey=$e'),
+            onTap: () {
+              if (type == '标签') {
+                context.push('/search_comics?keyword=$e');
+              } else {
+                context.push('/comics?$paramKey=$e');
+              }
+            },
             onLongPress: type == '标签' ? () => _onTagLongPress(context, e) : null,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

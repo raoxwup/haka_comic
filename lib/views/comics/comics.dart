@@ -8,7 +8,7 @@ import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_pagination_footer.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
-import 'package:haka_comic/views/comics/sort_type_selector.dart';
+import 'package:haka_comic/views/comics/sort_and_filter_toolbar.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 
 class Comics extends StatefulWidget {
@@ -35,18 +35,32 @@ class Comics extends StatefulWidget {
 
 class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
   ComicSortType sortType = ComicSortType.dd;
+  List<String> _selectedCategories = [];
   int page = 1;
 
+  /// 路由参数中的分类列表
+  List<String> get _routeCategories =>
+      widget.c?.split(',').where((s) => s.isNotEmpty).toList() ?? [];
+
+  /// 合并路由参数中的分类和用户手动选择的分类（去重）
+  String? get _effectiveCategory {
+    final all = {..._routeCategories, ..._selectedCategories};
+    if (all.isEmpty) return null;
+    return all.join(',');
+  }
+
+  ComicsPayload _buildPayload({int? page}) => ComicsPayload(
+    c: _effectiveCategory,
+    s: sortType,
+    page: page ?? this.page,
+    t: widget.t,
+    ca: widget.ca,
+    a: widget.a,
+    ct: widget.ct,
+  );
+
   late final handler = fetchComics.useRequest(
-    defaultParams: ComicsPayload(
-      c: widget.c,
-      s: sortType,
-      page: page,
-      t: widget.t,
-      ca: widget.ca,
-      a: widget.a,
-      ct: widget.ct,
-    ),
+    defaultParams: _buildPayload(),
     onSuccess: (data, _) {
       Log.i("Fetch comics success", data.toString());
     },
@@ -77,17 +91,7 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
     setState(() {
       this.page = page;
     });
-    await handler.run(
-      ComicsPayload(
-        c: widget.c,
-        s: sortType,
-        page: page,
-        t: widget.t,
-        ca: widget.ca,
-        a: widget.a,
-        ct: widget.ct,
-      ),
-    );
+    await handler.run(_buildPayload(page: page));
   }
 
   @override
@@ -98,17 +102,23 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
           widget.c ?? widget.t ?? widget.a ?? widget.ct ?? widget.ca ?? '最近更新',
         ),
         actions: [
-          IconButton(
-            tooltip: '排序',
-            icon: const Icon(Icons.sort),
-            onPressed: _buildSortTypeSelector,
-          ),
+          ...SortAndFilterToolbar(
+            sortType: sortType,
+            selectedCategories: _selectedCategories,
+            onSortTypeChange: _onSortTypeChange,
+            onCategoriesChange: _onCategoriesChange,
+            routeCategories: _routeCategories,
+          ).buildButtons(context),
         ],
       ),
       body: switch (handler.state) {
         RequestState(:final data) when data != null => CommonTMIList(
           controller: pagination ? null : scrollController,
           comics: context.filtered(data.comics.docs),
+          emptyRefreshCallback: () {
+            handler.resetState();
+            handler.run(_buildPayload(page: 1));
+          },
           pageSelectorBuilder: pagination
               ? (context) {
                   return PageSelector(
@@ -140,27 +150,16 @@ class _ComicsState extends State<Comics> with RequestMixin, PaginationMixin {
       sortType = type;
       page = 1;
     });
-    handler.mutate(ComicsResponse.empty);
-    handler.run(
-      ComicsPayload(
-        c: widget.c,
-        s: type,
-        page: 1,
-        t: widget.t,
-        ca: widget.ca,
-        a: widget.a,
-        ct: widget.ct,
-      ),
-    );
+    handler.resetState();
+    handler.run(_buildPayload(page: 1));
   }
 
-  void _buildSortTypeSelector() {
-    showDialog(
-      context: context,
-      builder: (context) => SortTypeSelector(
-        sortType: sortType,
-        onSortTypeChange: _onSortTypeChange,
-      ),
-    );
+  void _onCategoriesChange(List<String> categories) {
+    setState(() {
+      _selectedCategories = categories;
+      page = 1;
+    });
+    handler.resetState();
+    handler.run(_buildPayload(page: 1));
   }
 }

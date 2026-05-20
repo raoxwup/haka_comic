@@ -75,7 +75,9 @@ class _SearchHistoryState extends State<SearchHistory> {
                         title: e,
                         onTap: () {
                           context.read<SearchProvider>().add(e);
-                          context.push('/search_comics?keyword=$e');
+                          context.push(
+                            '/search_comics?keyword=${Uri.encodeComponent(e)}',
+                          );
                         },
                       ),
                     )

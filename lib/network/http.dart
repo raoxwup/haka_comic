@@ -63,13 +63,17 @@ Future<List<Chapter>> fetchChapters(String id) async {
   );
   final eps = data.data.eps;
   chapters.addAll(eps.docs);
-  // 并发请求快一些
-  final results = await Future.wait(
-    List.generate(
-      eps.pages - 1,
-      (index) => Client.get(url, query: {'page': index + 2}),
-    ),
-  );
+  // 并发请求（限制并发数为 4，避免触发限流）
+  final pages = eps.pages - 1;
+  final results = <Map<String, dynamic>>[];
+  const concurrency = 4;
+  for (var i = 0; i < pages; i += concurrency) {
+    final batch = List.generate(
+      concurrency.clamp(0, pages - i),
+      (j) => Client.get(url, query: {'page': i + j + 2}),
+    );
+    results.addAll(await Future.wait(batch));
+  }
   for (var result in results) {
     final data = BaseResponse<ChaptersResponse>.fromJson(
       result,

@@ -6,6 +6,7 @@ import 'package:haka_comic/views/comics/list_item.dart';
 import 'package:haka_comic/views/comics/simple_list_item.dart';
 import 'package:haka_comic/views/comics/tmi_list.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
+import 'package:haka_comic/widgets/empty.dart';
 
 class CommonTMIList extends StatelessWidget {
   const CommonTMIList({
@@ -19,6 +20,7 @@ class CommonTMIList extends StatelessWidget {
     this.enableDefaultGestures = true,
     this.selectedCids,
     this.onItemLongPress,
+    this.emptyRefreshCallback,
   });
 
   final List<ComicBase> comics;
@@ -39,10 +41,16 @@ class CommonTMIList extends StatelessWidget {
 
   final void Function(ComicBase)? onItemLongPress;
 
+  /// 列表为空时显示刷新按钮，为 null 则不显示
+  final VoidCallback? emptyRefreshCallback;
+
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
 
   @override
   Widget build(BuildContext context) {
+    if (comics.isEmpty && emptyRefreshCallback != null) {
+      return Empty(onRefresh: emptyRefreshCallback);
+    }
     return TMIList(
       controller: controller,
       itemCount: comics.length,

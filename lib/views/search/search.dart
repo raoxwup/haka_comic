@@ -44,7 +44,9 @@ class _SearchState extends State<Search> {
               onSubmitted: (value) {
                 if (value.isNotEmpty) {
                   context.read<SearchProvider>().add(value);
-                  context.push('/search_comics?keyword=$value');
+                  context.push(
+                    '/search_comics?keyword=${Uri.encodeComponent(value)}',
+                  );
                 }
               },
             ),
