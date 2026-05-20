@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
@@ -72,6 +74,11 @@ class _SearchComicsState extends State<SearchComics>
   int _nextServerPage = 1;
   bool _autoFilling = false;
 
+  // ── 快速翻页预加载 ───────────────────────────
+  final List<DateTime> _recentPageChangeTimes = [];
+  static const _prefetchRapidCount = 3;
+  static const _prefetchInterval = Duration(seconds: 2);
+
   bool get _hasBoolOps =>
       AppConf().enableBooleanSearch &&
       (_currentQuery.andWords.isNotEmpty || _currentQuery.notWords.isNotEmpty);
@@ -125,32 +132,30 @@ class _SearchComicsState extends State<SearchComics>
   }
 
   /// 统一搜索入口
-  Future<void> _performSearch({int? page}) async {
+  /// [silent] 为 true 时仅写入缓存，不更新 UI（用于预加载）
+  Future<void> _performSearch({int? page, bool silent = false}) async {
     final targetPage = page ?? 1;
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty) return;
 
     // 新搜索取消前一次自动填充
-    _autoFilling = false;
+    if (!silent) _autoFilling = false;
 
     _currentQuery = AppConf().enableBooleanSearch
         ? parseSearchQuery(keyword)
         : const SearchQuery();
 
-    // 连续两次无匹配则清空全部缓存
-    SearchCache.checkAndClearStale();
-
     // 新搜索（第1页）时清除旧数据，防止 reducer 追加
-    if (targetPage == 1) _handler.resetState();
-    setState(() => _page = targetPage);
-    await _performRealtimeSearch(targetPage);
+    if (targetPage == 1 && !silent) _handler.resetState();
+    if (!silent) setState(() => _page = targetPage);
+    await _performRealtimeSearch(targetPage, silent: silent);
   }
 
   // ═══════════════════════════════════════
   // 搜索请求
   // ═══════════════════════════════════════
 
-  Future<void> _performRealtimeSearch(int page) async {
+  Future<void> _performRealtimeSearch(int page, {bool silent = false}) async {
     // 有布尔运算符时用 firstServerKeyword 发给 API
     final serverKeyword =
         _hasBoolOps
@@ -163,13 +168,30 @@ class _SearchComicsState extends State<SearchComics>
       _selectedCategories,
     );
 
-    // 查 API 缓存
-    final cached = SearchCache.get(cacheKey, page);
-    if (cached != null) {
-      _handler.mutate(cached);
-      SearchCache.markHit();
+    if (SearchCache.contains(cacheKey)) {
+      // 缓存条目存在（生命值 > 0）
+      final cached = SearchCache.get(cacheKey, page);
+      if (cached != null) {
+        // 快速路径：指定页命中，生命值管理
+        if (!silent) _handler.mutate(cached);
+        SearchCache.touch(cacheKey);
+        return;
+      }
+      // 缓存存在但没这一页 → 发请求，补充该页
+      final payload = SearchPayload(
+        keyword: normalizedKeyword,
+        page: page,
+        sort: _sortType,
+        categories: _selectedCategories,
+      );
+      await _handler.run(payload);
+      if (_handler.state.hasData) {
+        SearchCache.put(cacheKey, page, _handler.state.data!);
+        SearchCache.touch(cacheKey);
+        if (!silent) _handler.mutate(_handler.state.data!);
+      }
     } else {
-      // 发起网络请求
+      // 无缓存 → 发请求，新建条目（life=5）
       final payload = SearchPayload(
         keyword: normalizedKeyword,
         page: page,
@@ -181,31 +203,31 @@ class _SearchComicsState extends State<SearchComics>
       if (_handler.state.hasData) {
         final fresh = _handler.state.data!;
 
-        if (page == 1) {
+        if (page == 1 && SearchCache.getCachedPages(cacheKey).isNotEmpty) {
+          // 条目已过期但仍有缓存数据 → 做新鲜度校验
           if (SearchCache.validateFreshness(cacheKey, fresh)) {
-            // 数据未变，复用所有缓存页
-            SearchCache.markHit();
-            SearchCache.put(cacheKey, 1, fresh);
+            // 数据没变，续命并复用所有已缓存页
+            SearchCache.touch(cacheKey);
             final pages = SearchCache.getCachedPages(cacheKey);
             if (pages.length > 1) {
               pages.sort();
               final farthest = SearchCache.get(cacheKey, pages.last);
-              if (farthest != null) _handler.mutate(farthest);
+              if (farthest != null && !silent) _handler.mutate(farthest);
             }
           } else {
-            // 数据已变，清除该条件的旧缓存，重新缓存
+            // 数据已变，清除旧缓存，重新缓存
             SearchCache.remove(cacheKey);
             SearchCache.put(cacheKey, 1, fresh);
-            SearchCache.markMiss();
           }
         } else {
+          // 全新条目或非首页 → 直接缓存
           SearchCache.put(cacheKey, page, fresh);
         }
       }
     }
 
     // 有布尔运算符时，用过滤后的结果替换 handler 中的数据
-    if (_hasBoolOps && _handler.state.hasData) {
+    if (_hasBoolOps && _handler.state.hasData && !silent) {
       final raw = _handler.state.data!;
       final filtered = _applyBooleanFilter(raw.comics.docs, _currentQuery);
       _handler.mutate(
@@ -214,7 +236,7 @@ class _SearchComicsState extends State<SearchComics>
     }
 
     // 有布尔运算符且过滤后不足 20 条，启动自动填充
-    if (_hasBoolOps && page == 1) {
+    if (_hasBoolOps && page == 1 && !silent) {
       final currentCount = _handler.state.data?.comics.docs.length ?? 0;
       final totalPages = _handler.state.data?.comics.pages ?? 0;
       if (currentCount < 20 && totalPages > 1) {
@@ -318,6 +340,43 @@ class _SearchComicsState extends State<SearchComics>
 
   Future<void> _onPageChange(int page) async {
     await _performSearch(page: page);
+    _maybePrefetchNextPage();
+  }
+
+  /// 检测快速翻页行为，提前加载下一页到缓存
+  void _maybePrefetchNextPage() {
+    final now = DateTime.now();
+
+    // 只保留最近的翻页记录
+    _recentPageChangeTimes.add(now);
+    if (_recentPageChangeTimes.length > _prefetchRapidCount) {
+      _recentPageChangeTimes.removeAt(0);
+    }
+
+    // 收集足够的记录后检测：所有相邻间隔 < 2 秒即视为快速翻页
+    if (_recentPageChangeTimes.length >= _prefetchRapidCount) {
+      final span = now.difference(_recentPageChangeTimes.first);
+      if (span < _prefetchInterval * _prefetchRapidCount) {
+        final pages = _handler.state.data?.comics.pages ?? 0;
+        final nextPage = _hasBoolOps ? _nextServerPage : _page + 1;
+        if (nextPage <= pages) {
+          // 与 _performRealtimeSearch 保持一致的 keyword 选择逻辑
+          final serverKw = _hasBoolOps
+              ? (_currentQuery.firstServerKeyword ?? _searchController.text)
+              : _searchController.text;
+          final cacheKey = SearchCache.buildKey(
+            _normalizeKeyword(serverKw),
+            _sortType,
+            _selectedCategories,
+          );
+          // 下一页不在缓存中才发起预加载
+          if (SearchCache.get(cacheKey, nextPage) == null) {
+            // 静默预加载，结果自动进 SearchCache；不更新 UI
+            unawaited(_performSearch(page: nextPage, silent: true));
+          }
+        }
+      }
+    }
   }
 
   bool get isSimpleMode => AppConf().comicBlockMode == ComicBlockMode.simple;
