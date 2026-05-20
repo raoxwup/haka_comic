@@ -15,6 +15,7 @@ import 'package:haka_comic/views/comics/common_pagination_footer.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/views/comics/sort_and_filter_toolbar.dart';
+import 'package:haka_comic/views/search/search_cache.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:opencc/opencc.dart';
@@ -71,11 +72,6 @@ class _SearchComicsState extends State<SearchComics>
   int _nextServerPage = 1;
   bool _autoFilling = false;
 
-  // API 级多页 LRU 缓存（扁平键含 page，布尔/非布尔共享）
-  static const int _maxApiCacheSize = 200;
-  final Map<String, SearchResponse> _apiCache = {};
-  final List<String> _apiCacheKeys = [];
-
   bool get _hasBoolOps =>
       AppConf().enableBooleanSearch &&
       (_currentQuery.andWords.isNotEmpty || _currentQuery.notWords.isNotEmpty);
@@ -85,22 +81,6 @@ class _SearchComicsState extends State<SearchComics>
     List<SearchComic> docs,
     SearchQuery query,
   ) => applyBooleanFilter(docs, query);
-
-  /// 构建 API 缓存扁平键：normalizedKeyword|sort|categories|page
-  String _buildApiCacheKey(String normalizedKeyword, int page) {
-    return '$normalizedKeyword|${_sortType.name}|${_selectedCategories.join(',')}|$page';
-  }
-
-  /// LRU 写入 API 缓存
-  void _putApiCache(String key, SearchResponse data) {
-    if (_apiCache.length >= _maxApiCacheSize &&
-        !_apiCache.containsKey(key)) {
-      _apiCache.remove(_apiCacheKeys.removeAt(0));
-    }
-    _apiCacheKeys.remove(key);
-    _apiCacheKeys.add(key);
-    _apiCache[key] = data;
-  }
 
   /// 根据设置规范化搜索词（简繁转换）
   String _normalizeKeyword(String keyword) {
@@ -157,6 +137,9 @@ class _SearchComicsState extends State<SearchComics>
         ? parseSearchQuery(keyword)
         : const SearchQuery();
 
+    // 连续两次无匹配则清空全部缓存
+    SearchCache.checkAndClearStale();
+
     // 新搜索（第1页）时清除旧数据，防止 reducer 追加
     if (targetPage == 1) _handler.resetState();
     setState(() => _page = targetPage);
@@ -174,14 +157,19 @@ class _SearchComicsState extends State<SearchComics>
             ? (_currentQuery.firstServerKeyword ?? _searchController.text)
             : _searchController.text;
     final normalizedKeyword = _normalizeKeyword(serverKeyword);
-    final cacheKey = _buildApiCacheKey(normalizedKeyword, page);
+    final cacheKey = SearchCache.buildKey(
+      normalizedKeyword,
+      _sortType,
+      _selectedCategories,
+    );
 
     // 查 API 缓存
-    final cached = _apiCache[cacheKey];
+    final cached = SearchCache.get(cacheKey, page);
     if (cached != null) {
-      _putApiCache(cacheKey, cached); // 更新 LRU 顺序
       _handler.mutate(cached);
+      SearchCache.markHit();
     } else {
+      // 发起网络请求
       final payload = SearchPayload(
         keyword: normalizedKeyword,
         page: page,
@@ -189,9 +177,30 @@ class _SearchComicsState extends State<SearchComics>
         categories: _selectedCategories,
       );
       await _handler.run(payload);
-      // 存入 API 缓存（存未过滤的原始响应）
+
       if (_handler.state.hasData) {
-        _putApiCache(cacheKey, _handler.state.data!);
+        final fresh = _handler.state.data!;
+
+        if (page == 1) {
+          if (SearchCache.validateFreshness(cacheKey, fresh)) {
+            // 数据未变，复用所有缓存页
+            SearchCache.markHit();
+            SearchCache.put(cacheKey, 1, fresh);
+            final pages = SearchCache.getCachedPages(cacheKey);
+            if (pages.length > 1) {
+              pages.sort();
+              final farthest = SearchCache.get(cacheKey, pages.last);
+              if (farthest != null) _handler.mutate(farthest);
+            }
+          } else {
+            // 数据已变，清除该条件的旧缓存，重新缓存
+            SearchCache.remove(cacheKey);
+            SearchCache.put(cacheKey, 1, fresh);
+            SearchCache.markMiss();
+          }
+        } else {
+          SearchCache.put(cacheKey, page, fresh);
+        }
       }
     }
 
@@ -238,13 +247,16 @@ class _SearchComicsState extends State<SearchComics>
       final normalizedKw = _normalizeKeyword(
         _currentQuery.firstServerKeyword ?? _searchController.text,
       );
+      final cacheKey = SearchCache.buildKey(
+        normalizedKw,
+        _sortType,
+        _selectedCategories,
+      );
       final results = await Future.wait<SearchResponse?>(batch.map((
         page,
       ) async {
-        final cacheKey = _buildApiCacheKey(normalizedKw, page);
-        final cached = _apiCache[cacheKey];
+        final cached = SearchCache.get(cacheKey, page);
         if (cached != null) {
-          _putApiCache(cacheKey, cached);
           return cached;
         }
         final payload = SearchPayload(
@@ -255,7 +267,7 @@ class _SearchComicsState extends State<SearchComics>
         );
         try {
           final response = await searchComics(payload);
-          _putApiCache(cacheKey, response);
+          SearchCache.put(cacheKey, page, response);
           return response;
         } catch (_) {
           return null;
