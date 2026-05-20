@@ -18,6 +18,7 @@ import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
 import 'package:haka_comic/views/comics/sort_and_filter_toolbar.dart';
 import 'package:haka_comic/views/search/search_cache.dart';
+import 'package:haka_comic/views/search/search_probe.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:opencc/opencc.dart';
@@ -74,6 +75,10 @@ class _SearchComicsState extends State<SearchComics>
   int _nextServerPage = 1;
   bool _autoFilling = false;
 
+  // ── 关键词探测 ─────────────────────────────
+  bool _probedKeywords = false;
+  String? _optimalServerKeyword;
+
   // ── 快速翻页预加载 ───────────────────────────
   final List<DateTime> _recentPageChangeTimes = [];
   static const _prefetchRapidCount = 3;
@@ -101,8 +106,6 @@ class _SearchComicsState extends State<SearchComics>
     _zhConverter ??= ZhConverter(mode);
     return _zhConverter!.convert(keyword);
   }
-
-
 
   @override
   List<RequestHandler> registerHandler() => [_handler];
@@ -145,6 +148,12 @@ class _SearchComicsState extends State<SearchComics>
         ? parseSearchQuery(keyword)
         : const SearchQuery();
 
+    // 新搜索重置探测状态（翻页不重置）
+    if (targetPage == 1) {
+      _probedKeywords = false;
+      _optimalServerKeyword = null;
+    }
+
     // 新搜索（第1页）时清除旧数据，防止 reducer 追加
     if (targetPage == 1 && !silent) _handler.resetState();
     if (!silent) setState(() => _page = targetPage);
@@ -156,12 +165,35 @@ class _SearchComicsState extends State<SearchComics>
   // ═══════════════════════════════════════
 
   Future<void> _performRealtimeSearch(int page, {bool silent = false}) async {
-    // 有布尔运算符时用 firstServerKeyword 发给 API
-    final serverKeyword =
-        _hasBoolOps
-            ? (_currentQuery.firstServerKeyword ?? _searchController.text)
-            : _searchController.text;
-    final normalizedKeyword = _normalizeKeyword(serverKeyword);
+    // ── 关键词选择（探测最优 or 直接用） ─────────
+    String normalizedKeyword;
+    SearchResponse? probeResult;
+
+    if (_hasBoolOps && !_probedKeywords) {
+      // 布尔模式首次搜索：探测最优关键词
+      final candidates = _currentQuery.candidateKeywords;
+      if (candidates.isEmpty) {
+        normalizedKeyword = _normalizeKeyword(_searchController.text);
+      } else {
+        final (kw, resp) = await probeOptimalKeyword(
+          candidates: candidates,
+          sortType: _sortType,
+          categories: _selectedCategories,
+          normalizeKeyword: _normalizeKeyword,
+        );
+        normalizedKeyword = kw;
+        probeResult = resp;
+        _probedKeywords = true;
+        _optimalServerKeyword = kw;
+      }
+    } else if (_hasBoolOps && _optimalServerKeyword != null) {
+      // 布尔模式后续翻页：复用已探测的最优词
+      normalizedKeyword = _optimalServerKeyword!;
+    } else {
+      // 非布尔模式
+      normalizedKeyword = _normalizeKeyword(_searchController.text);
+    }
+
     final cacheKey = SearchCache.buildKey(
       normalizedKeyword,
       _sortType,
@@ -188,21 +220,42 @@ class _SearchComicsState extends State<SearchComics>
       if (_handler.state.hasData) {
         SearchCache.put(cacheKey, page, _handler.state.data!);
         SearchCache.touch(cacheKey);
+        SearchProbeCache.put(
+          normalizedKeyword,
+          _selectedCategories,
+          _handler.state.data!.comics.total,
+        );
         if (!silent) _handler.mutate(_handler.state.data!);
       }
     } else {
-      // 无缓存 → 发请求，新建条目（life=5）
-      final payload = SearchPayload(
-        keyword: normalizedKeyword,
-        page: page,
-        sort: _sortType,
-        categories: _selectedCategories,
-      );
-      await _handler.run(payload);
+      // 无缓存 → 新建条目
+      // probe 可能已写入 SearchCache，先检查
+      final cached = SearchCache.get(cacheKey, page);
+      SearchResponse? fresh;
 
-      if (_handler.state.hasData) {
-        final fresh = _handler.state.data!;
+      if (cached != null) {
+        fresh = cached; // probe 写入的 page 1
+      } else if (probeResult != null && page == 1) {
+        fresh = probeResult; // probe 直接返回的结果
+      } else {
+        final payload = SearchPayload(
+          keyword: normalizedKeyword,
+          page: page,
+          sort: _sortType,
+          categories: _selectedCategories,
+        );
+        await _handler.run(payload);
+        fresh = _handler.state.data;
+        if (fresh != null) {
+          SearchProbeCache.put(
+            normalizedKeyword,
+            _selectedCategories,
+            fresh.comics.total,
+          );
+        }
+      }
 
+      if (fresh != null) {
         if (page == 1 && SearchCache.getCachedPages(cacheKey).isNotEmpty) {
           // 条目已过期但仍有缓存数据 → 做新鲜度校验
           if (SearchCache.validateFreshness(cacheKey, fresh)) {
@@ -223,6 +276,7 @@ class _SearchComicsState extends State<SearchComics>
           // 全新条目或非首页 → 直接缓存
           SearchCache.put(cacheKey, page, fresh);
         }
+        if (!silent) _handler.mutate(fresh);
       }
     }
 
@@ -249,7 +303,6 @@ class _SearchComicsState extends State<SearchComics>
   /// 自动填充：布尔过滤后结果不足时，并发请求后续页补充
   Future<void> _autoFillResults(int totalPages) async {
     _autoFilling = true;
-    final batchSize = AppConf().maxRequestsPerSecond;
     const maxAutoPages = 10; // 安全上限
 
     // 预计算需要请求的页码列表
@@ -260,27 +313,31 @@ class _SearchComicsState extends State<SearchComics>
       pagesToFetch.add(p);
     }
 
-    // 按 batchSize 分批并发
-    for (int i = 0;
-        i < pagesToFetch.length && _autoFilling && mounted;
-        i += batchSize) {
-      final batch = pagesToFetch.skip(i).take(batchSize);
+    if (pagesToFetch.isEmpty) {
+      _autoFilling = false;
+      return;
+    }
 
-      final normalizedKw = _normalizeKeyword(
-        _currentQuery.firstServerKeyword ?? _searchController.text,
-      );
-      final cacheKey = SearchCache.buildKey(
-        normalizedKw,
-        _sortType,
-        _selectedCategories,
-      );
-      final results = await Future.wait<SearchResponse?>(batch.map((
-        page,
-      ) async {
+    final normalizedKw = _optimalServerKeyword ??
+        _normalizeKeyword(
+          _currentQuery.firstServerKeyword ?? _searchController.text,
+        );
+    final cacheKey = SearchCache.buildKey(
+      normalizedKw,
+      _sortType,
+      _selectedCategories,
+    );
+
+    // 并发请求所有页，由限速器控制发出节奏
+    final results = await Future.wait<SearchResponse?>(
+      pagesToFetch.map((page) async {
+        await searchLimiter.wait();
+
+        if (!_autoFilling || !mounted) return null;
+
         final cached = SearchCache.get(cacheKey, page);
-        if (cached != null) {
-          return cached;
-        }
+        if (cached != null) return cached;
+
         final payload = SearchPayload(
           keyword: normalizedKw,
           page: page,
@@ -294,43 +351,39 @@ class _SearchComicsState extends State<SearchComics>
         } catch (_) {
           return null;
         }
-      }));
+      }),
+    );
 
-      if (!_autoFilling || !mounted) break;
+    if (!_autoFilling || !mounted) {
+      _autoFilling = false;
+      return;
+    }
 
-      // 过滤并累积结果
-      final existingDocs = _handler.state.data?.comics.docs ?? [];
-      final allFiltered = List<SearchComic>.from(existingDocs);
-      for (final result in results) {
-        if (result == null) continue;
-        final filtered = _applyBooleanFilter(
-          result.comics.docs,
-          _currentQuery,
-        );
-        allFiltered.addAll(filtered);
-      }
+    // 过滤并累积结果
+    final existingDocs = _handler.state.data?.comics.docs ?? [];
+    final allFiltered = List<SearchComic>.from(existingDocs);
+    for (final result in results) {
+      if (result == null) continue;
+      final filtered = _applyBooleanFilter(
+        result.comics.docs,
+        _currentQuery,
+      );
+      allFiltered.addAll(filtered);
+    }
 
-      // 去重并更新 UI
-      final seen = <String>{};
-      final deduped = allFiltered.where((c) => seen.add(c.uid)).toList();
-      _nextServerPage = (pagesToFetch[i + batch.length - 1]) + 1;
-      final base = _handler.state.data;
-      if (base != null) {
-        _handler.mutate(
-          base.copyWith.comics(
-            docs: deduped,
-            total: deduped.length,
-            pages: totalPages,
-          ),
-        );
-      }
-
-      if (deduped.length >= 20) break;
-
-      // 批次间等待 1 秒（速率限制）
-      if (i + batchSize < pagesToFetch.length) {
-        await Future.delayed(const Duration(seconds: 1));
-      }
+    // 去重并更新 UI
+    final seen = <String>{};
+    final deduped = allFiltered.where((c) => seen.add(c.uid)).toList();
+    _nextServerPage = pagesToFetch.last + 1;
+    final base = _handler.state.data;
+    if (base != null) {
+      _handler.mutate(
+        base.copyWith.comics(
+          docs: deduped,
+          total: deduped.length,
+          pages: totalPages,
+        ),
+      );
     }
 
     // 同步页码，使后续 loadMore 从正确位置继续
@@ -362,7 +415,7 @@ class _SearchComicsState extends State<SearchComics>
         if (nextPage <= pages) {
           // 与 _performRealtimeSearch 保持一致的 keyword 选择逻辑
           final serverKw = _hasBoolOps
-              ? (_currentQuery.firstServerKeyword ?? _searchController.text)
+              ? (_optimalServerKeyword ?? _searchController.text)
               : _searchController.text;
           final cacheKey = SearchCache.buildKey(
             _normalizeKeyword(serverKw),

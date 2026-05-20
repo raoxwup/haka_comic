@@ -20,7 +20,7 @@ Future<LoginResponse> login(LoginPayload payload) async {
 
 /// 分类（缓存 1 小时）
 Future<CategoriesResponse> fetchCategories() async {
-  final cached = Cache.get('categories');
+  final cached = Cache.get<Map<String, dynamic>>('categories');
   if (cached != null) {
     return BaseResponse<CategoriesResponse>.fromJson(
       cached,
@@ -53,7 +53,7 @@ Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
 /// 漫画详情（缓存 10 分钟）
 Future<ComicDetailsResponse> fetchComicDetails(String id) async {
   final cacheKey = 'comic_details_$id';
-  final cached = Cache.get(cacheKey);
+  final cached = Cache.get<Map<String, dynamic>>(cacheKey);
   if (cached != null) {
     return BaseResponse<ComicDetailsResponse>.fromJson(
       cached,
@@ -345,7 +345,7 @@ Future<UserProfileResponse> fetchUserProfile() async {
 /// 获取排行榜
 Future<ComicRankResponse> fetchComicRank(ComicRankPayload payload) async {
   final cacheKey = 'rank_${payload.type.name}';
-  final cached = Cache.get(cacheKey);
+  final cached = Cache.get<Map<String, dynamic>>(cacheKey);
   if (cached != null) {
     return BaseResponse<ComicRankResponse>.fromJson(
       cached,
@@ -371,7 +371,7 @@ Future<void> punchIn() async {
 
 /// 获取骑士排行榜（缓存 30 分钟）
 Future<KnightRankResponse> fetchKnightRank() async {
-  final cached = Cache.get('rank_knight');
+  final cached = Cache.get<Map<String, dynamic>>('rank_knight');
   if (cached != null) {
     return BaseResponse<KnightRankResponse>.fromJson(
       cached,
@@ -410,7 +410,7 @@ Future<PersonalCommentsResponse> fetchPersonalComments(int page) async {
 /// 获取热搜词
 Future<HotSearchWordsResponse> fetchHotSearchWords() async {
   Map<String, dynamic> response;
-  final map = Cache.get('keywords');
+  final map = Cache.get<Map<String, dynamic>>('keywords');
   if (map != null) {
     response = map;
   } else {

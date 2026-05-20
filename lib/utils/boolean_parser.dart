@@ -3,8 +3,7 @@
 /// 语法：空格分隔，+ 前缀 AND，- 前缀 NOT
 /// 示例："萝莉 +教师 -NTR" → OR:[萝莉], AND:[教师], NOT:[NTR]
 /// 无运算符的纯文本（如"萝莉教师"）→ 整体作为 OR 关键词
-
-/// 搜索布尔查询
+///
 /// 结构：(OR1 OR OR2 ...) AND (AND1 AND AND2 ...) AND (NOT1 AND NOT2 ...)
 class SearchQuery {
   final List<String> orWords;
@@ -24,6 +23,17 @@ class SearchQuery {
     if (orWords.isNotEmpty) return orWords.first;
     if (andWords.isNotEmpty) return andWords.first;
     return null;
+  }
+
+  /// 所有可用于服务器查询的候选词（OR + AND，去重保序）
+  /// NOT 词不参与（搜 NOT 词没有意义）
+  List<String> get candidateKeywords {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final w in [...orWords, ...andWords]) {
+      if (seen.add(w)) result.add(w);
+    }
+    return result;
   }
 }
 

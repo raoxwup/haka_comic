@@ -68,7 +68,7 @@ class _CategoryFilterPanelState extends State<CategoryFilterPanel> {
     try {
       // 先检查缓存
       const cacheKey = 'categories_list';
-      final cached = Cache.get(cacheKey);
+      final cached = Cache.get<Map<String, dynamic>>(cacheKey);
       CategoriesResponse response;
       if (cached != null) {
         response = CategoriesResponse.fromJson(cached);
