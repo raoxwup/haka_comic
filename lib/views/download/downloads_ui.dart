@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/utils/shared_preferences_util.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
@@ -22,20 +22,18 @@ typedef _DownloadTaskAction = ({
   void Function(String taskId) action,
 });
 
-const _downloadTaskSortOrderPreferenceKey = 'downloadTaskSortOrder';
-
-enum _DownloadTaskSortOrder {
+enum DownloadTaskSortOrder {
   oldestFirst('旧到新'),
   newestFirst('新到旧');
 
-  const _DownloadTaskSortOrder(this.label);
+  const DownloadTaskSortOrder(this.label);
 
   final String label;
 
-  static _DownloadTaskSortOrder fromName(String? name) {
-    return _DownloadTaskSortOrder.values.firstWhere(
+  static DownloadTaskSortOrder fromName(String? name) {
+    return values.firstWhere(
       (value) => value.name == name,
-      orElse: () => _DownloadTaskSortOrder.oldestFirst,
+      orElse: () => oldestFirst,
     );
   }
 }
@@ -81,16 +79,11 @@ class _DownloadsState extends State<Downloads> {
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
   int _downloadSpeed = 0;
-  late _DownloadTaskSortOrder _sortOrder;
+  late DownloadTaskSortOrder _sortOrder = AppConf().downloadTaskSortOrder;
 
   @override
   void initState() {
     super.initState();
-    _sortOrder = _DownloadTaskSortOrder.fromName(
-      SharedPreferencesUtil.prefsWithCache.getString(
-        _downloadTaskSortOrderPreferenceKey,
-      ),
-    );
     _subscription =
         (widget.taskStream ?? BackgroundDownloader.streamController.stream)
             .listen(
@@ -120,23 +113,18 @@ class _DownloadsState extends State<Downloads> {
 
   List<ComicDownloadTask> get _displayTasks {
     return switch (_sortOrder) {
-      _DownloadTaskSortOrder.oldestFirst => tasks,
-      _DownloadTaskSortOrder.newestFirst => tasks.reversed.toList(),
+      DownloadTaskSortOrder.oldestFirst => tasks,
+      DownloadTaskSortOrder.newestFirst => tasks.reversed.toList(),
     };
   }
 
-  void _setSortOrder(_DownloadTaskSortOrder sortOrder) {
+  void _setSortOrder(DownloadTaskSortOrder sortOrder) {
     if (_sortOrder == sortOrder) {
       return;
     }
 
     setState(() => _sortOrder = sortOrder);
-    unawaited(
-      SharedPreferencesUtil.prefsWithCache.setString(
-        _downloadTaskSortOrderPreferenceKey,
-        sortOrder.name,
-      ),
-    );
+    AppConf().downloadTaskSortOrder = sortOrder;
   }
 
   void clearTasks() async {
@@ -455,8 +443,8 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
   final int downloadSpeed;
-  final _DownloadTaskSortOrder sortOrder;
-  final ValueChanged<_DownloadTaskSortOrder> onSortOrderChanged;
+  final DownloadTaskSortOrder sortOrder;
+  final ValueChanged<DownloadTaskSortOrder> onSortOrderChanged;
 
   const _NormalAppBar({
     required this.onEnterSelection,
@@ -470,15 +458,15 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
-        PopupMenuButton<_DownloadTaskSortOrder>(
+        PopupMenuButton<DownloadTaskSortOrder>(
           tooltip: '排序',
           icon: const Icon(Icons.sort),
           initialValue: sortOrder,
           onSelected: onSortOrderChanged,
           itemBuilder: (context) {
             return [
-              for (final order in _DownloadTaskSortOrder.values)
-                CheckedPopupMenuItem<_DownloadTaskSortOrder>(
+              for (final order in DownloadTaskSortOrder.values)
+                CheckedPopupMenuItem<DownloadTaskSortOrder>(
                   value: order,
                   checked: order == sortOrder,
                   child: Text(order.label),

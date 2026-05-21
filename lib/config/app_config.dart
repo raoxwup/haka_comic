@@ -1,6 +1,7 @@
 import 'package:haka_comic/network/utils.dart';
 import 'package:haka_comic/network/proxy_config.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
+import 'package:haka_comic/views/download/downloads_ui.dart';
 import 'package:haka_comic/views/reader/state/read_mode.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 
@@ -114,6 +115,10 @@ class AppConf {
   /// 菜单是否已锁定
   bool _menuLocked = false;
 
+  /// 下载页面排序规则
+  DownloadTaskSortOrder _downloadTaskSortOrder =
+      DownloadTaskSortOrder.oldestFirst;
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -177,6 +182,9 @@ class AppConf {
     instance._preloadImageCount =
         prefsWithCache.getInt('preloadImageCount') ?? 4;
     instance._menuLocked = prefsWithCache.getBool('menuLocked') ?? false;
+    instance._downloadTaskSortOrder = DownloadTaskSortOrder.fromName(
+      prefsWithCache.getString('downloadTaskSortOrder'),
+    );
   }
 
   set email(String value) {
@@ -397,6 +405,14 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setBool('menuLocked', value);
   }
 
+  set downloadTaskSortOrder(DownloadTaskSortOrder value) {
+    _downloadTaskSortOrder = value;
+    SharedPreferencesUtil.prefsWithCache.setString(
+      'downloadTaskSortOrder',
+      value.name,
+    );
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -436,6 +452,7 @@ class AppConf {
   bool get enablePageAnimation => _enablePageAnimation;
   int get preloadImageCount => _preloadImageCount;
   bool get menuLocked => _menuLocked;
+  DownloadTaskSortOrder get downloadTaskSortOrder => _downloadTaskSortOrder;
 
   /// 清除token
   void clearAuth() {
