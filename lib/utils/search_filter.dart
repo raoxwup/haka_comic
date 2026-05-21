@@ -4,8 +4,7 @@ import 'package:haka_comic/utils/zh_hans.dart';
 
 /// 构建单个漫画的匹配文本（简体 + 小写）
 ///
-/// 拼接 title + author + description + tags + categories，繁体转简体后小写化。
-/// 对齐 picacg-qt Search2 的搜索范围（title/author/description/tags/categories）。
+/// 拼接 title + author + chineseTeam + description + tags + categories，繁体转简体后小写化。
 /// 用于客户端布尔过滤，确保繁简/大小写都能匹配。
 String buildMatchText(SearchComic comic) {
   final parts = <String>[

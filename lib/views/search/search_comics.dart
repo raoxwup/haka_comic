@@ -86,7 +86,7 @@ class _SearchComicsState extends State<SearchComics>
       AppConf().enableBooleanSearch &&
       (_currentQuery.andWords.isNotEmpty || _currentQuery.notWords.isNotEmpty);
 
-  /// 客户端布尔过滤：按 andWords/notWords 过滤 API 返回结果
+  /// 客户端布尔过滤：按 orWords/andWords/notWords 过滤 API 返回结果
   List<SearchComic> _applyBooleanFilter(
     List<SearchComic> docs,
     SearchQuery query,
@@ -295,7 +295,7 @@ class _SearchComicsState extends State<SearchComics>
     }
   }
 
-  /// 自动填充：布尔过滤后结果不足时，并发请求后续页补充
+  /// 自动填充：布尔过滤后结果不足时，顺序请求后续页补充
   Future<void> _autoFillResults(int totalPages) async {
     _autoFilling = true;
 
