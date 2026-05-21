@@ -13,6 +13,7 @@ import 'package:haka_comic/views/reader/widgets/comic_list_mixin.dart';
 import 'package:haka_comic/views/reader/providers/reader_provider.dart';
 import 'package:haka_comic/views/reader/utils/utils.dart';
 import 'package:haka_comic/views/reader/widgets/reader_image.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -168,7 +169,10 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
                   final item = images[index];
                   final ImageProvider base =
                       context.reader.type == ReaderType.network
-                      ? CachedNetworkImageProvider(item.url)
+                      ? CachedNetworkImageProvider(
+                          item.url,
+                          cacheManager: cacheManager,
+                        )
                       : FileImage(File(item.url));
                   // 与 ReaderImage / 预加载统一用 ResizeImage 做解码限制，
                   // 保证共享同一个 ImageCache 条目

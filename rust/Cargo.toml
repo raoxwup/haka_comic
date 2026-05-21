@@ -13,7 +13,6 @@ walkdir = "2.5.0"
 image = "0.25.10"
 rayon = "1.12.0"
 human-sort = "0.2.2"
-sysproxy = "0.3.0"
 
 [profile.release]
 opt-level = 3

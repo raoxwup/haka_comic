@@ -44,7 +44,11 @@ void main() {
       source,
       contains("package:cached_network_image_ce/cached_network_image.dart"),
     );
-    expect(source, contains('CachedNetworkImageProvider(item.url)'));
+    expect(source, contains('CachedNetworkImageProvider('));
+    expect(source, contains('item.url'));
+    // 单页分支必须显式传入共享的 cacheManager，
+    // 否则会与默认 cacheManager 抢同一个 Hive box 引发互相清缓存。
+    expect(source, contains('cacheManager: cacheManager'));
     expect(source, contains('CachedNetworkImage.evictFromCache(item.url)'));
     expect(source, isNot(contains('ExtendedNetworkImageProvider')));
     expect(source, isNot(contains('clearMemoryImageCache')));

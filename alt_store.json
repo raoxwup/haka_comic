@@ -3,7 +3,7 @@
   "subtitle": "第三方哗咔漫画跨平台客户端",
   "description": "用于通过 AltStore / SideStore 安装与更新 HaKa Comic（iOS IPA）。",
   "website": "https://github.com/raoxwup/haka_comic",
-  "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/Light.png",
+  "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/AppIcon.png",
   "apps": [
     {
       "name": "HaKa Comic",
@@ -11,7 +11,7 @@
       "developerName": "raoxwup",
       "subtitle": "第三方哗咔漫画客户端",
       "localizedDescription": "第三方哗咔漫画跨平台客户端（学习/练习项目）。",
-      "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/Light.png",
+      "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/AppIcon.png",
       "versions": [
         {
           "version": "1.2.4",

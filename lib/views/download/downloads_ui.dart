@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/utils/common.dart';
@@ -20,6 +21,22 @@ typedef _DownloadTaskAction = ({
   IconData icon,
   void Function(String taskId) action,
 });
+
+enum DownloadTaskSortOrder {
+  oldestFirst('旧到新'),
+  newestFirst('新到旧');
+
+  const DownloadTaskSortOrder(this.label);
+
+  final String label;
+
+  static DownloadTaskSortOrder fromName(String? name) {
+    return values.firstWhere(
+      (value) => value.name == name,
+      orElse: () => oldestFirst,
+    );
+  }
+}
 
 _DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
   return switch (status) {
@@ -40,7 +57,16 @@ _DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
 }
 
 class Downloads extends StatefulWidget {
-  const Downloads({super.key});
+  const Downloads({
+    super.key,
+    this.taskStream,
+    this.speedStream,
+    this.onRequestTasks,
+  });
+
+  final Stream<List<ComicDownloadTask>>? taskStream;
+  final Stream<int>? speedStream;
+  final VoidCallback? onRequestTasks;
 
   @override
   State<Downloads> createState() => _DownloadsState();
@@ -53,18 +79,23 @@ class _DownloadsState extends State<Downloads> {
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
   int _downloadSpeed = 0;
+  late DownloadTaskSortOrder _sortOrder = AppConf().downloadTaskSortOrder;
 
   @override
   void initState() {
     super.initState();
-    _subscription = BackgroundDownloader.streamController.stream.listen(
-      (event) => setState(() {
-        tasks = event;
-      }),
-    );
-    _speedSubscription = BackgroundDownloader.speedStreamController.stream
-        .listen((speed) => setState(() => _downloadSpeed = speed));
-    BackgroundDownloader.getTasks();
+    _subscription =
+        (widget.taskStream ?? BackgroundDownloader.streamController.stream)
+            .listen(
+              (event) => setState(() {
+                tasks = event;
+              }),
+            );
+    _speedSubscription =
+        (widget.speedStream ??
+                BackgroundDownloader.speedStreamController.stream)
+            .listen((speed) => setState(() => _downloadSpeed = speed));
+    (widget.onRequestTasks ?? BackgroundDownloader.getTasks).call();
   }
 
   @override
@@ -78,6 +109,22 @@ class _DownloadsState extends State<Downloads> {
     return tasks
         .where((task) => _selectedTaskIds.contains(task.comic.id))
         .toList();
+  }
+
+  List<ComicDownloadTask> get _displayTasks {
+    return switch (_sortOrder) {
+      DownloadTaskSortOrder.oldestFirst => tasks,
+      DownloadTaskSortOrder.newestFirst => tasks.reversed.toList(),
+    };
+  }
+
+  void _setSortOrder(DownloadTaskSortOrder sortOrder) {
+    if (_sortOrder == sortOrder) {
+      return;
+    }
+
+    setState(() => _sortOrder = sortOrder);
+    AppConf().downloadTaskSortOrder = sortOrder;
   }
 
   void clearTasks() async {
@@ -169,6 +216,14 @@ class _DownloadsState extends State<Downloads> {
       icon: const Icon(Icons.check),
       value: 'select',
     ),
+    MenuItem(
+      label: Text(
+        '查看详情',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.details),
+      value: 'details',
+    ),
   ];
 
   late final menu = ContextMenu(
@@ -192,6 +247,8 @@ class _DownloadsState extends State<Downloads> {
           _selectedTaskIds.add(task.comic.id);
         });
         break;
+      case 'details':
+        context.push('/details/${task.comic.id}');
     }
   }
 
@@ -232,6 +289,7 @@ class _DownloadsState extends State<Downloads> {
   @override
   Widget build(BuildContext context) {
     final width = context.width;
+    final displayTasks = _displayTasks;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -261,6 +319,8 @@ class _DownloadsState extends State<Downloads> {
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
                 downloadSpeed: _downloadSpeed,
+                sortOrder: _sortOrder,
+                onSortOrderChanged: _setSortOrder,
               ),
         body: SafeArea(
           child: CustomScrollView(
@@ -278,7 +338,7 @@ class _DownloadsState extends State<Downloads> {
                   childAspectRatio: 2.5,
                 ),
                 itemBuilder: (context, index) {
-                  final task = tasks[index];
+                  final task = displayTasks[index];
                   final isSelected = _selectedTaskIds.contains(task.comic.id);
                   return _DownloadTaskItem(
                     task: task,
@@ -302,7 +362,7 @@ class _DownloadsState extends State<Downloads> {
                     downloadSpeed: _downloadSpeed,
                   );
                 },
-                itemCount: tasks.length,
+                itemCount: displayTasks.length,
               ),
             ],
           ),
@@ -383,9 +443,14 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
   final int downloadSpeed;
+  final DownloadTaskSortOrder sortOrder;
+  final ValueChanged<DownloadTaskSortOrder> onSortOrderChanged;
+
   const _NormalAppBar({
     required this.onEnterSelection,
     required this.downloadSpeed,
+    required this.sortOrder,
+    required this.onSortOrderChanged,
   });
 
   @override
@@ -393,6 +458,22 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
+        PopupMenuButton<DownloadTaskSortOrder>(
+          tooltip: '排序',
+          icon: const Icon(Icons.sort),
+          initialValue: sortOrder,
+          onSelected: onSortOrderChanged,
+          itemBuilder: (context) {
+            return [
+              for (final order in DownloadTaskSortOrder.values)
+                CheckedPopupMenuItem<DownloadTaskSortOrder>(
+                  value: order,
+                  checked: order == sortOrder,
+                  child: Text(order.label),
+                ),
+            ];
+          },
+        ),
         IconButton(
           onPressed: onEnterSelection,
           icon: const Icon(Icons.checklist_rtl),

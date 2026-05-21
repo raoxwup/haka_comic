@@ -47,7 +47,6 @@ class _AboutState extends State<About> with RequestMixin {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
     return Scaffold(
       appBar: AppBar(title: const Text('关于')),
       body: ListView(
@@ -59,9 +58,7 @@ class _AboutState extends State<About> with RequestMixin {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: Image.asset(
-                  isDarkMode
-                      ? 'assets/icons/ios/Dark.png'
-                      : 'assets/icons/ios/Light.png',
+                  'assets/icons/android/ic_launcher_foreground.png',
                   fit: BoxFit.cover,
                 ),
               ),

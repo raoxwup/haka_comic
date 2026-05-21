@@ -53,6 +53,13 @@ void EnableFullDpiSupportIfAvailable(HWND hwnd) {
   FreeLibrary(user32_module);
 }
 
+HICON LoadAppIcon(int width, int height) {
+  return static_cast<HICON>(LoadImage(GetModuleHandle(nullptr),
+                                      MAKEINTRESOURCE(IDI_APP_ICON),
+                                      IMAGE_ICON, width, height,
+                                      LR_DEFAULTCOLOR | LR_SHARED));
+}
+
 }  // namespace
 
 // Manages the Win32Window's window class registration.
@@ -96,7 +103,7 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     window_class.cbWndExtra = 0;
     window_class.hInstance = GetModuleHandle(nullptr);
     window_class.hIcon =
-        LoadIcon(window_class.hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
+        LoadAppIcon(GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON));
     window_class.hbrBackground = 0;
     window_class.lpszMenuName = nullptr;
     window_class.lpfnWndProc = Win32Window::WndProc;
@@ -142,6 +149,20 @@ bool Win32Window::Create(const std::wstring& title,
 
   if (!window) {
     return false;
+  }
+
+  HICON large_icon =
+      LoadAppIcon(GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON));
+  if (large_icon) {
+    SendMessage(window, WM_SETICON, ICON_BIG,
+                reinterpret_cast<LPARAM>(large_icon));
+  }
+
+  HICON small_icon = LoadAppIcon(GetSystemMetrics(SM_CXSMICON),
+                                GetSystemMetrics(SM_CYSMICON));
+  if (small_icon) {
+    SendMessage(window, WM_SETICON, ICON_SMALL,
+                reinterpret_cast<LPARAM>(small_icon));
   }
 
   UpdateTheme(window);

@@ -70,24 +70,68 @@ class _LoginState extends State<Login> with RequestMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            spacing: 20,
-            children: [
-              SizedBox(height: isDesktop ? 30 : 70),
-              Image.asset('assets/images/login.png', width: 160),
-              _buildLoginForm(),
-            ],
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Center(
+              child: Column(
+                spacing: 20,
+                children: [
+                  SizedBox(height: isDesktop ? 30 : 70),
+                  Image.asset(
+                    'assets/icons/android/ic_launcher_foreground.png',
+                    width: 180,
+                  ),
+                  _buildLoginForm(),
+                ],
+              ),
+            ),
           ),
-        ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 8),
+                child: _buildSettingsMenu(),
+              ),
+            ),
+          ),
+        ],
       ),
-      // persistentFooterButtons: [
-      //   IconButton(
-      //     onPressed: () => context.push('/settings'),
-      //     icon: const Icon(Icons.settings),
-      //   ),
-      // ],
+    );
+  }
+
+  Widget _buildSettingsMenu() {
+    return MenuAnchor(
+      builder: (context, controller, child) {
+        return IconButton(
+          tooltip: '设置',
+          icon: const Icon(Icons.more_horiz),
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+        );
+      },
+      menuChildren: [
+        MenuItemButton(
+          style: MenuItemButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          onPressed: () => context.push('/api_settings'),
+          child: const Text('API切换'),
+        ),
+        MenuItemButton(
+          style: MenuItemButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          onPressed: () => context.push('/proxy_settings'),
+          child: const Text('代理设置'),
+        ),
+      ],
     );
   }
 
@@ -154,15 +198,6 @@ class _LoginState extends State<Login> with RequestMixin {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => context.push('/api_settings'),
-                  child: const Text('API切换'),
-                ),
-                TextButton(
-                  onPressed: () => context.push('/proxy_settings'),
-                  child: const Text('代理设置'),
-                ),
-                const Spacer(),
                 const Text('没有账号？'),
                 TextButton(
                   onPressed: () => context.push('/register'),

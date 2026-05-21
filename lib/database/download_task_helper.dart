@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -73,7 +72,7 @@ final migrations = SqliteMigrations()
     }),
   );
 
-class DownloadTaskHelper with ChangeNotifier {
+class DownloadTaskHelper {
   DownloadTaskHelper._create();
 
   static final _instance = DownloadTaskHelper._create();
@@ -115,7 +114,6 @@ class DownloadTaskHelper with ChangeNotifier {
 
   /// 插入或者更新下载任务列表
   Future<void> insert(List<ComicDownloadTask> tasks) async {
-    notifyListeners();
     await _db.writeTransaction((tx) async {
       for (var task in tasks) {
         await tx.execute(

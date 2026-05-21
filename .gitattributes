@@ -7,3 +7,4 @@ macos/Flutter/GeneratedPluginRegistrant.swift text eol=lf
 windows/flutter/generated_plugin_registrant.cc text eol=lf
 windows/flutter/generated_plugin_registrant.h text eol=lf
 windows/flutter/generated_plugins.cmake text eol=lf
+.devcontainer/*.sh text eol=lf
