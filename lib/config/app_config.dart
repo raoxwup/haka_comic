@@ -78,9 +78,6 @@ class AppConf {
   /// 横向阅读菜单呼出占比
   double _horizontalCenterFraction = 0.4;
 
-  /// 搜索范围
-  List<String> _searchScopes = ['title', 'tag', 'category', 'author'];
-
   /// 每秒请求数上限（填充式加载）
   int _maxRequestsPerSecond = 3;
 
@@ -181,9 +178,6 @@ class AppConf {
     instance._themeMode = prefsWithCache.getString('theme_mode') ?? 'System';
     instance._primaryColor =
         prefsWithCache.getString('primary_color') ?? 'System';
-    instance._searchScopes =
-        prefsWithCache.getStringList('searchScopes') ??
-            ['title', 'tag', 'category', 'author'];
     instance._maxRequestsPerSecond =
         (prefsWithCache.getInt('maxRequestsPerSecond') ?? 3).clamp(1, 5);
     instance._enableBooleanSearch =
@@ -383,11 +377,6 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setString('primary_color', value);
   }
 
-  set searchScopes(List<String> value) {
-    _searchScopes = value;
-    SharedPreferencesUtil.prefsWithCache.setStringList('searchScopes', value);
-  }
-
   set maxRequestsPerSecond(int value) {
     _maxRequestsPerSecond = value.clamp(1, 5);
     SharedPreferencesUtil.prefsWithCache.setInt('maxRequestsPerSecond', _maxRequestsPerSecond);
@@ -485,7 +474,6 @@ class AppConf {
   double get scrollSpeed => _scrollSpeed;
   String get themeMode => _themeMode;
   String get primaryColor => _primaryColor;
-  List<String> get searchScopes => _searchScopes;
   int get maxRequestsPerSecond => _maxRequestsPerSecond;
   bool get enableBooleanSearch => _enableBooleanSearch;
   String get searchNormalization => _searchNormalization;

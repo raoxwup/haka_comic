@@ -102,7 +102,7 @@ Future<(String, SearchResponse?)> probeOptimalKeyword({
     }));
   }
 
-  // 选 total 最小的词
+  // 选 total 最小的词（缩小范围减少流量）
   if (cacheTotals.isEmpty) {
     return (normalized.first, null);
   }
