@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
 class SearchSettings extends StatefulWidget {
   const SearchSettings({super.key});
@@ -16,38 +17,6 @@ class _SearchSettingsState extends State<SearchSettings> {
     ('t2s', '繁→简'),
   ];
 
-  void _showNormalizationSelector(AppConf conf) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return SimpleDialog(
-          title: const Text('规范化搜索词'),
-          children: _normalizationOptions.map((opt) {
-            final selected = conf.searchNormalization == opt.$1;
-            return SimpleDialogOption(
-              onPressed: () {
-                setState(() => conf.searchNormalization = opt.$1);
-                Navigator.pop(ctx);
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(opt.$2),
-                ],
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final conf = AppConf();
@@ -55,31 +24,31 @@ class _SearchSettingsState extends State<SearchSettings> {
     return Column(
       children: [
         // ═══ 规范化搜索词 ═══
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: context.colorScheme.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.translate_outlined, size: 22),
-          ),
-          title: const Text('规范化搜索词'),
+        MenuListTile.withValue(
+          icon: Icons.translate_outlined,
+          title: '规范化搜索词',
           subtitle: const Text('将搜索词统一转换后再查询'),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 5,
-            children: [
-              Text(
-                _normalizationOptions
-                    .firstWhere((o) => o.$1 == conf.searchNormalization)
-                    .$2,
-                style: const TextStyle(fontSize: 12),
+          value: _normalizationOptions
+              .firstWhere((o) => o.$1 == conf.searchNormalization)
+              .$2,
+          items: _normalizationOptions.map((opt) {
+            final selected = conf.searchNormalization == opt.$1;
+            return PopupMenuItem(
+              value: opt.$1,
+              child: ListTile(
+                leading: Icon(
+                  selected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  color: Theme.of(context).primaryColor,
+                ),
+                title: Text(opt.$2),
               ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
-          onTap: () => _showNormalizationSelector(conf),
+            );
+          }).toList(),
+          onSelected: (value) {
+            setState(() => conf.searchNormalization = value);
+          },
         ),
 
         // ═══ 条件搜索 ═══

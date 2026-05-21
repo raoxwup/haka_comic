@@ -17,6 +17,7 @@ class Client {
             baseUrl: AppConf().api.host,
             responseType: ResponseType.json,
             connectTimeout: const Duration(seconds: 10),
+            receiveTimeout: const Duration(seconds: 30),
             validateStatus: (status) {
               return status == 200 || status == 400 || status == 401;
             },
