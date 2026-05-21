@@ -228,6 +228,14 @@ class _DownloadsState extends State<Downloads> {
       icon: const Icon(Icons.check),
       value: 'select',
     ),
+    MenuItem(
+      label: Text(
+        '查看详情',
+        style: TextStyle(fontFamily: isLinux ? 'HarmonyOS Sans' : null),
+      ),
+      icon: const Icon(Icons.details),
+      value: 'details',
+    ),
   ];
 
   late final menu = ContextMenu(
@@ -251,6 +259,8 @@ class _DownloadsState extends State<Downloads> {
           _selectedTaskIds.add(task.comic.id);
         });
         break;
+      case 'details':
+        context.push('/details/${task.comic.id}');
     }
   }
 
