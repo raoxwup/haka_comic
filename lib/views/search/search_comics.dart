@@ -73,6 +73,16 @@ class _SearchComicsState extends State<SearchComics>
   int _nextServerPage = 1;
   bool _autoFilling = false;
 
+  // ── 失败页收集（仅布尔模式） ───────────────
+  final _failedPages = <int, int>{}; // page → failCount
+  static const _maxFailRetries = 2;
+
+  // ── autoFill/loadMore 共享状态 ─────────────
+  List<SearchComic> _allFiltered = [];
+  final Set<String> _globalSeen = {};
+  String _searchCacheKey = '';
+  String _serverKeyword = '';
+
   // ── 关键词探测 ─────────────────────────────
   bool _probedKeywords = false;
   String? _optimalServerKeyword;
@@ -105,23 +115,80 @@ class _SearchComicsState extends State<SearchComics>
 
   @override
   Future<void> loadMore() async {
+    if (_autoFilling) return; // autoFill 进行中，跳过本次 loadMore
     final pages = _handler.state.data?.comics.pages ?? 1;
-    // 有布尔运算符时用 _nextServerPage（autoFill 可能已请求过后续页）
-    final nextPage = _hasBoolOps ? _nextServerPage : _page + 1;
-    if (nextPage > pages) return;
-    await _performSearch(page: nextPage);
+
+    if (_hasBoolOps) {
+      // ── 布尔模式：走追加路径 ─────────
+      // 1. 收集待重试的失败页（未超过重试上限）
+      final retryPages = _failedPages.entries
+          .where((e) => e.value < _maxFailRetries)
+          .map((e) => e.key)
+          .toList();
+
+      // 2. 合并：重试页 + 新页码，去重
+      final allPages = {
+        ...retryPages,
+        for (int p = _nextServerPage; p <= pages; p++) p,
+      }.toList()..sort();
+      if (allPages.isEmpty) return;
+
+      // 3. worker pool 并发请求，限流器控速
+      _autoFilling = true;
+      _ensureCacheKey();
+      _allFiltered = List.of(_handler.state.data?.comics.docs ?? []);
+      _globalSeen
+        ..clear()
+        ..addAll(_allFiltered.map((c) => c.uid));
+
+      await _runWorkers(
+        allPages,
+        retry: true,
+        collectFailures: true,
+      );
+
+      // 5. 更新 UI（追加，不替换）
+      if (!_autoFilling || !mounted) {
+        _autoFilling = false;
+        return;
+      }
+      _autoFilling = false;
+      final base = _handler.state.data;
+      if (base != null) {
+        _handler.mutate(
+          base.copyWith.comics(
+            docs: _allFiltered,
+            total: _allFiltered.length,
+            pages: pages,
+          ),
+        );
+      }
+      _page = _nextServerPage - 1;
+    } else {
+      // ── 非布尔模式：保持上游替换路径 ─────────
+      final nextPage = _page + 1;
+      if (nextPage > pages) return;
+      await _performSearch(page: nextPage);
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _searchController.text = widget.keyword;
+    // 布尔 + 分页模式：补充注册滚动监听（连续滚动模式下 mixin 已注册）
+    if (_hasBoolOps && pagination) {
+      scrollController.addListener(onScroll);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _performSearch());
   }
 
   @override
   void dispose() {
     _autoFilling = false;
+    if (_hasBoolOps && pagination) {
+      scrollController.removeListener(onScroll);
+    }
     _searchController.dispose();
     super.dispose();
   }
@@ -133,8 +200,11 @@ class _SearchComicsState extends State<SearchComics>
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty) return;
 
-    // 新搜索取消前一次自动填充
-    if (!silent) _autoFilling = false;
+    // 新搜索取消前一次自动填充，清空失败页
+    if (!silent) {
+      _autoFilling = false;
+      _failedPages.clear();
+    };
 
     _currentQuery = AppConf().enableBooleanSearch
         ? parseSearchQuery(keyword)
@@ -295,58 +365,144 @@ class _SearchComicsState extends State<SearchComics>
     }
   }
 
-  /// 自动填充：布尔过滤后结果不足时，顺序请求后续页补充
-  Future<void> _autoFillResults(int totalPages) async {
-    _autoFilling = true;
+  // ═══════════════════════════════════════
+  // autoFill / loadMore 共享方法
+  // ═══════════════════════════════════════
 
-    final serverKw = _optimalServerKeyword ??
+  /// 确保 _searchCacheKey 和 _serverKeyword 已计算
+  void _ensureCacheKey() {
+    _serverKeyword = _optimalServerKeyword ??
         _normalizeKeyword(
           _currentQuery.firstServerKeyword ?? _searchController.text,
         );
-    final cacheKey = SearchCache.buildKey(
-      serverKw, _sortType, _selectedCategories,
+    _searchCacheKey = SearchCache.buildKey(
+      _serverKeyword, _sortType, _selectedCategories,
     );
-    final existingDocs = _handler.state.data?.comics.docs ?? [];
-    final allFiltered = List<SearchComic>.from(existingDocs);
-    final globalSeen = <String>{
-      ...allFiltered.map((c) => c.uid),
-    };
+  }
 
-    for (int p = _nextServerPage;
-        p <= totalPages && allFiltered.length < 20;
-        p++) {
-      if (!_autoFilling || !mounted) break;
+  /// 单页请求：优先读缓存，缓存未命中则发网络请求
+  /// 布尔搜索模式下 [retry] 为 true 时失败重试一次
+  Future<(int, SearchResponse?)> _fetchPage(int p, {bool retry = false}) async {
+    if (!_autoFilling || !mounted) return (p, null);
+    final cached = SearchCache.get(_searchCacheKey, p);
+    if (cached != null) return (p, cached);
 
-      final cached = SearchCache.get(cacheKey, p);
-      SearchResponse? result;
-      if (cached != null) {
-        result = cached;
-      } else {
-        await searchLimiter.wait();
-        if (!_autoFilling || !mounted) break;
-        final payload = SearchPayload(
-          keyword: serverKw,
-          page: p,
-          sort: _sortType,
-          categories: _selectedCategories,
-        );
-        try {
-          result = await searchComics(payload);
-          SearchCache.put(cacheKey, p, result);
-        } catch (_) {
-          break; // 某页失败则停止
-        }
+    final payload = SearchPayload(
+      keyword: _serverKeyword,
+      page: p,
+      sort: _sortType,
+      categories: _selectedCategories,
+    );
+    for (int attempt = 0; attempt < (retry ? 2 : 1); attempt++) {
+      await searchLimiter.wait();
+      if (!_autoFilling || !mounted) return (p, null);
+      try {
+        final resp = await searchComics(payload);
+        SearchCache.put(_searchCacheKey, p, resp);
+        return (p, resp);
+      } catch (_) {
+        if (attempt == 0 && retry) continue;
+        return (p, null);
       }
-      final filtered = _applyBooleanFilter(
-        result.comics.docs,
-        _currentQuery,
-      );
-      for (final c in filtered) {
-        if (globalSeen.add(c.uid)) allFiltered.add(c);
+    }
+    return (p, null);
+  }
+
+  /// Worker pool：多 worker 并发消费页码列表
+  ///
+  /// 每个 worker：取页码（按需） → [_fetchPage] → [_mergeResult] → 检查停止条件。
+  /// 由 [searchLimiter] 控速，worker 数由限流器配置决定。
+  /// 停止条件触发后不再分配新页码，已完成的请求写入缓存供后续使用。
+  Future<void> _runWorkers(
+    List<int> pages, {
+    required bool retry,
+    required bool collectFailures,
+    bool Function()? shouldStop,
+  }) async {
+    int next = 0;
+    Future<void> worker() async {
+      while (true) {
+        if (!_autoFilling || !mounted) return;
+        if (shouldStop != null && shouldStop()) return;
+        if (next >= pages.length) return;
+        final p = pages[next++];
+        final result = await _fetchPage(p, retry: retry);
+        _mergeResult(result, collectFailures: collectFailures);
       }
-      _nextServerPage = p + 1;
     }
 
+    final count = pages.length.clamp(1, AppConf().maxRequestsPerSecond);
+    await Future.wait(List.generate(count, (_) => worker()));
+  }
+
+  /// 将单页结果合并到 [_allFiltered]
+  ///
+  /// [collectFailures] 为 true 时将失败页收集到 [_failedPages]（布尔模式），
+  /// 为 false 时直接跳过。
+  void _mergeResult(
+    (int, SearchResponse?) item, {
+    bool collectFailures = false,
+  }) {
+    final (p, result) = item;
+    if (result == null) {
+      if (collectFailures) {
+        final count = (_failedPages[p] ?? 0) + 1;
+        if (count < _maxFailRetries) {
+          _failedPages[p] = count;
+        } else {
+          _failedPages.remove(p); // 超过上限，放弃，下次 loadMore 重新请求
+        }
+      }
+      return;
+    }
+    // 成功：从失败集合中移除
+    _failedPages.remove(p);
+    // 并发场景下防止超过 20 条（多个 worker 可能同时完成）
+    if (_allFiltered.length < 20) {
+      for (final c in _applyBooleanFilter(result.comics.docs, _currentQuery)) {
+        if (_globalSeen.add(c.uid)) _allFiltered.add(c);
+      }
+    }
+    // 连续推进 _nextServerPage（跳过已被其他 worker 处理的连续页）
+    if (p == _nextServerPage) {
+      _nextServerPage++;
+      while (SearchCache.get(_searchCacheKey, _nextServerPage) != null) {
+        _nextServerPage++;
+      }
+    }
+  }
+
+
+
+  // ═══════════════════════════════════════
+  // 自动填充
+  // ═══════════════════════════════════════
+
+  /// 自动填充：布尔过滤后结果不足时，多 worker 并发请求后续页补充（由限流器控速）
+  ///
+  /// 每个 worker 完成一页后检查是否够 20 条，够了立即停止。
+  /// 失败页收集到 [_failedPages]，由后续 loadMore 重试。
+  Future<void> _autoFillResults(int totalPages) async {
+    _autoFilling = true;
+
+    _ensureCacheKey();
+    _allFiltered = List.of(_handler.state.data?.comics.docs ?? []);
+    _globalSeen
+      ..clear()
+      ..addAll(_allFiltered.map((c) => c.uid));
+
+    // ── 多 worker 并发，够 20 条即停，剩余页写入缓存 ─────────
+    await _runWorkers(
+      List.generate(
+        totalPages - _nextServerPage + 1,
+        (i) => _nextServerPage + i,
+      ),
+      retry: _hasBoolOps,
+      collectFailures: _hasBoolOps,
+      shouldStop: () => _allFiltered.length >= 20,
+    );
+
+    // ── 应用到 UI ─────────
     if (!_autoFilling || !mounted) {
       _autoFilling = false;
       return;
@@ -356,8 +512,8 @@ class _SearchComicsState extends State<SearchComics>
     if (base != null) {
       _handler.mutate(
         base.copyWith.comics(
-          docs: allFiltered,
-          total: allFiltered.length,
+          docs: _allFiltered,
+          total: _allFiltered.length,
           pages: totalPages,
         ),
       );
