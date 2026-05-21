@@ -7,6 +7,7 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/shared_preferences_util.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
@@ -20,6 +21,24 @@ typedef _DownloadTaskAction = ({
   IconData icon,
   void Function(String taskId) action,
 });
+
+const _downloadTaskSortOrderPreferenceKey = 'downloadTaskSortOrder';
+
+enum _DownloadTaskSortOrder {
+  oldestFirst('旧到新'),
+  newestFirst('新到旧');
+
+  const _DownloadTaskSortOrder(this.label);
+
+  final String label;
+
+  static _DownloadTaskSortOrder fromName(String? name) {
+    return _DownloadTaskSortOrder.values.firstWhere(
+      (value) => value.name == name,
+      orElse: () => _DownloadTaskSortOrder.oldestFirst,
+    );
+  }
+}
 
 _DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
   return switch (status) {
@@ -40,7 +59,16 @@ _DownloadTaskAction _resolveDownloadTaskAction(DownloadTaskStatus status) {
 }
 
 class Downloads extends StatefulWidget {
-  const Downloads({super.key});
+  const Downloads({
+    super.key,
+    this.taskStream,
+    this.speedStream,
+    this.onRequestTasks,
+  });
+
+  final Stream<List<ComicDownloadTask>>? taskStream;
+  final Stream<int>? speedStream;
+  final VoidCallback? onRequestTasks;
 
   @override
   State<Downloads> createState() => _DownloadsState();
@@ -53,18 +81,28 @@ class _DownloadsState extends State<Downloads> {
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
   int _downloadSpeed = 0;
+  late _DownloadTaskSortOrder _sortOrder;
 
   @override
   void initState() {
     super.initState();
-    _subscription = BackgroundDownloader.streamController.stream.listen(
-      (event) => setState(() {
-        tasks = event;
-      }),
+    _sortOrder = _DownloadTaskSortOrder.fromName(
+      SharedPreferencesUtil.prefsWithCache.getString(
+        _downloadTaskSortOrderPreferenceKey,
+      ),
     );
-    _speedSubscription = BackgroundDownloader.speedStreamController.stream
-        .listen((speed) => setState(() => _downloadSpeed = speed));
-    BackgroundDownloader.getTasks();
+    _subscription =
+        (widget.taskStream ?? BackgroundDownloader.streamController.stream)
+            .listen(
+              (event) => setState(() {
+                tasks = event;
+              }),
+            );
+    _speedSubscription =
+        (widget.speedStream ??
+                BackgroundDownloader.speedStreamController.stream)
+            .listen((speed) => setState(() => _downloadSpeed = speed));
+    (widget.onRequestTasks ?? BackgroundDownloader.getTasks).call();
   }
 
   @override
@@ -78,6 +116,27 @@ class _DownloadsState extends State<Downloads> {
     return tasks
         .where((task) => _selectedTaskIds.contains(task.comic.id))
         .toList();
+  }
+
+  List<ComicDownloadTask> get _displayTasks {
+    return switch (_sortOrder) {
+      _DownloadTaskSortOrder.oldestFirst => tasks,
+      _DownloadTaskSortOrder.newestFirst => tasks.reversed.toList(),
+    };
+  }
+
+  void _setSortOrder(_DownloadTaskSortOrder sortOrder) {
+    if (_sortOrder == sortOrder) {
+      return;
+    }
+
+    setState(() => _sortOrder = sortOrder);
+    unawaited(
+      SharedPreferencesUtil.prefsWithCache.setString(
+        _downloadTaskSortOrderPreferenceKey,
+        sortOrder.name,
+      ),
+    );
   }
 
   void clearTasks() async {
@@ -232,6 +291,7 @@ class _DownloadsState extends State<Downloads> {
   @override
   Widget build(BuildContext context) {
     final width = context.width;
+    final displayTasks = _displayTasks;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -261,6 +321,8 @@ class _DownloadsState extends State<Downloads> {
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
                 downloadSpeed: _downloadSpeed,
+                sortOrder: _sortOrder,
+                onSortOrderChanged: _setSortOrder,
               ),
         body: SafeArea(
           child: CustomScrollView(
@@ -278,7 +340,7 @@ class _DownloadsState extends State<Downloads> {
                   childAspectRatio: 2.5,
                 ),
                 itemBuilder: (context, index) {
-                  final task = tasks[index];
+                  final task = displayTasks[index];
                   final isSelected = _selectedTaskIds.contains(task.comic.id);
                   return _DownloadTaskItem(
                     task: task,
@@ -302,7 +364,7 @@ class _DownloadsState extends State<Downloads> {
                     downloadSpeed: _downloadSpeed,
                   );
                 },
-                itemCount: tasks.length,
+                itemCount: displayTasks.length,
               ),
             ],
           ),
@@ -383,9 +445,14 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
   final int downloadSpeed;
+  final _DownloadTaskSortOrder sortOrder;
+  final ValueChanged<_DownloadTaskSortOrder> onSortOrderChanged;
+
   const _NormalAppBar({
     required this.onEnterSelection,
     required this.downloadSpeed,
+    required this.sortOrder,
+    required this.onSortOrderChanged,
   });
 
   @override
@@ -393,6 +460,22 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
+        PopupMenuButton<_DownloadTaskSortOrder>(
+          tooltip: '排序',
+          icon: const Icon(Icons.sort),
+          initialValue: sortOrder,
+          onSelected: onSortOrderChanged,
+          itemBuilder: (context) {
+            return [
+              for (final order in _DownloadTaskSortOrder.values)
+                CheckedPopupMenuItem<_DownloadTaskSortOrder>(
+                  value: order,
+                  checked: order == sortOrder,
+                  child: Text(order.label),
+                ),
+            ];
+          },
+        ),
         IconButton(
           onPressed: onEnterSelection,
           icon: const Icon(Icons.checklist_rtl),

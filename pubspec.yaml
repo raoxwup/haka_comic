@@ -70,7 +70,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/login.png
+    # - assets/images/login.png
     - assets/images/icon_empty.png
     - assets/images/user.png
     - assets/images/leaderboard.jpg

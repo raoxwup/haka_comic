@@ -76,7 +76,10 @@ class _LoginState extends State<Login> with RequestMixin {
             spacing: 20,
             children: [
               SizedBox(height: isDesktop ? 30 : 70),
-              Image.asset('assets/images/login.png', width: 160),
+              Image.asset(
+                'assets/icons/android/ic_launcher_foreground.png',
+                width: 180,
+              ),
               _buildLoginForm(),
             ],
           ),
