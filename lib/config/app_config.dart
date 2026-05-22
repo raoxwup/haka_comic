@@ -78,6 +78,15 @@ class AppConf {
   /// 横向阅读菜单呼出占比
   double _horizontalCenterFraction = 0.4;
 
+  /// 每秒请求数上限（填充式加载）
+  int _maxRequestsPerSecond = 3;
+
+  /// 是否启用条件搜索（布尔运算符）
+  bool _enableBooleanSearch = false;
+
+  /// 搜索词规范化：off / s2t / t2s
+  String _searchNormalization = 'off';
+
   /// 搜索历史
   List<String> _searchHistory = [];
 
@@ -169,6 +178,12 @@ class AppConf {
     instance._themeMode = prefsWithCache.getString('theme_mode') ?? 'System';
     instance._primaryColor =
         prefsWithCache.getString('primary_color') ?? 'System';
+    instance._maxRequestsPerSecond =
+        (prefsWithCache.getInt('maxRequestsPerSecond') ?? 3).clamp(1, 5);
+    instance._enableBooleanSearch =
+        prefsWithCache.getBool('enableBooleanSearch') ?? false;
+    instance._searchNormalization =
+        prefsWithCache.getString('searchNormalization') ?? 'off';
     instance._searchHistory =
         prefsWithCache.getStringList('search_history') ?? [];
     instance._needAuth = prefsWithCache.getBool('needAuth') ?? false;
@@ -362,6 +377,21 @@ class AppConf {
     SharedPreferencesUtil.prefsWithCache.setString('primary_color', value);
   }
 
+  set maxRequestsPerSecond(int value) {
+    _maxRequestsPerSecond = value.clamp(1, 5);
+    SharedPreferencesUtil.prefsWithCache.setInt('maxRequestsPerSecond', _maxRequestsPerSecond);
+  }
+
+  set enableBooleanSearch(bool value) {
+    _enableBooleanSearch = value;
+    SharedPreferencesUtil.prefsWithCache.setBool('enableBooleanSearch', value);
+  }
+
+  set searchNormalization(String value) {
+    _searchNormalization = value;
+    SharedPreferencesUtil.prefsWithCache.setString('searchNormalization', value);
+  }
+
   set searchHistory(List<String> value) {
     _searchHistory = value;
     SharedPreferencesUtil.prefsWithCache.setStringList('search_history', value);
@@ -444,6 +474,9 @@ class AppConf {
   double get scrollSpeed => _scrollSpeed;
   String get themeMode => _themeMode;
   String get primaryColor => _primaryColor;
+  int get maxRequestsPerSecond => _maxRequestsPerSecond;
+  bool get enableBooleanSearch => _enableBooleanSearch;
+  String get searchNormalization => _searchNormalization;
   List<String> get searchHistory => _searchHistory;
   bool get needAuth => _needAuth;
   double get verticalListWidthRatio => _verticalListWidthRatio;

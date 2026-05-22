@@ -54,6 +54,7 @@ dependencies:
   logger: ^2.7.0
   cached_network_image_ce: ^4.6.4
   socks5_proxy: ^2.1.1
+  pinyin: ^3.3.0
 
 dev_dependencies:
   flutter_test:
@@ -81,4 +82,3 @@ flutter:
     - assets/icons/android/ic_launcher_foreground.png
     - assets/icons/pc/linux_icon.png
 
-# fonts:

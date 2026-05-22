@@ -8,6 +8,7 @@ import 'package:haka_comic/views/settings/clear_cache.dart';
 import 'package:haka_comic/views/settings/comic_block_scale.dart';
 import 'package:haka_comic/views/settings/logout.dart';
 import 'package:haka_comic/views/settings/pager.dart';
+import 'package:haka_comic/views/settings/search_settings.dart';
 import 'package:haka_comic/views/settings/theme.dart' as t;
 import 'package:haka_comic/views/settings/theme_color.dart';
 import 'package:haka_comic/views/settings/widgets/block.dart';
@@ -65,6 +66,11 @@ class Settings extends StatelessWidget {
             const Block(
               title: '浏览',
               children: [BrowseMode(), Pager(), ComicBlockScale()],
+            ),
+            const SizedBox(height: 20),
+            const Block(
+              title: '搜索设置',
+              children: [SearchSettings()],
             ),
             const SizedBox(height: 20),
             Block(
