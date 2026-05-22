@@ -91,7 +91,7 @@ class BooleanSearchEngine {
     // ── 关键词探测 ─────────
     final normalizedKeyword = await _probeIfNeeded();
     if (normalizedKeyword == null) {
-      Log.w('Bool search probe cancelled', '');
+      Log.w('Bool search probe cancelled');
       return null;
     }
 
@@ -487,7 +487,7 @@ class BooleanSearchEngine {
     _ensureCacheKey(kw);
 
     if (resp == null) {
-      Log.w('Bool search switch aborted', 'resp is null for $kw');
+      Log.w('Bool search switch aborted: resp is null for $kw');
       return;
     }
 
