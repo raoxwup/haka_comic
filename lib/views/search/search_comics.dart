@@ -20,7 +20,7 @@ import 'package:haka_comic/views/search/boolean_search.dart';
 import 'package:haka_comic/views/search/search_cache.dart';
 import 'package:haka_comic/views/search/search_probe.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
-import 'package:pinyin/pinyin.dart';
+import 'package:haka_comic/utils/chinese_converter.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:provider/provider.dart';
 
@@ -77,8 +77,8 @@ class _SearchComicsState extends State<SearchComics>
   String _normalizeKeyword(String keyword) {
     final mode = AppConf().searchNormalization;
     if (mode == 'off') return keyword;
-    if (mode == 's2t') return ChineseHelper.convertToTraditionalChinese(keyword);
-    return ChineseHelper.convertToSimplifiedChinese(keyword);
+    if (mode == 's2t') return ChineseConverter.instance.toTraditional(keyword);
+    return ChineseConverter.instance.toSimplified(keyword);
   }
 
   @override

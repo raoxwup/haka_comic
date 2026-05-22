@@ -48,3 +48,4 @@ app.*.map.json
 .appdata/
 .claude/
 docs/
+assets/dict/

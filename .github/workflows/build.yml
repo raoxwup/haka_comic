@@ -92,6 +92,7 @@ jobs:
       - name: Prepare Flutter project
         run: |
           flutter pub get
+          dart run script/download_opencc_dict.dart
           dart run script/prebuild_inject_version.dart
 
       - name: Build APKs
@@ -139,6 +140,7 @@ jobs:
       - name: Prepare Flutter project
         run: |
           flutter pub get
+          dart run script/download_opencc_dict.dart
           dart run script/prebuild_inject_version.dart
 
       - name: Build unsigned IPA
@@ -176,6 +178,8 @@ jobs:
         shell: pwsh
         run: |
           flutter pub get
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dart run script/download_opencc_dict.dart
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run script/prebuild_inject_version.dart
 
@@ -275,6 +279,7 @@ jobs:
       - name: Prepare Flutter project
         run: |
           flutter pub get
+          dart run script/download_opencc_dict.dart
           dart run script/prebuild_inject_version.dart
 
       - name: Build MacOS Release
@@ -351,6 +356,7 @@ jobs:
       - name: Prepare Flutter project
         run: |
           flutter pub get
+          dart run script/download_opencc_dict.dart
           dart run script/prebuild_inject_version.dart
           dart run script/prebuild_inject_font.dart
 

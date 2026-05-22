@@ -15,6 +15,7 @@ import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:haka_comic/utils/chinese_converter.dart';
 import 'package:haka_comic/utils/log.dart';
 
 class StartupPrepare {
@@ -24,6 +25,7 @@ class StartupPrepare {
       AppConf.initialize(),
       SetupConf.initialize(),
       RustLib.init(),
+      ChineseConverter.instance.init(),
     ]);
 
     // 在主 Isolate 安装全局代理覆盖层，所有 HttpClient 创建时都将经过此覆盖层。

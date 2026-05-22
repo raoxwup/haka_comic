@@ -1,6 +1,6 @@
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/boolean_parser.dart';
-import 'package:haka_comic/utils/zh_hans.dart';
+import 'package:haka_comic/utils/chinese_converter.dart';
 
 /// 构建单个漫画的匹配文本（简体 + 小写）
 ///
@@ -17,7 +17,7 @@ String buildMatchText(SearchComic comic) {
     ...comic.tags,
     ...comic.categories,
   ];
-  return toSimplified(parts.join(' ')).trim().toLowerCase();
+  return ChineseConverter.instance.toSimplified(parts.join(' ')).trim().toLowerCase();
 }
 
 /// 客户端布尔过滤：按 andWords / notWords 过滤 API 返回结果
@@ -55,6 +55,7 @@ List<SearchComic> applyBooleanFilter(
 }
 
 /// 规范化搜索词：繁体→简体→小写
-String _normalize(String s) => toSimplified(s).toLowerCase();
+String _normalize(String s) =>
+    ChineseConverter.instance.toSimplified(s).toLowerCase();
 
 
