@@ -90,7 +90,7 @@ class _SearchComicsState extends State<SearchComics>
 
   /// 统一搜索入口
   /// [silent] 为 true 时仅写入缓存，不更新 UI（用于预加载）
-  Future<void> _performSearch({int? page, bool silent = false}) async {
+  Future<void> _performSearch({int? page, bool silent = false, bool forceRefresh = false}) async {
     final targetPage = page ?? 1;
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty) return;
@@ -99,32 +99,49 @@ class _SearchComicsState extends State<SearchComics>
         ? parseSearchQuery(keyword)
         : const SearchQuery();
 
-    Log.i('[Search-Entry]',
+    Log.d('Search entry',
       'keyword="$keyword" page=$targetPage silent=$silent '
       'hasBoolOps=$_hasBoolOps sort=$_sortType');
 
     if (!_hasBoolOps) {
-      // ── 非布尔模式：缓存优化 + API 请求 ─────────
+      // ── 非布尔模式 ─────────
       if (targetPage == 1 && !silent) _handler.resetState();
       if (!silent) _page = targetPage;
       final kw = _normalizeKeyword(keyword);
       final cacheKey = SearchCache.buildKey(kw, _sortType, _selectedCategories);
-      final cached = SearchCache.get(cacheKey, targetPage);
-      if (cached != null) {
-        if (!silent) _handler.mutate(cached);
-        SearchCache.touch(cacheKey);
-        return;
-      }
-      await _handler.run(SearchPayload(
-        keyword: kw,
-        page: targetPage,
-        sort: _sortType,
-        categories: _selectedCategories,
-      ));
-      if (_handler.state.hasData) {
-        SearchCache.put(cacheKey, targetPage, _handler.state.data!);
-        SearchCache.touch(cacheKey);
-        SearchProbeCache.put(kw, _selectedCategories, _handler.state.data!.comics.total);
+
+      if (page == null) {
+        // ── 搜索入口：先请求 page1 校验缓存鲜度 ─────────
+        await _handler.run(SearchPayload(
+          keyword: kw, page: 1, sort: _sortType, categories: _selectedCategories,
+        ));
+        if (!_handler.state.hasData) return;
+        final fresh = _handler.state.data!;
+        if (SearchCache.validateFreshness(cacheKey, fresh)) {
+          SearchCache.touch(cacheKey);
+          if (!silent) _handler.mutate(fresh);
+        } else {
+          SearchCache.remove(cacheKey);
+          SearchCache.put(cacheKey, 1, fresh);
+          SearchCache.touch(cacheKey);
+          SearchProbeCache.put(kw, _selectedCategories, fresh.comics.total);
+          if (!silent) _handler.mutate(fresh);
+        }
+      } else {
+        // ── 翻页：缓存命中直接用，miss 正常请求 ─────────
+        final cached = forceRefresh ? null : SearchCache.get(cacheKey, targetPage);
+        if (cached != null) {
+          if (!silent) _handler.mutate(cached);
+          SearchCache.touch(cacheKey);
+        } else {
+          await _handler.run(SearchPayload(
+            keyword: kw, page: targetPage, sort: _sortType, categories: _selectedCategories,
+          ));
+          if (_handler.state.hasData) {
+            SearchCache.put(cacheKey, targetPage, _handler.state.data!);
+            SearchCache.touch(cacheKey);
+          }
+        }
       }
       return;
     }
@@ -279,7 +296,7 @@ class _SearchComicsState extends State<SearchComics>
       RequestState(:final data) when data != null => CommonTMIList(
         controller: showPageSelector ? null : scrollController,
         comics: context.filtered(data.comics.docs),
-        emptyRefreshCallback: () => _performSearch(page: _page),
+        emptyRefreshCallback: () => _performSearch(page: _page, forceRefresh: true),
         pageSelectorBuilder: showPageSelector
             ? (context) => PageSelector(
                 currentPage: _page,

@@ -90,7 +90,10 @@ class BooleanSearchEngine {
 
     // ── 关键词探测 ─────────
     final normalizedKeyword = await _probeIfNeeded();
-    if (normalizedKeyword == null) return null; // 被取消
+    if (normalizedKeyword == null) {
+      Log.w('Bool search probe cancelled', '');
+      return null;
+    }
 
     _ensureCacheKey(normalizedKeyword);
 
@@ -101,7 +104,6 @@ class BooleanSearchEngine {
     if (SearchCache.contains(cacheKey)) {
       final cached = SearchCache.get(cacheKey, 1);
       if (cached != null) {
-        Log.i('[BoolSearch]', 'cache HIT page=1');
         final filtered = _filter(cached.comics.docs);
         // 必须将过滤结果存入 _allFiltered 并更新 _baseResponse
         // 否则 _runAutoFill 会用未过滤数据重置 _allFiltered
@@ -129,9 +131,7 @@ class BooleanSearchEngine {
     if (probeResult != null) {
       fresh = probeResult;
       SearchCache.put(cacheKey, 1, fresh);
-      Log.i('[BoolSearch]', 'using probeResult directly');
     } else {
-      Log.i('[BoolSearch]', 'API call for $normalizedKeyword page=1');
       fresh = await _fetchRaw(1);
       if (fresh == null) return null;
     }
@@ -185,7 +185,6 @@ class BooleanSearchEngine {
     if (SearchCache.contains(cacheKey)) {
       final cached = SearchCache.get(cacheKey, page);
       if (cached != null) {
-        Log.i('[BoolSearch]', 'cache HIT page=$page');
         final filtered = _filter(cached.comics.docs);
         if (filtered.isNotEmpty) {
           for (final c in filtered) {
@@ -277,7 +276,7 @@ class BooleanSearchEngine {
       return normalizeKeyword(query.firstServerKeyword ?? '');
     }
 
-    Log.i('[BoolSearch]', 'calling probeOptimalKeyword...');
+    Log.d('Bool search probe calling', '');
     final (kw, resp) = await probeOptimalKeyword(
       candidates: candidates,
       sortType: sortType,
@@ -287,7 +286,7 @@ class BooleanSearchEngine {
         _onProbeCandidate(optKw, optTotal, optResp);
       },
     );
-    Log.i('[BoolSearch]', 'probe returned: kw=$kw hasResp=${resp != null}');
+    Log.i('Bool search probe returned', 'kw=$kw hasResp=${resp != null}');
 
     _optimalServerKeyword = kw;
     _probeResult = resp;
@@ -306,7 +305,7 @@ class BooleanSearchEngine {
   void _tryAutoFill(int totalPages) {
     if (totalPages > 1 && !_autoFilling) {
       _nextServerPage = 2;
-      Log.i('[BoolSearch]', 'starting autoFill for $totalPages pages');
+      Log.i('Bool search autoFill starting', '$totalPages pages');
       unawaited(_runAutoFill(totalPages, isRetry: false));
     }
   }
@@ -326,14 +325,12 @@ class BooleanSearchEngine {
         totalPages - _nextServerPage + 1,
         (i) => _nextServerPage + i,
       );
-      Log.i('[BoolSearch-AutoFill]',
-          'starting: totalPages=$totalPages, nextServerPage=$_nextServerPage, '
-          'remaining=${pages.length}');
+      Log.i('Bool search autoFill running',
+          'remaining=${pages.length} pages');
       await _runWorkers(pages, retry: true, collectFailures: true);
 
-      Log.i('[BoolSearch-AutoFill]',
-          'completed: ${_allFiltered.length} results, '
-          'pages fetched up to ${_nextServerPage - 1}/$totalPages');
+      Log.i('Bool search autoFill completed',
+          '${_allFiltered.length} results');
       _emitResults();
     } finally {
       _autoFilling = false;
@@ -351,7 +348,7 @@ class BooleanSearchEngine {
     try {
       return await searchComics(payload);
     } catch (e) {
-      Log.e('[BoolSearch]', error: 'fetchRaw page=$page failed: $e');
+      Log.e('Bool search fetch failed', error: e);
       return null;
     }
   }
@@ -366,24 +363,16 @@ class BooleanSearchEngine {
     int workerId = 0;
     Future<void> worker() async {
       final id = workerId++;
-      Log.i('[BoolSearch-Worker]', 'worker#$id started, pages=${pages.length}');
       while (_autoFilling) {
-        if (next >= pages.length) {
-          Log.i('[BoolSearch-Worker]', 'worker#$id done: all pages consumed');
-          return;
-        }
+        if (next >= pages.length) return;
         final p = pages[next++];
         final result = await _fetchPage(p, retry: retry);
         _mergeResult(result, collectFailures: collectFailures);
       }
-      Log.i('[BoolSearch-Worker]', 'worker#$id stopped: autoFilling=false');
     }
 
     final count = pages.length.clamp(1, AppConf().maxRequestsPerSecond);
-    Log.i('[BoolSearch-Worker]',
-        'spawning $count workers for ${pages.length} pages');
     await Future.wait(List.generate(count, (_) => worker()));
-    Log.i('[BoolSearch-Worker]', 'all $count workers finished');
   }
 
   /// 单页请求：优先读缓存，缓存未命中则发网络请求
@@ -407,7 +396,8 @@ class BooleanSearchEngine {
         final resp = await searchComics(payload);
         SearchCache.put(myCacheKey, p, resp);
         return (p, resp);
-      } catch (_) {
+      } catch (e) {
+        Log.e('FetchPage failed', error: e);
         if (attempt == 0 && retry) continue;
         return (p, null);
       }
@@ -422,7 +412,7 @@ class BooleanSearchEngine {
   }) {
     final (p, result) = item;
     if (result == null) {
-      Log.i('[BoolSearch-Merge]', 'page=$p FAILED');
+      Log.i('Bool search page failed', 'page=$p');
       if (collectFailures) {
         final count = (_failedPages[p] ?? 0) + 1;
         if (count < _maxFailRetries) {
@@ -441,8 +431,6 @@ class BooleanSearchEngine {
       }
     }
     if (_allFiltered.length > beforeCount) {
-      Log.i('[BoolSearch-Merge]',
-          'page=$p: +${_allFiltered.length - beforeCount} matches, total=${_allFiltered.length}');
       _baseResponse ??= result;
       onResults(_allFiltered);
     }
@@ -470,18 +458,22 @@ class BooleanSearchEngine {
   // ═══════════════════════════════════════
 
   /// probe 后续候选词到达时的回调
+  ///
+  /// 判断逻辑：已拉取条目 = (nextServerPage - 1) * 20
+  ///          剩余 ≈ serverTotal - 已拉取
+  ///          candidateTotal < 剩余 → 候选词更优，值得切换
   void _onProbeCandidate(String kw, int total, SearchResponse? resp) {
     if (!_autoFilling || _switched) return;
 
     final fetchedItems = (_nextServerPage - 1) * 20;
     final remaining = _serverTotal - fetchedItems;
 
-    Log.i('[BoolSearch-Switch]',
-        'candidate: $kw total=$total, serverTotal=$_serverTotal, '
-        'fetched≈$fetchedItems, remaining≈$remaining');
+    Log.i('Bool search probe candidate',
+        '$kw total=$total, serverTotal=$_serverTotal, '
+        'remaining≈$remaining');
 
     if (total < remaining) {
-      Log.i('[BoolSearch-Switch]', 'SWITCHING to $kw ($total < $remaining)');
+      Log.i('Bool search switching keyword', kw);
       _switched = true;
       _switchToKeyword(kw, resp);
     }
@@ -494,7 +486,10 @@ class BooleanSearchEngine {
     _optimalServerKeyword = kw;
     _ensureCacheKey(kw);
 
-    if (resp == null) return;
+    if (resp == null) {
+      Log.w('Bool search switch aborted', 'resp is null for $kw');
+      return;
+    }
 
     SearchCache.put(_searchCacheKey, 1, resp);
 
@@ -512,8 +507,8 @@ class BooleanSearchEngine {
     );
     _serverTotal = resp.comics.total;
 
-    Log.i('[BoolSearch-Switch]',
-        'new keyword pages=${resp.comics.pages}, current matches=${_allFiltered.length}');
+    Log.i('Bool search keyword switched',
+        'pages=${resp.comics.pages}, matches=${_allFiltered.length}');
     onResults(_allFiltered);
 
     if (resp.comics.pages > 1) {

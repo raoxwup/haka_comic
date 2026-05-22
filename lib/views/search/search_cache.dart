@@ -1,4 +1,5 @@
 import 'package:haka_comic/network/models.dart';
+import 'package:haka_comic/utils/log.dart';
 
 /// 搜索结果 API 级多页缓存（LFU with Aging 淘汰策略）
 ///
@@ -51,6 +52,9 @@ class SearchCache {
       _life[k] = (_life[k] ?? 0) - 1;
       if (_life[k]! <= 0) toRemove.add(k);
     }
+    if (toRemove.isNotEmpty) {
+      Log.d('Cache LFU evict', '${toRemove.length} entries');
+    }
     for (final k in toRemove) {
       _cache.remove(k);
       _keys.remove(k);
@@ -63,6 +67,7 @@ class SearchCache {
     if (!_cache.containsKey(key)) {
       if (_cache.length >= _maxSize) {
         final evict = _keys.removeAt(0);
+        Log.d('Cache LRU evict', evict);
         _cache.remove(evict);
         _life.remove(evict);
       }
@@ -88,12 +93,18 @@ class SearchCache {
   static bool validateFreshness(String key, SearchResponse fresh) {
     final cachedPage1 = get(key, 1);
     if (cachedPage1 == null) return false;
-    return cachedPage1.comics.total == fresh.comics.total &&
+    final valid = cachedPage1.comics.total == fresh.comics.total &&
         _firstId(cachedPage1) == _firstId(fresh);
+    if (!valid) {
+      Log.i('Cache freshness failed',
+          'cachedTotal=${cachedPage1.comics.total} freshTotal=${fresh.comics.total}');
+    }
+    return valid;
   }
 
   /// 清空全部缓存
   static void clear() {
+    Log.i('Cache cleared', '${_cache.length} entries');
     _cache.clear();
     _keys.clear();
     _life.clear();
