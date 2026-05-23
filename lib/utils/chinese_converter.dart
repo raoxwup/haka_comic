@@ -20,7 +20,12 @@ class ChineseConverter {
   bool _initialized = false;
 
   /// 整段结果缓存（LRU 意图）：相同输入字符串直接返回。
-  final _resultCache = <String, String>{};
+  ///
+  /// t2s 和 s2t 各自独立缓存，避免繁简互转时缓存污染：
+  /// 若共享同一 Map，toTraditional("调教") 缓存 "调教"→"調教" 后，
+  /// toSimplified("调教") 会命中同一缓存错误返回 "調教"。
+  final _t2sResultCache = <String, String>{};
+  final _s2tResultCache = <String, String>{};
   static const _cacheMaxEntries = 2048;
 
   // ── 初始化（在 StartupPrepare.prepare() 中调用） ────────────────────────
@@ -63,14 +68,14 @@ class ChineseConverter {
   String toSimplified(String input) {
     assert(_initialized, 'ChineseConverter.init() 尚未调用');
     if (input.isEmpty) return input;
-    return _cachedConvert(input, _t2sChars, _t2sTrie);
+    return _cachedConvert(input, _t2sChars, _t2sTrie, _t2sResultCache);
   }
 
   /// 简体中文 → 繁体中文。
   String toTraditional(String input) {
     assert(_initialized, 'ChineseConverter.init() 尚未调用');
     if (input.isEmpty) return input;
-    return _cachedConvert(input, _s2tChars, _s2tTrie);
+    return _cachedConvert(input, _s2tChars, _s2tTrie, _s2tResultCache);
   }
 
   // ── 构建辅助 ──────────────────────────────────────────────────────────
@@ -106,16 +111,17 @@ class ChineseConverter {
     String input,
     List<List<int>?> chars,
     _TrieNode trie,
+    Map<String, String> cache,
   ) {
     // 整段缓存命中（自然语言中同一字符串常被多次转换）
-    final cached = _resultCache[input];
+    final cached = cache[input];
     if (cached != null) return cached;
 
     final result = _convert(input, chars, trie);
 
     // 简单淘汰：缓存满时清空（高频场景下命中率远高于淘汰率）
-    if (_resultCache.length >= _cacheMaxEntries) _resultCache.clear();
-    _resultCache[input] = result;
+    if (cache.length >= _cacheMaxEntries) cache.clear();
+    cache[input] = result;
     return result;
   }
 

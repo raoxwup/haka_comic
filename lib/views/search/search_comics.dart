@@ -148,7 +148,15 @@ class _SearchComicsState extends State<SearchComics>
 
     // ── 布尔模式：委托引擎 ─────────
     if (!silent) _page = targetPage;
-    if (targetPage == 1 && !silent) _handler.resetState();
+    if (targetPage == 1 && !silent) {
+      _handler.resetState();
+      // 统一进入 Loading 状态，确保 UI 显示加载指示器
+      // 非布尔模式通过 _handler.run() 内部自动调 setup()
+      // 布尔模式手动调一次，保持一致
+      _handler.setup(SearchPayload(
+        keyword: keyword, page: 1, sort: _sortType, categories: _selectedCategories,
+      ));
+    }
 
     final engine = BooleanSearchEngine(
       query: _currentQuery,
