@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/mixin/pagination.dart';
+import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
@@ -34,7 +35,7 @@ class SearchComics extends StatefulWidget {
 }
 
 class _SearchComicsState extends State<SearchComics>
-    with RequestMixin, PaginationMixin {
+    with RequestMixin, PaginationMixin, RouteAware {
   final _searchController = TextEditingController();
 
   /// API 请求 handler（UI 状态载体：loading / data / error）
@@ -147,6 +148,9 @@ class _SearchComicsState extends State<SearchComics>
     }
 
     // ── 布尔模式：委托引擎 ─────────
+    // 取消旧引擎的 autoFill，防止旧结果干扰新搜索
+    _engine?.cancel();
+
     if (!silent) _page = targetPage;
     if (targetPage == 1 && !silent) {
       _handler.resetState();
@@ -216,12 +220,32 @@ class _SearchComicsState extends State<SearchComics>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
+    _engine?.cancel();
     if (_hasBoolOps && pagination) {
       scrollController.removeListener(onScroll);
     }
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    // 离开页面（进入详情/阅读器）：暂停 autoFill 节省资源
+    _engine?.pause();
+  }
+
+  @override
+  void didPopNext() {
+    // 返回页面：恢复 autoFill
+    _engine?.resume();
   }
 
   // ═══════════════════════════════════════
@@ -249,6 +273,7 @@ class _SearchComicsState extends State<SearchComics>
           appBar: AppBar(
             title: TextField(
               controller: _searchController,
+              autofocus: false,
               textAlignVertical: TextAlignVertical.center,
               decoration: InputDecoration(
                 hintText: '搜索',
@@ -269,6 +294,7 @@ class _SearchComicsState extends State<SearchComics>
                   context.read<SearchProvider>().add(value);
                   _performSearch();
                 }
+                FocusManager.instance.primaryFocus?.unfocus();
               },
             ),
             actions: [

@@ -43,12 +43,14 @@ class BooleanSearchEngine {
   int _nextServerPage = 1;
   bool _autoFilling = false;
   int _serverTotal = 0;
+  int _totalPages = 0; // 用于 pause/resume
 
   // ── 失败页收集 ────────────────────────────────────────
 
   final _failedPages = <int, int>{};
   static const _maxFailRetries = 2;
   bool _switched = false; // 防止级联切换
+  bool _cancelled = false; // 取消标志：防止旧引擎的 autoFill 干扰新搜索
 
   // ── 关键词探测 ────────────────────────────────────────
 
@@ -303,6 +305,7 @@ class BooleanSearchEngine {
 
   /// 如果有多页结果且尚未启动 autoFill，启动后台扫描
   void _tryAutoFill(int totalPages) {
+    _totalPages = totalPages;
     if (totalPages > 1 && !_autoFilling) {
       _nextServerPage = 2;
       Log.i('Bool search autoFill starting', '$totalPages pages');
@@ -311,21 +314,32 @@ class BooleanSearchEngine {
   }
 
   /// 内部 autoFill 实现
-  Future<void> _runAutoFill(int totalPages, {required bool isRetry}) async {
+  ///
+  /// [isResume] 为 true 时跳过重建 [_allFiltered]，从上次进度继续；
+  /// 为 false 时从 [_baseResponse] 重建（全新启动）。
+  Future<void> _runAutoFill(int totalPages,
+      {required bool isRetry, bool isResume = false}) async {
     _autoFilling = true;
 
     _ensureCacheKey(_serverKeyword);
-    _allFiltered = List.of(_baseResponse?.comics.docs ?? []);
-    _globalSeen
-      ..clear()
-      ..addAll(_allFiltered.map((c) => c.uid));
+    if (!isResume) {
+      // 全新启动：从 baseResponse 重建
+      _allFiltered = List.of(_baseResponse?.comics.docs ?? []);
+      _globalSeen
+        ..clear()
+        ..addAll(_allFiltered.map((c) => c.uid));
+    }
+    // resume 时保留 _allFiltered 和 _globalSeen 现状，不丢失已处理页结果
+
+    final remaining = totalPages - _nextServerPage + 1;
+    if (remaining <= 0) {
+      _autoFilling = false;
+      return;
+    }
 
     try {
-      final pages = List.generate(
-        totalPages - _nextServerPage + 1,
-        (i) => _nextServerPage + i,
-      );
-      Log.i('Bool search autoFill running',
+      final pages = List.generate(remaining, (i) => _nextServerPage + i);
+      Log.i('Bool search autoFill ${isResume ? "resuming" : "running"}',
           'remaining=${pages.length} pages');
       await _runWorkers(pages, retry: true, collectFailures: true);
 
@@ -448,8 +462,32 @@ class BooleanSearchEngine {
     return applyBooleanFilter(docs, query);
   }
 
-  /// 通知 UI 更新
+  /// 取消引擎：停止 autoFill 并阻止后续结果发射
+  void cancel() {
+    _cancelled = true;
+    _autoFilling = false;
+  }
+
+  /// 暂停 autoFill（页面不可见时调用，保留进度）
+  void pause() {
+    if (_cancelled) return;
+    _autoFilling = false;
+    Log.i('Bool search paused', 'nextServerPage=$_nextServerPage');
+  }
+
+  /// 恢复 autoFill（页面重新可见时调用，从上次进度继续）
+  void resume() {
+    if (_cancelled || _autoFilling) return;
+    if (_baseResponse == null) return;
+    if (_totalPages > 1 && _nextServerPage <= _totalPages) {
+      Log.i('Bool search resuming', 'pages $_nextServerPage~$_totalPages');
+      unawaited(_runAutoFill(_totalPages, isRetry: false, isResume: true));
+    }
+  }
+
+  /// 通知 UI 更新（仅在未取消且 autoFill 仍在运行时发射）
   void _emitResults() {
+    if (_cancelled) return;
     onResults(_allFiltered);
   }
 
@@ -479,7 +517,7 @@ class BooleanSearchEngine {
     }
   }
 
-  /// 切换到更优关键词：停止当前 autoFill → 更新关键词 → 重启 autoFill
+  /// 切换到更优关键词：停止当前 autoFill → 更新关键词 → 重启 autoFill（全新启动）
   void _switchToKeyword(String kw, SearchResponse? resp) {
     _autoFilling = false;
 
