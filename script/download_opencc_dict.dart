@@ -9,8 +9,6 @@
 /// Output:
 ///   assets/dict/t2s_chars.json    Traditional -> Simplified (characters)
 ///   assets/dict/t2s_phrases.json  Traditional -> Simplified (phrases)
-///   assets/dict/s2t_chars.json    Simplified -> Traditional (characters)
-///   assets/dict/s2t_phrases.json  Simplified -> Traditional (phrases)
 library;
 
 import 'dart:convert';
@@ -22,14 +20,21 @@ const _baseUrl =
 const _sources = {
   't2s_chars': '$_baseUrl/TSCharacters.txt',
   't2s_phrases': '$_baseUrl/TSPhrases.txt',
-  's2t_chars': '$_baseUrl/STCharacters.txt',
-  's2t_phrases': '$_baseUrl/STPhrases.txt',
 };
 
 Future<void> main() async {
   final outDir = Directory('assets/dict');
 
-  // Skip if all output files already exist.
+  // Clean up stale s2t files removed in the t2s-only migration.
+  for (final stale in ['s2t_chars.json', 's2t_phrases.json']) {
+    final f = File('${outDir.path}/$stale');
+    if (f.existsSync()) {
+      f.deleteSync();
+      print('Removed stale dictionary: $stale');
+    }
+  }
+
+  // Skip download if all output files already exist.
   if (_allExist(outDir)) {
     print('OpenCC dictionaries already exist, skipping download.');
     return;

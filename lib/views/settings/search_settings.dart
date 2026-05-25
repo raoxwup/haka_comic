@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
-import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 
 class SearchSettings extends StatefulWidget {
   const SearchSettings({super.key});
@@ -11,46 +10,12 @@ class SearchSettings extends StatefulWidget {
 }
 
 class _SearchSettingsState extends State<SearchSettings> {
-  static const _normalizationOptions = [
-    ('off', '关'),
-    ('s2t', '简→繁'),
-    ('t2s', '繁→简'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final conf = AppConf();
 
     return Column(
       children: [
-        // ═══ 规范化搜索词 ═══
-        MenuListTile.withValue(
-          icon: Icons.translate_outlined,
-          title: '规范化搜索词',
-          subtitle: const Text('将搜索词统一转换后再查询'),
-          value: _normalizationOptions
-              .firstWhere((o) => o.$1 == conf.searchNormalization)
-              .$2,
-          items: _normalizationOptions.map((opt) {
-            final selected = conf.searchNormalization == opt.$1;
-            return PopupMenuItem(
-              value: opt.$1,
-              child: ListTile(
-                leading: Icon(
-                  selected
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: Theme.of(context).primaryColor,
-                ),
-                title: Text(opt.$2),
-              ),
-            );
-          }).toList(),
-          onSelected: (value) {
-            setState(() => conf.searchNormalization = value);
-          },
-        ),
-
         // ═══ 条件搜索 ═══
         SwitchListTile(
           secondary: Container(

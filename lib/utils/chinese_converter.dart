@@ -15,17 +15,10 @@ class ChineseConverter {
   /// 单字映射：codeUnit → 转换后的 codeUnits。用 64K 平坦数组直索，零 HashMap 开销。
   late final List<List<int>?> _t2sChars;
   late final _TrieNode _t2sTrie;
-  late final List<List<int>?> _s2tChars;
-  late final _TrieNode _s2tTrie;
   bool _initialized = false;
 
   /// 整段结果缓存（LRU 意图）：相同输入字符串直接返回。
-  ///
-  /// t2s 和 s2t 各自独立缓存，避免繁简互转时缓存污染：
-  /// 若共享同一 Map，toTraditional("调教") 缓存 "调教"→"調教" 后，
-  /// toSimplified("调教") 会命中同一缓存错误返回 "調教"。
   final _t2sResultCache = <String, String>{};
-  final _s2tResultCache = <String, String>{};
   static const _cacheMaxEntries = 2048;
 
   // ── 初始化（在 StartupPrepare.prepare() 中调用） ────────────────────────
@@ -37,20 +30,12 @@ class ChineseConverter {
       final results = await Future.wait([
         rootBundle.loadString('assets/dict/t2s_chars.json'),
         rootBundle.loadString('assets/dict/t2s_phrases.json'),
-        rootBundle.loadString('assets/dict/s2t_chars.json'),
-        rootBundle.loadString('assets/dict/s2t_phrases.json'),
       ]);
       _t2sChars = _buildCharArray(
         Map<String, String>.from(jsonDecode(results[0])),
       );
       _t2sTrie = _buildTrie(
         Map<String, String>.from(jsonDecode(results[1])),
-      );
-      _s2tChars = _buildCharArray(
-        Map<String, String>.from(jsonDecode(results[2])),
-      );
-      _s2tTrie = _buildTrie(
-        Map<String, String>.from(jsonDecode(results[3])),
       );
       _initialized = true;
     } catch (e) {
@@ -69,13 +54,6 @@ class ChineseConverter {
     assert(_initialized, 'ChineseConverter.init() 尚未调用');
     if (input.isEmpty) return input;
     return _cachedConvert(input, _t2sChars, _t2sTrie, _t2sResultCache);
-  }
-
-  /// 简体中文 → 繁体中文。
-  String toTraditional(String input) {
-    assert(_initialized, 'ChineseConverter.init() 尚未调用');
-    if (input.isEmpty) return input;
-    return _cachedConvert(input, _s2tChars, _s2tTrie, _s2tResultCache);
   }
 
   // ── 构建辅助 ──────────────────────────────────────────────────────────

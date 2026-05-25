@@ -21,7 +21,6 @@ import 'package:haka_comic/views/search/boolean_search.dart';
 import 'package:haka_comic/views/search/search_cache.dart';
 import 'package:haka_comic/views/search/search_probe.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
-import 'package:haka_comic/utils/chinese_converter.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:provider/provider.dart';
 
@@ -74,14 +73,6 @@ class _SearchComicsState extends State<SearchComics>
       AppConf().enableBooleanSearch &&
       (_currentQuery.andWords.isNotEmpty || _currentQuery.notWords.isNotEmpty);
 
-  /// 根据设置规范化搜索词（简繁转换）
-  String _normalizeKeyword(String keyword) {
-    final mode = AppConf().searchNormalization;
-    if (mode == 'off') return keyword;
-    if (mode == 's2t') return ChineseConverter.instance.toTraditional(keyword);
-    return ChineseConverter.instance.toSimplified(keyword);
-  }
-
   @override
   List<RequestHandler> registerHandler() => [_handler];
 
@@ -108,13 +99,12 @@ class _SearchComicsState extends State<SearchComics>
       // ── 非布尔模式 ─────────
       if (targetPage == 1 && !silent) _handler.resetState();
       if (!silent) _page = targetPage;
-      final kw = _normalizeKeyword(keyword);
-      final cacheKey = SearchCache.buildKey(kw, _sortType, _selectedCategories);
+      final cacheKey = SearchCache.buildKey(keyword, _sortType, _selectedCategories);
 
       if (page == null) {
         // ── 搜索入口：先请求 page1 校验缓存鲜度 ─────────
         await _handler.run(SearchPayload(
-          keyword: kw, page: 1, sort: _sortType, categories: _selectedCategories,
+          keyword: keyword, page: 1, sort: _sortType, categories: _selectedCategories,
         ));
         if (!_handler.state.hasData) return;
         final fresh = _handler.state.data!;
@@ -125,7 +115,7 @@ class _SearchComicsState extends State<SearchComics>
           SearchCache.remove(cacheKey);
           SearchCache.put(cacheKey, 1, fresh);
           SearchCache.touch(cacheKey);
-          SearchProbeCache.put(kw, _selectedCategories, fresh.comics.total);
+          SearchProbeCache.put(keyword, _selectedCategories, fresh.comics.total);
           if (!silent) _handler.mutate(fresh);
         }
       } else {
@@ -136,7 +126,7 @@ class _SearchComicsState extends State<SearchComics>
           SearchCache.touch(cacheKey);
         } else {
           await _handler.run(SearchPayload(
-            keyword: kw, page: targetPage, sort: _sortType, categories: _selectedCategories,
+            keyword: keyword, page: targetPage, sort: _sortType, categories: _selectedCategories,
           ));
           if (_handler.state.hasData) {
             SearchCache.put(cacheKey, targetPage, _handler.state.data!);
@@ -166,7 +156,7 @@ class _SearchComicsState extends State<SearchComics>
       query: _currentQuery,
       sortType: _sortType,
       categories: _selectedCategories,
-      normalizeKeyword: _normalizeKeyword,
+      normalizeKeyword: (kw) => kw,
       onResults: (_) {},
     );
     engine.onResults = (results) {

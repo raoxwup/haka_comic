@@ -82,6 +82,4 @@ flutter:
     - assets/icons/pc/linux_icon.png
     - assets/dict/t2s_chars.json
     - assets/dict/t2s_phrases.json
-    - assets/dict/s2t_chars.json
-    - assets/dict/s2t_phrases.json
 
