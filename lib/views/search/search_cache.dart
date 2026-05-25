@@ -86,20 +86,24 @@ class SearchCache {
     _life.remove(key);
   }
 
-  /// 校验首页新鲜度: 对比缓存中第 1 页的 total 和首条漫画 ID
+  /// 校验首页新鲜度: 对比缓存中第 1 页的 total + 整页漫画 uid/updated_at 序列
   ///
   /// 返回 true 表示缓存仍有效，调用方应复用已有缓存页。
   /// 返回 false 表示数据已变，调用方应清除旧缓存并重新缓存。
   static bool validateFreshness(String key, SearchResponse fresh) {
-    final cachedPage1 = get(key, 1);
-    if (cachedPage1 == null) return false;
-    final valid = cachedPage1.comics.total == fresh.comics.total &&
-        _firstId(cachedPage1) == _firstId(fresh);
-    if (!valid) {
-      Log.i('Cache freshness failed',
-          'cachedTotal=${cachedPage1.comics.total} freshTotal=${fresh.comics.total}');
+    final cached = get(key, 1);
+    if (cached == null) return false;
+    final cDocs = cached.comics.docs;
+    final fDocs = fresh.comics.docs;
+    if (cached.comics.total != fresh.comics.total) return false;
+    if (cDocs.length != fDocs.length) return false;
+    for (var i = 0; i < cDocs.length; i++) {
+      if (cDocs[i].uid != fDocs[i].uid ||
+          cDocs[i].updated_at != fDocs[i].updated_at) return false;
     }
-    return valid;
+    Log.i('Cache freshness passed',
+        'total=${cached.comics.total} items=${cDocs.length}');
+    return true;
   }
 
   /// 清空全部缓存
@@ -108,10 +112,5 @@ class SearchCache {
     _cache.clear();
     _keys.clear();
     _life.clear();
-  }
-
-  /// 取 SearchResponse 中第一条漫画的 ID（用于新鲜度对比）
-  static String? _firstId(SearchResponse r) {
-    return r.comics.docs.isNotEmpty ? r.comics.docs.first.uid : null;
   }
 }
