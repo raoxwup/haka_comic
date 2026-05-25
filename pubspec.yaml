@@ -2,7 +2,7 @@ name: haka_comic
 description: "A third-party PICACG project."
 publish_to: "none"
 
-version: 1.2.5
+version: 1.2.6
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -78,7 +78,7 @@ flutter:
     - assets/images/latest.jpg
     - assets/images/random.jpg
     - assets/images/default_avatar.jpg
-    - assets/icons/android/ic_launcher_foreground.png
+    - assets/images/foreground.png
     - assets/icons/pc/linux_icon.png
 
 # fonts:

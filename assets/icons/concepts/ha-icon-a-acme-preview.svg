@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <defs>
+    <style>
+      @font-face {
+        font-family: "Acme";
+        src: url("Acme-Regular.ttf") format("truetype");
+        font-weight: 400;
+        font-style: normal;
+      }
+    </style>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#162016" flood-opacity="0.14"/>
+    </filter>
+    <pattern id="checker" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" fill="#ffffff"/>
+      <rect width="8" height="8" fill="#edf1eb"/>
+      <rect x="8" y="8" width="8" height="8" fill="#edf1eb"/>
+    </pattern>
+
+    <symbol id="icon" viewBox="0 0 256 256">
+      <rect width="256" height="256" rx="58" fill="#daffc2"/>
+      <text x="124" y="176" text-anchor="middle" font-family="Acme, Arial, sans-serif" font-size="154" font-weight="400" letter-spacing="0" fill="#142117">Ha</text>
+    </symbol>
+    <symbol id="icon-dark" viewBox="0 0 256 256">
+      <rect width="256" height="256" rx="58" fill="#101711"/>
+      <text x="124" y="176" text-anchor="middle" font-family="Acme, Arial, sans-serif" font-size="154" font-weight="400" letter-spacing="0" fill="#daffc2">Ha</text>
+    </symbol>
+    <symbol id="icon-tinted" viewBox="0 0 256 256">
+      <rect width="256" height="256" rx="58" fill="#f4f4f4"/>
+      <text x="124" y="176" text-anchor="middle" font-family="Acme, Arial, sans-serif" font-size="154" font-weight="400" letter-spacing="0" fill="#202020">Ha</text>
+    </symbol>
+    <symbol id="foreground" viewBox="0 0 256 256">
+      <text x="124" y="176" text-anchor="middle" font-family="Acme, Arial, sans-serif" font-size="154" font-weight="400" letter-spacing="0" fill="#142117">Ha</text>
+    </symbol>
+    <symbol id="monochrome" viewBox="0 0 256 256">
+      <text x="124" y="176" text-anchor="middle" font-family="Acme, Arial, sans-serif" font-size="154" font-weight="400" letter-spacing="0" fill="#000000">Ha</text>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="820" fill="#f6f8f4"/>
+  <text x="70" y="78" font-family="Segoe UI, Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="0" fill="#142117">A方案调整预览</text>
+  <text x="70" y="118" font-family="Segoe UI, Arial, sans-serif" font-size="20" letter-spacing="0" fill="#566255">Acme 字体，无下划线，字母占比加大；背景保持 #daffc2。</text>
+
+  <rect x="70" y="160" width="1060" height="580" rx="24" fill="#ffffff" stroke="#dbe6d6" filter="url(#shadow)"/>
+
+  <use href="#icon" x="120" y="220" width="280" height="280"/>
+  <text x="120" y="548" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#142117">主图标</text>
+  <text x="120" y="580" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#667463">适合 iOS/macOS 自动圆角裁切，Windows/Linux 也保留足够边距。</text>
+
+  <text x="500" y="235" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#142117">Android adaptive</text>
+  <rect x="500" y="270" width="92" height="92" rx="22" fill="#daffc2"/>
+  <text x="500" y="392" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">ic_launcher_background</text>
+  <rect x="636" y="270" width="92" height="92" rx="22" fill="url(#checker)" stroke="#dce5d8"/>
+  <use href="#foreground" x="646" y="280" width="72" height="72"/>
+  <text x="636" y="392" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">ic_launcher_foreground</text>
+  <rect x="772" y="270" width="92" height="92" rx="22" fill="url(#checker)" stroke="#dce5d8"/>
+  <use href="#monochrome" x="782" y="280" width="72" height="72"/>
+  <text x="772" y="392" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">ic_launcher_monochrome</text>
+
+  <text x="500" y="468" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#142117">iOS variants</text>
+  <use href="#icon" x="500" y="500" width="92" height="92"/>
+  <use href="#icon-dark" x="636" y="500" width="92" height="92"/>
+  <use href="#icon-tinted" x="772" y="500" width="92" height="92"/>
+  <text x="519" y="622" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">Light</text>
+  <text x="658" y="622" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">Dark</text>
+  <text x="796" y="622" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">Tinted</text>
+
+  <text x="940" y="235" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#142117">小尺寸</text>
+  <rect x="940" y="270" width="64" height="64" rx="14" fill="#eef3eb"/>
+  <use href="#icon" x="964" y="294" width="16" height="16"/>
+  <text x="962" y="358" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">16</text>
+  <rect x="1030" y="270" width="64" height="64" rx="14" fill="#eef3eb"/>
+  <use href="#icon" x="1050" y="290" width="24" height="24"/>
+  <text x="1051" y="358" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">24</text>
+  <rect x="940" y="410" width="64" height="64" rx="14" fill="#eef3eb"/>
+  <use href="#icon" x="956" y="426" width="32" height="32"/>
+  <text x="961" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">32</text>
+  <rect x="1030" y="410" width="64" height="64" rx="14" fill="#eef3eb"/>
+  <use href="#icon" x="1046" y="426" width="32" height="32"/>
+  <text x="1045" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#667463">tray</text>
+</svg>
