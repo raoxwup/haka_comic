@@ -60,7 +60,9 @@ class _HotSearchWordsState extends State<HotSearchWords> with RequestMixin {
                       title: e,
                       onTap: () {
                         context.read<SearchProvider>().add(e);
-                        context.push('/search_comics?keyword=$e');
+                        context.push(
+                          '/search_comics?keyword=${Uri.encodeComponent(e)}',
+                        );
                       },
                     ),
                   )

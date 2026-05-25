@@ -14,43 +14,43 @@
       "iconURL": "https://raw.githubusercontent.com/raoxwup/haka_comic/main/assets/icons/ios/AppIcon.png",
       "versions": [
         {
+          "version": "1.2.5",
+          "buildVersion": "1.2.5",
+          "date": "2026-05-21T13:17:01Z",
+          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.5/no-codesign-ios-v1.2.5.ipa",
+          "size": 17132831,
+          "minOSVersion": "13.0"
+        },
+        {
+          "version": "1.2.4",
+          "buildVersion": "1.2.4",
+          "date": "2026-05-14T08:31:39Z",
+          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.4/no-codesign-ios-v1.2.4.ipa",
+          "size": 12953456,
+          "minOSVersion": "13.0"
+        },
+        {
+          "version": "1.2.3",
+          "buildVersion": "1.2.3",
+          "date": "2026-04-30T16:30:38Z",
+          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.3/no-codesign-ios-v1.2.3.ipa",
+          "size": 12725958,
+          "minOSVersion": "13.0"
+        },
+        {
+          "version": "1.2.2",
+          "buildVersion": "1.2.2",
+          "date": "2026-04-28T15:53:11Z",
+          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.2/no-codesign-ios-v1.2.2.ipa",
+          "size": 12638428,
+          "minOSVersion": "13.0"
+        },
+        {
           "version": "1.2.1",
           "buildVersion": "1.2.1",
-          "date": "2026-04-11T09:16:08Z",
+          "date": "2026-04-28T15:13:09Z",
           "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.1/no-codesign-ios-v1.2.1.ipa",
-          "size": 12525648,
-          "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.2.0",
-          "buildVersion": "1.2.0",
-          "date": "2026-04-08T03:45:00Z",
-          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.2.0/no-codesign-ios-v1.2.0.ipa",
-          "size": 12524382,
-          "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.1.4",
-          "buildVersion": "1.1.4",
-          "date": "2026-03-08T07:37:02Z",
-          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.1.4/no-codesign-ios-v1.1.4.ipa",
-          "size": 12478946,
-          "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.1.3",
-          "buildVersion": "1.1.3",
-          "date": "2026-02-23T15:20:00Z",
-          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.1.3/no-codesign-ios-v1.1.3.ipa",
-          "size": 12473519,
-          "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.1.2",
-          "buildVersion": "1.1.2",
-          "date": "2026-02-06T16:17:38Z",
-          "downloadURL": "https://github.com/raoxwup/haka_comic/releases/download/1.1.2/no-codesign-ios-v1.1.2.ipa",
-          "size": 12385972,
+          "size": 12638460,
           "minOSVersion": "13.0"
         }
       ],

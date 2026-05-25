@@ -18,13 +18,21 @@ Future<LoginResponse> login(LoginPayload payload) async {
   return data.data;
 }
 
-/// 分类
+/// 分类（缓存 1 小时）
 Future<CategoriesResponse> fetchCategories() async {
+  final cached = Cache.get<Map<String, dynamic>>('categories');
+  if (cached != null) {
+    return BaseResponse<CategoriesResponse>.fromJson(
+      cached,
+      (data) => CategoriesResponse.fromJson(data),
+    ).data;
+  }
   final response = await Client.get("categories");
   response['data']['categories'] =
       (response['data']['categories'] as List<dynamic>)
           .where((category) => category['isWeb'] != true)
           .toList();
+  Cache.add('categories', response);
   final data = BaseResponse<CategoriesResponse>.fromJson(
     response,
     (data) => CategoriesResponse.fromJson(data),
@@ -42,9 +50,18 @@ Future<ComicsResponse> fetchComics(ComicsPayload payload) async {
   return data.data;
 }
 
-/// 漫画详情
+/// 漫画详情（缓存 10 分钟）
 Future<ComicDetailsResponse> fetchComicDetails(String id) async {
+  final cacheKey = 'comic_details_$id';
+  final cached = Cache.get<Map<String, dynamic>>(cacheKey);
+  if (cached != null) {
+    return BaseResponse<ComicDetailsResponse>.fromJson(
+      cached,
+      (data) => ComicDetailsResponse.fromJson(data),
+    ).data;
+  }
   final response = await Client.get('comics/$id');
+  Cache.add(cacheKey, response, ttl: const Duration(minutes: 10));
   final data = BaseResponse<ComicDetailsResponse>.fromJson(
     response,
     (data) => ComicDetailsResponse.fromJson(data),
@@ -52,8 +69,12 @@ Future<ComicDetailsResponse> fetchComicDetails(String id) async {
   return data.data;
 }
 
-/// 漫画章节
+/// 漫画章节（缓存 10 分钟）
 Future<List<Chapter>> fetchChapters(String id) async {
+  final cacheKey = 'chapters_$id';
+  final cached = Cache.get<List<Chapter>>(cacheKey);
+  if (cached != null) return cached;
+
   List<Chapter> chapters = [];
   final url = 'comics/$id/eps';
   final response = await Client.get(url, query: {'page': 1});
@@ -63,20 +84,21 @@ Future<List<Chapter>> fetchChapters(String id) async {
   );
   final eps = data.data.eps;
   chapters.addAll(eps.docs);
-  // 并发请求快一些
-  final results = await Future.wait(
-    List.generate(
-      eps.pages - 1,
-      (index) => Client.get(url, query: {'page': index + 2}),
-    ),
+  // 并发请求所有剩余页
+  final pages = eps.pages - 1;
+  final requests = List.generate(
+    pages,
+    (index) => Client.get(url, query: {'page': index + 2}),
   );
-  for (var result in results) {
+  final responses = await Future.wait(requests);
+  for (var result in responses) {
     final data = BaseResponse<ChaptersResponse>.fromJson(
       result,
       (data) => ChaptersResponse.fromJson(data),
     );
     chapters.addAll(data.data.eps.docs);
   }
+  Cache.add<List<Chapter>>(cacheKey, chapters, ttl: const Duration(minutes: 10));
   return chapters;
 }
 
@@ -322,10 +344,19 @@ Future<UserProfileResponse> fetchUserProfile() async {
 
 /// 获取排行榜
 Future<ComicRankResponse> fetchComicRank(ComicRankPayload payload) async {
+  final cacheKey = 'rank_${payload.type.name}';
+  final cached = Cache.get<Map<String, dynamic>>(cacheKey);
+  if (cached != null) {
+    return BaseResponse<ComicRankResponse>.fromJson(
+      cached,
+      (data) => ComicRankResponse.fromJson(data),
+    ).data;
+  }
   final response = await Client.get(
     'comics/leaderboard',
     query: payload.toJson(),
   );
+  Cache.add(cacheKey, response, ttl: const Duration(minutes: 30));
   final data = BaseResponse<ComicRankResponse>.fromJson(
     response,
     (data) => ComicRankResponse.fromJson(data),
@@ -338,9 +369,17 @@ Future<void> punchIn() async {
   await Client.post('users/punch-in');
 }
 
-/// 获取骑士排行榜
+/// 获取骑士排行榜（缓存 30 分钟）
 Future<KnightRankResponse> fetchKnightRank() async {
+  final cached = Cache.get<Map<String, dynamic>>('rank_knight');
+  if (cached != null) {
+    return BaseResponse<KnightRankResponse>.fromJson(
+      cached,
+      (data) => KnightRankResponse.fromJson(data),
+    ).data;
+  }
   final response = await Client.get('comics/knight-leaderboard');
+  Cache.add('rank_knight', response, ttl: const Duration(minutes: 30));
   final data = BaseResponse<KnightRankResponse>.fromJson(
     response,
     (data) => KnightRankResponse.fromJson(data),
@@ -371,7 +410,7 @@ Future<PersonalCommentsResponse> fetchPersonalComments(int page) async {
 /// 获取热搜词
 Future<HotSearchWordsResponse> fetchHotSearchWords() async {
   Map<String, dynamic> response;
-  final map = Cache.get('keywords');
+  final map = Cache.get<Map<String, dynamic>>('keywords');
   if (map != null) {
     response = map;
   } else {

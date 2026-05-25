@@ -747,13 +747,20 @@ class SearchPayload {
 
   final ComicSortType sort;
 
+  final List<String> categories;
+
   SearchPayload({
     required this.keyword,
     required this.page,
     required this.sort,
+    this.categories = const [],
   });
 
-  Map<String, dynamic> toJson() => {'keyword': keyword, 'sort': sort.name};
+  Map<String, dynamic> toJson() => {
+    'keyword': keyword,
+    'sort': sort.name,
+    if (categories.isNotEmpty) 'categories': categories,
+  };
 }
 
 @JsonSerializable()
