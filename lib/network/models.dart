@@ -62,10 +62,20 @@ class ImageDetail {
 
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
 
+  String normalizeUrl(String url) {
+    final uri = Uri.parse(url);
+
+    final normalizedPath = uri.path.replaceAll(RegExp(r'/+'), '/');
+
+    return uri.replace(path: normalizedPath).toString();
+  }
+
   // 直连
-  String get directUrl => fileServer.contains('static')
-      ? '$fileServer$path'
-      : '$fileServer/static/$path';
+  String get directUrl => normalizeUrl(
+    fileServer.contains('static')
+        ? '$fileServer/$path'
+        : '$fileServer/static/$path',
+  );
 
   // web代理
   String get proxyUrl => directUrl.replaceFirst('picacomic', 'go2778');
