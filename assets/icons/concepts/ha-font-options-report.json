@@ -1,0 +1,134 @@
+[
+  {
+    "name": "Sora ExtraBold",
+    "fit_size": 548,
+    "bbox": [
+      164,
+      307,
+      859,
+      716
+    ],
+    "bbox_size": [
+      695,
+      409
+    ],
+    "center_delta_px": [
+      -0.5,
+      -0.5
+    ],
+    "small_32_weight_delta": [
+      -0.35,
+      0.23
+    ]
+  },
+  {
+    "name": "Acme Regular",
+    "fit_size": 645,
+    "bbox": [
+      173,
+      287,
+      851,
+      737
+    ],
+    "bbox_size": [
+      678,
+      450
+    ],
+    "center_delta_px": [
+      0.0,
+      0.0
+    ],
+    "small_32_weight_delta": [
+      -1.11,
+      0.05
+    ]
+  },
+  {
+    "name": "Nunito ExtraBold",
+    "fit_size": 574,
+    "bbox": [
+      164,
+      304,
+      860,
+      720
+    ],
+    "bbox_size": [
+      696,
+      416
+    ],
+    "center_delta_px": [
+      0.0,
+      0.0
+    ],
+    "small_32_weight_delta": [
+      -1.07,
+      0.33
+    ]
+  },
+  {
+    "name": "Rubik ExtraBold",
+    "fit_size": 554,
+    "bbox": [
+      164,
+      315,
+      860,
+      708
+    ],
+    "bbox_size": [
+      696,
+      393
+    ],
+    "center_delta_px": [
+      0.0,
+      -0.5
+    ],
+    "small_32_weight_delta": [
+      -0.75,
+      0.72
+    ]
+  },
+  {
+    "name": "Fredoka Bold",
+    "fit_size": 606,
+    "bbox": [
+      164,
+      300,
+      860,
+      724
+    ],
+    "bbox_size": [
+      696,
+      424
+    ],
+    "center_delta_px": [
+      0.0,
+      0.0
+    ],
+    "small_32_weight_delta": [
+      -1.13,
+      0.83
+    ]
+  },
+  {
+    "name": "M PLUS Rounded 1c ExtraBold",
+    "fit_size": 600,
+    "bbox": [
+      164,
+      290,
+      860,
+      734
+    ],
+    "bbox_size": [
+      696,
+      444
+    ],
+    "center_delta_px": [
+      0.0,
+      0.0
+    ],
+    "small_32_weight_delta": [
+      -1.11,
+      -0.1
+    ]
+  }
+]
