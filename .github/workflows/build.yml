@@ -249,6 +249,7 @@ jobs:
 
           $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
           $exeName = $exePath.Name
+          $iconFile = "windows_icon-$($env:GITHUB_RUN_NUMBER).ico"
 
           # 构造输出文件名
           $outputFile = "$appName-Setup-v$version"
@@ -261,16 +262,21 @@ jobs:
           DefaultDirName=$DefaultDir
           DefaultGroupName=$appName
           OutputBaseFilename=$outputFile
+          SetupIconFile=assets/icons/pc/windows_icon.ico
+          UninstallDisplayIcon={app}\$iconFile
           Compression=lzma
           SolidCompression=yes
 
+          [InstallDelete]
+          Type: files; Name: `"{app}\windows_icon*.ico`"
+
           [Files]
-          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; DestName: "$iconFile"; Flags: ignoreversion
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
-          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\$iconFile`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\$iconFile`"; WorkingDir: `"{app}`"
 
           [Run]
           Filename: `"{app}\$exeName`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
