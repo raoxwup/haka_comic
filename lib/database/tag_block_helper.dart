@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/setup_config.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import 'package:path/path.dart' as p;
 
 final migrations = SqliteMigrations()
   ..add(
@@ -23,6 +27,7 @@ class TagBlockHelper with ChangeNotifier {
 
   late SqliteDatabase _db;
   String get dbPath => '${SetupConf.dataPath}/tag_block.db';
+  String get dbName => 'tag_block.db';
 
   Future<void> initialize() async {
     _db = SqliteDatabase(path: dbPath);
@@ -60,6 +65,40 @@ class TagBlockHelper with ChangeNotifier {
 
   Future<void> clear() async {
     await _db.execute('DELETE FROM tag_block');
+    notifyListeners();
+  }
+
+  /// 备份数据库文件到临时目录（用于打入 backup.zip）
+  Future<File> backup() async {
+    final tempDir = await getTemporaryDirectory();
+    final backupDir = Directory(p.join(tempDir.path, 'backup'));
+
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+
+    final path = p.join(backupDir.path, dbName);
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    await _db.execute('VACUUM INTO ?', [path]);
+    return File(path);
+  }
+
+  /// 从备份文件恢复数据库
+  Future<void> restore(File file) async {
+    await _db.close();
+
+    final files = [File(dbPath), File('$dbPath-wal'), File('$dbPath-shm')];
+    for (var f in files) {
+      if (await f.exists()) {
+        await f.delete();
+      }
+    }
+
+    await file.copy(dbPath);
+    await initialize();
     notifyListeners();
   }
 }

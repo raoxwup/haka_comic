@@ -2,11 +2,7 @@ import 'dart:io' show File, Directory;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/database/history_helper.dart';
-import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/database/local_favorites_helper.dart';
-import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/rust/api/compress.dart';
+import 'package:haka_comic/utils/backup_utils.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
@@ -69,24 +65,11 @@ class _WebDAVState extends State<WebDAV> {
       final tempDir = await getTemporaryDirectory();
       final list = await client.readDir('/');
       if (_actionType == ActionType.upload) {
-        await Future.wait([
-          ImagesHelper().backup(),
-          HistoryHelper().backup(),
-          ReadRecordHelper().backup(),
-          LocalFavoritesHelper().backup(),
-        ]);
+        await performBackup();
 
-        final backupDir = Directory(p.join(tempDir.path, 'backup'));
+        final zipFile = await makeBackupZip();
 
-        final zipFile = File(p.join(tempDir.path, 'backup.zip'));
-
-        await compress(
-          sourceFolderPath: backupDir.path,
-          outputZipPath: zipFile.path,
-          compressionMethod: CompressionMethod.deflated,
-        );
-
-        await client.writeFromFile(zipFile.path, '$baseDir/backup.zip');
+        await client.writeFromFile(zipFile.path, '$baseDir/$backupFileName');
 
         if (await zipFile.exists()) {
           await zipFile.delete();
@@ -99,33 +82,19 @@ class _WebDAVState extends State<WebDAV> {
           return;
         }
 
-        final restoreDir = Directory(p.join(tempDir.path, 'restore'));
+        // 使用 restoreFromZip 内部不同的目录名，避免冲突
+        final downloadDir = Directory(p.join(tempDir.path, 'webdav_download'));
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
+        final downloadedZip = File(p.join(downloadDir.path, backupFileName));
         await client.read2File(
-          '$baseDir/backup.zip',
-          p.join(restoreDir.path, 'backup.zip'),
+          '$baseDir/$backupFileName',
+          downloadedZip.path,
         );
 
-        await decompress(
-          sourceZipPath: p.join(restoreDir.path, 'backup.zip'),
-          outputFolderPath: restoreDir.path,
-        );
-
-        final imagesDB = File(p.join(restoreDir.path, ImagesHelper().dbName));
-        final historyDB = File(p.join(restoreDir.path, HistoryHelper().dbName));
-        final readRecordDB = File(
-          p.join(restoreDir.path, ReadRecordHelper().dbName),
-        );
-        final localFavoritesDB = File(
-          p.join(restoreDir.path, LocalFavoritesHelper().dbName),
-        );
-
-        await Future.wait([
-          ImagesHelper().restore(imagesDB),
-          HistoryHelper().restore(historyDB),
-          ReadRecordHelper().restore(readRecordDB),
-          LocalFavoritesHelper().restore(localFavoritesDB),
-        ]);
+        await restoreFromZip(downloadedZip);
 
         Toast.show(message: '下载成功');
       }

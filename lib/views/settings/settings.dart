@@ -77,6 +77,13 @@ class Settings extends StatelessWidget {
                     context.push('/webdav');
                   },
                 ),
+                MenuListTile.withAction(
+                  icon: Icons.sd_card_outlined,
+                  title: '本地备份',
+                  onTap: () {
+                    context.push('/local_backup');
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 20),

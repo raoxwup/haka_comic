@@ -33,6 +33,7 @@ import 'package:haka_comic/views/search/search.dart';
 import 'package:haka_comic/views/settings/api_settings.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/block_settings.dart';
+import 'package:haka_comic/views/settings/local_backup.dart';
 import 'package:haka_comic/views/settings/logs.dart';
 import 'package:haka_comic/views/settings/proxy_settings.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
@@ -180,6 +181,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/api_settings', builder: (_, _) => const ApiSettings()),
     GoRoute(path: '/proxy_settings', builder: (_, _) => ProxySettings()),
     GoRoute(path: '/block_settings', builder: (_, _) => const BlockSettings()),
+    GoRoute(path: '/local_backup', builder: (_, _) => const LocalBackup()),
   ],
 );
 

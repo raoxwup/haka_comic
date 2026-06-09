@@ -21,6 +21,9 @@ class BlockProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 从数据库重新同步屏蔽数据（在备份恢复后调用）
+  Future<void> syncFromDb() => _sync();
+
   bool containsTag(String tag) => blockedTags.contains(tag);
 
   bool containsWord(String word) => blockedWords.contains(word);
