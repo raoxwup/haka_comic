@@ -2,6 +2,7 @@ import 'dart:io' show File, Directory;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/utils/backup_utils.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
@@ -10,6 +11,7 @@ import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webdav_client/webdav_client.dart' hide File;
 import 'package:path/path.dart' as p;
+import 'package:provider/provider.dart';
 
 enum ActionType { upload, download }
 
@@ -95,6 +97,10 @@ class _WebDAVState extends State<WebDAV> {
         );
 
         await restoreFromZip(downloadedZip);
+
+        if (mounted) {
+          context.read<BlockProvider>().syncFromDb();
+        }
 
         Toast.show(message: '下载成功');
       }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -127,8 +128,13 @@ String _addThousandsSeparator(String numberStr) {
   return buffer.toString();
 }
 
-/// 根据平台返回不同的下载目录
+/// 根据平台返回不同的下载目录（如果用户设置了自定义路径则优先使用）
 Future<String> getDownloadDirectory() async {
+  final customPath = AppConf().downloadPath;
+  if (customPath.isNotEmpty) {
+    return customPath;
+  }
+
   if (isIOS) {
     return (await getApplicationDocumentsDirectory()).path;
   }
