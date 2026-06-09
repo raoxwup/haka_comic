@@ -33,6 +33,7 @@ class _WebDAVState extends State<WebDAV> {
     ..text = appConf.webdavPassword;
   ActionType _actionType = ActionType.upload;
   bool _loading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -164,6 +165,7 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _urlController,
+                onChanged: (_) => save(),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -172,14 +174,27 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _usernameController,
+                onChanged: (_) => save(),
               ),
               const SizedBox(height: 12),
               TextField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: '密码',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                  ),
                 ),
                 controller: _passwordController,
+                obscureText: _obscurePassword,
+                onChanged: (_) => save(),
               ),
               const SizedBox(height: 12),
               RadioGroup(
