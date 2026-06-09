@@ -29,12 +29,41 @@ class _WebDAVState extends State<WebDAV> {
     ..text = appConf.webdavUser;
   late final _passwordController = TextEditingController()
     ..text = appConf.webdavPassword;
+  late final _urlFocusNode = FocusNode();
+  late final _usernameFocusNode = FocusNode();
+  late final _passwordFocusNode = FocusNode();
   ActionType _actionType = ActionType.upload;
   bool _loading = false;
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    _urlFocusNode.addListener(_onUrlFocusChange);
+    _usernameFocusNode.addListener(_onUsernameFocusChange);
+    _passwordFocusNode.addListener(_onPasswordFocusChange);
+  }
+
+  void _onUrlFocusChange() {
+    if (!_urlFocusNode.hasFocus) save();
+  }
+
+  void _onUsernameFocusChange() {
+    if (!_usernameFocusNode.hasFocus) save();
+  }
+
+  void _onPasswordFocusChange() {
+    if (!_passwordFocusNode.hasFocus) save();
+  }
+
+  @override
   void dispose() {
+    _urlFocusNode.removeListener(_onUrlFocusChange);
+    _usernameFocusNode.removeListener(_onUsernameFocusChange);
+    _passwordFocusNode.removeListener(_onPasswordFocusChange);
+    _urlFocusNode.dispose();
+    _usernameFocusNode.dispose();
+    _passwordFocusNode.dispose();
     _urlController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -92,10 +121,7 @@ class _WebDAVState extends State<WebDAV> {
         }
 
         final downloadedZip = File(p.join(downloadDir.path, backupFileName));
-        await client.read2File(
-          '$baseDir/$backupFileName',
-          downloadedZip.path,
-        );
+        await client.read2File('$baseDir/$backupFileName', downloadedZip.path);
 
         await restoreFromZip(downloadedZip);
 
@@ -140,7 +166,7 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _urlController,
-                onChanged: (_) => save(),
+                focusNode: _urlFocusNode,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -149,7 +175,7 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _usernameController,
-                onChanged: (_) => save(),
+                focusNode: _usernameFocusNode,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -169,7 +195,7 @@ class _WebDAVState extends State<WebDAV> {
                 ),
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                onChanged: (_) => save(),
+                focusNode: _passwordFocusNode,
               ),
               const SizedBox(height: 12),
               RadioGroup(
