@@ -1,7 +1,9 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
+import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/widgets/button.dart';
 import 'package:haka_comic/widgets/toast.dart';
 
@@ -26,6 +28,7 @@ class _DownloadPathSettingsState extends State<DownloadPathSettings> {
     if (dirPath == null || !mounted) return;
 
     appConf.downloadPath = dirPath;
+    BackgroundDownloader.updateDownloadPath(dirPath);
     setState(() {});
 
     if (mounted) {
@@ -33,8 +36,9 @@ class _DownloadPathSettingsState extends State<DownloadPathSettings> {
     }
   }
 
-  void _resetToDefault() {
+  Future<void> _resetToDefault() async {
     appConf.downloadPath = '';
+    BackgroundDownloader.updateDownloadPath(await getDownloadDirectory());
     setState(() {});
 
     if (mounted) {
@@ -122,7 +126,7 @@ class _DownloadPathSettingsState extends State<DownloadPathSettings> {
               if (hasCustom) ...[
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: _resetToDefault,
+                  onPressed: () => _resetToDefault(),
                   icon: const Icon(Icons.restore, size: 20),
                   label: const Text('恢复默认路径'),
                 ),

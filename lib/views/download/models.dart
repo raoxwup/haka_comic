@@ -1,6 +1,6 @@
 part of 'background_downloader.dart';
 
-enum WorkerMessageType { pause, resume, delete, query, proxy }
+enum WorkerMessageType { pause, resume, delete, query, proxy, downloadPath }
 
 class WorkerMessage {
   final WorkerMessageType type;
