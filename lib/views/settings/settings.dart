@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart' hide Block;
+import 'package:haka_comic/utils/common.dart';
+import 'package:haka_comic/views/settings/app_icon.dart';
 import 'package:haka_comic/views/settings/auth.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/views/settings/change_image_quality.dart';
@@ -24,7 +26,14 @@ class Settings extends StatelessWidget {
         child: ListView(
           padding: const .fromLTRB(12, 0, 12, 20),
           children: [
-            const Block(title: '外观', children: [t.Theme(), ThemeColor()]),
+            Block(
+              title: '外观',
+              children: [
+                const t.Theme(),
+                const ThemeColor(),
+                if (isAndroid) const AppIcon(),
+              ],
+            ),
             const SizedBox(height: 20),
             Block(
               title: '哔咔相关',

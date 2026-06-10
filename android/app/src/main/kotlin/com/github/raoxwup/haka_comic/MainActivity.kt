@@ -6,7 +6,9 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
 import android.os.Build
 import android.os.Environment
+import android.content.ComponentName
 import android.content.ContentValues
+import android.content.pm.PackageManager
 import android.provider.MediaStore
 import android.content.Intent
 import android.net.Uri
@@ -15,6 +17,7 @@ import java.io.FileOutputStream
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "haka_comic/download_saver"
+    private val ICON_CHANNEL = "haka_comic/app_icon"
     private lateinit var folderPickerPlugin: FolderPickerPlugin
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -43,6 +46,51 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, ICON_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setIcon" -> {
+                    val name = call.argument<String>("name")
+                    if (name == "default" || name == "old") {
+                        setLauncherIcon(name)
+                        result.success(true)
+                    } else {
+                        result.error("INVALID_ICON", "未知的图标名称: $name", null)
+                    }
+                }
+
+                "getIcon" -> {
+                    result.success(getCurrentIcon())
+                }
+
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun aliasComponent(suffix: String): ComponentName {
+        return ComponentName(this, "$packageName.$suffix")
+    }
+
+    private fun setLauncherIcon(name: String) {
+        val target = if (name == "old") "IconOld" else "IconDefault"
+        val other = if (name == "old") "IconDefault" else "IconOld"
+        // 先启用目标 alias 再禁用另一个，避免瞬间没有 LAUNCHER 入口
+        packageManager.setComponentEnabledSetting(
+            aliasComponent(target),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP,
+        )
+        packageManager.setComponentEnabledSetting(
+            aliasComponent(other),
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP,
+        )
+    }
+
+    private fun getCurrentIcon(): String {
+        val state = packageManager.getComponentEnabledSetting(aliasComponent("IconOld"))
+        return if (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) "old" else "default"
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
