@@ -12,19 +12,22 @@ class AppIcon extends StatefulWidget {
 }
 
 class _AppIconState extends State<AppIcon> {
-  String _icon = 'default';
+  String _icon = AppIconSwitcher.classicIconName;
 
-  static const _titles = {'default': '经典', 'old': '现代'};
+  static const _titles = {
+    AppIconSwitcher.classicIconName: '经典',
+    AppIconSwitcher.modernIconName: '现代',
+  };
   static const _options = [
     _AppIconOption(
-      name: 'default',
+      name: AppIconSwitcher.classicIconName,
       title: '经典',
       asset: 'assets/icons/android/icon.png',
     ),
     _AppIconOption(
-      name: 'old',
+      name: AppIconSwitcher.modernIconName,
       title: '现代',
-      asset: 'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_old.png',
+      asset: 'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_modern.png',
     ),
   ];
 
@@ -32,7 +35,7 @@ class _AppIconState extends State<AppIcon> {
   void initState() {
     super.initState();
     if (isAndroid) {
-      AppIconChannel.getIcon().then((value) {
+      AppIconSwitcher.currentIconName().then((value) {
         if (mounted) {
           setState(() => _icon = value);
         }
@@ -42,7 +45,7 @@ class _AppIconState extends State<AppIcon> {
 
   Future<void> _select(String name) async {
     if (name == _icon) return;
-    await AppIconChannel.setIcon(name);
+    await AppIconSwitcher.setIcon(name);
     if (mounted) {
       setState(() => _icon = name);
     }
@@ -53,7 +56,7 @@ class _AppIconState extends State<AppIcon> {
     return MenuListTile.withAction(
       icon: Icons.apps_outlined,
       title: '应用图标',
-      value: _titles[_icon],
+      value: _titles[_icon] ?? _titles[AppIconSwitcher.classicIconName],
       onTap: () {
         showModalBottomSheet(
           context: context,

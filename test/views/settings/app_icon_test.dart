@@ -6,15 +6,21 @@ import 'package:haka_comic/views/settings/app_icon.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const channel = MethodChannel('haka_comic/app_icon');
+  const packageName = 'com.github.raoxwup.haka_comic';
+  const channel = MethodChannel('flutter_dynamic_icon_plus');
+  final calls = <MethodCall>[];
 
   setUp(() {
+    calls.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
           switch (call.method) {
-            case 'getIcon':
-              return 'default';
-            case 'setIcon':
+            case 'getAlternateIconName':
+              return '$packageName.IconClassic';
+            case 'supportsAlternateIcons':
+              return true;
+            case 'setAlternateIconName':
               return null;
           }
           return null;
@@ -43,5 +49,25 @@ void main() {
       everyElement(72),
     );
     expect(find.byType(RadioListTile<String>), findsNothing);
+  });
+
+  testWidgets('selecting an icon passes the Android alias to the plugin', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: AppIcon())));
+    await tester.pump();
+
+    await tester.tap(find.text('应用图标'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('现代'));
+    await tester.pumpAndSettle();
+
+    final setIconCall = calls.singleWhere(
+      (call) => call.method == 'setAlternateIconName',
+    );
+    expect(
+      setIconCall.arguments,
+      containsPair('iconName', '$packageName.IconModern'),
+    );
   });
 }

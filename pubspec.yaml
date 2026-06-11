@@ -54,6 +54,7 @@ dependencies:
   logger: ^2.7.0
   cached_network_image_ce: ^4.6.4
   socks5_proxy: ^2.1.1
+  flutter_dynamic_icon_plus: ^1.4.1
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +81,7 @@ flutter:
     - assets/images/default_avatar.jpg
     - assets/images/foreground.png
     - assets/icons/android/icon.png
-    - android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_old.png
+    - android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_modern.png
     - assets/icons/pc/linux_icon.png
 
 # fonts:
