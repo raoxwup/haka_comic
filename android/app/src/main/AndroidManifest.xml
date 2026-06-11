@@ -9,14 +9,12 @@
         android:label="HaKa Comic"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:networkSecurityConfig="@xml/network_security_config">
-        <service
-            android:name="com.solusibejo.flutter_dynamic_icon_plus.FlutterDynamicIconPlusService"
-            android:stopWithTask="false"/>
 
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
@@ -32,24 +30,17 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-        </activity>
-        <activity-alias
-            android:name=".IconClassic"
-            android:targetActivity=".MainActivity"
-            android:enabled="true"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher"
-            android:roundIcon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity-alias>
+        </activity>
         <activity-alias
-            android:name=".IconModern"
+            android:name="com.github.raoxwup.haka_comic.MainActivity.IconModern"
             android:targetActivity=".MainActivity"
             android:enabled="false"
             android:exported="true"
+            android:label="HaKa Comic"
             android:icon="@mipmap/ic_launcher_modern"
             android:roundIcon="@mipmap/ic_launcher_modern">
             <intent-filter>

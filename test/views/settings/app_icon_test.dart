@@ -6,8 +6,7 @@ import 'package:haka_comic/views/settings/app_icon.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const packageName = 'com.github.raoxwup.haka_comic';
-  const channel = MethodChannel('flutter_dynamic_icon_plus');
+  const channel = MethodChannel('flutter_dynamic_icon');
   final calls = <MethodCall>[];
 
   setUp(() {
@@ -16,11 +15,11 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call);
           switch (call.method) {
-            case 'getAlternateIconName':
-              return '$packageName.IconClassic';
-            case 'supportsAlternateIcons':
+            case 'mGetAlternateIconName':
+              return null;
+            case 'mSupportsAlternateIcons':
               return true;
-            case 'setAlternateIconName':
+            case 'mSetAlternateIconName':
               return null;
           }
           return null;
@@ -63,11 +62,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final setIconCall = calls.singleWhere(
-      (call) => call.method == 'setAlternateIconName',
+      (call) => call.method == 'mSetAlternateIconName',
     );
-    expect(
-      setIconCall.arguments,
-      containsPair('iconName', '$packageName.IconModern'),
-    );
+    expect(setIconCall.arguments, containsPair('iconName', 'IconModern'));
   });
 }

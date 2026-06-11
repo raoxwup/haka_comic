@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/utils/app_icon.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
+import 'package:dynamic_app_icon_flutter_plus/dynamic_app_icon_flutter_plus.dart';
 
 class AppIcon extends StatefulWidget {
   const AppIcon({super.key});
@@ -12,43 +12,33 @@ class AppIcon extends StatefulWidget {
 }
 
 class _AppIconState extends State<AppIcon> {
-  String _icon = AppIconSwitcher.classicIconName;
+  static const _modernIconName = 'IconModern';
 
-  static const _titles = {
-    AppIconSwitcher.classicIconName: '经典',
-    AppIconSwitcher.modernIconName: '现代',
-  };
-  static const _options = [
-    _AppIconOption(
-      name: AppIconSwitcher.classicIconName,
-      title: '经典',
-      asset: 'assets/icons/android/icon.png',
-    ),
-    _AppIconOption(
-      name: AppIconSwitcher.modernIconName,
-      title: '现代',
-      asset: 'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_modern.png',
-    ),
-  ];
+  String? _icon;
 
   @override
   void initState() {
     super.initState();
     if (isAndroid) {
-      AppIconSwitcher.currentIconName().then((value) {
+      DynamicAppIconFlutterPlus.getAlternateIconName().then((currentIcon) {
         if (mounted) {
-          setState(() => _icon = value);
+          setState(() => _icon = currentIcon);
         }
       });
     }
   }
 
-  Future<void> _select(String name) async {
+  Future<void> _select(String? name) async {
     if (name == _icon) return;
-    await AppIconSwitcher.setIcon(name);
+    await DynamicAppIconFlutterPlus.setAlternateIconName(name);
     if (mounted) {
       setState(() => _icon = name);
     }
+  }
+
+  void _selectFromSheet(BuildContext sheetContext, String? name) {
+    Navigator.of(sheetContext).pop();
+    _select(name).wait();
   }
 
   @override
@@ -56,7 +46,7 @@ class _AppIconState extends State<AppIcon> {
     return MenuListTile.withAction(
       icon: Icons.apps_outlined,
       title: '应用图标',
-      value: _titles[_icon] ?? _titles[AppIconSwitcher.classicIconName],
+      value: _icon == null ? '经典' : '现代',
       onTap: () {
         showModalBottomSheet(
           context: context,
@@ -90,18 +80,24 @@ class _AppIconState extends State<AppIcon> {
                   ),
                   const SizedBox(height: 34),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    spacing: 18,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      for (final option in _options)
-                        _AppIconChoice(
-                          title: option.title,
-                          asset: option.asset,
-                          selected: option.name == _icon,
-                          onTap: () async {
-                            Navigator.of(sheetContext).pop();
-                            await _select(option.name);
-                          },
-                        ),
+                      _AppIconOption(
+                        label: '经典',
+                        asset: 'assets/icons/pc/linux_icon.png',
+                        backgroundColor: const Color(0xFFd0ffad),
+                        selected: _icon == null,
+                        onTap: () => _selectFromSheet(sheetContext, null),
+                      ),
+                      _AppIconOption(
+                        label: '现代',
+                        asset: 'assets/images/foreground.png',
+                        backgroundColor: const Color(0xFFfef9fa),
+                        selected: _icon == _modernIconName,
+                        onTap: () =>
+                            _selectFromSheet(sheetContext, _modernIconName),
+                      ),
                     ],
                   ),
                 ],
@@ -114,78 +110,113 @@ class _AppIconState extends State<AppIcon> {
   }
 }
 
-class _AppIconOption {
+class _AppIconOption extends StatelessWidget {
   const _AppIconOption({
-    required this.name,
-    required this.title,
+    required this.label,
     required this.asset,
-  });
-
-  final String name;
-  final String title;
-  final String asset;
-}
-
-class _AppIconChoice extends StatelessWidget {
-  const _AppIconChoice({
-    required this.title,
-    required this.asset,
+    required this.backgroundColor,
     required this.selected,
     required this.onTap,
   });
 
-  final String title;
+  final String label;
   final String asset;
+  final Color backgroundColor;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(28);
+    final colorScheme = context.colorScheme;
 
     return Semantics(
       button: true,
       selected: selected,
-      label: title,
+      label: label,
       child: Material(
         color: Colors.transparent,
-        borderRadius: radius,
         child: InkWell(
-          borderRadius: radius,
           onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            width: 132,
-            height: 146,
-            padding: const EdgeInsets.fromLTRB(14, 17, 14, 15),
+            width: 112,
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
             decoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerLowest,
-              borderRadius: radius,
+              color: selected
+                  ? colorScheme.primary.withValues(alpha: 0.08)
+                  : colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: selected
-                    ? context.colorScheme.primary
-                    : context.colorScheme.outlineVariant,
-                width: selected ? 3 : 1.5,
+                    ? colorScheme.primary
+                    : colorScheme.outlineVariant.withValues(alpha: 0.7),
+                width: selected ? 2 : 1,
               ),
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(19),
-                  child: Image.asset(
-                    asset,
-                    width: 72,
-                    height: 72,
-                    fit: BoxFit.contain,
-                    gaplessPlayback: true,
-                  ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        asset,
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    if (selected)
+                      Positioned(
+                        right: -5,
+                        bottom: -5,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.surfaceContainerLowest,
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            color: colorScheme.onPrimary,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 10),
                 Text(
-                  title,
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.labelLarge?.copyWith(
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],

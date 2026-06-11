@@ -249,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  dynamic_app_icon_flutter_plus:
+    dependency: "direct main"
+    description:
+      name: dynamic_app_icon_flutter_plus
+      sha256: "4846689bf57f6e7cb280bc42fcf25f147b5c304316662b191dcbb1eba7d582b4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   dynamic_color:
     dependency: "direct main"
     description:
@@ -323,14 +331,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_dynamic_icon_plus:
-    dependency: "direct main"
-    description:
-      name: flutter_dynamic_icon_plus
-      sha256: "2611607982af70c5cec138ec0ec16a6f632899307145557a31dd17f0ba21004a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.1"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
