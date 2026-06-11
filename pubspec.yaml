@@ -79,6 +79,8 @@ flutter:
     - assets/images/random.jpg
     - assets/images/default_avatar.jpg
     - assets/images/foreground.png
+    - assets/icons/android/icon.png
+    - android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_old.png
     - assets/icons/pc/linux_icon.png
 
 # fonts:
