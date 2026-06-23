@@ -31,7 +31,10 @@ void main() {
       source,
       contains("package:cached_network_image_ce/cached_network_image.dart"),
     );
-    expect(source, contains('CachedNetworkImageProvider(url)'));
+    expect(
+      source,
+      contains('CachedNetworkImageProvider(url, cacheManager: cacheManager)'),
+    );
     expect(source, isNot(contains('ExtendedNetworkImageProvider')));
   });
 
@@ -49,7 +52,8 @@ void main() {
     // 单页分支必须显式传入共享的 cacheManager，
     // 否则会与默认 cacheManager 抢同一个 Hive box 引发互相清缓存。
     expect(source, contains('cacheManager: cacheManager'));
-    expect(source, contains('CachedNetworkImage.evictFromCache(item.url)'));
+    expect(source, contains('CachedNetworkImage.evictFromCache('));
+    expect(source, contains('cacheManager: cacheManager'));
     expect(source, isNot(contains('ExtendedNetworkImageProvider')));
     expect(source, isNot(contains('clearMemoryImageCache')));
   });
@@ -69,8 +73,9 @@ void main() {
       'lib/views/reader/widgets/vertical_list/vertical_list.dart',
     ).readAsStringSync();
 
-    expect(source, contains('static const double _zoomClarityScale = 3.0'));
+    expect(source, contains('computeImageCacheWidth('));
     expect(source, contains('MediaQuery.devicePixelRatioOf(context)'));
+    expect(source, contains('updatePreloadCacheWidth(cacheWidth)'));
     expect(source, contains('cacheWidth: cacheWidth'));
   });
 

@@ -245,7 +245,10 @@ class _HorizontalListState extends State<HorizontalList> with ComicListMixin {
   Future<void> _evictImage(ImageBase item) async {
     final isNetwork = context.reader.type == ReaderType.network;
     if (isNetwork) {
-      await CachedNetworkImage.evictFromCache(item.url);
+      await CachedNetworkImage.evictFromCache(
+        item.url,
+        cacheManager: cacheManager,
+      );
       return;
     }
     await FileImage(File(item.url)).evict();
