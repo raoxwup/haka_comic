@@ -6,7 +6,9 @@ import 'package:haka_comic/views/search/item.dart';
 import 'package:provider/provider.dart';
 
 class SearchHistory extends StatefulWidget {
-  const SearchHistory({super.key});
+  const SearchHistory({super.key, required this.onSearch});
+
+  final ValueChanged<String> onSearch;
 
   @override
   State<SearchHistory> createState() => _SearchHistoryState();
@@ -75,7 +77,7 @@ class _SearchHistoryState extends State<SearchHistory> {
                         title: e,
                         onTap: () {
                           context.read<SearchProvider>().add(e);
-                          context.push('/search_comics?keyword=$e');
+                          widget.onSearch(e);
                         },
                       ),
                     )

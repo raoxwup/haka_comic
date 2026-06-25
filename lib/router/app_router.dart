@@ -1,7 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/network/models.dart' show Comment, Chapter;
+import 'package:haka_comic/network/models.dart'
+    show Comment, Chapter, ComicSortType;
 import 'package:haka_comic/router/build_side_sheet_route.dart';
 import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/views/about/about.dart';
@@ -108,8 +109,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/settings', builder: (_, _) => const Settings()),
     GoRoute(
       path: '/search_comics',
-      builder: (_, state) =>
-          SearchComics(keyword: state.uri.queryParameters['keyword']!),
+      builder: (_, state) {
+        return SearchComics(
+          keyword: state.uri.queryParameters['keyword']!,
+          sortType: _parseComicSortType(state.uri.queryParameters['sort']),
+          categories:
+              state.uri.queryParametersAll['categories']
+                  ?.where((category) => category.isNotEmpty)
+                  .toSet() ??
+              const {},
+        );
+      },
     ),
     GoRoute(
       path: '/reader',
@@ -186,4 +196,11 @@ final GoRouter appRouter = GoRouter(
 void logout() {
   AppConf.instance.clearAuth();
   appRouter.go('/login');
+}
+
+ComicSortType _parseComicSortType(String? name) {
+  return ComicSortType.values.firstWhere(
+    (type) => type.name == name,
+    orElse: () => ComicSortType.dd,
+  );
 }

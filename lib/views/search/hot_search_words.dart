@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/utils/extension.dart';
@@ -9,9 +8,14 @@ import 'package:haka_comic/views/search/item.dart';
 import 'package:provider/provider.dart';
 
 class HotSearchWords extends StatefulWidget {
-  const HotSearchWords({super.key, required this.isRouteAnimationCompleted});
+  const HotSearchWords({
+    super.key,
+    required this.isRouteAnimationCompleted,
+    required this.onSearch,
+  });
 
   final bool isRouteAnimationCompleted;
+  final ValueChanged<String> onSearch;
 
   @override
   State<HotSearchWords> createState() => _HotSearchWordsState();
@@ -60,7 +64,7 @@ class _HotSearchWordsState extends State<HotSearchWords> with RequestMixin {
                       title: e,
                       onTap: () {
                         context.read<SearchProvider>().add(e);
-                        context.push('/search_comics?keyword=$e');
+                        widget.onSearch(e);
                       },
                     ),
                   )

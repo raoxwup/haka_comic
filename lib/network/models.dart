@@ -135,17 +135,14 @@ class CategoriesResponse {
 
 // 漫画排序方式
 enum ComicSortType {
-  /// 新到旧
-  dd,
+  dd('新到旧'),
+  da('旧到新'),
+  ld('最多喜欢'),
+  vd('最多观看');
 
-  /// 旧到新
-  da,
+  final String title;
 
-  /// 最多喜欢
-  ld,
-
-  /// 最多观看
-  vd,
+  const ComicSortType(this.title);
 }
 
 class ComicsPayload {
@@ -747,13 +744,20 @@ class SearchPayload {
 
   final ComicSortType sort;
 
-  SearchPayload({
+  final Set<String> categories;
+
+  const SearchPayload({
     required this.keyword,
     required this.page,
     required this.sort,
+    this.categories = const {},
   });
 
-  Map<String, dynamic> toJson() => {'keyword': keyword, 'sort': sort.name};
+  Map<String, dynamic> toJson() => {
+    'keyword': keyword,
+    'sort': sort.name,
+    if (categories.isNotEmpty) 'categories': categories.toList(),
+  };
 }
 
 @JsonSerializable()
