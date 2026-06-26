@@ -60,6 +60,7 @@ void showCreator(BuildContext context, Creator? creator) {
                       )
                     : UiImage(
                         url: creator?.avatar!.url ?? '',
+                        cacheKey: creator?.avatar!.cacheKey,
                         width: 110,
                         height: 110,
                         shape: .circle,

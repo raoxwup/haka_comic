@@ -12,6 +12,7 @@ class ImagePreloadController<T> {
     required this.items,
     required this.urlResolver,
     required this.type,
+    this.cacheKeyResolver,
     this.maxPreloadCount = 4,
     this.keepWindow = 10,
     this.debounceDuration = const Duration(milliseconds: 50),
@@ -21,6 +22,7 @@ class ImagePreloadController<T> {
   final BuildContext context;
   List<T> items;
   final String Function(T item) urlResolver;
+  final String? Function(T item)? cacheKeyResolver;
   final ReaderType type;
 
   /// 单次最大预加载数量
@@ -98,8 +100,13 @@ class ImagePreloadController<T> {
         count++;
 
         final url = urlResolver(items[i]);
+        final cacheKey = cacheKeyResolver?.call(items[i]);
         final ImageProvider base = type == ReaderType.network
-            ? CachedNetworkImageProvider(url, cacheManager: cacheManager)
+            ? CachedNetworkImageProvider(
+                url,
+                cacheManager: cacheManager,
+                cacheKey: cacheKey,
+              )
             : FileImage(File(url));
         // 用与显示端一致的 ResizeImage 包裹，保证预加载进入的是同一个缓存键，
         // 否则真正显示时会因 key 不同而重新解码一次，相当于白预加载。

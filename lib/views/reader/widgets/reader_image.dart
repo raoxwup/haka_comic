@@ -10,6 +10,7 @@ class ReaderImage extends StatefulWidget {
   const ReaderImage({
     super.key,
     required this.url,
+    this.cacheKey,
     this.imageSize,
     this.enableCache = true,
     this.fit = BoxFit.contain,
@@ -22,6 +23,8 @@ class ReaderImage extends StatefulWidget {
 
   // 图片url 或 本地文件路径
   final String url;
+
+  final String? cacheKey;
 
   // 缓存的图片尺寸
   final ImageSize? imageSize;
@@ -51,7 +54,11 @@ class _ReaderImageState extends State<ReaderImage> {
 
   ImageProvider _buildProvider() {
     final ImageProvider base = isNetwork
-        ? CachedNetworkImageProvider(widget.url, cacheManager: cacheManager)
+        ? CachedNetworkImageProvider(
+            widget.url,
+            cacheManager: cacheManager,
+            cacheKey: widget.cacheKey,
+          )
         : FileImage(File(widget.url));
     return ResizeImage.resizeIfNeeded(widget.cacheWidth, null, base);
   }

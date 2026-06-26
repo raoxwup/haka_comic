@@ -41,7 +41,11 @@ class ProFile extends StatelessWidget {
                   },
                   blendMode: BlendMode.dstIn,
                   child: user.avatar != null
-                      ? UiImage(url: user.avatar!.url, fit: BoxFit.cover)
+                      ? UiImage(
+                          url: user.avatar!.url,
+                          cacheKey: user.avatar!.cacheKey,
+                          fit: BoxFit.cover,
+                        )
                       : Image.asset(
                           'assets/images/default_avatar.jpg',
                           fit: BoxFit.cover,

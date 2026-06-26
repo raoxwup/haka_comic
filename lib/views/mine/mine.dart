@@ -145,7 +145,11 @@ class _HistoryComicsState extends State<HistoryComics> {
       count: _comicsCount,
       itemBuilder: (context, index) {
         final item = _comics[index];
-        return ComicItem(url: item.thumb.url, uid: item.uid);
+        return ComicItem(
+          url: item.thumb.url,
+          cacheKey: item.thumb.cacheKey,
+          uid: item.uid,
+        );
       },
     );
   }
@@ -184,7 +188,11 @@ class _FavoritesState extends State<Favorites> with RequestMixin {
       count: _handler.state.data?.comics.total,
       itemBuilder: (context, index) {
         final item = comics[index];
-        return ComicItem(url: item.thumb.url, uid: item.uid);
+        return ComicItem(
+          url: item.thumb.url,
+          cacheKey: item.thumb.cacheKey,
+          uid: item.uid,
+        );
       },
     );
   }

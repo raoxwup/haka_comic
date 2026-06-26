@@ -103,6 +103,7 @@ class ListItem extends StatelessWidget {
               aspectRatio: 90 / 130,
               child: UiImage(
                 url: doc.thumb.url,
+                cacheKey: doc.thumb.cacheKey,
                 cacheWidth: 180,
                 shape: .rectangle,
                 borderRadius: BorderRadius.circular(12),

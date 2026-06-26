@@ -496,6 +496,7 @@ class ReaderProvider extends RequestProvider {
     preloadController = ImagePreloadController<ImageBase>(
       items: images,
       urlResolver: (image) => image.url,
+      cacheKeyResolver: (image) => image.cacheKey,
       context: context,
       type: type,
       maxPreloadCount: AppConf().preloadImageCount,

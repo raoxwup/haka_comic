@@ -82,6 +82,8 @@ class ImageDetail {
 
   String get url => AppConf().api == Api.picacomic ? directUrl : proxyUrl;
 
+  String get cacheKey => path;
+
   String getIsolateDownloadUrl(Api api) {
     return api == Api.picacomic ? directUrl : proxyUrl;
   }
@@ -884,10 +886,13 @@ class ExtraRecommendComic {
 
   final String pic;
 
+  final String cacheKey;
+
   ExtraRecommendComic({
     required this.id,
     required this.title,
     required this.pic,
+    required this.cacheKey,
   });
 
   factory ExtraRecommendComic.fromJson(Map<String, dynamic> json) =>
@@ -895,13 +900,15 @@ class ExtraRecommendComic {
         id: json['id'],
         title: json['title'],
         pic: json['pic'],
+        cacheKey: json['cacheKey'],
       );
 
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'pic': pic};
-
-  String get url => AppConf().api == Api.picacomic
-      ? pic
-      : pic.replaceFirst('picacomic', 'go2778');
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'pic': pic,
+    'cacheKey': cacheKey,
+  };
 }
 
 class ExtraRecommendComicIdsResponse {
@@ -954,6 +961,7 @@ class FetchChapterImagesPayload {
 
 abstract class ImageBase {
   String get url;
+  String? get cacheKey;
   String? get id;
   String get uid;
 }
@@ -967,6 +975,9 @@ class LocalImage extends ImageBase {
 
   @override
   final String url;
+
+  @override
+  String? get cacheKey => null;
 
   LocalImage({required this.uid, required this.id, required this.url});
 }
@@ -991,6 +1002,9 @@ class ChapterImage extends ImageBase {
 
   @override
   String get url => media.url;
+
+  @override
+  String get cacheKey => media.cacheKey;
 }
 
 @JsonSerializable()

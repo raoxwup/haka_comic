@@ -35,6 +35,7 @@ class ComicCreator extends StatelessWidget {
             UiImage(
               shape: .circle,
               url: creator?.avatar?.url ?? '',
+              cacheKey: creator?.avatar?.cacheKey,
               width: 40,
               height: 40,
             ),

@@ -8,6 +8,7 @@ import 'package:pool/pool.dart';
 class _UiImage extends StatelessWidget {
   const _UiImage({
     required this.url,
+    this.cacheKey,
     this.fit = BoxFit.cover,
     this.width,
     this.height,
@@ -23,6 +24,8 @@ class _UiImage extends StatelessWidget {
   });
 
   final String url;
+
+  final String? cacheKey;
 
   final BoxFit fit;
 
@@ -56,7 +59,11 @@ class _UiImage extends StatelessWidget {
     final provider = ResizeImage.resizeIfNeeded(
       memCacheWidth,
       cacheHeight,
-      CachedNetworkImageProvider(url, cacheManager: cacheManager),
+      CachedNetworkImageProvider(
+        url,
+        cacheManager: cacheManager,
+        cacheKey: cacheKey,
+      ),
     );
 
     return _frame(
@@ -115,6 +122,7 @@ class UiImage extends StatefulWidget {
     super.key,
     this.placeholder,
     required this.url,
+    this.cacheKey,
     this.fit = BoxFit.cover,
     this.width,
     this.height,
@@ -129,6 +137,8 @@ class UiImage extends StatefulWidget {
   });
 
   final String url;
+
+  final String? cacheKey;
 
   final BoxFit fit;
 
@@ -256,6 +266,7 @@ class _UiImageOuterState extends State<UiImage> with RouteAware {
     }
     return _UiImage(
       url: widget.url,
+      cacheKey: widget.cacheKey,
       fit: widget.fit,
       width: widget.width,
       height: widget.height,

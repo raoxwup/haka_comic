@@ -114,6 +114,7 @@ class _VerticalListState extends State<VerticalList> with ComicListMixin {
                 return ReaderImage(
                   key: ValueKey(item.uid),
                   url: item.url,
+                  cacheKey: item.cacheKey,
                   cacheWidth: cacheWidth,
                   onImageSizeChanged: (width, height) {
                     if (_imageSizeCache[item.uid] == null) {

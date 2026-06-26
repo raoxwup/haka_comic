@@ -133,6 +133,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
               elevation: 0,
               child: UiImage(
                 url: item.thumb.url,
+                cacheKey: item.thumb.cacheKey,
                 filterQuality: .medium,
                 cacheWidth: 150,
               ),

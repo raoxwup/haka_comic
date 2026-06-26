@@ -23,6 +23,7 @@ class ComicHeaderInfo extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           shape: BoxShape.rectangle,
           url: data.thumb.url,
+          cacheKey: data.thumb.cacheKey,
           height: 170,
           width: 115,
           cacheWidth: 115,
