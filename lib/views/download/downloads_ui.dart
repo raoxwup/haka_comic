@@ -516,6 +516,7 @@ class _DownloadTaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = task.comic.image;
     return ContextMenuRegion(
       key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
@@ -539,7 +540,8 @@ class _DownloadTaskItem extends StatelessWidget {
               AspectRatio(
                 aspectRatio: 90 / 130,
                 child: UiImage(
-                  url: task.comic.cover,
+                  url: image?.url ?? task.comic.cover,
+                  cacheKey: image?.cacheKey,
                   cacheWidth: 180,
                   shape: .rectangle,
                   borderRadius: BorderRadius.circular(12),

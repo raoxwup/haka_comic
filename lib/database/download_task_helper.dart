@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -68,6 +69,13 @@ final migrations = SqliteMigrations()
       await tx.execute('''
           CREATE INDEX IF NOT EXISTS idx_chapter_image_chapter_id 
           ON chapter_image(chapter_id)
+      ''');
+    }),
+  )
+  ..add(
+    SqliteMigration(2, (tx) async {
+      await tx.execute('''
+          ALTER TABLE download_comic ADD COLUMN image TEXT;
         ''');
     }),
   );
@@ -84,6 +92,24 @@ class DownloadTaskHelper {
   bool isInitialized = false;
 
   String get dbName => 'download_task.db';
+
+  String? _encodeImage(ImageDetail? image) {
+    return image == null ? null : jsonEncode(image.toJson());
+  }
+
+  ImageDetail? _decodeImage(Object? value) {
+    if (value == null) return null;
+
+    final decoded = value is String ? jsonDecode(value) : value;
+    if (decoded is Map<String, dynamic>) {
+      return ImageDetail.fromJson(decoded);
+    }
+    if (decoded is Map) {
+      return ImageDetail.fromJson(Map<String, dynamic>.from(decoded));
+    }
+
+    return null;
+  }
 
   Future<void> initialize() async {
     if (isInitialized) return;
@@ -130,13 +156,19 @@ class DownloadTaskHelper {
 
         await tx.execute(
           '''
-            INSERT INTO download_comic (id, title, cover)
-            VALUES (?, ?, ?)
+            INSERT INTO download_comic (id, title, cover, image)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
               title = excluded.title,
-              cover = excluded.cover
+              cover = excluded.cover,
+              image = excluded.image
           ''',
-          [task.comic.id, task.comic.title, task.comic.cover],
+          [
+            task.comic.id,
+            task.comic.title,
+            task.comic.cover,
+            _encodeImage(task.comic.image),
+          ],
         );
 
         await tx.executeBatch(
@@ -185,7 +217,8 @@ class DownloadTaskHelper {
           t.completed,
           t.status,
           c.title,
-          c.cover
+          c.cover,
+          c.image
         FROM download_task t
         JOIN download_comic c ON t.id = c.id
         ORDER BY t.created_at ASC
@@ -204,6 +237,7 @@ class DownloadTaskHelper {
                   id: taskId,
                   title: row['title'],
                   cover: row['cover'],
+                  image: _decodeImage(row['image']),
                 ),
                 chapters: [],
               )
@@ -285,9 +319,14 @@ class DownloadTaskHelper {
 
   Future<DownloadComic> getDownloadComic(String id) async {
     final result = await _db.get(
-      'SELECT id, title, cover FROM download_comic WHERE id = ?',
+      'SELECT id, title, cover, image FROM download_comic WHERE id = ?',
       [id],
     );
-    return DownloadComic.fromJson(result);
+    return DownloadComic(
+      id: result['id'],
+      title: result['title'],
+      cover: result['cover'],
+      image: _decodeImage(result['image']),
+    );
   }
 }

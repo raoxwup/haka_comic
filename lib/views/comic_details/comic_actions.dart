@@ -74,6 +74,7 @@ class ComicActionBar extends StatelessWidget {
                     id: comicId,
                     title: data.title,
                     cover: data.thumb.url,
+                    image: data.thumb,
                   ),
                 },
               );
