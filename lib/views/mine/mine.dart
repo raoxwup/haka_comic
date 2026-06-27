@@ -8,7 +8,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
-import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/views/mine/comic_preview_section.dart';
 import 'package:haka_comic/views/mine/profile.dart';
 
@@ -29,51 +28,117 @@ class _MineState extends State<Mine> {
   @override
   Widget build(BuildContext context) {
     final state = context.userSelector((p) => p.userHandler.state);
-    return switch (state) {
-      Success(:final data) => ListView(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-        children: [
-          ProFile(user: data.user),
-          const HistoryComics(),
-          const Favorites(),
-          const _MenuItem(
-            icon: Icons.download,
-            title: '我的下载',
-            route: '/downloads',
-          ),
-          const _MenuItem(
-            icon: Icons.comment,
-            title: '我的评论',
-            route: '/personal_comments',
-          ),
-          const _MenuItem(
-            icon: Icons.bookmark,
-            title: '本地收藏夹',
-            route: '/local_favorites',
-          ),
-          const _MenuItem(
-            icon: Icons.file_upload,
-            title: '本地导入',
-            route: '/import_comics',
-          ),
-        ],
-      ),
-      Error(:final error) => Padding(
-        padding: .only(top: context.top),
-        child: ErrorPage(
-          errorMessage: error.toString(),
-          onRetry: context.userReader.userHandler.refresh,
-          extraButton: TextButton(
-            onPressed: () => context.push('/downloads'),
-            child: const Text('我的下载'),
-          ),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+      children: [
+        _ProfileHeader(state: state),
+        const HistoryComics(),
+        const Favorites(),
+        const _MenuItem(
+          icon: Icons.download,
+          title: '我的下载',
+          route: '/downloads',
         ),
+        const _MenuItem(
+          icon: Icons.comment,
+          title: '我的评论',
+          route: '/personal_comments',
+        ),
+        const _MenuItem(
+          icon: Icons.bookmark,
+          title: '本地收藏夹',
+          route: '/local_favorites',
+        ),
+        const _MenuItem(
+          icon: Icons.file_upload,
+          title: '本地导入',
+          route: '/import_comics',
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.state});
+
+  final RequestState<UserProfileResponse> state;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (state) {
+      Success(:final data) => ProFile(user: data.user),
+      Error(:final error) => _ProfileErrorHeader(
+        error: error,
+        onRetry: context.userReader.userHandler.refresh,
       ),
-      _ => Padding(
+      _ => const _ProfileLoadingHeader(),
+    };
+  }
+}
+
+class _ProfileLoadingHeader extends StatelessWidget {
+  const _ProfileLoadingHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200 + context.top,
+      child: Padding(
         padding: .only(top: context.top),
         child: const Center(child: CircularProgressIndicator()),
       ),
-    };
+    );
+  }
+}
+
+class _ProfileErrorHeader extends StatelessWidget {
+  const _ProfileErrorHeader({required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200 + context.top,
+      child: Padding(
+        padding: .only(top: context.top),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.account_circle_outlined,
+                  size: 64,
+                  color: context.colorScheme.outline,
+                ),
+                const SizedBox(height: 8),
+                Text('资料加载失败', style: context.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(
+                  error.toString(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('重新加载'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

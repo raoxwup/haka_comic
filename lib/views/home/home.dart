@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/categories/categories.dart';
 import 'package:haka_comic/views/home/navigation.dart';
@@ -26,34 +25,23 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return RouteAwarePageWrapper(
-      builder: (context, isRouteAnimationCompleted) {
-        return Scaffold(
-          extendBodyBehindAppBar: _selectedIndex == 1,
-          appBar: UiMode.m1(context)
-              ? AppHeaderBar(selectedIndex: _selectedIndex)
-              : null,
-          body: Row(
-            children: [
-              if (!UiMode.m1(context)) _buildAppNavigationBar(),
-              Expanded(
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: [
-                    Categories(
-                      isRouteAnimationCompleted: isRouteAnimationCompleted,
-                    ),
-                    const Mine(),
-                  ],
-                ),
-              ),
-            ],
+    return Scaffold(
+      extendBodyBehindAppBar: _selectedIndex == 1,
+      appBar: UiMode.m1(context)
+          ? AppHeaderBar(selectedIndex: _selectedIndex)
+          : null,
+      body: Row(
+        children: [
+          if (!UiMode.m1(context)) _buildAppNavigationBar(),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: const [Categories(), Mine()],
+            ),
           ),
-          bottomNavigationBar: UiMode.m1(context)
-              ? _buildAppNavigationBar()
-              : null,
-        );
-      },
+        ],
+      ),
+      bottomNavigationBar: UiMode.m1(context) ? _buildAppNavigationBar() : null,
     );
   }
 }
