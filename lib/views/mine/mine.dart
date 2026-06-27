@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
@@ -68,8 +69,7 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state) {
       Success(:final data) => ProFile(user: data.user),
-      Error(:final error) => _ProfileErrorHeader(
-        error: error,
+      Error() => _ProfileErrorHeader(
         onRetry: context.userReader.userHandler.refresh,
       ),
       _ => const _ProfileLoadingHeader(),
@@ -93,50 +93,77 @@ class _ProfileLoadingHeader extends StatelessWidget {
 }
 
 class _ProfileErrorHeader extends StatelessWidget {
-  const _ProfileErrorHeader({required this.error, required this.onRetry});
+  const _ProfileErrorHeader({required this.onRetry});
 
-  final Object error;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 200 + context.top,
-      child: Padding(
-        padding: .only(top: context.top),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.account_circle_outlined,
-                  size: 64,
-                  color: context.colorScheme.outline,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(
+                  sigmaX: 8,
+                  sigmaY: 8,
+                  tileMode: TileMode.mirror,
                 ),
-                const SizedBox(height: 8),
-                Text('资料加载失败', style: context.textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(
-                  error.toString(),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.outline,
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.transparent,
+                        context.colorScheme.surface,
+                        context.colorScheme.surface.withValues(alpha: 0.3),
+                      ],
+                      stops: const [0.02, 0.5, 0.85],
+                    ).createShader(bounds);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: Image.asset(
+                    'assets/images/default_avatar.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: .only(top: context.top),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/default_avatar.jpg',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('重新加载'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('加载失败', style: context.textTheme.titleMedium),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      onPressed: onRetry,
+                      tooltip: '重新加载',
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
