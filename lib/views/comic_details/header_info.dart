@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -34,11 +35,13 @@ class ComicHeaderInfo extends StatelessWidget {
             spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                data.title,
-                style: context.textTheme.titleMedium,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
+              SelectionArea(
+                child: Text(
+                  data.title,
+                  style: context.textTheme.titleMedium,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               if (data.author?.isNotEmpty == true)
                 _InfoRow(
@@ -89,7 +92,7 @@ class ComicHeaderInfo extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _InfoRow extends StatefulWidget {
   const _InfoRow({required this.data, this.onTap, required this.icon});
 
   final String? data;
@@ -97,30 +100,70 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
 
   @override
+  State<_InfoRow> createState() => _InfoRowState();
+}
+
+class _InfoRowState extends State<_InfoRow> {
+  late final TapGestureRecognizer _tapRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _tapRecognizer = TapGestureRecognizer()..onTap = widget.onTap;
+  }
+
+  @override
+  void didUpdateWidget(covariant _InfoRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _tapRecognizer.onTap = widget.onTap;
+  }
+
+  @override
+  void dispose() {
+    _tapRecognizer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _copyData() async {
+    await Clipboard.setData(ClipboardData(text: widget.data ?? ''));
+    Toast.show(message: '已复制');
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      onLongPress: () {
-        Clipboard.setData(ClipboardData(text: data ?? ''));
-        Toast.show(message: '已复制');
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 5,
+    return Text.rich(
+      TextSpan(
         children: [
-          Icon(icon, size: 14, color: context.colorScheme.primary),
-          Expanded(
-            child: Text(
-              data ?? '',
-              style: context.textTheme.bodySmall?.copyWith(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 5),
+              child: Icon(
+                widget.icon,
+                size: 15,
                 color: context.colorScheme.primary,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextSpan(text: widget.data ?? '', recognizer: _tapRecognizer),
+          const WidgetSpan(child: SizedBox(width: 6)),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _copyData,
+              child: Icon(
+                Icons.copy_rounded,
+                size: 14,
+                color: context.colorScheme.primary,
+              ),
             ),
           ),
         ],
       ),
+      style: TextStyle(color: context.colorScheme.primary, fontSize: 13),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
