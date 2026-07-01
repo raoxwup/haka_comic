@@ -1,6 +1,6 @@
 part of 'background_downloader.dart';
 
-enum WorkerMessageType { pause, resume, delete, query, proxy }
+enum WorkerMessageType { pause, resume, delete, query, proxy, import }
 
 class WorkerMessage {
   final WorkerMessageType type;
@@ -20,6 +20,22 @@ class IsolateLogMessage {
 class DownloadSpeed {
   final int bytesPerSecond;
   const DownloadSpeed({required this.bytesPerSecond});
+}
+
+enum DownloadTaskSource {
+  download('下载'),
+  import('导入');
+
+  const DownloadTaskSource(this.displayName);
+
+  final String displayName;
+
+  static DownloadTaskSource fromName(String? name) {
+    return values.firstWhere(
+      (source) => source.name == name,
+      orElse: () => download,
+    );
+  }
 }
 
 /// 下载漫画
@@ -85,12 +101,17 @@ class DownloadChapter {
 class ComicDownloadTask {
   final DownloadComic comic;
   final List<DownloadChapter> chapters;
+  final DownloadTaskSource source;
 
   int total = 0;
   int completed = 0;
   DownloadTaskStatus status = DownloadTaskStatus.queued;
 
-  ComicDownloadTask({required this.comic, required this.chapters});
+  ComicDownloadTask({
+    required this.comic,
+    required this.chapters,
+    this.source = DownloadTaskSource.download,
+  });
 }
 
 /// 下载任务状态

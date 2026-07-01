@@ -102,6 +102,10 @@ class BackgroundDownloader {
     _postMessage(task);
   }
 
+  static void importCompletedTask(ComicDownloadTask task) {
+    _postMessage(WorkerMessage(type: WorkerMessageType.import, payload: task));
+  }
+
   static void pauseTask(String taskId) {
     _postMessage(WorkerMessage(type: WorkerMessageType.pause, payload: taskId));
   }
@@ -277,6 +281,14 @@ class _DownloadWorker {
     for (final task in _tasks) {
       _sortChapters(task);
 
+      if (task.source == DownloadTaskSource.import &&
+          task.status != DownloadTaskStatus.completed) {
+        task.status = DownloadTaskStatus.completed;
+        task.completed = task.total;
+        normalizedTasks.add(task);
+        continue;
+      }
+
       if (task.status == DownloadTaskStatus.downloading) {
         if (hasDownloadingTask) {
           task.status = DownloadTaskStatus.queued;
@@ -355,7 +367,35 @@ class _DownloadWorker {
           ProxyConfig.fromPayload(message.payload as Map),
         );
         return;
+      case WorkerMessageType.import:
+        await _handleImportTask(message.payload as ComicDownloadTask);
+        return;
     }
+  }
+
+  Future<void> _handleImportTask(ComicDownloadTask importedTask) async {
+    _sortChapters(importedTask);
+
+    importedTask.total = _countTaskImages(importedTask);
+    importedTask.completed = importedTask.total;
+    importedTask.status = DownloadTaskStatus.completed;
+
+    final existingIndex = _tasks.indexWhere(
+      (task) => task.comic.id == importedTask.comic.id,
+    );
+
+    if (existingIndex >= 0) {
+      _cancelTaskExecution(importedTask.comic.id);
+      _tasks[existingIndex] = importedTask;
+    } else {
+      _tasks.add(importedTask);
+    }
+
+    _cancelTokens.remove(importedTask.comic.id);
+
+    await _persistence.persistTaskStructure(importedTask);
+    _publishTasks();
+    _triggerQueueProcessing();
   }
 
   Future<void> _pauseTask(String taskId) async {
@@ -468,13 +508,17 @@ class _DownloadWorker {
     }
 
     return _tasks.firstWhereOrNull(
-      (task) => task.status == DownloadTaskStatus.queued,
+      (task) =>
+          task.source == DownloadTaskSource.download &&
+          task.status == DownloadTaskStatus.queued,
     );
   }
 
   ComicDownloadTask? _findDownloadingTask() {
     return _tasks.firstWhereOrNull(
-      (task) => task.status == DownloadTaskStatus.downloading,
+      (task) =>
+          task.source == DownloadTaskSource.download &&
+          task.status == DownloadTaskStatus.downloading,
     );
   }
 
@@ -483,6 +527,10 @@ class _DownloadWorker {
   }
 
   Future<void> _runTask(ComicDownloadTask task) async {
+    if (task.source == DownloadTaskSource.import) {
+      return;
+    }
+
     final taskId = task.comic.id;
     final sessionId = _openTaskSession(taskId);
     final cancelToken = _replaceCancelToken(taskId);

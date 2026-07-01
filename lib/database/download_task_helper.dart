@@ -78,6 +78,13 @@ final migrations = SqliteMigrations()
           ALTER TABLE download_comic ADD COLUMN image TEXT;
         ''');
     }),
+  )
+  ..add(
+    SqliteMigration(3, (tx) async {
+      await tx.execute('''
+          ALTER TABLE download_task ADD COLUMN source TEXT NOT NULL DEFAULT 'download';
+        ''');
+    }),
   );
 
 class DownloadTaskHelper {
@@ -144,14 +151,21 @@ class DownloadTaskHelper {
       for (var task in tasks) {
         await tx.execute(
           '''
-            INSERT INTO download_task (id, total, completed, status)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO download_task (id, total, completed, status, source)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
               total = excluded.total,
               completed = excluded.completed,
-              status = excluded.status
+              status = excluded.status,
+              source = excluded.source
           ''',
-          [task.comic.id, task.total, task.completed, task.status.name],
+          [
+            task.comic.id,
+            task.total,
+            task.completed,
+            task.status.name,
+            task.source.name,
+          ],
         );
 
         await tx.execute(
@@ -216,6 +230,7 @@ class DownloadTaskHelper {
           t.total,
           t.completed,
           t.status,
+          t.source,
           c.title,
           c.cover,
           c.image
@@ -240,6 +255,7 @@ class DownloadTaskHelper {
                   image: _decodeImage(row['image']),
                 ),
                 chapters: [],
+                source: DownloadTaskSource.fromName(row['source']),
               )
               ..total = row['total']
               ..completed = row['completed']

@@ -11,7 +11,6 @@ import 'package:haka_comic/views/comic_details/downloader.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
-import 'package:haka_comic/views/import_comics/import_comics.dart';
 import 'package:haka_comic/views/local_favorites/local_favorites.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
@@ -186,7 +185,6 @@ final GoRouter appRouter = GoRouter(
       builder: (_, _) => const LocalFavorites(),
     ),
     GoRoute(path: '/logs', builder: (_, _) => const Logs()),
-    GoRoute(path: '/import_comics', builder: (_, _) => const ImportComics()),
     GoRoute(path: '/api_settings', builder: (_, _) => const ApiSettings()),
     GoRoute(path: '/proxy_settings', builder: (_, _) => ProxySettings()),
     GoRoute(path: '/block_settings', builder: (_, _) => const BlockSettings()),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
@@ -8,8 +9,11 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/loader.dart';
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/local_comic_importer.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
@@ -125,6 +129,50 @@ class _DownloadsState extends State<Downloads> {
 
     setState(() => _sortOrder = sortOrder);
     AppConf().downloadTaskSortOrder = sortOrder;
+  }
+
+  Future<void> _importLocalComic() async {
+    PickedLocalComicSource? source;
+
+    try {
+      source = await LocalComicImporter.pickSource();
+      if (source == null) {
+        return;
+      }
+
+      if (mounted) {
+        Loader.show(context);
+      }
+
+      final task = await LocalComicImporter.importSource(
+        source,
+        existingTitles: tasks.map((task) => task.comic.title),
+      );
+
+      BackgroundDownloader.importCompletedTask(task);
+      Toast.show(message: '导入成功');
+    } on LocalComicImportException catch (e) {
+      Toast.show(message: e.message);
+    } catch (e, st) {
+      Log.e('Import local comic failed', error: e, stackTrace: st);
+      Toast.show(message: '导入失败');
+    } finally {
+      if (source != null) {
+        try {
+          await LocalComicImporter.cleanupSource(source);
+        } catch (e, st) {
+          Log.e(
+            'Cleanup local comic import source failed',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }
+
+      if (mounted) {
+        Loader.hide(context);
+      }
+    }
   }
 
   void clearTasks() async {
@@ -248,6 +296,11 @@ class _DownloadsState extends State<Downloads> {
         });
         break;
       case 'details':
+        if (task.source == DownloadTaskSource.import) {
+          Toast.show(message: '导入漫画没有详情');
+          return;
+        }
+
         context.push('/details/${task.comic.id}');
     }
   }
@@ -318,6 +371,7 @@ class _DownloadsState extends State<Downloads> {
               )
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
+                onImportLocalComic: _importLocalComic,
                 downloadSpeed: _downloadSpeed,
                 sortOrder: _sortOrder,
                 onSortOrderChanged: _setSortOrder,
@@ -442,12 +496,14 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
+  final VoidCallback onImportLocalComic;
   final int downloadSpeed;
   final DownloadTaskSortOrder sortOrder;
   final ValueChanged<DownloadTaskSortOrder> onSortOrderChanged;
 
   const _NormalAppBar({
     required this.onEnterSelection,
+    required this.onImportLocalComic,
     required this.downloadSpeed,
     required this.sortOrder,
     required this.onSortOrderChanged,
@@ -458,6 +514,11 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
+        IconButton(
+          tooltip: '导入漫画',
+          onPressed: onImportLocalComic,
+          icon: const Icon(Icons.file_upload),
+        ),
         PopupMenuButton<DownloadTaskSortOrder>(
           tooltip: '排序',
           icon: const Icon(Icons.sort),
@@ -517,6 +578,7 @@ class _DownloadTaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = task.comic.image;
+    final isImported = task.source == DownloadTaskSource.import;
     return ContextMenuRegion(
       key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
@@ -539,13 +601,15 @@ class _DownloadTaskItem extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 90 / 130,
-                child: UiImage(
-                  url: image?.url ?? task.comic.cover,
-                  cacheKey: image?.cacheKey,
-                  cacheWidth: 180,
-                  shape: .rectangle,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                child: isImported
+                    ? _LocalCoverImage(path: task.comic.cover)
+                    : UiImage(
+                        url: image?.url ?? task.comic.cover,
+                        cacheKey: image?.cacheKey,
+                        cacheWidth: 180,
+                        shape: .rectangle,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -592,8 +656,7 @@ class _DownloadTaskItem extends StatelessWidget {
                           '${task.completed} / ${task.total}',
                           style: context.textTheme.bodySmall,
                         ),
-                        if (downloadSpeed > 0 &&
-                            task.status == DownloadTaskStatus.downloading)
+                        if (task.status == DownloadTaskStatus.downloading)
                           Text(
                             _formatSpeed(downloadSpeed),
                             style: context.textTheme.bodySmall,
@@ -613,6 +676,29 @@ class _DownloadTaskItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LocalCoverImage extends StatelessWidget {
+  const _LocalCoverImage({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) {
+          return ColoredBox(
+            color: context.colorScheme.surfaceContainerHigh,
+            child: const Center(child: Icon(Icons.broken_image)),
+          );
+        },
       ),
     );
   }

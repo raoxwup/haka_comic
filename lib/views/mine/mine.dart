@@ -50,11 +50,6 @@ class _MineState extends State<Mine> {
           title: '本地收藏夹',
           route: '/local_favorites',
         ),
-        const _MenuItem(
-          icon: Icons.file_upload,
-          title: '本地导入',
-          route: '/import_comics',
-        ),
       ],
     );
   }
