@@ -119,6 +119,9 @@ class AppConf {
   DownloadTaskSortOrder _downloadTaskSortOrder =
       DownloadTaskSortOrder.oldestFirst;
 
+  /// 自定义下载路径（为空时使用平台默认路径）
+  String _downloadPath = '';
+
   bool get isLogged => _token.isNotEmpty;
   bool get hasAccount => _email.isNotEmpty && _password.isNotEmpty;
 
@@ -185,6 +188,7 @@ class AppConf {
     instance._downloadTaskSortOrder = DownloadTaskSortOrder.fromName(
       prefsWithCache.getString('downloadTaskSortOrder'),
     );
+    instance._downloadPath = prefsWithCache.getString('downloadPath') ?? '';
   }
 
   set email(String value) {
@@ -413,6 +417,11 @@ class AppConf {
     );
   }
 
+  set downloadPath(String value) {
+    _downloadPath = value;
+    SharedPreferencesUtil.prefsWithCache.setString('downloadPath', value);
+  }
+
   String get email => _email;
   String get password => _password;
   String get token => _token;
@@ -453,6 +462,7 @@ class AppConf {
   int get preloadImageCount => _preloadImageCount;
   bool get menuLocked => _menuLocked;
   DownloadTaskSortOrder get downloadTaskSortOrder => _downloadTaskSortOrder;
+  String get downloadPath => _downloadPath;
 
   /// 清除token
   void clearAuth() {

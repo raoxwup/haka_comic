@@ -51,12 +51,14 @@ class BackgroundDownloader {
     Map<String, dynamic>? initialProxyPayload;
 
     initialProxyPayload = appProxyController.currentProxy.toPayload();
+    final downloadPath = await getDownloadDirectory();
 
     _mainReceivePort = receivePort;
     _workerIsolate = await Isolate.spawn(_downloadIsolateEntry, (
       receivePort.sendPort,
       _rootToken,
       initialProxyPayload,
+      downloadPath,
     ));
 
     receivePort.listen((message) {
@@ -92,6 +94,15 @@ class BackgroundDownloader {
       );
     };
     appProxyController.addListener(_proxyListener!);
+  }
+
+  static void updateDownloadPath(String path) {
+    _postMessage(
+      WorkerMessage(
+        type: WorkerMessageType.downloadPath,
+        payload: path,
+      ),
+    );
   }
 
   static void getTasks() {
@@ -163,9 +174,9 @@ class BackgroundDownloader {
 }
 
 void _downloadIsolateEntry(
-  (SendPort, RootIsolateToken, Map<String, dynamic>?) args,
+  (SendPort, RootIsolateToken, Map<String, dynamic>?, String) args,
 ) async {
-  final (sendPort, rootToken, initialProxyPayload) = args;
+  final (sendPort, rootToken, initialProxyPayload, downloadPath) = args;
   BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
   // 下载 Isolate 中安装代理覆盖层，使 Dio 下载请求也走手动代理。
@@ -177,7 +188,10 @@ void _downloadIsolateEntry(
   }
 
   final receivePort = ReceivePort();
-  final worker = _DownloadWorker(mainSendPort: sendPort);
+  final worker = _DownloadWorker(
+    mainSendPort: sendPort,
+    downloadRootPath: downloadPath,
+  );
 
   sendPort.send(receivePort.sendPort);
 
@@ -187,8 +201,11 @@ void _downloadIsolateEntry(
 }
 
 class _DownloadWorker {
-  _DownloadWorker({required SendPort mainSendPort})
-    : _mainSendPort = mainSendPort;
+  _DownloadWorker({
+    required SendPort mainSendPort,
+    required String downloadRootPath,
+  }) : _mainSendPort = mainSendPort,
+       _downloadRootPath = downloadRootPath;
 
   static const int _defaultConcurrency = 3;
   static const int _chapterInitConcurrency = 2;
@@ -211,13 +228,12 @@ class _DownloadWorker {
 
   late final _TaskPersistenceCoordinator _persistence;
   late final _SpeedReporter _speedReporter;
-  late final String _downloadRootPath;
+  String _downloadRootPath;
 
   Future<void> _mutationQueue = Future.value();
   bool _isQueueLoopRunning = false;
 
   Future<void> initialize() async {
-    _downloadRootPath = await getDownloadDirectory();
     await _taskHelper.initialize();
 
     _persistence = _TaskPersistenceCoordinator(
@@ -354,6 +370,9 @@ class _DownloadWorker {
         ProxyController.applyProxyConfig(
           ProxyConfig.fromPayload(message.payload as Map),
         );
+        return;
+      case WorkerMessageType.downloadPath:
+        _downloadRootPath = message.payload as String;
         return;
     }
   }

@@ -2,11 +2,8 @@ import 'dart:io' show File, Directory;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/database/history_helper.dart';
-import 'package:haka_comic/database/images_helper.dart';
-import 'package:haka_comic/database/local_favorites_helper.dart';
-import 'package:haka_comic/database/read_record_helper.dart';
-import 'package:haka_comic/rust/api/compress.dart';
+import 'package:haka_comic/providers/block_provider.dart';
+import 'package:haka_comic/utils/backup_utils.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/widgets/button.dart';
@@ -14,6 +11,7 @@ import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webdav_client/webdav_client.dart' hide File;
 import 'package:path/path.dart' as p;
+import 'package:provider/provider.dart';
 
 enum ActionType { upload, download }
 
@@ -31,11 +29,41 @@ class _WebDAVState extends State<WebDAV> {
     ..text = appConf.webdavUser;
   late final _passwordController = TextEditingController()
     ..text = appConf.webdavPassword;
+  late final _urlFocusNode = FocusNode();
+  late final _usernameFocusNode = FocusNode();
+  late final _passwordFocusNode = FocusNode();
   ActionType _actionType = ActionType.upload;
   bool _loading = false;
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlFocusNode.addListener(_onUrlFocusChange);
+    _usernameFocusNode.addListener(_onUsernameFocusChange);
+    _passwordFocusNode.addListener(_onPasswordFocusChange);
+  }
+
+  void _onUrlFocusChange() {
+    if (!_urlFocusNode.hasFocus) save();
+  }
+
+  void _onUsernameFocusChange() {
+    if (!_usernameFocusNode.hasFocus) save();
+  }
+
+  void _onPasswordFocusChange() {
+    if (!_passwordFocusNode.hasFocus) save();
+  }
 
   @override
   void dispose() {
+    _urlFocusNode.removeListener(_onUrlFocusChange);
+    _usernameFocusNode.removeListener(_onUsernameFocusChange);
+    _passwordFocusNode.removeListener(_onPasswordFocusChange);
+    _urlFocusNode.dispose();
+    _usernameFocusNode.dispose();
+    _passwordFocusNode.dispose();
     _urlController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -69,24 +97,11 @@ class _WebDAVState extends State<WebDAV> {
       final tempDir = await getTemporaryDirectory();
       final list = await client.readDir('/');
       if (_actionType == ActionType.upload) {
-        await Future.wait([
-          ImagesHelper().backup(),
-          HistoryHelper().backup(),
-          ReadRecordHelper().backup(),
-          LocalFavoritesHelper().backup(),
-        ]);
+        await performBackup();
 
-        final backupDir = Directory(p.join(tempDir.path, 'backup'));
+        final zipFile = await makeBackupZip();
 
-        final zipFile = File(p.join(tempDir.path, 'backup.zip'));
-
-        await compress(
-          sourceFolderPath: backupDir.path,
-          outputZipPath: zipFile.path,
-          compressionMethod: CompressionMethod.deflated,
-        );
-
-        await client.writeFromFile(zipFile.path, '$baseDir/backup.zip');
+        await client.writeFromFile(zipFile.path, '$baseDir/$backupFileName');
 
         if (await zipFile.exists()) {
           await zipFile.delete();
@@ -99,33 +114,20 @@ class _WebDAVState extends State<WebDAV> {
           return;
         }
 
-        final restoreDir = Directory(p.join(tempDir.path, 'restore'));
+        // 使用 restoreFromZip 内部不同的目录名，避免冲突
+        final downloadDir = Directory(p.join(tempDir.path, 'webdav_download'));
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
-        await client.read2File(
-          '$baseDir/backup.zip',
-          p.join(restoreDir.path, 'backup.zip'),
-        );
+        final downloadedZip = File(p.join(downloadDir.path, backupFileName));
+        await client.read2File('$baseDir/$backupFileName', downloadedZip.path);
 
-        await decompress(
-          sourceZipPath: p.join(restoreDir.path, 'backup.zip'),
-          outputFolderPath: restoreDir.path,
-        );
+        await restoreFromZip(downloadedZip);
 
-        final imagesDB = File(p.join(restoreDir.path, ImagesHelper().dbName));
-        final historyDB = File(p.join(restoreDir.path, HistoryHelper().dbName));
-        final readRecordDB = File(
-          p.join(restoreDir.path, ReadRecordHelper().dbName),
-        );
-        final localFavoritesDB = File(
-          p.join(restoreDir.path, LocalFavoritesHelper().dbName),
-        );
-
-        await Future.wait([
-          ImagesHelper().restore(imagesDB),
-          HistoryHelper().restore(historyDB),
-          ReadRecordHelper().restore(readRecordDB),
-          LocalFavoritesHelper().restore(localFavoritesDB),
-        ]);
+        if (mounted) {
+          context.read<BlockProvider>().syncFromDb();
+        }
 
         Toast.show(message: '下载成功');
       }
@@ -164,6 +166,7 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _urlController,
+                focusNode: _urlFocusNode,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -172,14 +175,27 @@ class _WebDAVState extends State<WebDAV> {
                   border: OutlineInputBorder(),
                 ),
                 controller: _usernameController,
+                focusNode: _usernameFocusNode,
               ),
               const SizedBox(height: 12),
               TextField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: '密码',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                  ),
                 ),
                 controller: _passwordController,
+                obscureText: _obscurePassword,
+                focusNode: _passwordFocusNode,
               ),
               const SizedBox(height: 12),
               RadioGroup(

@@ -86,6 +86,13 @@ class Settings extends StatelessWidget {
                     context.push('/webdav');
                   },
                 ),
+                MenuListTile.withAction(
+                  icon: Icons.sd_card_outlined,
+                  title: '本地备份',
+                  onTap: () {
+                    context.push('/local_backup');
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -93,6 +100,14 @@ class Settings extends StatelessWidget {
               title: '通用',
               children: [
                 const ClearCache(),
+                MenuListTile.withAction(
+                  icon: Icons.folder_outlined,
+                  title: '下载路径',
+                  onTap: () {
+                    context.push('/download_path');
+                  },
+                  subtitle: const Text('设置漫画下载保存目录'),
+                ),
                 const Auth(),
                 MenuListTile.withAction(
                   icon: Icons.info_outline,
