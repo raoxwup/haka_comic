@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/utils/native_folder_picker.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/local_comic_files.dart';
 import 'package:path/path.dart' as p;
-
-const _imageExts = {'.jpg', '.jpeg', '.png', '.webp'};
 
 class LocalComicImportException implements Exception {
   const LocalComicImportException(this.message);
@@ -77,114 +76,103 @@ class LocalComicImporter {
     PickedLocalComicSource source, {
     required Iterable<String> existingTitles,
   }) async {
-    Directory? tempDir;
-
-    try {
-      final sourceDir = Directory(source.directoryPath);
-      if (!await sourceDir.exists()) {
-        throw const LocalComicImportException('所选文件夹不存在');
-      }
-
-      final chapterPlans = await _buildChapterPlans(sourceDir);
-      if (chapterPlans.isEmpty) {
-        throw const LocalComicImportException('没有找到漫画图片');
-      }
-
-      final downloadRootPath = await getDownloadDirectory();
-      await Directory(downloadRootPath).create(recursive: true);
-
-      final title = await _resolveAvailableTitle(
-        baseTitle: source.folderName,
-        downloadRootPath: downloadRootPath,
-        existingTitles: existingTitles,
-      );
-
-      final idSeed =
-          '${source.directoryPath}|${DateTime.now().microsecondsSinceEpoch}';
-      final digest = sha1.convert(utf8.encode(idSeed)).toString();
-      final taskId = 'import:$digest';
-      final targetDir = Directory(p.join(downloadRootPath, title.legalized));
-
-      tempDir = Directory(p.join(downloadRootPath, '.import_$digest'));
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
-      await tempDir.create(recursive: true);
-
-      final chapters = <DownloadChapter>[];
-      String? coverPath;
-      var totalImages = 0;
-
-      for (
-        var chapterIndex = 0;
-        chapterIndex < chapterPlans.length;
-        chapterIndex++
-      ) {
-        final plan = chapterPlans[chapterIndex];
-        final order = chapterIndex + 1;
-        final chapterTitle = _normalizeTitle(plan.title, fallback: '第$order章');
-        final chapter = DownloadChapter(
-          id: '$taskId:$order',
-          title: chapterTitle,
-          order: order,
-        );
-        final chapterFolderName = '${chapter.order}_${chapter.title.legalized}';
-        final tempChapterDir = Directory(
-          p.join(tempDir.path, chapterFolderName),
-        );
-        await tempChapterDir.create(recursive: true);
-
-        for (
-          var imageIndex = 0;
-          imageIndex < plan.images.length;
-          imageIndex++
-        ) {
-          final sourceImage = plan.images[imageIndex];
-          final ext = p.extension(sourceImage.path).toLowerCase();
-          final fileName =
-              '${(imageIndex + 1).toString().padLeft(4, '0')}${ext.isEmpty ? '.jpg' : ext}';
-          final tempImagePath = p.join(tempChapterDir.path, fileName);
-
-          await sourceImage.copy(tempImagePath);
-
-          coverPath ??= p.join(targetDir.path, chapterFolderName, fileName);
-          totalImages += 1;
-          chapter.images.add(
-            ImageDetail(
-              fileServer: 'local',
-              path: '$taskId/$order/$fileName',
-              originalName: fileName,
-            ),
-          );
-        }
-
-        chapters.add(chapter);
-      }
-
-      if (await targetDir.exists()) {
-        throw const LocalComicImportException('目标漫画目录已存在');
-      }
-
-      await tempDir.rename(targetDir.path);
-      tempDir = null;
-
-      return ComicDownloadTask(
-          comic: DownloadComic(
-            id: taskId,
-            title: title,
-            cover: coverPath ?? '',
-          ),
-          chapters: chapters,
-          source: DownloadTaskSource.import,
-        )
-        ..total = totalImages
-        ..completed = totalImages
-        ..status = DownloadTaskStatus.completed;
-    } finally {
-      if (tempDir != null && await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
+    final sourceDir = Directory(source.directoryPath);
+    if (!await sourceDir.exists()) {
+      throw const LocalComicImportException('所选文件夹不存在');
     }
+
+    final chapterPlans = await _buildChapterPlans(sourceDir);
+    if (chapterPlans.isEmpty) {
+      throw const LocalComicImportException('没有找到漫画图片');
+    }
+
+    final downloadRootPath = await getDownloadDirectory();
+    await Directory(downloadRootPath).create(recursive: true);
+
+    final title = await _resolveAvailableTitle(
+      baseTitle: source.folderName,
+      downloadRootPath: downloadRootPath,
+      existingTitles: existingTitles,
+    );
+
+    final idSeed =
+        '${source.directoryPath}|${DateTime.now().microsecondsSinceEpoch}';
+    final digest = sha1.convert(utf8.encode(idSeed)).toString();
+    final taskId = 'import:$digest';
+    final legalTitle = title.legalized;
+    final targetDirPath = p.join(downloadRootPath, legalTitle);
+    final tempDirPath = p.join(downloadRootPath, '.import_$digest');
+
+    // 只在主 isolate 里做“规划”（扫描已经完成），封面/总数等元数据也在此确定；
+    // 真正的重 I/O（逐张拷贝）放到独立 isolate，避免卡 UI。
+    final chapters = <DownloadChapter>[];
+    final copyChapters = <_ChapterCopyPlan>[];
+    String? coverRelativePath;
+    var totalImages = 0;
+
+    for (
+      var chapterIndex = 0;
+      chapterIndex < chapterPlans.length;
+      chapterIndex++
+    ) {
+      final plan = chapterPlans[chapterIndex];
+      final order = chapterIndex + 1;
+      final chapterTitle = _normalizeTitle(plan.title, fallback: '第$order章');
+      final chapter = DownloadChapter(
+        id: '$taskId:$order',
+        title: chapterTitle,
+        order: order,
+      );
+      final chapterFolderName = '${chapter.order}_${chapter.title.legalized}';
+
+      final files = <_ImageCopyPlan>[];
+      for (
+        var imageIndex = 0;
+        imageIndex < plan.images.length;
+        imageIndex++
+      ) {
+        final sourceImage = plan.images[imageIndex];
+        final ext = p.extension(sourceImage.path).toLowerCase();
+        final fileName =
+            '${(imageIndex + 1).toString().padLeft(4, '0')}${ext.isEmpty ? '.jpg' : ext}';
+        files.add(
+          _ImageCopyPlan(sourcePath: sourceImage.path, fileName: fileName),
+        );
+
+        // 封面存相对 download 根目录的路径，展示时再拼接，规避沙盒绝对路径失效。
+        coverRelativePath ??= p.join(legalTitle, chapterFolderName, fileName);
+        totalImages += 1;
+      }
+
+      copyChapters.add(
+        _ChapterCopyPlan(folderName: chapterFolderName, files: files),
+      );
+      // 章节图片不入库：本地漫画以文件系统为准，阅读时按目录读取。
+      chapters.add(chapter);
+    }
+
+    await Isolate.run(
+      () => _performCopy(
+        _CopyPlan(
+          tempDirPath: tempDirPath,
+          targetDirPath: targetDirPath,
+          chapters: copyChapters,
+        ),
+      ),
+    );
+
+    return ComicDownloadTask(
+        comic: DownloadComic(
+          id: taskId,
+          title: title,
+          cover: coverRelativePath ?? '',
+        ),
+        chapters: chapters,
+        source: DownloadTaskSource.import,
+      )
+      ..total = totalImages
+      ..completed = totalImages
+      ..status = DownloadTaskStatus.completed;
   }
 
   static Future<List<_ChapterImportPlan>> _buildChapterPlans(
@@ -196,11 +184,11 @@ class LocalComicImporter {
         .cast<Directory>()
         .toList();
 
-    childDirs.sort(_compareEntitiesByName);
+    childDirs.sort(compareEntitiesByNaturalName);
 
     final chapterPlans = <_ChapterImportPlan>[];
     for (final childDir in childDirs) {
-      final images = await _listImages(childDir);
+      final images = await listImageFiles(childDir);
       if (images.isEmpty) {
         continue;
       }
@@ -214,27 +202,12 @@ class LocalComicImporter {
       return chapterPlans;
     }
 
-    final rootImages = await _listImages(sourceDir);
+    final rootImages = await listImageFiles(sourceDir);
     if (rootImages.isEmpty) {
       return const [];
     }
 
     return [_ChapterImportPlan(title: '第1章', images: rootImages)];
-  }
-
-  static Future<List<File>> _listImages(Directory directory) async {
-    final files = await directory
-        .list(followLinks: false)
-        .where(
-          (entity) =>
-              entity is File &&
-              _imageExts.contains(p.extension(entity.path).toLowerCase()),
-        )
-        .cast<File>()
-        .toList();
-
-    files.sort(_compareEntitiesByName);
-    return files;
   }
 
   static Future<String> _resolveAvailableTitle({
@@ -268,39 +241,6 @@ class LocalComicImporter {
     final normalized = value.trim();
     return normalized.isEmpty ? fallback : normalized;
   }
-
-  static int _compareEntitiesByName(FileSystemEntity a, FileSystemEntity b) {
-    return _compareNaturally(
-      p.basename(a.path).toLowerCase(),
-      p.basename(b.path).toLowerCase(),
-    );
-  }
-
-  static int _compareNaturally(String a, String b) {
-    final pattern = RegExp(r'\d+|\D+');
-    final aParts = pattern.allMatches(a).map((match) => match[0]!).toList();
-    final bParts = pattern.allMatches(b).map((match) => match[0]!).toList();
-    final length = aParts.length < bParts.length
-        ? aParts.length
-        : bParts.length;
-
-    for (var index = 0; index < length; index++) {
-      final aPart = aParts[index];
-      final bPart = bParts[index];
-      final aNumber = int.tryParse(aPart);
-      final bNumber = int.tryParse(bPart);
-
-      final compare = aNumber != null && bNumber != null
-          ? aNumber.compareTo(bNumber)
-          : aPart.compareTo(bPart);
-
-      if (compare != 0) {
-        return compare;
-      }
-    }
-
-    return aParts.length.compareTo(bParts.length);
-  }
 }
 
 class _ChapterImportPlan {
@@ -308,4 +248,64 @@ class _ChapterImportPlan {
 
   final String title;
   final List<File> images;
+}
+
+/// 在独立 isolate 中执行拷贝：先写入临时目录，全部成功后整目录 rename 到最终位置，
+/// 保证“要么完整出现、要么完全不出现”。中途失败会清理临时目录；进程被杀导致的
+/// 残留由 worker 启动时统一清理。
+Future<void> _performCopy(_CopyPlan plan) async {
+  final tempDir = Directory(plan.tempDirPath);
+  try {
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
+    await tempDir.create(recursive: true);
+
+    for (final chapter in plan.chapters) {
+      final chapterDir = Directory(p.join(tempDir.path, chapter.folderName));
+      await chapterDir.create(recursive: true);
+      for (final image in chapter.files) {
+        await File(
+          image.sourcePath,
+        ).copy(p.join(chapterDir.path, image.fileName));
+      }
+    }
+
+    if (await Directory(plan.targetDirPath).exists()) {
+      throw const LocalComicImportException('目标漫画目录已存在');
+    }
+
+    await tempDir.rename(plan.targetDirPath);
+  } catch (_) {
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
+    rethrow;
+  }
+}
+
+class _CopyPlan {
+  const _CopyPlan({
+    required this.tempDirPath,
+    required this.targetDirPath,
+    required this.chapters,
+  });
+
+  final String tempDirPath;
+  final String targetDirPath;
+  final List<_ChapterCopyPlan> chapters;
+}
+
+class _ChapterCopyPlan {
+  const _ChapterCopyPlan({required this.folderName, required this.files});
+
+  final String folderName;
+  final List<_ImageCopyPlan> files;
+}
+
+class _ImageCopyPlan {
+  const _ImageCopyPlan({required this.sourcePath, required this.fileName});
+
+  final String sourcePath;
+  final String fileName;
 }

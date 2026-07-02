@@ -3,6 +3,7 @@ import 'package:haka_comic/database/download_task_helper.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/views/download/local_comic_files.dart';
 import 'package:path/path.dart' as p;
 
 Future<List<ImageBase>> fetchLocalImages(
@@ -13,7 +14,7 @@ Future<List<ImageBase>> fetchLocalImages(
   final chapters = await helper.getDownloadChapters(payload.id);
   final chapter = chapters.firstWhere(
     (element) => element.order == payload.order,
-    orElse: () => chapters.first,
+    orElse: () => throw Exception('章节不存在，检查是否已被删除'),
   );
   final downloadDir = await getDownloadDirectory();
 
@@ -39,26 +40,11 @@ Future<List<ImageBase>> fetchLocalImages(
     }
   }
 
-  const imageExts = {'.jpg', '.jpeg', '.png', '.webp'};
-
-  final files = await chapterDir
-      .list()
-      .where(
-        (entity) =>
-            entity is File &&
-            imageExts.contains(p.extension(entity.path).toLowerCase()),
-      )
-      .cast<File>()
-      .toList();
+  final files = await listImageFiles(chapterDir);
 
   if (files.isEmpty) {
     throw Exception('章节下不存在漫画图片，检查是否已被删除');
   }
-
-  // 可选：按文件名排序（很常见）
-  files.sort((a, b) => a.path.compareTo(b.path));
-
-  await Future.delayed(const Duration(milliseconds: 150));
 
   return files
       .map(

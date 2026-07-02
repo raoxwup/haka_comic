@@ -104,20 +104,6 @@ class DownloadTaskHelper {
     return image == null ? null : jsonEncode(image.toJson());
   }
 
-  ImageDetail? _decodeImage(Object? value) {
-    if (value == null) return null;
-
-    final decoded = value is String ? jsonDecode(value) : value;
-    if (decoded is Map<String, dynamic>) {
-      return ImageDetail.fromJson(decoded);
-    }
-    if (decoded is Map) {
-      return ImageDetail.fromJson(Map<String, dynamic>.from(decoded));
-    }
-
-    return null;
-  }
-
   Future<void> initialize() async {
     if (isInitialized) return;
     final dbPath = (await getApplicationSupportDirectory()).path;
@@ -252,7 +238,7 @@ class DownloadTaskHelper {
                   id: taskId,
                   title: row['title'],
                   cover: row['cover'],
-                  image: _decodeImage(row['image']),
+                  image: ImageDetail.tryParse(row['image']),
                 ),
                 chapters: [],
                 source: DownloadTaskSource.fromName(row['source']),
@@ -342,7 +328,7 @@ class DownloadTaskHelper {
       id: result['id'],
       title: result['title'],
       cover: result['cover'],
-      image: _decodeImage(result['image']),
+      image: ImageDetail.tryParse(result['image']),
     );
   }
 }

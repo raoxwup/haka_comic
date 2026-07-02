@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -223,6 +222,7 @@ class _DownloadWorker {
   Future<void> initialize() async {
     _downloadRootPath = await getDownloadDirectory();
     await _taskHelper.initialize();
+    await _cleanupOrphanImportDirs();
 
     _persistence = _TaskPersistenceCoordinator(
       helper: _taskHelper,
@@ -280,14 +280,6 @@ class _DownloadWorker {
 
     for (final task in _tasks) {
       _sortChapters(task);
-
-      if (task.source == DownloadTaskSource.import &&
-          task.status != DownloadTaskStatus.completed) {
-        task.status = DownloadTaskStatus.completed;
-        task.completed = task.total;
-        normalizedTasks.add(task);
-        continue;
-      }
 
       if (task.status == DownloadTaskStatus.downloading) {
         if (hasDownloadingTask) {
@@ -368,34 +360,19 @@ class _DownloadWorker {
         );
         return;
       case WorkerMessageType.import:
-        await _handleImportTask(message.payload as ComicDownloadTask);
+        await _addImportedTask(message.payload as ComicDownloadTask);
         return;
     }
   }
 
-  Future<void> _handleImportTask(ComicDownloadTask importedTask) async {
+  /// 导入任务已在导入侧完成文件拷贝，且 total/completed/status 均已置为完成态，
+  /// 这里只负责登记为库条目：加入内存列表、持久化、发布，不进入下载队列。
+  Future<void> _addImportedTask(ComicDownloadTask importedTask) async {
     _sortChapters(importedTask);
-
-    importedTask.total = _countTaskImages(importedTask);
-    importedTask.completed = importedTask.total;
-    importedTask.status = DownloadTaskStatus.completed;
-
-    final existingIndex = _tasks.indexWhere(
-      (task) => task.comic.id == importedTask.comic.id,
-    );
-
-    if (existingIndex >= 0) {
-      _cancelTaskExecution(importedTask.comic.id);
-      _tasks[existingIndex] = importedTask;
-    } else {
-      _tasks.add(importedTask);
-    }
-
-    _cancelTokens.remove(importedTask.comic.id);
+    _tasks.add(importedTask);
 
     await _persistence.persistTaskStructure(importedTask);
     _publishTasks();
-    _triggerQueueProcessing();
   }
 
   Future<void> _pauseTask(String taskId) async {
@@ -527,10 +504,8 @@ class _DownloadWorker {
   }
 
   Future<void> _runTask(ComicDownloadTask task) async {
-    if (task.source == DownloadTaskSource.import) {
-      return;
-    }
-
+    // 只有下载任务会进入队列（见 _nextRunnableTask / _findDownloadingTask），
+    // 导入任务恒为 completed，不会走到这里。
     final taskId = task.comic.id;
     final sessionId = _openTaskSession(taskId);
     final cancelToken = _replaceCancelToken(taskId);
@@ -905,6 +880,33 @@ class _DownloadWorker {
     }
   }
 
+  /// 清理导入中途因进程被杀而残留的临时目录（`.import_<digest>`）。
+  /// 导入采用“临时目录写完再整目录 rename”的策略，只有 rename 成功才会出现在
+  /// 最终位置，因此这些残留一定是未完成的导入，可安全删除。
+  Future<void> _cleanupOrphanImportDirs() async {
+    try {
+      final root = Directory(_downloadRootPath);
+      if (!await root.exists()) {
+        return;
+      }
+
+      await for (final entity in root.list(followLinks: false)) {
+        if (entity is Directory &&
+            p.basename(entity.path).startsWith('.import_')) {
+          try {
+            await entity.delete(recursive: true);
+          } catch (_) {}
+        }
+      }
+    } catch (error, stackTrace) {
+      _sendLogError(
+        'cleanup orphan import dirs failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   int _countTaskImages(ComicDownloadTask task) {
     return task.chapters.fold<int>(
       0,
@@ -1060,7 +1062,8 @@ class _TaskPersistenceCoordinator {
 
 class _SpeedReporter {
   _SpeedReporter({required this.onTick}) {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    // worker isolate 生命周期内常驻，随 isolate 一同销毁，无需单独持有/取消。
+    Timer.periodic(const Duration(seconds: 1), (_) {
       final currentBytes = _bytesInWindow;
       _bytesInWindow = 0;
 
@@ -1073,7 +1076,6 @@ class _SpeedReporter {
 
   final void Function(int bytesPerSecond) onTick;
 
-  late final Timer _timer;
   int _bytesInWindow = 0;
   int _lastSentBytes = 0;
 
@@ -1083,10 +1085,6 @@ class _SpeedReporter {
     }
 
     _bytesInWindow += bytes;
-  }
-
-  void dispose() {
-    _timer.cancel();
   }
 }
 

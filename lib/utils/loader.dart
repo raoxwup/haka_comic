@@ -1,36 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:haka_comic/config/setup_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 
 class Loader {
   static bool isShowing = false;
+  static OverlayEntry? _entry;
 
-  static void show(BuildContext context) {
+  static void show() {
     if (isShowing) return;
+    final overlay = navigatorKey.currentState?.overlay;
+    if (overlay == null) return;
     isShowing = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
+    _entry = OverlayEntry(
       builder: (context) {
-        return Center(
-          child: Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(10),
+        return Stack(
+          children: [
+            const ModalBarrier(dismissible: false, color: Colors.transparent),
+            Center(
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
             ),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
+          ],
         );
       },
     );
+    overlay.insert(_entry!);
   }
 
-  static void hide(BuildContext context) {
-    if (context.canPop() && isShowing) {
-      isShowing = false;
-      context.pop();
-    }
+  static void hide() {
+    if (!isShowing) return;
+    isShowing = false;
+    _entry?.remove();
+    _entry = null;
   }
 }

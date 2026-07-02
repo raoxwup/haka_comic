@@ -60,26 +60,11 @@ class DownloadComic {
     'image': image?.toJson(),
   };
 
-  static ImageDetail? _imageFromJson(dynamic value) {
-    if (value == null) return null;
-    if (value is ImageDetail) return value;
-
-    final decoded = value is String ? jsonDecode(value) : value;
-    if (decoded is Map<String, dynamic>) {
-      return ImageDetail.fromJson(decoded);
-    }
-    if (decoded is Map) {
-      return ImageDetail.fromJson(Map<String, dynamic>.from(decoded));
-    }
-
-    return null;
-  }
-
   factory DownloadComic.fromJson(Map<String, dynamic> json) => DownloadComic(
     id: json['id'] as String,
     title: json['title'] as String,
     cover: json['cover'] as String,
-    image: _imageFromJson(json['image']),
+    image: ImageDetail.tryParse(json['image']),
   );
 }
 

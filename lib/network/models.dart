@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
@@ -61,6 +63,22 @@ class ImageDetail {
       _$ImageDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
+
+  /// 宽松解析：接受 null / ImageDetail / JSON 字符串 / Map，解析失败返回 null。
+  static ImageDetail? tryParse(Object? value) {
+    if (value == null) return null;
+    if (value is ImageDetail) return value;
+
+    final decoded = value is String ? jsonDecode(value) : value;
+    if (decoded is Map<String, dynamic>) {
+      return ImageDetail.fromJson(decoded);
+    }
+    if (decoded is Map) {
+      return ImageDetail.fromJson(Map<String, dynamic>.from(decoded));
+    }
+
+    return null;
+  }
 
   String normalizeUrl(String url) {
     final uri = Uri.parse(url);

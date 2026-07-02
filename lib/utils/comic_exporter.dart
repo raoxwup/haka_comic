@@ -42,9 +42,7 @@ class ComicExporter {
       Log.e('Export comics failed', error: e, stackTrace: st);
       Toast.show(message: '导出失败');
     } finally {
-      if (context.mounted) {
-        Loader.hide(context);
-      }
+      Loader.hide();
       onComplete?.call();
     }
   }
@@ -61,9 +59,7 @@ class ComicExporter {
       return;
     }
 
-    if (context.mounted) {
-      Loader.show(context);
-    }
+    Loader.show();
 
     for (final item in items) {
       final destPath = p.join(
@@ -85,9 +81,7 @@ class ComicExporter {
     required List<ComicExportItem> items,
     required ExportFileType type,
   }) async {
-    if (context.mounted) {
-      Loader.show(context);
-    }
+    Loader.show();
 
     final path = await _buildIosExportPath(items: items, type: type);
     final success = await SaveToFolderIos.copy(path);
@@ -103,9 +97,7 @@ class ComicExporter {
       return;
     }
 
-    if (context.mounted) {
-      Loader.show(context);
-    }
+    Loader.show();
 
     final tempDir = await _createCleanTempDirectory();
 

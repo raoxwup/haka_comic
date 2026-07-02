@@ -83,11 +83,13 @@ class _DownloadsState extends State<Downloads> {
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
   int _downloadSpeed = 0;
+  String? _downloadRoot;
   late DownloadTaskSortOrder _sortOrder = AppConf().downloadTaskSortOrder;
 
   @override
   void initState() {
     super.initState();
+    _resolveDownloadRoot();
     _subscription =
         (widget.taskStream ?? BackgroundDownloader.streamController.stream)
             .listen(
@@ -107,6 +109,15 @@ class _DownloadsState extends State<Downloads> {
     _subscription.cancel();
     _speedSubscription.cancel();
     super.dispose();
+  }
+
+  /// 本地导入漫画的封面以“相对 download 根目录”的形式存库，展示时在此拼回绝对路径，
+  /// 规避应用沙盒目录变化导致绝对路径失效。
+  Future<void> _resolveDownloadRoot() async {
+    final root = await getDownloadDirectory();
+    if (mounted) {
+      setState(() => _downloadRoot = root);
+    }
   }
 
   List<ComicDownloadTask> get _selectedTasks {
@@ -140,9 +151,7 @@ class _DownloadsState extends State<Downloads> {
         return;
       }
 
-      if (mounted) {
-        Loader.show(context);
-      }
+      Loader.show();
 
       final task = await LocalComicImporter.importSource(
         source,
@@ -169,9 +178,7 @@ class _DownloadsState extends State<Downloads> {
         }
       }
 
-      if (mounted) {
-        Loader.hide(context);
-      }
+      Loader.hide();
     }
   }
 
@@ -398,6 +405,7 @@ class _DownloadsState extends State<Downloads> {
                     task: task,
                     isSelecting: _isSelecting,
                     isSelected: isSelected,
+                    downloadRoot: _downloadRoot,
                     contextMenu: menu,
                     onTap: () {
                       if (_isSelecting) {
@@ -560,6 +568,7 @@ class _DownloadTaskItem extends StatelessWidget {
   final ComicDownloadTask task;
   final bool isSelecting;
   final bool isSelected;
+  final String? downloadRoot;
   final VoidCallback onTap;
   final Future<void> Function(String, ComicDownloadTask) onItemSelected;
   final ContextMenu contextMenu;
@@ -569,6 +578,7 @@ class _DownloadTaskItem extends StatelessWidget {
     required this.task,
     required this.isSelecting,
     required this.isSelected,
+    required this.downloadRoot,
     required this.onTap,
     required this.onItemSelected,
     required this.contextMenu,
@@ -579,6 +589,10 @@ class _DownloadTaskItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = task.comic.image;
     final isImported = task.source == DownloadTaskSource.import;
+    final cover = task.comic.cover;
+    final localCoverPath = (downloadRoot == null || cover.isEmpty)
+        ? null
+        : p.join(downloadRoot!, cover);
     return ContextMenuRegion(
       key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
@@ -602,7 +616,7 @@ class _DownloadTaskItem extends StatelessWidget {
               AspectRatio(
                 aspectRatio: 90 / 130,
                 child: isImported
-                    ? _LocalCoverImage(path: task.comic.cover)
+                    ? _LocalCoverImage(path: localCoverPath)
                     : UiImage(
                         url: image?.url ?? task.comic.cover,
                         cacheKey: image?.cacheKey,
@@ -684,21 +698,31 @@ class _DownloadTaskItem extends StatelessWidget {
 class _LocalCoverImage extends StatelessWidget {
   const _LocalCoverImage({required this.path});
 
-  final String path;
+  final String? path;
 
   @override
   Widget build(BuildContext context) {
+    final coverPath = path;
+    if (coverPath == null || coverPath.isEmpty) {
+      return _placeholder(context);
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Image.file(
-        File(path),
+        File(coverPath),
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) {
-          return ColoredBox(
-            color: context.colorScheme.surfaceContainerHigh,
-            child: const Center(child: Icon(Icons.broken_image)),
-          );
-        },
+        errorBuilder: (_, _, _) => _placeholder(context),
+      ),
+    );
+  }
+
+  Widget _placeholder(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: ColoredBox(
+        color: context.colorScheme.surfaceContainerHigh,
+        child: const Center(child: Icon(Icons.broken_image)),
       ),
     );
   }
