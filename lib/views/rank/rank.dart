@@ -149,6 +149,7 @@ class _KnightRankState extends State<KnightRank> with RequestMixin {
                 children: [
                   UiImage(
                     url: user.avatar?.url ?? '',
+                    cacheKey: user.avatar?.cacheKey,
                     width: 48,
                     height: 48,
                     shape: .circle,

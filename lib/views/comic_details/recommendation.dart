@@ -49,6 +49,7 @@ Stream<ExtraRecommendComic> streamExtraRecommendComics(
                     id: comic.id,
                     title: comic.title,
                     pic: comic.thumb.url,
+                    cacheKey: comic.thumb.cacheKey,
                   ),
                 );
               } catch (_) {
@@ -99,6 +100,7 @@ class _RecommendationState extends State<Recommendation> with RequestMixin {
                 id: e.id,
                 title: e.title,
                 pic: e.thumb.url,
+                cacheKey: e.thumb.cacheKey,
               ),
             )
             .toList(),
@@ -183,7 +185,8 @@ class _RecommendationState extends State<Recommendation> with RequestMixin {
                       UiImage(
                         borderRadius: BorderRadius.circular(8),
                         shape: .rectangle,
-                        url: item.url,
+                        url: item.pic,
+                        cacheKey: item.cacheKey,
                         width: 100,
                         height: 135,
                       ),

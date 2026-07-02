@@ -11,9 +11,7 @@ import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/widgets/ui_image.dart';
 
 class Categories extends StatefulWidget {
-  const Categories({super.key, required this.isRouteAnimationCompleted});
-
-  final bool isRouteAnimationCompleted;
+  const Categories({super.key});
 
   @override
   State<Categories> createState() => _CategoriesState();
@@ -133,6 +131,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
               elevation: 0,
               child: UiImage(
                 url: item.thumb.url,
+                cacheKey: item.thumb.cacheKey,
                 filterQuality: .medium,
                 cacheWidth: 150,
               ),

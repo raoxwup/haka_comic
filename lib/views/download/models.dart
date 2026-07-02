@@ -1,6 +1,6 @@
 part of 'background_downloader.dart';
 
-enum WorkerMessageType { pause, resume, delete, query, proxy }
+enum WorkerMessageType { pause, resume, delete, query, proxy, import }
 
 class WorkerMessage {
   final WorkerMessageType type;
@@ -22,24 +22,49 @@ class DownloadSpeed {
   const DownloadSpeed({required this.bytesPerSecond});
 }
 
+enum DownloadTaskSource {
+  download('下载'),
+  import('导入');
+
+  const DownloadTaskSource(this.displayName);
+
+  final String displayName;
+
+  static DownloadTaskSource fromName(String? name) {
+    return values.firstWhere(
+      (source) => source.name == name,
+      orElse: () => download,
+    );
+  }
+}
+
 /// 下载漫画
 class DownloadComic {
   final String id;
   final String title;
   final String cover;
 
+  final ImageDetail? image;
+
   const DownloadComic({
     required this.id,
     required this.title,
     required this.cover,
+    this.image,
   });
 
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'cover': cover};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'cover': cover,
+    'image': image?.toJson(),
+  };
 
   factory DownloadComic.fromJson(Map<String, dynamic> json) => DownloadComic(
     id: json['id'] as String,
     title: json['title'] as String,
     cover: json['cover'] as String,
+    image: ImageDetail.tryParse(json['image']),
   );
 }
 
@@ -61,12 +86,17 @@ class DownloadChapter {
 class ComicDownloadTask {
   final DownloadComic comic;
   final List<DownloadChapter> chapters;
+  final DownloadTaskSource source;
 
   int total = 0;
   int completed = 0;
   DownloadTaskStatus status = DownloadTaskStatus.queued;
 
-  ComicDownloadTask({required this.comic, required this.chapters});
+  ComicDownloadTask({
+    required this.comic,
+    required this.chapters,
+    this.source = DownloadTaskSource.download,
+  });
 }
 
 /// 下载任务状态

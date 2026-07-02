@@ -75,6 +75,8 @@ class PageSelector extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
               child: TextField(
+                autofocus: true,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   labelText: "页码",

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/utils.dart';
@@ -62,6 +64,22 @@ class ImageDetail {
 
   Map<String, dynamic> toJson() => _$ImageDetailToJson(this);
 
+  /// 宽松解析：接受 null / ImageDetail / JSON 字符串 / Map，解析失败返回 null。
+  static ImageDetail? tryParse(Object? value) {
+    if (value == null) return null;
+    if (value is ImageDetail) return value;
+
+    final decoded = value is String ? jsonDecode(value) : value;
+    if (decoded is Map<String, dynamic>) {
+      return ImageDetail.fromJson(decoded);
+    }
+    if (decoded is Map) {
+      return ImageDetail.fromJson(Map<String, dynamic>.from(decoded));
+    }
+
+    return null;
+  }
+
   String normalizeUrl(String url) {
     final uri = Uri.parse(url);
 
@@ -81,6 +99,8 @@ class ImageDetail {
   String get proxyUrl => directUrl.replaceFirst('picacomic', 'go2778');
 
   String get url => AppConf().api == Api.picacomic ? directUrl : proxyUrl;
+
+  String get cacheKey => path;
 
   String getIsolateDownloadUrl(Api api) {
     return api == Api.picacomic ? directUrl : proxyUrl;
@@ -135,17 +155,14 @@ class CategoriesResponse {
 
 // 漫画排序方式
 enum ComicSortType {
-  /// 新到旧
-  dd,
+  dd('新到旧'),
+  da('旧到新'),
+  ld('最多喜欢'),
+  vd('最多观看');
 
-  /// 旧到新
-  da,
+  final String title;
 
-  /// 最多喜欢
-  ld,
-
-  /// 最多观看
-  vd,
+  const ComicSortType(this.title);
 }
 
 class ComicsPayload {
@@ -747,13 +764,20 @@ class SearchPayload {
 
   final ComicSortType sort;
 
-  SearchPayload({
+  final Set<String> categories;
+
+  const SearchPayload({
     required this.keyword,
     required this.page,
     required this.sort,
+    this.categories = const {},
   });
 
-  Map<String, dynamic> toJson() => {'keyword': keyword, 'sort': sort.name};
+  Map<String, dynamic> toJson() => {
+    'keyword': keyword,
+    'sort': sort.name,
+    if (categories.isNotEmpty) 'categories': categories.toList(),
+  };
 }
 
 @JsonSerializable()
@@ -880,10 +904,13 @@ class ExtraRecommendComic {
 
   final String pic;
 
+  final String cacheKey;
+
   ExtraRecommendComic({
     required this.id,
     required this.title,
     required this.pic,
+    required this.cacheKey,
   });
 
   factory ExtraRecommendComic.fromJson(Map<String, dynamic> json) =>
@@ -891,13 +918,15 @@ class ExtraRecommendComic {
         id: json['id'],
         title: json['title'],
         pic: json['pic'],
+        cacheKey: json['cacheKey'],
       );
 
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'pic': pic};
-
-  String get url => AppConf().api == Api.picacomic
-      ? pic
-      : pic.replaceFirst('picacomic', 'go2778');
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'pic': pic,
+    'cacheKey': cacheKey,
+  };
 }
 
 class ExtraRecommendComicIdsResponse {
@@ -950,6 +979,7 @@ class FetchChapterImagesPayload {
 
 abstract class ImageBase {
   String get url;
+  String? get cacheKey;
   String? get id;
   String get uid;
 }
@@ -963,6 +993,9 @@ class LocalImage extends ImageBase {
 
   @override
   final String url;
+
+  @override
+  String? get cacheKey => null;
 
   LocalImage({required this.uid, required this.id, required this.url});
 }
@@ -987,6 +1020,9 @@ class ChapterImage extends ImageBase {
 
   @override
   String get url => media.url;
+
+  @override
+  String get cacheKey => media.cacheKey;
 }
 
 @JsonSerializable()

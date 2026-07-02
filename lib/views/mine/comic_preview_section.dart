@@ -92,10 +92,16 @@ class ComicSection extends StatelessWidget {
 }
 
 class ComicItem extends StatelessWidget {
-  const ComicItem({super.key, required this.url, required this.uid});
+  const ComicItem({
+    super.key,
+    required this.url,
+    required this.uid,
+    this.cacheKey,
+  });
 
   final String url;
   final String uid;
+  final String? cacheKey;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +112,7 @@ class ComicItem extends StatelessWidget {
         width: _kComicItemWidth,
         child: UiImage(
           url: url,
+          cacheKey: cacheKey,
           cacheWidth: 150,
           shape: .rectangle,
           borderRadius: BorderRadius.circular(8),

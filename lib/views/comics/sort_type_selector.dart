@@ -20,13 +20,6 @@ class SortTypeSelector extends StatefulWidget {
 class _SortTypeSelectorState extends State<SortTypeSelector> {
   late ComicSortType _sortType;
 
-  final List<Map<String, dynamic>> sorts = [
-    {"label": '新到旧', "value": ComicSortType.dd},
-    {"label": "旧到新", "value": ComicSortType.da},
-    {"label": "最多喜欢", "value": ComicSortType.ld},
-    {"label": "最多观看", "value": ComicSortType.vd},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -55,12 +48,12 @@ class _SortTypeSelectorState extends State<SortTypeSelector> {
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: sorts
+            children: ComicSortType.values
                 .map(
                   (e) => ListTile(
-                    title: Text(e['label']),
-                    leading: Radio<ComicSortType>(value: e['value']),
-                    onTap: () => handleChange(e['value']),
+                    title: Text(e.title),
+                    leading: Radio<ComicSortType>(value: e),
+                    onTap: () => handleChange(e),
                   ),
                 )
                 .toList(),

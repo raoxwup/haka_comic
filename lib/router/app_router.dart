@@ -1,7 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/config/setup_config.dart';
-import 'package:haka_comic/network/models.dart' show Comment, Chapter;
+import 'package:haka_comic/network/models.dart'
+    show Comment, Chapter, ComicSortType;
 import 'package:haka_comic/router/build_side_sheet_route.dart';
 import 'package:haka_comic/router/route_observer.dart';
 import 'package:haka_comic/views/about/about.dart';
@@ -10,7 +11,6 @@ import 'package:haka_comic/views/comic_details/downloader.dart';
 import 'package:haka_comic/views/comics/comics.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
 import 'package:haka_comic/views/download/downloads_ui.dart';
-import 'package:haka_comic/views/import_comics/import_comics.dart';
 import 'package:haka_comic/views/local_favorites/local_favorites.dart';
 import 'package:haka_comic/views/notifications/notifications.dart';
 import 'package:haka_comic/views/reader/providers/list_state_provider.dart';
@@ -108,8 +108,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/settings', builder: (_, _) => const Settings()),
     GoRoute(
       path: '/search_comics',
-      builder: (_, state) =>
-          SearchComics(keyword: state.uri.queryParameters['keyword']!),
+      builder: (_, state) {
+        return SearchComics(
+          keyword: state.uri.queryParameters['keyword']!,
+          sortType: _parseComicSortType(state.uri.queryParameters['sort']),
+          categories:
+              state.uri.queryParametersAll['categories']
+                  ?.where((category) => category.isNotEmpty)
+                  .toSet() ??
+              const {},
+        );
+      },
     ),
     GoRoute(
       path: '/reader',
@@ -176,7 +185,6 @@ final GoRouter appRouter = GoRouter(
       builder: (_, _) => const LocalFavorites(),
     ),
     GoRoute(path: '/logs', builder: (_, _) => const Logs()),
-    GoRoute(path: '/import_comics', builder: (_, _) => const ImportComics()),
     GoRoute(path: '/api_settings', builder: (_, _) => const ApiSettings()),
     GoRoute(path: '/proxy_settings', builder: (_, _) => ProxySettings()),
     GoRoute(path: '/block_settings', builder: (_, _) => const BlockSettings()),
@@ -186,4 +194,11 @@ final GoRouter appRouter = GoRouter(
 void logout() {
   AppConf.instance.clearAuth();
   appRouter.go('/login');
+}
+
+ComicSortType _parseComicSortType(String? name) {
+  return ComicSortType.values.firstWhere(
+    (type) => type.name == name,
+    orElse: () => ComicSortType.dd,
+  );
 }

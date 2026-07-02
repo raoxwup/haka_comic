@@ -91,6 +91,7 @@ class SimpleListItem extends StatelessWidget {
                 aspectRatio: 1 / 1.4,
                 child: UiImage(
                   url: doc.thumb.url,
+                  cacheKey: doc.thumb.cacheKey,
                   cacheWidth: 140,
                   shape: .rectangle,
                   borderRadius: BorderRadius.circular(12),

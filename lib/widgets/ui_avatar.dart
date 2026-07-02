@@ -20,6 +20,12 @@ class UiAvatar extends StatelessWidget {
               child: Image.asset('assets/images/user.png'),
             ),
           )
-        : UiImage(url: source!.url, width: size, height: size, shape: .circle);
+        : UiImage(
+            url: source!.url,
+            cacheKey: source!.cacheKey,
+            width: size,
+            height: size,
+            shape: .circle,
+          );
   }
 }

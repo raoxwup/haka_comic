@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/utils/extension.dart';
 
-/// 所有分类
-List<String> categories = [
+/// 哔咔所有分类
+const List<String> categories = [
   "嗶咔漢化",
   "全彩",
   "長篇",

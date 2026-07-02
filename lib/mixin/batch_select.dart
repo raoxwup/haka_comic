@@ -50,34 +50,45 @@ mixin BatchSelectMixin<T extends StatefulWidget> on State<T> {
 
     setState(() => isDownloading = true);
 
-    final selected = allComics.where((c) => selectedCids.contains(c.uid)).toList();
+    final selected = allComics
+        .where((c) => selectedCids.contains(c.uid))
+        .toList();
     int successCount = 0;
     int failCount = 0;
 
     try {
-      final results = await Future.wait(selected.map((comic) async {
-        try {
-          final chapters = await fetchChapters(comic.uid);
-          if (chapters.isEmpty) return false;
+      final results = await Future.wait(
+        selected.map((comic) async {
+          try {
+            final chapters = await fetchChapters(comic.uid);
+            if (chapters.isEmpty) return false;
 
-          BackgroundDownloader.addTask(
-            ComicDownloadTask(
-              comic: DownloadComic(
-                id: comic.uid,
-                title: comic.title,
-                cover: comic.thumb.url,
+            BackgroundDownloader.addTask(
+              ComicDownloadTask(
+                comic: DownloadComic(
+                  id: comic.uid,
+                  title: comic.title,
+                  cover: comic.thumb.url,
+                  image: comic.thumb,
+                ),
+                chapters: chapters
+                    .map(
+                      (c) => DownloadChapter(
+                        id: c.uid,
+                        title: c.title,
+                        order: c.order,
+                      ),
+                    )
+                    .toList(),
               ),
-              chapters: chapters
-                  .map((c) => DownloadChapter(id: c.uid, title: c.title, order: c.order))
-                  .toList(),
-            ),
-          );
-          return true;
-        } catch (e) {
-          Log.e('Batch download failed: ${comic.title}', error: e);
-          return false;
-        }
-      }));
+            );
+            return true;
+          } catch (e) {
+            Log.e('Batch download failed: ${comic.title}', error: e);
+            return false;
+          }
+        }),
+      );
 
       successCount = results.where((r) => r).length;
       failCount = results.where((r) => !r).length;

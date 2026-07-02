@@ -3,10 +3,7 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/comic_details/title_box.dart';
 
 class DescriptionBox extends StatelessWidget {
-  const DescriptionBox({
-    super.key,
-    required this.description,
-  });
+  const DescriptionBox({super.key, required this.description});
 
   final String? description;
 
@@ -15,7 +12,7 @@ class DescriptionBox extends StatelessWidget {
     return TitleBox(
       title: '简介',
       builder: (context) {
-        return Text(
+        return SelectableText(
           description ?? '暂无简介',
           style: context.textTheme.bodyMedium,
         );

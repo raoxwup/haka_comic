@@ -58,7 +58,7 @@ class _AboutState extends State<About> with RequestMixin {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: Image.asset(
-                  'assets/icons/android/ic_launcher_foreground.png',
+                  'assets/images/foreground.png',
                   fit: BoxFit.cover,
                 ),
               ),

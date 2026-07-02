@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
@@ -8,7 +9,6 @@ import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
-import 'package:haka_comic/widgets/error_page.dart';
 import 'package:haka_comic/views/mine/comic_preview_section.dart';
 import 'package:haka_comic/views/mine/profile.dart';
 
@@ -29,51 +29,138 @@ class _MineState extends State<Mine> {
   @override
   Widget build(BuildContext context) {
     final state = context.userSelector((p) => p.userHandler.state);
-    return switch (state) {
-      Success(:final data) => ListView(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-        children: [
-          ProFile(user: data.user),
-          const HistoryComics(),
-          const Favorites(),
-          const _MenuItem(
-            icon: Icons.download,
-            title: '我的下载',
-            route: '/downloads',
-          ),
-          const _MenuItem(
-            icon: Icons.comment,
-            title: '我的评论',
-            route: '/personal_comments',
-          ),
-          const _MenuItem(
-            icon: Icons.bookmark,
-            title: '本地收藏夹',
-            route: '/local_favorites',
-          ),
-          const _MenuItem(
-            icon: Icons.file_upload,
-            title: '本地导入',
-            route: '/import_comics',
-          ),
-        ],
-      ),
-      Error(:final error) => Padding(
-        padding: .only(top: context.top),
-        child: ErrorPage(
-          errorMessage: error.toString(),
-          onRetry: context.userReader.userHandler.refresh,
-          extraButton: TextButton(
-            onPressed: () => context.push('/downloads'),
-            child: const Text('我的下载'),
-          ),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+      children: [
+        _ProfileHeader(state: state),
+        const HistoryComics(),
+        const Favorites(),
+        const _MenuItem(
+          icon: Icons.download,
+          title: '我的下载',
+          route: '/downloads',
         ),
+        const _MenuItem(
+          icon: Icons.comment,
+          title: '我的评论',
+          route: '/personal_comments',
+        ),
+        const _MenuItem(
+          icon: Icons.bookmark,
+          title: '本地收藏夹',
+          route: '/local_favorites',
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.state});
+
+  final RequestState<UserProfileResponse> state;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (state) {
+      Success(:final data) => ProFile(user: data.user),
+      Error() => _ProfileErrorHeader(
+        onRetry: context.userReader.userHandler.refresh,
       ),
-      _ => Padding(
+      _ => const _ProfileLoadingHeader(),
+    };
+  }
+}
+
+class _ProfileLoadingHeader extends StatelessWidget {
+  const _ProfileLoadingHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200 + context.top,
+      child: Padding(
         padding: .only(top: context.top),
         child: const Center(child: CircularProgressIndicator()),
       ),
-    };
+    );
+  }
+}
+
+class _ProfileErrorHeader extends StatelessWidget {
+  const _ProfileErrorHeader({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200 + context.top,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(
+                  sigmaX: 8,
+                  sigmaY: 8,
+                  tileMode: TileMode.mirror,
+                ),
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.transparent,
+                        context.colorScheme.surface,
+                        context.colorScheme.surface.withValues(alpha: 0.3),
+                      ],
+                      stops: const [0.02, 0.5, 0.85],
+                    ).createShader(bounds);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: Image.asset(
+                    'assets/images/default_avatar.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: .only(top: context.top),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/default_avatar.jpg',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('加载失败', style: context.textTheme.titleMedium),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      onPressed: onRetry,
+                      tooltip: '重新加载',
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -145,7 +232,11 @@ class _HistoryComicsState extends State<HistoryComics> {
       count: _comicsCount,
       itemBuilder: (context, index) {
         final item = _comics[index];
-        return ComicItem(url: item.thumb.url, uid: item.uid);
+        return ComicItem(
+          url: item.thumb.url,
+          cacheKey: item.thumb.cacheKey,
+          uid: item.uid,
+        );
       },
     );
   }
@@ -184,7 +275,11 @@ class _FavoritesState extends State<Favorites> with RequestMixin {
       count: _handler.state.data?.comics.total,
       itemBuilder: (context, index) {
         final item = comics[index];
-        return ComicItem(url: item.thumb.url, uid: item.uid);
+        return ComicItem(
+          url: item.thumb.url,
+          cacheKey: item.thumb.cacheKey,
+          uid: item.uid,
+        );
       },
     );
   }

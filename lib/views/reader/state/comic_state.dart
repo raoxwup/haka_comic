@@ -1,6 +1,6 @@
 import 'package:haka_comic/network/models.dart';
 
-enum ReaderType { network, local, import }
+enum ReaderType { network, local }
 
 class ComicState {
   /// 漫画id

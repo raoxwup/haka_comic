@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
@@ -8,8 +9,11 @@ import 'package:haka_comic/database/read_record_helper.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/extension.dart';
+import 'package:haka_comic/utils/loader.dart';
+import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/ui.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';
+import 'package:haka_comic/views/download/local_comic_importer.dart';
 import 'package:haka_comic/views/reader/state/comic_state.dart';
 import 'package:haka_comic/widgets/empty.dart';
 import 'package:haka_comic/widgets/slide_transition_x.dart';
@@ -79,11 +83,13 @@ class _DownloadsState extends State<Downloads> {
   bool _isSelecting = false;
   Set<String> _selectedTaskIds = {};
   int _downloadSpeed = 0;
+  String? _downloadRoot;
   late DownloadTaskSortOrder _sortOrder = AppConf().downloadTaskSortOrder;
 
   @override
   void initState() {
     super.initState();
+    _resolveDownloadRoot();
     _subscription =
         (widget.taskStream ?? BackgroundDownloader.streamController.stream)
             .listen(
@@ -103,6 +109,15 @@ class _DownloadsState extends State<Downloads> {
     _subscription.cancel();
     _speedSubscription.cancel();
     super.dispose();
+  }
+
+  /// 本地导入漫画的封面以“相对 download 根目录”的形式存库，展示时在此拼回绝对路径，
+  /// 规避应用沙盒目录变化导致绝对路径失效。
+  Future<void> _resolveDownloadRoot() async {
+    final root = await getDownloadDirectory();
+    if (mounted) {
+      setState(() => _downloadRoot = root);
+    }
   }
 
   List<ComicDownloadTask> get _selectedTasks {
@@ -125,6 +140,46 @@ class _DownloadsState extends State<Downloads> {
 
     setState(() => _sortOrder = sortOrder);
     AppConf().downloadTaskSortOrder = sortOrder;
+  }
+
+  Future<void> _importLocalComic() async {
+    PickedLocalComicSource? source;
+
+    try {
+      source = await LocalComicImporter.pickSource();
+      if (source == null) {
+        return;
+      }
+
+      Loader.show();
+
+      final task = await LocalComicImporter.importSource(
+        source,
+        existingTitles: tasks.map((task) => task.comic.title),
+      );
+
+      BackgroundDownloader.importCompletedTask(task);
+      Toast.show(message: '导入成功');
+    } on LocalComicImportException catch (e) {
+      Toast.show(message: e.message);
+    } catch (e, st) {
+      Log.e('Import local comic failed', error: e, stackTrace: st);
+      Toast.show(message: '导入失败');
+    } finally {
+      if (source != null) {
+        try {
+          await LocalComicImporter.cleanupSource(source);
+        } catch (e, st) {
+          Log.e(
+            'Cleanup local comic import source failed',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }
+
+      Loader.hide();
+    }
   }
 
   void clearTasks() async {
@@ -248,6 +303,11 @@ class _DownloadsState extends State<Downloads> {
         });
         break;
       case 'details':
+        if (task.source == DownloadTaskSource.import) {
+          Toast.show(message: '导入漫画没有详情');
+          return;
+        }
+
         context.push('/details/${task.comic.id}');
     }
   }
@@ -318,6 +378,7 @@ class _DownloadsState extends State<Downloads> {
               )
             : _NormalAppBar(
                 onEnterSelection: () => setState(() => _isSelecting = true),
+                onImportLocalComic: _importLocalComic,
                 downloadSpeed: _downloadSpeed,
                 sortOrder: _sortOrder,
                 onSortOrderChanged: _setSortOrder,
@@ -344,6 +405,7 @@ class _DownloadsState extends State<Downloads> {
                     task: task,
                     isSelecting: _isSelecting,
                     isSelected: isSelected,
+                    downloadRoot: _downloadRoot,
                     contextMenu: menu,
                     onTap: () {
                       if (_isSelecting) {
@@ -442,12 +504,14 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEnterSelection;
+  final VoidCallback onImportLocalComic;
   final int downloadSpeed;
   final DownloadTaskSortOrder sortOrder;
   final ValueChanged<DownloadTaskSortOrder> onSortOrderChanged;
 
   const _NormalAppBar({
     required this.onEnterSelection,
+    required this.onImportLocalComic,
     required this.downloadSpeed,
     required this.sortOrder,
     required this.onSortOrderChanged,
@@ -458,6 +522,11 @@ class _NormalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: const Text('我的下载'),
       actions: [
+        IconButton(
+          tooltip: '导入漫画',
+          onPressed: onImportLocalComic,
+          icon: const Icon(Icons.file_upload),
+        ),
         PopupMenuButton<DownloadTaskSortOrder>(
           tooltip: '排序',
           icon: const Icon(Icons.sort),
@@ -499,6 +568,7 @@ class _DownloadTaskItem extends StatelessWidget {
   final ComicDownloadTask task;
   final bool isSelecting;
   final bool isSelected;
+  final String? downloadRoot;
   final VoidCallback onTap;
   final Future<void> Function(String, ComicDownloadTask) onItemSelected;
   final ContextMenu contextMenu;
@@ -508,6 +578,7 @@ class _DownloadTaskItem extends StatelessWidget {
     required this.task,
     required this.isSelecting,
     required this.isSelected,
+    required this.downloadRoot,
     required this.onTap,
     required this.onItemSelected,
     required this.contextMenu,
@@ -516,6 +587,12 @@ class _DownloadTaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = task.comic.image;
+    final isImported = task.source == DownloadTaskSource.import;
+    final cover = task.comic.cover;
+    final localCoverPath = (downloadRoot == null || cover.isEmpty)
+        ? null
+        : p.join(downloadRoot!, cover);
     return ContextMenuRegion(
       key: ValueKey(task.comic.id),
       contextMenu: contextMenu,
@@ -538,12 +615,15 @@ class _DownloadTaskItem extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 90 / 130,
-                child: UiImage(
-                  url: task.comic.cover,
-                  cacheWidth: 180,
-                  shape: .rectangle,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                child: isImported
+                    ? _LocalCoverImage(path: localCoverPath)
+                    : UiImage(
+                        url: image?.url ?? task.comic.cover,
+                        cacheKey: image?.cacheKey,
+                        cacheWidth: 180,
+                        shape: .rectangle,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -590,8 +670,7 @@ class _DownloadTaskItem extends StatelessWidget {
                           '${task.completed} / ${task.total}',
                           style: context.textTheme.bodySmall,
                         ),
-                        if (downloadSpeed > 0 &&
-                            task.status == DownloadTaskStatus.downloading)
+                        if (task.status == DownloadTaskStatus.downloading)
                           Text(
                             _formatSpeed(downloadSpeed),
                             style: context.textTheme.bodySmall,
@@ -611,6 +690,39 @@ class _DownloadTaskItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LocalCoverImage extends StatelessWidget {
+  const _LocalCoverImage({required this.path});
+
+  final String? path;
+
+  @override
+  Widget build(BuildContext context) {
+    final coverPath = path;
+    if (coverPath == null || coverPath.isEmpty) {
+      return _placeholder(context);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.file(
+        File(coverPath),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _placeholder(context),
+      ),
+    );
+  }
+
+  Widget _placeholder(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: ColoredBox(
+        color: context.colorScheme.surfaceContainerHigh,
+        child: const Center(child: Icon(Icons.broken_image)),
       ),
     );
   }

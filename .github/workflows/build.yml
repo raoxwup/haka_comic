@@ -53,6 +53,8 @@ jobs:
     name: Android Build
     needs: setup
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Dorg.gradle.caching=true
 
     steps:
       - uses: actions/checkout@v6
@@ -60,7 +62,7 @@ jobs:
           ref: ${{ env.BUILD_BRANCH }}
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: "17"
           distribution: "temurin"
@@ -70,16 +72,33 @@ jobs:
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          cache: true
+          pub-cache: true
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            !~/.gradle/caches/modules-2/modules-2.lock
+            !~/.gradle/caches/modules-2/gc.properties
+          key: ${{ runner.os }}-gradle-jdk17-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/gradle.properties', 'android/settings.gradle.kts', 'android/build.gradle.kts', 'android/app/build.gradle.kts', 'rust_builder/android/settings.gradle', 'rust_builder/android/build.gradle', 'rust_builder/cargokit/gradle/plugin.gradle') }}
           restore-keys: |
+            ${{ runner.os }}-gradle-jdk17-
             ${{ runner.os }}-gradle-
+
+      - name: Cache Android Rust build
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            build/rust_lib_haka_comic/build
+          key: ${{ runner.os }}-cargo-android-${{ hashFiles('rust/Cargo.lock') }}-${{ hashFiles('rust/Cargo.toml', 'rust/build.rs', 'rust/src/**/*.rs', 'rust_builder/android/build.gradle', 'rust_builder/cargokit/**') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-android-${{ hashFiles('rust/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-android-
 
       - name: Prepare signing files
         run: |
@@ -133,6 +152,8 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
           architecture: x64
+          cache: true
+          pub-cache: true
 
       - run: sudo xcode-select --switch /Applications/Xcode_26.2.app
 
@@ -140,6 +161,28 @@ jobs:
         run: |
           flutter pub get
           dart run script/prebuild_inject_version.dart
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ios/Pods
+          key: ${{ runner.os }}-${{ runner.arch }}-ios-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ios-pods-
+
+      - name: Cache iOS Rust build
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            build/ios/**/rust_lib_haka_comic.build
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-ios-${{ hashFiles('rust/Cargo.lock') }}-${{ hashFiles('rust/Cargo.toml', 'rust/build.rs', 'rust/src/**/*.rs', 'rust_builder/ios/**', 'rust_builder/cargokit/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-cargo-ios-${{ hashFiles('rust/Cargo.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-cargo-ios-
 
       - name: Build unsigned IPA
         run: |
@@ -170,7 +213,8 @@ jobs:
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
-          cache: false
+          cache: true
+          pub-cache: true
 
       - name: Prepare Flutter project
         shell: pwsh
@@ -178,6 +222,18 @@ jobs:
           flutter pub get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run script/prebuild_inject_version.dart
+
+      - name: Cache Windows Rust build
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            build/windows/x64/plugins/rust_lib_haka_comic/cargokit_build
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-windows-${{ hashFiles('rust/Cargo.lock') }}-${{ hashFiles('rust/Cargo.toml', 'rust/build.rs', 'rust/src/**/*.rs', 'rust_builder/windows/**', 'rust_builder/cargokit/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-cargo-windows-${{ hashFiles('rust/Cargo.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-cargo-windows-
 
       - name: Build Windows Release
         run: flutter build windows --release
@@ -193,6 +249,7 @@ jobs:
 
           $exePath = Get-ChildItem -Path "build/windows/x64/runner/Release" -Filter "*.exe" | Select-Object -First 1
           $exeName = $exePath.Name
+          $iconFile = "windows_icon-$($env:GITHUB_RUN_NUMBER).ico"
 
           # 构造输出文件名
           $outputFile = "$appName-Setup-v$version"
@@ -205,35 +262,49 @@ jobs:
           DefaultDirName=$DefaultDir
           DefaultGroupName=$appName
           OutputBaseFilename=$outputFile
+          SetupIconFile=assets/icons/pc/windows_icon.ico
+          UninstallDisplayIcon={app}\$iconFile
           Compression=lzma
           SolidCompression=yes
 
+          [InstallDelete]
+          Type: files; Name: `"{app}\windows_icon*.ico`"
+
           [Files]
-          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "assets/icons/pc/windows_icon.ico"; DestDir: "{app}"; DestName: "$iconFile"; Flags: ignoreversion
           Source: "build\\windows\\x64\\runner\\Release\\*"; DestDir: "{app}"; Flags: recursesubdirs
 
           [Icons]
-          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
-          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\windows_icon.ico`"; WorkingDir: `"{app}`"
+          Name: `"{group}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\$iconFile`"; WorkingDir: `"{app}`"
+          Name: `"{userdesktop}\$appName`"; Filename: `"{app}\$exeName`"; IconFilename: `"{app}\$iconFile`"; WorkingDir: `"{app}`"
 
           [Run]
           Filename: `"{app}\$exeName`"; WorkingDir: `"{app}`"; Flags: nowait postinstall skipifsilent
 
           [Code]
-          // 删除 Flutter getApplicationSupportDirectory() 数据目录:
-          // Windows 上等于: C:\Users\<User>\AppData\Roaming\HaKa Comic
+          // 删除 Flutter getApplicationSupportDirectory() 和本地缓存数据目录:
+          // Windows 上等于: C:\Users\<User>\AppData\Roaming\com.github.raoxwup\HaKa Comic
+          // Windows 上等于: C:\Users\<User>\AppData\Local\com.github.raoxwup\HaKa Comic
           procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
           var
             SupportDir: string;
+            LocalDir: string;
           begin
             if CurUninstallStep = usUninstall then
             begin
               SupportDir := ExpandConstant('{userappdata}\com.github.raoxwup\$appName');
+              LocalDir := ExpandConstant('{localappdata}\com.github.raoxwup\$appName');
 
               if DirExists(SupportDir) then
               begin
                 Log('Removing ApplicationSupportDirectory: ' + SupportDir);
                 DelTree(SupportDir, True, True, True);
+              end;
+
+              if DirExists(LocalDir) then
+              begin
+                Log('Removing LocalAppDataDirectory: ' + LocalDir);
+                DelTree(LocalDir, True, True, True);
               end;
 
               Log('Uninstall cleanup finished.');
@@ -271,14 +342,46 @@ jobs:
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          cache: true
+          pub-cache: true
 
       - name: Prepare Flutter project
         run: |
           flutter pub get
           dart run script/prebuild_inject_version.dart
 
+      - name: Cache CocoaPods
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            macos/Pods
+          key: ${{ runner.os }}-${{ runner.arch }}-macos-pods-${{ hashFiles('macos/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-macos-pods-
+
+      - name: Cache macOS Rust build
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            build/macos/**/rust_lib_haka_comic.build
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-macos-${{ hashFiles('rust/Cargo.lock') }}-${{ hashFiles('rust/Cargo.toml', 'rust/build.rs', 'rust/src/**/*.rs', 'rust_builder/macos/**', 'rust_builder/cargokit/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-cargo-macos-${{ hashFiles('rust/Cargo.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-cargo-macos-
+
       - name: Build MacOS Release
         run: flutter build macos --release
+
+      - name: Cache npm packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ runner.arch }}-npm-create-dmg
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-npm-
 
       - name: Install create-dmg
         run: npm install -g create-dmg
@@ -335,6 +438,8 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
           architecture: x64
+          cache: true
+          pub-cache: true
 
       - name: Setup Flutter (arm64)
         if: ${{ matrix.flutter_arch == 'arm64' }}
@@ -342,6 +447,20 @@ jobs:
         with:
           channel: main
           flutter-version-file: ${{ env.FLUTTER_VERSION_FILE }}
+          cache: true
+          pub-cache: true
+
+      - name: Cache Linux Rust build
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            build/linux/${{ matrix.flutter_arch }}/release/plugins/rust_lib_haka_comic/cargokit_build
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-linux-${{ matrix.flutter_arch }}-${{ hashFiles('rust/Cargo.lock') }}-${{ hashFiles('rust/Cargo.toml', 'rust/build.rs', 'rust/src/**/*.rs', 'rust_builder/linux/**', 'rust_builder/cargokit/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-cargo-linux-${{ matrix.flutter_arch }}-${{ hashFiles('rust/Cargo.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-cargo-linux-${{ matrix.flutter_arch }}-
 
       - name: Install Linux build deps
         run: |
@@ -359,10 +478,20 @@ jobs:
           flutter build linux --release
           ldd build/linux/${{ matrix.flutter_arch }}/release/bundle/haka_comic
 
+      - name: Cache Ruby gems
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gem
+            ~/.local/share/gem
+          key: ${{ runner.os }}-${{ runner.arch }}-ruby-fpm
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ruby-
+
       - name: Install fpm
         run: |
-          sudo gem install fpm --no-document
-          echo "$(ruby -e 'print Gem.bindir')" >> $GITHUB_PATH
+          gem install --user-install fpm --no-document
+          echo "$(ruby -e 'print Gem.user_dir')/bin" >> $GITHUB_PATH
 
       - name: Package Linux Deb
         shell: bash
@@ -455,13 +584,13 @@ jobs:
           fetch-depth: 0
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-artifacts
           merge-multiple: true
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}
           name: v${{ needs.setup.outputs.app-version }}+${{ github.run_number }}

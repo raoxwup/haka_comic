@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/utils/comic_exporter.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
+import 'package:haka_comic/widgets/retry_for_image.dart';
 import 'package:haka_comic/widgets/toast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -58,6 +59,7 @@ class _ClearCacheState extends State<ClearCache> {
   }
 
   static Future<void> _clearCache(List<String> dirPaths) async {
+    cacheManager.emptyCache(); // 清空 cached_network_image_ce 的缓存
     for (var dirPath in dirPaths) {
       final cacheDir = Directory(dirPath);
       if (cacheDir.existsSync()) {

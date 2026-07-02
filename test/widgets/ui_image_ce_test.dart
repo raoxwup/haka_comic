@@ -122,61 +122,61 @@ void main() {
     expect(resize.imageProvider, isA<CachedNetworkImageProvider>());
   });
 
-  testWidgets(
-    'UiImage automatically retries failed loads and hides refresh until exhausted',
-    (tester) async {
-      final originalCacheManager =
-          CachedNetworkImageProvider.defaultCacheManager;
-      CachedNetworkImageProvider.defaultCacheManager = _FailingCacheManager();
-      addTearDown(() {
-        CachedNetworkImageProvider.defaultCacheManager = originalCacheManager;
-      });
+  testWidgets('RetryForImage hides refresh until failed loads are exhausted', (
+    tester,
+  ) async {
+    final missingPath =
+        '${Directory.systemTemp.path}/haka_comic_missing_retry_image.jpg';
 
-      const retryDelay = Duration(milliseconds: 50);
-      await tester.pumpWidget(
-        MaterialApp(
-          navigatorObservers: [routeObserver],
-          home: const Material(
-            child: UiImage(
-              url: 'https://example.invalid/ui-image.png',
-              width: 120,
-              height: 80,
-              timeRetry: retryDelay,
-            ),
-          ),
+    const retryDelay = Duration(milliseconds: 50);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RetryForImage(
+          imageProvider: FileImage(File(missingPath)),
+          maxAttempts: 2,
+          retryDelay: retryDelay,
+          builder: (context, status) {
+            if (status.isExhausted) {
+              return IconButton(
+                onPressed: status.retry,
+                icon: const Icon(Icons.refresh),
+              );
+            }
+            return const SizedBox();
+          },
         ),
-      );
+      ),
+    );
 
-      // Each retry cycle is: let the provider's async IO fail (via
-      // `runAsync`), pump to flush the error into state, then advance the
-      // fake clock past `retryDelay` so the retry timer fires.
-      Future<void> advanceOneCycle() async {
-        await tester.runAsync(() async {
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        });
-        await tester.pump();
-        await tester.pump(retryDelay + const Duration(milliseconds: 10));
-      }
-
-      for (
-        var i = 0;
-        i < 10 && find.byIcon(Icons.refresh).evaluate().isEmpty;
-        i++
-      ) {
-        await advanceOneCycle();
-      }
-
-      expect(find.byIcon(Icons.refresh), findsOneWidget);
-
-      // Once exhausted, further wall-clock and fake-clock advances don't
-      // schedule more auto retries.
+    // Each retry cycle is: let the provider's async IO fail (via `runAsync`),
+    // pump to flush the error into state, then advance the fake clock past
+    // `retryDelay` so the retry timer fires.
+    Future<void> advanceOneCycle() async {
       await tester.runAsync(() async {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
       });
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.byIcon(Icons.refresh), findsOneWidget);
-    },
-  );
+      await tester.pump();
+      await tester.pump(retryDelay + const Duration(milliseconds: 10));
+    }
+
+    for (
+      var i = 0;
+      i < 10 && find.byIcon(Icons.refresh).evaluate().isEmpty;
+      i++
+    ) {
+      await advanceOneCycle();
+    }
+
+    expect(find.byIcon(Icons.refresh), findsOneWidget);
+
+    // Once exhausted, further wall-clock and fake-clock advances don't
+    // schedule more auto retries.
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byIcon(Icons.refresh), findsOneWidget);
+  });
 
   testWidgets(
     'UiImage does not reacquire pool slots after a dialog is closed',
@@ -267,38 +267,6 @@ class _UiImagePoolHostState extends State<_UiImagePoolHost> {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _FailingCacheManager extends DefaultCacheManager {
-  @override
-  Stream<FileResponse> getFileStream(
-    String url, {
-    String? key,
-    Map<String, String>? headers,
-    bool withProgress = false,
-  }) async* {
-    if (withProgress) {
-      yield DownloadProgress(url, null, 0);
-    }
-    throw Exception('forced image failure');
-  }
-
-  @override
-  Stream<FileResponse> getImageFile(
-    String url, {
-    String? key,
-    Map<String, String>? headers,
-    bool withProgress = false,
-    int? maxHeight,
-    int? maxWidth,
-  }) {
-    return getFileStream(
-      url,
-      key: key,
-      headers: headers,
-      withProgress: withProgress,
     );
   }
 }

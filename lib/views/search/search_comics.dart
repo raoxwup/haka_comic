@@ -6,21 +6,27 @@ import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/providers/search_provider.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
-import 'package:haka_comic/router/aware_page_wrapper.dart';
 import 'package:haka_comic/utils/log.dart';
 import 'package:haka_comic/utils/request/request.dart';
 import 'package:haka_comic/views/comics/common_pagination_footer.dart';
 import 'package:haka_comic/views/comics/common_tmi_list.dart';
 import 'package:haka_comic/views/comics/page_selector.dart';
-import 'package:haka_comic/views/comics/sort_type_selector.dart';
+import 'package:haka_comic/views/search/filter_panel.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 import 'package:haka_comic/widgets/error_page.dart';
 import 'package:provider/provider.dart';
 
 class SearchComics extends StatefulWidget {
-  const SearchComics({super.key, required this.keyword});
+  const SearchComics({
+    super.key,
+    required this.keyword,
+    this.sortType = ComicSortType.dd,
+    this.categories = const {},
+  });
 
   final String keyword;
+  final ComicSortType sortType;
+  final Set<String> categories;
 
   @override
   State<SearchComics> createState() => _SearchComicsState();
@@ -34,7 +40,8 @@ class _SearchComicsState extends State<SearchComics>
     defaultParams: SearchPayload(
       keyword: widget.keyword,
       page: _page,
-      sort: _sortType,
+      sort: widget.sortType,
+      categories: widget.categories,
     ),
     onSuccess: (data, _) {
       Log.i('Search comics success', data.toString());
@@ -54,6 +61,7 @@ class _SearchComicsState extends State<SearchComics>
 
   int _page = 1;
   ComicSortType _sortType = ComicSortType.dd;
+  Set<String> _categories = {};
 
   @override
   List<RequestHandler> registerHandler() => [_handler];
@@ -70,6 +78,8 @@ class _SearchComicsState extends State<SearchComics>
     super.initState();
 
     _searchController.text = widget.keyword;
+    _sortType = widget.sortType;
+    _categories = Set.of(widget.categories);
   }
 
   Future<void> _onPageChange(int page) async {
@@ -79,8 +89,9 @@ class _SearchComicsState extends State<SearchComics>
     await _handler.run(
       SearchPayload(
         keyword: _searchController.text,
-        page: _page,
+        page: page,
         sort: _sortType,
+        categories: _categories,
       ),
     );
   }
@@ -89,90 +100,103 @@ class _SearchComicsState extends State<SearchComics>
 
   @override
   Widget build(BuildContext context) {
-    return RouteAwarePageWrapper(
-      builder: (context, completed) {
-        return Scaffold(
-          appBar: AppBar(
-            title: TextField(
-              controller: _searchController,
-              textAlignVertical: TextAlignVertical.center,
-              decoration: InputDecoration(
-                hintText: '搜索',
-                border: InputBorder.none,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    if (_searchController.text.isEmpty) {
-                      context.pop();
-                    } else {
-                      _searchController.clear();
-                    }
-                  },
-                  icon: const Icon(Icons.close),
-                ),
-              ),
-              onSubmitted: (value) {
-                if (value.isNotEmpty) {
-                  context.read<SearchProvider>().add(value);
-                  _onPageChange(1);
+    return Scaffold(
+      appBar: AppBar(
+        title: TextField(
+          controller: _searchController,
+          textAlignVertical: TextAlignVertical.center,
+          decoration: InputDecoration(
+            hintText: '搜索',
+            border: InputBorder.none,
+            suffixIcon: IconButton(
+              onPressed: () {
+                if (_searchController.text.isEmpty) {
+                  context.pop();
+                } else {
+                  _searchController.clear();
                 }
               },
+              icon: const Icon(Icons.close),
             ),
-            actions: [
-              IconButton(
-                tooltip: '排序',
-                icon: const Icon(Icons.sort),
-                onPressed: _buildSortTypeSelector,
-              ),
-            ],
           ),
-          body: switch (_handler.state) {
-            RequestState(:final data) when data != null => CommonTMIList(
-              controller: pagination ? null : scrollController,
-              comics: context.filtered(data.comics.docs),
-              pageSelectorBuilder: pagination
-                  ? (context) => PageSelector(
-                      currentPage: _page,
-                      pages: data.comics.pages,
-                      onPageChange: _onPageChange,
-                    )
-                  : null,
-              footerBuilder: pagination
-                  ? null
-                  : (context) {
-                      final loading = _handler.state.loading;
-                      return CommonPaginationFooter(loading: loading);
-                    },
-            ),
-            Error(:final error) => ErrorPage(
-              errorMessage: error.toString(),
-              onRetry: _handler.refresh,
-            ),
-            _ => const Center(child: CircularProgressIndicator()),
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              context.read<SearchProvider>().add(value);
+              _onPageChange(1);
+            }
           },
+        ),
+        actions: [
+          IconButton(
+            tooltip: '筛选',
+            icon: const Icon(Icons.filter_list),
+            onPressed: _buildFilterPanel,
+          ),
+        ],
+      ),
+      body: switch (_handler.state) {
+        RequestState(:final data) when data != null => CommonTMIList(
+          controller: pagination ? null : scrollController,
+          comics: context.filtered(data.comics.docs),
+          pageSelectorBuilder: pagination
+              ? (context) => PageSelector(
+                  currentPage: _page,
+                  pages: data.comics.pages,
+                  onPageChange: _onPageChange,
+                )
+              : null,
+          footerBuilder: pagination
+              ? null
+              : (context) {
+                  final loading = _handler.state.loading;
+                  return CommonPaginationFooter(loading: loading);
+                },
+        ),
+        Error(:final error) => ErrorPage(
+          errorMessage: error.toString(),
+          onRetry: _handler.refresh,
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
+    );
+  }
+
+  void _buildFilterPanel() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return FilterPanel(
+          sortType: _sortType,
+          categories: _categories,
+          onFilter: _onFilter,
         );
       },
     );
   }
 
-  void _buildSortTypeSelector() {
-    showDialog(
-      context: context,
-      builder: (context) => SortTypeSelector(
-        sortType: _sortType,
-        onSortTypeChange: _onSortTypeChange,
-      ),
-    );
-  }
-
-  void _onSortTypeChange(ComicSortType type) {
-    if (type == _sortType) return;
+  void _onFilter({
+    required Set<String> categories,
+    required ComicSortType type,
+  }) {
+    if (_categories.length == categories.length &&
+        _categories.containsAll(categories) &&
+        type == _sortType) {
+      return;
+    }
+    final nextCategories = Set.of(categories);
     setState(() {
+      _categories = nextCategories;
       _sortType = type;
       _page = 1;
     });
     _handler.mutate(SearchResponse.empty);
     _handler.run(
-      SearchPayload(keyword: _searchController.text, page: 1, sort: type),
+      SearchPayload(
+        keyword: _searchController.text,
+        page: 1,
+        sort: type,
+        categories: nextCategories,
+      ),
     );
   }
 }
