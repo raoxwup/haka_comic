@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:haka_comic/config/app_config.dart';
-import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/browse_mode.dart';
 
 class TMIList extends StatelessWidget {
@@ -61,7 +60,6 @@ class TMIList extends StatelessWidget {
 
           return CustomScrollView(
             controller: controller,
-            cacheExtent: context.height * 2,
             slivers: [
               if (pageSelectorBuilder != null) pageSelectorBuilder!(context),
               SliverGrid.builder(

@@ -28,9 +28,6 @@ class _SortFoldersState extends State<SortFolders> {
   void _onReorder(int oldIndex, int newIndex) {
     if (_saving) return;
     setState(() {
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
       final item = _folders.removeAt(oldIndex);
       _folders.insert(newIndex, item);
       _dirty = true;
@@ -83,7 +80,7 @@ class _SortFoldersState extends State<SortFolders> {
           : ReorderableListView.builder(
               buildDefaultDragHandles: false,
               itemCount: _folders.length,
-              onReorder: _onReorder,
+              onReorderItem: _onReorder,
               itemBuilder: (context, index) {
                 final folder = _folders[index];
                 return ListTile(

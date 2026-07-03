@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/network/models.dart';
@@ -68,7 +69,7 @@ class _CategoriesState extends State<Categories> with RequestMixin {
       );
     }
     return GridView.builder(
-      cacheExtent: context.height * 1.5,
+      scrollCacheExtent: ScrollCacheExtent.pixels(context.height * 1.5),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: UiMode.m1(context)
             ? 130
