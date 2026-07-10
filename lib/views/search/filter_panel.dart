@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/utils/extension.dart';
 import 'package:haka_comic/views/settings/blacklist.dart' as blacklist;
@@ -30,13 +31,15 @@ class FilterPanel extends StatefulWidget {
 
 class _FilterPanelState extends State<FilterPanel> {
   late ComicSortType _sortType;
+  late Set<String> _blockedCategories;
   late Set<String> _selectedCategories;
 
   @override
   void initState() {
     super.initState();
     _sortType = widget.sortType;
-    _selectedCategories = Set.of(widget.categories);
+    _blockedCategories = AppConf().blacklist.toSet();
+    _selectedCategories = widget.categories.difference(_blockedCategories);
   }
 
   bool get _hasChanges =>
@@ -151,12 +154,13 @@ class _FilterPanelState extends State<FilterPanel> {
                     ),
                   ),
                   for (final category in allCategories)
-                    _CategoryChip(
-                      label: category,
-                      selected: _selectedCategories.contains(category),
-                      onSelected: (selected) =>
-                          _toggleCategory(category, selected),
-                    ),
+                    if (!_blockedCategories.contains(category))
+                      _CategoryChip(
+                        label: category,
+                        selected: _selectedCategories.contains(category),
+                        onSelected: (selected) =>
+                            _toggleCategory(category, selected),
+                      ),
                 ],
               ),
             ],
