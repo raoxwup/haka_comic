@@ -190,8 +190,7 @@ void _downloadIsolateEntry(
 }
 
 class _DownloadWorker {
-  _DownloadWorker({required SendPort mainSendPort})
-    : _mainSendPort = mainSendPort;
+  _DownloadWorker({required this._mainSendPort});
 
   static const int _defaultConcurrency = 3;
   static const int _chapterInitConcurrency = 2;
