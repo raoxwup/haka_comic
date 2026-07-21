@@ -37,7 +37,7 @@ dependencies:
       ref: 20659906f1b2b7e0a5acd43471e81ab117576a25
   file_picker: ^11.0.2
   webdav_client: ^1.2.2
-  window_manager: ^0.5.1
+  window_manager: ^0.5.2
   vector_math: ^2.2.0
   volume_button_override: ^0.0.1
   go_transitions: ^0.8.3
