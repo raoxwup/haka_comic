@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/rust/api/compress.dart';
-import 'package:haka_comic/rust/api/simple.dart';
+import 'package:haka_comic/rust/api/pdf.dart';
 import 'package:haka_comic/utils/android_download_saver.dart';
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/utils/loader.dart';

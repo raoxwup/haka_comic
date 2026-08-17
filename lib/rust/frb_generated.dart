@@ -4,7 +4,8 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/compress.dart';
-import 'api/simple.dart';
+import 'api/download/client.dart';
+import 'api/pdf.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -56,7 +57,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   @override
   Future<void> executeRustInitializers() async {
-    await api.crateApiSimpleInitApp();
+    await api.crateApiPdfInitApp();
   }
 
   @override
@@ -67,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -312152373;
+  int get rustContentHash => 163237256;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -97,6 +98,15 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiCompressZipperClose({required Zipper that});
 
+  Future<HeaderMap> crateApiDownloadClientClientCreateHeaders({
+    required String url,
+    required Method method,
+    required String authorization,
+    required String imageQuality,
+  });
+
+  Future<Client> crateApiDownloadClientClientNew({required String token});
+
   Future<void> crateApiCompressCompress({
     required String sourceFolderPath,
     required String outputZipPath,
@@ -113,12 +123,35 @@ abstract class RustLibApi extends BaseApi {
     required String outputFolderPath,
   });
 
-  Future<void> crateApiSimpleExportPdf({
+  Future<void> crateApiPdfExportPdf({
     required String sourceFolderPath,
     required String outputPdfPath,
   });
 
-  Future<void> crateApiSimpleInitApp();
+  Future<void> crateApiPdfInitApp();
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_HeaderMap;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_HeaderMap;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_HeaderMapPtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_InvalidHeaderValue;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_InvalidHeaderValue;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_InvalidHeaderValuePtr;
+
+  RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Method;
+
+  RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Method;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_MethodPtr;
 
   RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Zipper;
 
@@ -283,6 +316,78 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "Zipper_close", argNames: ["that"]);
 
   @override
+  Future<HeaderMap> crateApiDownloadClientClientCreateHeaders({
+    required String url,
+    required Method method,
+    required String authorization,
+    required String imageQuality,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(url, serializer);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+            method,
+            serializer,
+          );
+          sse_encode_String(authorization, serializer);
+          sse_encode_String(imageQuality, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap,
+          decodeErrorData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue,
+        ),
+        constMeta: kCrateApiDownloadClientClientCreateHeadersConstMeta,
+        argValues: [url, method, authorization, imageQuality],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDownloadClientClientCreateHeadersConstMeta =>
+      const TaskConstMeta(
+        debugName: "client_create_headers",
+        argNames: ["url", "method", "authorization", "imageQuality"],
+      );
+
+  @override
+  Future<Client> crateApiDownloadClientClientNew({required String token}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(token, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_client,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiDownloadClientClientNewConstMeta,
+        argValues: [token],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDownloadClientClientNewConstMeta =>
+      const TaskConstMeta(debugName: "client_new", argNames: ["token"]);
+
+  @override
   Future<void> crateApiCompressCompress({
     required String sourceFolderPath,
     required String outputZipPath,
@@ -298,7 +403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 7,
             port: port_,
           );
         },
@@ -332,7 +437,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 8,
             port: port_,
           );
         },
@@ -368,7 +473,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 9,
             port: port_,
           );
         },
@@ -389,7 +494,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<void> crateApiSimpleExportPdf({
+  Future<void> crateApiPdfExportPdf({
     required String sourceFolderPath,
     required String outputPdfPath,
   }) {
@@ -402,7 +507,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -410,20 +515,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiSimpleExportPdfConstMeta,
+        constMeta: kCrateApiPdfExportPdfConstMeta,
         argValues: [sourceFolderPath, outputPdfPath],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleExportPdfConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiPdfExportPdfConstMeta => const TaskConstMeta(
     debugName: "export_pdf",
     argNames: ["sourceFolderPath", "outputPdfPath"],
   );
 
   @override
-  Future<void> crateApiSimpleInitApp() {
+  Future<void> crateApiPdfInitApp() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -431,7 +536,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -439,15 +544,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiSimpleInitAppConstMeta,
+        constMeta: kCrateApiPdfInitAppConstMeta,
         argValues: [],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
+  TaskConstMeta get kCrateApiPdfInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_HeaderMap => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_HeaderMap => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_InvalidHeaderValue => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_InvalidHeaderValue => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_Method => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_Method => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_Zipper => wire
@@ -456,6 +585,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_Zipper => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper;
+
+  @protected
+  HeaderMap
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return HeaderMapImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  InvalidHeaderValue
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return InvalidHeaderValueImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
 
   @protected
   Zipper
@@ -476,6 +623,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Method
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return MethodImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  HeaderMap
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return HeaderMapImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  InvalidHeaderValue
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return InvalidHeaderValueImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  Method
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return MethodImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   Zipper
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper(
     dynamic raw,
@@ -488,6 +671,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as String;
+  }
+
+  @protected
+  Client dco_decode_client(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return Client(token: dco_decode_String(arr[0]));
   }
 
   @protected
@@ -533,6 +725,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HeaderMap
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return HeaderMapImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  InvalidHeaderValue
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return InvalidHeaderValueImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   Zipper
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper(
     SseDeserializer deserializer,
@@ -557,6 +773,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Method
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return MethodImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  HeaderMap
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return HeaderMapImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  InvalidHeaderValue
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return InvalidHeaderValueImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  Method
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return MethodImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   Zipper
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper(
     SseDeserializer deserializer,
@@ -573,6 +837,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  Client sse_decode_client(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_token = sse_decode_String(deserializer);
+    return Client(token: var_token);
   }
 
   @protected
@@ -633,6 +904,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    HeaderMap self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as HeaderMapImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    InvalidHeaderValue self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as InvalidHeaderValueImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper(
     Zipper self,
     SseSerializer serializer,
@@ -659,6 +956,58 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    Method self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as MethodImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHeaderMap(
+    HeaderMap self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as HeaderMapImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInvalidHeaderValue(
+    InvalidHeaderValue self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as InvalidHeaderValueImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMethod(
+    Method self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as MethodImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerZipper(
     Zipper self,
     SseSerializer serializer,
@@ -674,6 +1023,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_client(Client self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.token, serializer);
   }
 
   @protected
@@ -733,6 +1088,70 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
   }
+}
+
+@sealed
+class HeaderMapImpl extends RustOpaque implements HeaderMap {
+  // Not to be used by end users
+  HeaderMapImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  HeaderMapImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_HeaderMap,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_HeaderMap,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_HeaderMapPtr,
+  );
+}
+
+@sealed
+class InvalidHeaderValueImpl extends RustOpaque implements InvalidHeaderValue {
+  // Not to be used by end users
+  InvalidHeaderValueImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  InvalidHeaderValueImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_InvalidHeaderValue,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_InvalidHeaderValue,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_InvalidHeaderValuePtr,
+  );
+}
+
+@sealed
+class MethodImpl extends RustOpaque implements Method {
+  // Not to be used by end users
+  MethodImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  MethodImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_Method,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_Method,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_MethodPtr,
+  );
 }
 
 @sealed

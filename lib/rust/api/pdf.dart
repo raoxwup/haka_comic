@@ -12,7 +12,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<void> exportPdf({
   required String sourceFolderPath,
   required String outputPdfPath,
-}) => RustLib.instance.api.crateApiSimpleExportPdf(
+}) => RustLib.instance.api.crateApiPdfExportPdf(
   sourceFolderPath: sourceFolderPath,
   outputPdfPath: outputPdfPath,
 );
