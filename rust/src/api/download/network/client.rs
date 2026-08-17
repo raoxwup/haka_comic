@@ -14,11 +14,17 @@ const NONCE: &str = "4ce7a7aa759b40f794d189a88b84aba8";
 
 pub struct Client {
     pub token: String,
+    pub base_url: String,
 }
 
 impl Client {
-    pub fn new(token: String) -> Self {
-        Self { token }
+    pub fn new(token: String, base_url: String) -> Self {
+        Self { token, base_url }
+    }
+
+    pub fn set_base_url(&self, base_url: String) -> Self {
+        self.base_url = base_url;
+        self
     }
 
     pub fn create_headers(
