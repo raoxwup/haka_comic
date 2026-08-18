@@ -13,8 +13,6 @@ hmac = "0.12.1"
 human-sort = "0.2.2"
 image = "0.25.10"
 rayon = "1.12.0"
-reqwest = { version = "0.13", features = ["json"] }
-serde = { version = "1", features = ["derive"] }
 sha2 = "0.10.9"
 tokio = { version = "1", features = ["full"] }
 walkdir = "2.5.0"
