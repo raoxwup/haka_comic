@@ -25,8 +25,8 @@ class Reader extends StatefulWidget {
 }
 
 class _ReaderState extends State<Reader> {
-  double _scrollAccumulator = 0.0;
-  static const double _hideToolbarScrollThreshold = 30.0;
+  // double _scrollAccumulator = 0.0;
+  // static const double _hideToolbarScrollThreshold = 30.0;
   @override
   void initState() {
     super.initState();
@@ -66,27 +66,31 @@ class _ReaderState extends State<Reader> {
 
     final chapters = context.selector((state) => state.chapters);
 
-    Widget listWidget = NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification) {
-          _scrollAccumulator += (notification.scrollDelta ?? 0.0).abs();
-          if (_scrollAccumulator >= _hideToolbarScrollThreshold) {
-            if (context.stateReader.lockMenu) {
-              context.reader.collapseMenuLock();
-            } else {
-              context.reader.hideToolbar();
-            }
-            _scrollAccumulator = 0.0;
-          }
-        } else if (notification is ScrollEndNotification) {
-          _scrollAccumulator = 0.0;
-        }
-        return false;
-      },
-      child: readMode.isVertical
-          ? const VerticalList()
-          : const HorizontalList(),
-    );
+    // Widget listWidget = NotificationListener<ScrollNotification>(
+    //   onNotification: (notification) {
+    //     if (notification is ScrollUpdateNotification) {
+    //       _scrollAccumulator += (notification.scrollDelta ?? 0.0).abs();
+    //       if (_scrollAccumulator >= _hideToolbarScrollThreshold) {
+    //         if (context.stateReader.lockMenu) {
+    //           context.reader.collapseMenuLock();
+    //         } else {
+    //           context.reader.hideToolbar();
+    //         }
+    //         _scrollAccumulator = 0.0;
+    //       }
+    //     } else if (notification is ScrollEndNotification) {
+    //       _scrollAccumulator = 0.0;
+    //     }
+    //     return false;
+    //   },
+    //   child: readMode.isVertical
+    //       ? const VerticalList()
+    //       : const HorizontalList(),
+    // );
+
+    final listWidget = readMode.isVertical
+        ? const VerticalList()
+        : const HorizontalList();
 
     return Scaffold(
       backgroundColor: context.colorScheme.surfaceContainerLowest,

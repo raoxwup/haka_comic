@@ -55,6 +55,7 @@ dependencies:
   cached_network_image_ce: ^4.10.0
   socks5_proxy: ^2.1.1
   dynamic_app_icon_flutter_plus: ^2.1.0
+  saf: ^2.1.2
 
 dev_dependencies:
   flutter_test:
