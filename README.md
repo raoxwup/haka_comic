@@ -40,11 +40,16 @@
 
 | 组件           | 版本要求                                             | 官网安装指南                                                       | 验证命令                                  |
 | -------------- | ---------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
-| Flutter SDK    | `3.41.2`（见 `pubspec.yaml`）                        | [Flutter 安装文档](https://docs.flutter.dev/get-started/install)   | `flutter --version` / `flutter doctor -v` |
-| Dart SDK       | `>= 3.10.0 < 4.0.0`（见 `pubspec.yaml`）             | [Dart SDK 安装文档](https://dart.dev/get-dart)                     | `dart --version`                          |
+| Flutter SDK    | `3.47.5`（见 `pubspec.yaml`）                        | [Flutter 安装文档](https://docs.flutter.dev/get-started/install)   | `flutter --version` / `flutter doctor -v` |
+| Dart SDK       | `>= 3.12.0 < 4.0.0`（见 `pubspec.yaml`）             | [Dart SDK 安装文档](https://dart.dev/get-dart)                     | `dart --version`                          |
 | Rust toolchain | 建议使用 stable（本项目 Rust crate 为 edition 2021） | [Rust 安装文档（rustup）](https://www.rust-lang.org/tools/install) | `rustc --version` / `cargo --version`     |
+| Android JDK    | `>= 17`（本机 Android Studio JBR 21 可用）         | [Android JDK 配置](https://developer.android.com/build/jdks)       | `flutter doctor -v`                       |
+| Gradle         | `9.3.1`（见 Android Gradle Wrapper）              | [Gradle 安装指南](https://docs.gradle.org/current/userguide/installation.html) | `cd android && gradlew --version` |
+| AGP / KGP      | `9.1.0` / `2.4.0`（见 `android/settings.gradle.kts`） | [AGP 发布说明](https://developer.android.com/build/releases/gradle-plugin) | 查看 Android 构建配置 |
 
 > 说明：Flutter SDK 自带 Dart SDK；如果你已经安装了 Flutter，一般无需再单独安装 Dart。
+> Flutter 3.47 的 Apple 平台最低部署版本为 iOS 15.0 / macOS 12.0。
+> Android 暂时保留 `android.builtInKotlin=false` / `android.newDsl=false`，以兼容尚未迁移至 AGP 9 内建 Kotlin 的插件；未来升级 Flutter 时需重新评估。
 
 ---
 

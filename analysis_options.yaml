@@ -30,3 +30,10 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**
+    - linux/**

@@ -1,5 +1,5 @@
 import 'dart:async' show scheduleMicrotask;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/utils/request/request_handler.dart';
 
 mixin RequestMixin<T extends StatefulWidget> on State<T> {

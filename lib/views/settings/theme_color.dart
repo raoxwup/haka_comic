@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/providers/theme_color_provider.dart';
 import 'package:haka_comic/views/settings/widgets/menu_list_tile.dart';
 

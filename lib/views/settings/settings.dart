@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart' hide Block;
 import 'package:haka_comic/utils/common.dart';
 import 'package:haka_comic/views/settings/app_icon.dart';

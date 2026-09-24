@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/read_record_helper.dart';

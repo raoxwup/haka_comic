@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:haka_comic/network/http.dart';
 import 'package:haka_comic/providers/user_provider.dart';
@@ -51,14 +50,19 @@ class _EditorState extends State<Editor> with RequestMixin {
 
   Future<void> _pickImage() async {
     try {
-      final pickedFile = await FilePicker.pickFiles(type: FileType.image);
+      final pickedFile = await FilePicker.pickFile(type: FileType.image);
       if (pickedFile != null) {
-        if (pickedFile.files.single.size > 5 * 1024 * 1024) {
+        final size = await pickedFile.length();
+        if (size == null) {
+          Toast.show(message: '文件读取失败');
+          return;
+        }
+        if (size > 5 * 1024 * 1024) {
           Toast.show(message: '图片不能大于5MB');
           return;
         }
         // 读取文件字节
-        final bytes = await File(pickedFile.files.single.path!).readAsBytes();
+        final bytes = await pickedFile.readAsBytes();
         // 转换为 Base64
         final base64 = base64Encode(bytes);
         await _avatarUpdateHandler.run(base64);

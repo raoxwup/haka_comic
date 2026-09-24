@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/utils/request/request_state.dart';
 
 abstract class RequestHandler<T, P> {

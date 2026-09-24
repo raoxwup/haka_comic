@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/network/models.dart';

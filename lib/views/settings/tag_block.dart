@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/providers/block_provider.dart';
 import 'package:haka_comic/views/settings/block_list_page.dart';
 import 'package:provider/provider.dart';

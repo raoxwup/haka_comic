@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haka_comic/utils/shared_preferences_util.dart';
 import 'package:haka_comic/views/download/background_downloader.dart';

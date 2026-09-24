@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/network/models.dart';
 import 'package:haka_comic/views/comic_details/title_box.dart';
 import 'package:haka_comic/views/comic_details/types.dart';

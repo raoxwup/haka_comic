@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/widgets/with_blur.dart';
 
 /// 按需启用毛玻璃的包装组件。

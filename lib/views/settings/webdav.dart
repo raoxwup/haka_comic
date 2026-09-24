@@ -1,6 +1,6 @@
 import 'dart:io' show File, Directory;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/history_helper.dart';
 import 'package:haka_comic/database/images_helper.dart';

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:go_transitions/go_transitions.dart';
 import 'package:haka_comic/config/app_config.dart';
@@ -231,36 +231,40 @@ class _AppState extends State<App> with WindowListener, RequestMixin {
           scaffoldMessengerKey: scaffoldMessengerKey,
           builder: (context, child) {
             final canUseGlobalBack = !AppConf().needAuth || isAuthorized;
-            return GlobalMouseBackListener(
-              navigatorKey: navigatorKey,
-              enabled: canUseGlobalBack,
-              child: Stack(
-                children: [
-                  Positioned.fill(child: _SystemUiProvider(child!)),
-                  if (AppConf().needAuth && !isAuthorized)
-                    Positioned.fill(
-                      child: Material(
-                        child: Container(
-                          color: context.colorScheme.surface,
-                          child: Column(
-                            spacing: 20,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '需要进行身份验证以访问应用程序',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                              Button.filled(
-                                isLoading: isVerifying,
-                                onPressed: auth,
-                                child: const Text('验证'),
-                              ),
-                            ],
+
+            // ignore: deprecated_member_use
+            return MaterialUiCompatibilityBridge(
+              child: GlobalMouseBackListener(
+                navigatorKey: navigatorKey,
+                enabled: canUseGlobalBack,
+                child: Stack(
+                  children: [
+                    Positioned.fill(child: _SystemUiProvider(child!)),
+                    if (AppConf().needAuth && !isAuthorized)
+                      Positioned.fill(
+                        child: Material(
+                          child: Container(
+                            color: context.colorScheme.surface,
+                            child: Column(
+                              spacing: 20,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '需要进行身份验证以访问应用程序',
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                                Button.filled(
+                                  isLoading: isVerifying,
+                                  onPressed: auth,
+                                  child: const Text('验证'),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             );
           },

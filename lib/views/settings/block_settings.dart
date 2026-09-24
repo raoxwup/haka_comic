@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:haka_comic/views/settings/blacklist.dart';
 import 'package:haka_comic/views/settings/tag_block.dart';
 import 'package:haka_comic/views/settings/word_block.dart';

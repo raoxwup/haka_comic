@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:haka_comic/config/app_config.dart';
 import 'package:haka_comic/database/images_helper.dart';
